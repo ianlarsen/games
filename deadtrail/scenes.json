@@ -1,0 +1,106 @@
+{
+  "meta": { "episode": 1, "title": "welcome to the dungeon" },
+  "scenes": [
+    {
+      "id": "cold-open-roomba",
+      "title": "cold open - roomba + ding",
+      "caption": "a roomba bumps endlessly. a microwave ding breaks the silence.",
+      "bg": "assets/backgrounds/prison_interior.png",
+      "layers": [
+        { "img": "assets/objects/roomba_side.png", "x": 560, "y": 560, "scale": 1 }
+      ]
+    },
+    {
+      "id": "chaos-smashcut",
+      "title": "chaos smash cut",
+      "caption": "a screaming survivor runs from zombies. flesh tearing, blood everywhere.",
+      "bg": "assets/backgrounds/zombie_horde.png",
+      "layers": [
+        { "img": "assets/sprites/npc/zombie_no_arm.png", "x": 780, "y": 540, "scale": 1 },
+        { "img": "assets/sprites/npc/zombie_no_arm.png", "x": 920, "y": 560, "scale": 1, "flip": true }
+      ]
+    },
+    {
+      "id": "approach-prison",
+      "title": "approach the prison",
+      "caption": "the survivors approach the looming gates of the abandoned prison.",
+      "bg": "assets/backgrounds/prison_exterior.png",
+      "layers": [
+        { "img": "assets/sprites/characters/john.png", "x": 200, "y": 520 },
+        { "img": "assets/sprites/characters/ed.png", "x": 300, "y": 530 },
+        { "img": "assets/sprites/characters/mac.png", "x": 400, "y": 530 },
+        { "img": "assets/sprites/characters/carol.png", "x": 500, "y": 530 },
+        { "img": "assets/sprites/characters/rob.png", "x": 600, "y": 530 },
+        { "img": "assets/sprites/characters/jamaal.png", "x": 700, "y": 530 },
+        { "img": "assets/sprites/characters/justin.png", "x": 800, "y": 530 },
+        { "img": "assets/sprites/characters/stew.png", "x": 900, "y": 530 },
+        { "img": "assets/sprites/characters/ian.png", "x": 1000, "y": 530 }
+      ]
+    },
+    {
+      "id": "yard-standoff",
+      "title": "prison yard standoff",
+      "caption": "survivors clash with remnants of rick's group. jean drifts silently in the background.",
+      "bg": "assets/backgrounds/prison_interior.png",
+      "layers": [
+        { "img": "assets/sprites/characters/john.png", "x": 420, "y": 520 },
+        { "img": "assets/sprites/characters/jamaal.png", "x": 620, "y": 520, "flip": true },
+        { "img": "assets/sprites/characters/jean.png", "x": 1040, "y": 420, "scale": 0.8, "alpha": 0.7 }
+      ]
+    },
+    {
+      "id": "rob-fish",
+      "title": "rob and the fish",
+      "caption": "rob c. stares at his fish. calm inside, chaos outside.",
+      "bg": "assets/backgrounds/prison_interior.png",
+      "layers": [
+        { "img": "assets/sprites/characters/rob.png", "x": 420, "y": 540 },
+        { "img": "assets/objects/fish_swim_in_tank_with_crack.png", "x": 520, "y": 560 }
+      ]
+    },
+    {
+      "id": "office-argument",
+      "title": "office argument",
+      "caption": "john and jamaal face off. ed tinkers with a roomba.",
+      "bg": "assets/backgrounds/office.png",
+      "layers": [
+        { "img": "assets/sprites/characters/john.png", "x": 360, "y": 540 },
+        { "img": "assets/sprites/characters/jamaal.png", "x": 560, "y": 540, "flip": true },
+        { "img": "assets/sprites/characters/ed.png", "x": 800, "y": 560 },
+        { "img": "assets/objects/roomba_side.png", "x": 840, "y": 620, "scale": 0.9 }
+      ]
+    },
+    {
+      "id": "breach",
+      "title": "the breach",
+      "caption": "the zombie horde storms the outer gates. floodlights flicker.",
+      "bg": "assets/backgrounds/zombie_horde.png",
+      "layers": [
+        { "img": "assets/sprites/characters/mac.png", "x": 300, "y": 540 },
+        { "img": "assets/sprites/characters/carol.png", "x": 420, "y": 560 },
+        { "img": "assets/sprites/characters/rob.png", "x": 540, "y": 540 },
+        { "img": "assets/sprites/npc/zombie_no_arm.png", "x": 760, "y": 560 },
+        { "img": "assets/sprites/npc/zombie_no_arm.png", "x": 900, "y": 560, "flip": true }
+      ]
+    },
+    {
+      "id": "cracker-bond",
+      "title": "it's just a cracker",
+      "caption": "mac offers carol a cracker. a fragile bond forms amid chaos.",
+      "bg": "assets/backgrounds/prison_interior.png",
+      "layers": [
+        { "img": "assets/sprites/characters/mac.png", "x": 460, "y": 560 },
+        { "img": "assets/sprites/characters/carol.png", "x": 580, "y": 560, "flip": true }
+      ]
+    },
+    {
+      "id": "tag-jean",
+      "title": "tag - jean in the hall",
+      "caption": "jean stands motionless in the shadows. a microwave ding echoes.",
+      "bg": "assets/backgrounds/prison_interior.png",
+      "layers": [
+        { "img": "assets/sprites/characters/jean.png", "x": 640, "y": 520, "alpha": 0.85 }
+      ]
+    }
+  ]
+}
