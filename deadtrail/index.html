@@ -1,34 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dead Trail - Episode 1 Storyboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dead Trail – Episode 1 (Playable Slice)</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>Dead Trail - Episode 1 Storyboard</h1>
-    <div id="controls">
-      <button id="prev-btn">⟵ Previous</button>
-      <span id="scene-title">Loading...</span>
-      <button id="next-btn">Next ⟶</button>
+    <h1>Dead Trail</h1>
+    <div id="hud">
+      <span id="hearts">❤❤❤</span>
+      <span id="inventory">Roombas: 0 • Crackers: 0</span>
+      <span id="hint">WASD/←→ to move • E interact • Space throw • M music</span>
     </div>
   </header>
 
   <main>
-    <canvas id="stage" width="1280" height="720"></canvas>
-    <p id="caption"></p>
+    <canvas id="game" width="1280" height="720"></canvas>
+    <div id="dialogue" class="hidden">
+      <p id="dialogue-text"></p>
+      <div id="dialogue-continue">Press E…</div>
+    </div>
+    <div id="tooltip" class="hidden"></div>
   </main>
 
   <footer>
-    <small>
-      ← / → to navigate • F to flip selected layer • +/- to scale • M toggles talk mouth • TAB to select layer
-    </small>
+    <button id="btn-new">New Game</button>
+    <button id="btn-load">Load</button>
+    <button id="btn-mute">🔊</button>
   </footer>
 
-  <div id="error-display"></div>
+  <audio id="music" src="assets/audio/Forsaken_Walk.wav" loop preload="auto"></audio>
 
-  <script src="main.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>

@@ -1,20 +1,23 @@
-* { box-sizing: border-box; }
-body { margin: 0; background:#0e0e0e; color:#e7e7e7; font: 16px/1.4 system-ui, sans-serif; }
-header, footer { padding: 12px 16px; background:#141414; border-bottom:1px solid #2a2a2a; }
-footer { border-top:1px solid #2a2a2a; border-bottom:none; }
-h1 { margin:0 0 8px; font-size:20px; }
-#controls { display:flex; gap:12px; align-items:center; }
-#controls button { padding:6px 12px; background:#2b2b2b; color:#fff; border:1px solid #444; border-radius:6px; cursor:pointer; }
-#controls button:hover { background:#3a3a3a; }
-#scene-title { opacity:.9; }
-main { padding:12px 16px; display:grid; gap:8px; justify-items:center; }
-canvas {
-  display: block;
-  margin: 20px auto;        /* centers the canvas */
-  border: 2px solid #333;   /* optional outline */
-  image-rendering: pixelated;
-  width: 960px;             /* shrinks display */
-  height: auto;             /* keeps aspect ratio */
-  max-width: 100%;          /* prevents overflow on small screens */
-}
-#caption { margin:4px 0 0; max-width:920px; opacity:.9; text-align:center; }
+*{box-sizing:border-box}
+:root{--bg:#0e0e0e;--ink:#e7e7e7;--panel:#141414;--muted:#9aa4ad;--accent:#00ffd0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,sans-serif;
+     display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh}
+header,footer{background:var(--panel);padding:10px 14px;border-bottom:1px solid #2a2a2a}
+footer{border-top:1px solid #2a2a2a;border-bottom:none;display:flex;gap:8px}
+h1{margin:0;font-size:18px}
+#hud{display:flex;gap:16px;align-items:center;opacity:.95}
+#hearts{letter-spacing:2px}
+#hint{color:var(--muted)}
+main{display:grid;justify-items:center;align-content:start;padding:10px}
+canvas{image-rendering:pixelated;border:2px solid #333;width:960px;height:auto;max-width:100%}
+#dialogue{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);
+          max-width:880px;background:rgba(10,10,10,.85);border:2px solid #444;border-radius:10px;
+          padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.hidden{display:none}
+#dialogue-text{margin:0}
+#dialogue-continue{font-size:.85rem;color:var(--muted);margin-top:6px;text-align:right}
+#tooltip{position:absolute;padding:6px 8px;background:rgba(0,0,0,.8);border:1px solid #666;border-radius:6px;
+         transform:translate(-50%,-120%);white-space:nowrap;pointer-events:none}
+button{background:#2b2b2b;color:#fff;border:1px solid #444;border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{background:#3a3a3a}
