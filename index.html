@@ -1,24 +1,86 @@
-<main>
-  <div class="grid">
-    <!-- Concentration -->
-    <a class="tile" href="./concentration/" data-say="Concentration. Match the cards." aria-label="Concentration. Match the cards.">
-      <div class="emoji" aria-hidden="true">🧠🃏</div>
-      <div class="label">Concentration</div>
-      <div class="hint">Tap to play</div>
-    </a>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Game Time!</title>
+  <meta name="description" content="Big, kid-friendly buttons that launch Concentration, Seek & Find, and Dead Trail." />
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#0f1a33; --card:#132244; --ink:#eef3ff; --muted:#c9d5ff;
+      --focus:#9fc0ff; --accent:#2c4a86; --radius:20px; --gap:1.2rem; --max:960px;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+         background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh;}
+    header,footer{background:var(--panel);border-bottom:1px solid #1b2a4a;padding:clamp(12px,3vw,18px);}
+    footer{border-top:1px solid #1b2a4a;text-align:center;opacity:.85}
+    header h1{margin:0;font-size:clamp(1.4rem,4vw,2rem);display:flex;align-items:center;gap:.6rem;}
+    .tts-toggle{margin-left:auto;background:transparent;color:var(--ink);border:2px solid var(--focus);
+                border-radius:999px;padding:.45rem .8rem;font-size:1rem;cursor:pointer;}
+    main{margin-inline:auto;width:min(100%,var(--max));padding:clamp(14px,4vw,28px);display:grid;gap:var(--gap);}
+    .grid{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+    .tile{background:var(--card);border:3px solid #1b2a4a;border-radius:var(--radius);text-decoration:none;color:inherit;
+          display:grid;place-items:center;gap:.3rem;padding:clamp(16px,4vw,28px);min-height:200px;
+          transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+          box-shadow:0 6px 16px rgba(0,0,0,.25);}
+    .tile:hover,.tile:focus-visible{transform:translateY(-3px);border-color:var(--accent);
+          box-shadow:0 10px 24px rgba(0,0,0,.35);outline:none;}
+    .tile:focus-visible{box-shadow:0 0 0 5px var(--focus),0 10px 24px rgba(0,0,0,.35);}
+    .emoji{font-size:clamp(3rem,10vw,5rem);line-height:1;}
+    .label{font-size:clamp(1.1rem,3.6vw,1.6rem);font-weight:800;letter-spacing:.5px;}
+    .hint{color:var(--muted);font-size:clamp(.9rem,2.5vw,1rem);}
+    @media (prefers-reduced-motion: reduce){.tile{transition:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1 aria-label="Game Time! Choose a game.">🎮 Game Time!
+      <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
+    </h1>
+  </header>
 
-    <!-- Seek & Find -->
-    <a class="tile" href="./seekandfind/" data-say="Seek and Find. Look for hidden things." aria-label="Seek and Find. Look for hidden things.">
-      <div class="emoji" aria-hidden="true">🔎👀</div>
-      <div class="label">Seek &amp; Find</div>
-      <div class="hint">Tap to play</div>
-    </a>
+  <main>
+    <div class="grid">
+      <!-- Concentration -->
+      <a class="tile" href="./concentration/" data-say="Concentration. Match the cards." aria-label="Concentration. Match the cards.">
+        <div class="emoji" aria-hidden="true">🧠🃏</div>
+        <div class="label">Concentration</div>
+        <div class="hint">Tap to play</div>
+      </a>
 
-    <!-- Dead Trail -->
-    <a class="tile" href="./deadtrail/index.html" data-say="Dead Trail storyboard. Watch episode one." aria-label="Dead Trail storyboard. Watch episode one.">
-      <div class="emoji" aria-hidden="true">🧟🎬</div>
-      <div class="label">Dead Trail</div>
-      <div class="hint">Tap to open</div>
-    </a>
-  </div>
-</main>
+      <!-- Seek & Find -->
+      <a class="tile" href="./seekandfind/" data-say="Seek and Find. Look for hidden things." aria-label="Seek and Find. Look for hidden things.">
+        <div class="emoji" aria-hidden="true">🔎👀</div>
+        <div class="label">Seek &amp; Find</div>
+        <div class="hint">Tap to play</div>
+      </a>
+
+      <!-- Dead Trail -->
+      <a class="tile" href="./deadtrail/index.html" data-say="Dead Trail storyboard. Watch Episode One." aria-label="Dead Trail storyboard. Watch Episode One.">
+        <div class="emoji" aria-hidden="true">🧟🎬</div>
+        <div class="label">Dead Trail</div>
+        <div class="hint">Tap to open</div>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <small>Press TAB to move. ENTER to pick. Big buttons for kids and early readers.</small>
+  </footer>
+
+  <script>
+    // Optional voice hints
+    (function(){
+      const btn = document.getElementById('tts'); let enabled=false;
+      const speak=(t)=>{ if(!enabled) return; try{ const u=new SpeechSynthesisUtterance(t); u.rate=.95; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} };
+      btn.addEventListener('click',()=>{ enabled=!enabled; btn.setAttribute('aria-pressed',String(enabled)); btn.textContent=enabled?'🔊 Sound On':'🔇 Sound Off'; if(enabled) speak('Sound on. Choose a game.');});
+      for(const tile of document.querySelectorAll('.tile')){
+        tile.addEventListener('focus',()=>speak(tile.dataset.say));
+        tile.addEventListener('mouseenter',()=>speak(tile.dataset.say));
+        tile.addEventListener('click',()=>speak('Loading ' + tile.dataset.say));
+      }
+    })();
+  </script>
+</body>
+</html>
