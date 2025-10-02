@@ -1,4 +1,4 @@
-// Dead Trail – Episode 1 game engine
+// Dead Trail – Mobile-Friendly Episode 1
 const $ = sel => document.querySelector(sel);
 const canvas = $("#game"), ctx = canvas.getContext("2d");
 const dlgBox = $("#dialogue"), dlgText = $("#dialogue-text");
@@ -18,12 +18,29 @@ let state = {
   attackCooldown: 0
 };
 
-// Roomba easter egg state
+// Mobile controls
+let touchControls = {
+  moveLeft: false,
+  moveRight: false,
+  interact: false,
+  attack: false
+};
+
+// Roomba easter egg
 let roombaGag = {
   x: -100, y: 0, vx: 2, sprite: null, 
   nextTrigger: Date.now() + Math.random() * 30000 + 20000,
   active: false, shown: false
 };
+
+// Audio system
+let audioEnabled = false;
+function playDialogueAudio(characterId, lineNum) {
+  if (!audioEnabled) return;
+  const audio = new Audio(`assets/audio/dialogue/${characterId}_${lineNum}.mp3`);
+  audio.volume = 0.7;
+  audio.play().catch(()=>{});
+}
 
 // ---- helpers ----
 function loadJSON(u){ return fetch(u).then(r=>{ if(!r.ok) throw new Error(u+" "+r.status); return r.json(); }); }
@@ -48,7 +65,98 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const rect=(x,y,w,h)=>({x,y,w,h});
 const hit=(a,b)=>!(a.x+a.w<b.x || b.x+b.w<a.x || a.y+a.h<b.y || b.y+b.h<a.y);
 
-// ---- input ----
+// ---- Mobile Touch Controls ----
+function createMobileControls(){
+  const controlsHTML = `
+    <div id="mobile-controls" style="position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; pointer-events: none; z-index: 1000;">
+      <div style="display: flex; gap: 10px; pointer-events: auto;">
+        <button id="btn-left" style="width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: rgba(0,0,0,0.7); color: white; border: 2px solid #fff;">←</button>
+        <button id="btn-right" style="width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: rgba(0,0,0,0.7); color: white; border: 2px solid #fff;">→</button>
+      </div>
+      <div style="display: flex; gap: 10px; pointer-events: auto;">
+        <button id="btn-interact" style="width: 60px; height: 60px; font-size: 18px; border-radius: 50%; background: rgba(0,255,0,0.7); color: white; border: 2px solid #fff;">E</button>
+        <button id="btn-attack" style="width: 60px; height: 60px; font-size: 18px; border-radius: 50%; background: rgba(255,0,0,0.7); color: white; border: 2px solid #fff;">⚔</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', controlsHTML);
+  
+  // Left button
+  $('#btn-left').addEventListener('touchstart', (e)=>{e.preventDefault(); touchControls.moveLeft=true;});
+  $('#btn-left').addEventListener('touchend', (e)=>{e.preventDefault(); touchControls.moveLeft=false;});
+  $('#btn-left').addEventListener('mousedown', ()=>touchControls.moveLeft=true);
+  $('#btn-left').addEventListener('mouseup', ()=>touchControls.moveLeft=false);
+  
+  // Right button
+  $('#btn-right').addEventListener('touchstart', (e)=>{e.preventDefault(); touchControls.moveRight=true;});
+  $('#btn-right').addEventListener('touchend', (e)=>{e.preventDefault(); touchControls.moveRight=false;});
+  $('#btn-right').addEventListener('mousedown', ()=>touchControls.moveRight=true);
+  $('#btn-right').addEventListener('mouseup', ()=>touchControls.moveRight=false);
+  
+  // Interact button
+  $('#btn-interact').addEventListener('touchstart', (e)=>{e.preventDefault(); touchControls.interact=true; handleInteract();});
+  $('#btn-interact').addEventListener('touchend', (e)=>{e.preventDefault(); touchControls.interact=false;});
+  $('#btn-interact').addEventListener('click', ()=>handleInteract());
+  
+  // Attack button
+  $('#btn-attack').addEventListener('touchstart', (e)=>{e.preventDefault(); touchControls.attack=true; attackZombies();});
+  $('#btn-attack').addEventListener('touchend', (e)=>{e.preventDefault(); touchControls.attack=false;});
+  $('#btn-attack').addEventListener('click', ()=>attackZombies());
+}
+
+// Canvas tap to interact with nearby NPCs/items
+canvas.addEventListener('click', (e) => {
+  if(talkOpen) return;
+  const rect = canvas.getBoundingClientRect();
+  const clickX = ((e.clientX - rect.left) / rect.width) * canvas.width;
+  const clickY = ((e.clientY - rect.top) / rect.height) * canvas.height;
+  
+  // Check if clicked near an actor
+  for(const a of current.actors || []){
+    if(!a.talkable) continue;
+    const scale = 0.5;
+    const ax = a.x;
+    const ay = 580 - (a.h * scale);
+    const aw = a.w * scale;
+    const ah = a.h * scale;
+    
+    if(clickX >= ax && clickX <= ax + aw && clickY >= ay && clickY <= ay + ah){
+      const d = Math.abs((a.x+a.w/2) - (state.x+current.player.w/2));
+      if(d < 150){
+        tryTalk();
+        return;
+      } else {
+        toast("Too far away!");
+      }
+    }
+  }
+  
+  // Check if clicked an item
+  for(const it of current.items || []){
+    const scale = 0.5;
+    const ix = it.x;
+    const iy = 580 - (it.h * scale);
+    const iw = it.w * scale;
+    const ih = it.h * scale;
+    
+    if(clickX >= ix && clickX <= ix + iw && clickY >= iy && clickY <= iy + ih){
+      tryPickup();
+      return;
+    }
+  }
+});
+
+function handleInteract(){
+  if(talkOpen){
+    nextDialogue();
+  } else {
+    if(tryTalk()){}
+    else if(tryPickup()){}
+    else if(tryDoor()){}
+  }
+}
+
+// ---- input (keep keyboard for desktop) ----
 window.addEventListener('keydown', e=>{ 
   keys[e.key.toLowerCase()] = true; 
   if(talkOpen && e.key.toLowerCase()==='e') nextDialogue(); 
@@ -59,6 +167,7 @@ window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
 $("#btn-mute").addEventListener('click',()=>{
   state.muted = !state.muted; 
   music.muted = state.muted;
+  audioEnabled = !state.muted;
   $("#btn-mute").textContent = state.muted ? "🔇" : "🔊";
   if(!state.muted && music.paused) music.play().catch(()=>{});
 });
@@ -146,18 +255,27 @@ async function gotoScene(id, useSaved=false){
   }
   current.items.forEach(it=>{ it.w=it.sprite.width; it.h=it.sprite.height; });
 
-  if(!state.muted){ music.volume=0.5; music.play().catch(()=>{}); }
+  if(!state.muted){ music.volume=0.5; music.play().catch(()=>{});  audioEnabled = true; }
   saveGame();
 }
 
 // ---- dialogue ----
-function showDialogue(lines){ 
+let currentDialogueId = null;
+let currentLineIndex = 0;
+
+function showDialogue(lines, actorId){ 
+  currentDialogueId = actorId;
+  currentLineIndex = 0;
   talkQueue=[...lines]; 
   talkIndex=0; 
   dlgText.textContent=talkQueue[talkIndex]; 
   dlgBox.classList.remove('hidden'); 
-  talkOpen=true; 
+  talkOpen=true;
+  
+  // Play first line audio
+  if(actorId) playDialogueAudio(actorId, currentLineIndex);
 }
+
 function parseDirective(line){
   if(!line.startsWith('@')) return false;
   const parts = line.slice(1).split(' ');
@@ -174,6 +292,7 @@ function parseDirective(line){
   if(cmd==='end'){ talkQueue = []; }
   return true;
 }
+
 function evalIf(expr){
   try{
     const [lhs,op,rhs] = expr.split(/(>=|<=|==|>|<)/);
@@ -187,9 +306,11 @@ function evalIf(expr){
   }catch{}
   return false;
 }
+
 function nextDialogue(){
   while(talkIndex < talkQueue.length){
     let line = talkQueue[++talkIndex];
+    currentLineIndex++;
     if(line==null) break;
     if(line.startsWith('@if')){ 
       const cond=line.replace('@if','').trim(); 
@@ -201,11 +322,13 @@ function nextDialogue(){
       continue; 
     }
     if(parseDirective(line)) continue;
-    dlgText.textContent = line; 
+    dlgText.textContent = line;
+    if(currentDialogueId) playDialogueAudio(currentDialogueId, currentLineIndex);
     return;
   }
   dlgBox.classList.add('hidden'); 
-  talkOpen=false; 
+  talkOpen=false;
+  currentDialogueId = null;
   saveGame();
 }
 
@@ -216,7 +339,7 @@ function updateRoombaGag(){
   if(!roombaGag.active && now > roombaGag.nextTrigger){
     roombaGag.active = true;
     roombaGag.x = -100;
-    roombaGag.y = current.bounds.ground - 20;
+    roombaGag.y = 580 - 20;
     roombaGag.vx = 2 + Math.random() * 2;
     roombaGag.shown = false;
   }
@@ -226,6 +349,7 @@ function updateRoombaGag(){
     
     if(!roombaGag.shown && roombaGag.x > 400){
       toast("ED: Damn robo vacuum!");
+      playDialogueAudio('ed', 'roomba_gag');
       roombaGag.shown = true;
     }
     
@@ -240,30 +364,41 @@ function updateRoombaGag(){
 function attackZombies(){
   if(state.attackCooldown > 0) return;
   
-  const attackRange = 60;
-  const attackDir = state.facing;
-  const attackX = state.x + (attackDir > 0 ? current.player.w : -attackRange);
+  const attackRange = 80;
+  const scale = 0.5;
   
+  let hitSomething = false;
   for(let i = current.actors.length - 1; i >= 0; i--){
     const a = current.actors[i];
     if(a.ai !== 'zombie') continue;
     
-    const distance = Math.abs(a.x - state.x);
-    if(distance < attackRange){
+    const playerCenterX = state.x + (current.player.w * scale / 2);
+    const zombieCenterX = a.x + (a.w * scale / 2);
+    const distance = Math.abs(zombieCenterX - playerCenterX);
+    
+    const inFront = (state.facing > 0 && zombieCenterX > playerCenterX) || 
+                    (state.facing < 0 && zombieCenterX < playerCenterX);
+    
+    if(distance < attackRange && inFront){
       a.hp--;
-      toast("Hit!");
+      toast("Hit! (" + a.hp + " HP left)");
+      hitSomething = true;
       
-      // Knockback
-      a.x += attackDir * 40;
+      a.x += state.facing * 30;
       
       if(a.hp <= 0){
         current.actors.splice(i, 1);
         toast("Zombie defeated!");
       }
       
-      state.attackCooldown = 20; // ~0.3 seconds
+      state.attackCooldown = 30;
       break;
     }
+  }
+  
+  if(!hitSomething && state.attackCooldown === 0){
+    toast("Miss!");
+    state.attackCooldown = 20;
   }
 }
 
@@ -285,26 +420,16 @@ function step(){
   if(state.attackCooldown > 0) state.attackCooldown--;
   
   if(!talkOpen){
-    const L=keys['a']||keys['arrowleft'];
-    const R=keys['d']||keys['arrowright'];
+    const L = keys['a'] || keys['arrowleft'] || touchControls.moveLeft;
+    const R = keys['d'] || keys['arrowright'] || touchControls.moveRight;
+    
     if(L){ state.vx=-3; state.facing=-1; } 
     else if(R){ state.vx=3; state.facing=1; } 
     else state.vx=0;
-    
-    // Space to attack
-    if(keys[' '] || keys['spacebar']){
-      attackZombies();
-    }
   }
   
   state.x = clamp(state.x + state.vx, current.bounds.left, 
                   current.bounds.right - current.player.w * 0.5);
-
-  if(keys['e'] && !talkOpen){ 
-    if(tryTalk()){}
-    else if(tryPickup()){}
-    else if(tryDoor()){}
-  }
 
   // Zombie AI
   for(const a of current.actors){
@@ -313,9 +438,9 @@ function step(){
       a.x += dir * a.speed;
       
       const playerScale = 0.5;
-      const pr=rect(state.x, state.y - current.player.h * playerScale, 
+      const pr=rect(state.x, 580 - current.player.h * playerScale, 
                     current.player.w * playerScale, current.player.h * playerScale);
-      const zr=rect(a.x, a.y - a.h * 0.5, a.w * 0.5, a.h * 0.5);
+      const zr=rect(a.x, 580 - a.h * 0.5, a.w * 0.5, a.h * 0.5);
       if(hit(pr,zr)) hurtPlayer();
     }
   }
@@ -339,9 +464,12 @@ function tryTalk(){
   for(const a of current.actors){
     if(!a.talkable) continue;
     const d = Math.abs((a.x+a.w/2) - (state.x+current.player.w/2));
-    if(d<90){
+    if(d<150){
       const lines=(a.onTalk||[]).flatMap(id=>manifest.dialogue[id]||[]);
-      if(lines.length){ showDialogue(lines); return true; }
+      if(lines.length){ 
+        showDialogue(lines, a.id); 
+        return true; 
+      }
     }
   }
   return false;
@@ -350,9 +478,9 @@ function tryTalk(){
 function tryPickup(){
   for(let i=current.items.length-1;i>=0;i--){
     const it=current.items[i];
-    const pr = rect(state.x, state.y - current.player.h * 0.5, 
+    const pr = rect(state.x, 580 - current.player.h * 0.5, 
                     current.player.w * 0.5, current.player.h * 0.5);
-    const ir = rect(it.x, it.y - it.h * 0.5, it.w * 0.5, it.h * 0.5);
+    const ir = rect(it.x, 580 - it.h * 0.5, it.w * 0.5, it.h * 0.5);
     if(hit(pr, ir)){
       if(it.type==='cracker'){ 
         state.inventory.cracker++; 
@@ -391,7 +519,6 @@ function draw(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBG();
   
-  // Ground level for this background
   const groundY = 580;
   const scale = 0.5;
   
@@ -401,7 +528,7 @@ function draw(){
     ctx.drawImage(it.sprite, it.x, itemY, it.w * scale, it.h * scale);
   }
   
-  // Draw roomba gag
+  // Draw roomba
   if(roombaGag.active && roombaGag.sprite){
     ctx.drawImage(roombaGag.sprite, roombaGag.x, groundY - 20, 48, 24);
   }
@@ -510,6 +637,7 @@ async function loadLevels(){
     
     roombaGag.sprite = await loadImg('assets/objects/roomba_side.png');
     
+    createMobileControls();
     loadGame();
     requestAnimationFrame(loop);
   } catch(err) {
