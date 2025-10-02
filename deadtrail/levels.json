@@ -5,12 +5,12 @@
     "prison_yard": {
       "bg": "assets/backgrounds/prison_interior.png",
       "bounds": { "left": 80, "right": 1180, "ground": 620 },
-      "player": { "x": 160, "y": 560, "sprite": "assets/sprites/characters/john.png" },
+      "player": { "x": 160, "y": 620, "sprite": "assets/sprites/characters/john.png" },
       "actors": [
-        { "id": "carol", "sprite": "assets/sprites/characters/carol.png", "x": 520, "y": 560, "talkable": true, "onTalk": ["carol_intro"] },
-        { "id": "mac", "sprite": "assets/sprites/characters/mac.png", "x": 680, "y": 560, "talkable": true, "onTalk": ["mac_tough"] },
-        { "id": "jean", "sprite": "assets/sprites/characters/jean.png", "x": 1040, "y": 420, "alpha": 0.3, "ghost": true },
-        { "id": "z1", "sprite": "assets/sprites/characters/zombie_rob.png", "x": 900, "y": 560, "ai": "zombie", "speed": 0.9 }
+        { "id": "carol", "sprite": "assets/sprites/characters/carol.png", "x": 520, "y": 620, "talkable": true, "onTalk": ["carol_intro"] },
+        { "id": "mac", "sprite": "assets/sprites/characters/mac.png", "x": 680, "y": 620, "talkable": true, "onTalk": ["mac_tough"] },
+        { "id": "jean", "sprite": "assets/sprites/characters/jean.png", "x": 1040, "y": 480, "alpha": 0.3, "ghost": true },
+        { "id": "z1", "sprite": "assets/sprites/characters/zombie_rob.png", "x": 900, "y": 620, "ai": "zombie", "speed": 0.9 }
       ],
       "items": [
         { "id": "snack1", "sprite": "assets/objects/snack.png", "x": 320, "y": 600, "type": "cracker" }

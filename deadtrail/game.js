@@ -242,9 +242,8 @@ function updateRoombaGag(){
 function drawBG(){
   if(!current || !current.bg) return;
   const bg=current.bg; 
-  const s=Math.max(canvas.width/bg.width, canvas.height/bg.height);
-  const w=bg.width*s, h=bg.height*s; 
-  ctx.drawImage(bg,(canvas.width-w)/2,(canvas.height-h)/2,w,h);
+  // Fit background to canvas exactly
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 }
 function drawSprite(img,x,y,flip=false,alpha=1){
   ctx.save(); 
@@ -360,28 +359,52 @@ function toast(t){ toastText=t; toastTimer=90; }
 function draw(){
   if(!current) return;
   
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
   drawBG();
   
   // Draw items
-  for(const it of current.items) drawSprite(it.sprite,it.x,it.y);
+  for(const it of current.items) {
+    // Scale down items if needed
+    const scale = 0.5; // Adjust this to make items smaller
+    ctx.drawImage(it.sprite, it.x, it.y - it.h, it.w * scale, it.h * scale);
+  }
   
   // Draw roomba gag
   if(roombaGag.active && roombaGag.sprite){
-    drawSprite(roombaGag.sprite, roombaGag.x, roombaGag.y);
+    ctx.drawImage(roombaGag.sprite, roombaGag.x, roombaGag.y - 32, 64, 32);
   }
   
-  // Draw actors
-  for(const a of current.actors) drawSprite(a.sprite,a.x,a.y,false,a.alpha??1);
+  // Draw actors (scaled down)
+  for(const a of current.actors){
+    const scale = 0.5; // Make characters smaller
+    ctx.save();
+    ctx.globalAlpha = a.alpha ?? 1;
+    ctx.drawImage(a.sprite, a.x, a.y - a.h * scale, a.w * scale, a.h * scale);
+    ctx.restore();
+  }
   
-  // Draw player
-  drawSprite(current.player.sprite,state.x,state.y,state.facing<0,1);
+  // Draw player (scaled down)
+  const playerScale = 0.5;
+  ctx.save();
+  if(state.facing < 0){
+    ctx.translate(state.x + current.player.w * playerScale, state.y - current.player.h * playerScale);
+    ctx.scale(-1, 1);
+    ctx.drawImage(current.player.sprite, 0, 0, current.player.w * playerScale, current.player.h * playerScale);
+  } else {
+    ctx.drawImage(current.player.sprite, state.x, state.y - current.player.h * playerScale, 
+                  current.player.w * playerScale, current.player.h * playerScale);
+  }
+  ctx.restore();
   
   // I-frames flash
   if(state.iFrames>0){ 
     if((state.iFrames%10)<5){ 
       ctx.globalAlpha=.4; 
       ctx.fillStyle='#f00'; 
-      ctx.fillRect(state.x,state.y,current.player.w,current.player.h); 
+      ctx.fillRect(state.x, state.y - current.player.h * playerScale, 
+                   current.player.w * playerScale, current.player.h * playerScale); 
       ctx.globalAlpha=1; 
     } 
     state.iFrames--; 
@@ -394,9 +417,9 @@ function draw(){
       ctx.lineWidth=3; 
       ctx.font="16px monospace"; 
       ctx.textBaseline="top"; 
-      ctx.strokeText(d.label,d.x-10,520); 
+      ctx.strokeText(d.label,d.x-10,d.y || 620); 
       ctx.fillStyle="#fff"; 
-      ctx.fillText(d.label,d.x-10,520); 
+      ctx.fillText(d.label,d.x-10,d.y || 620); 
     }
   }
   
