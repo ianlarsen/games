@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#game-container {
+  position: relative;
+  width: 500px;   /* fixed width */
+  height: 333px;  /* fixed height to match your image’s aspect ratio */
+  overflow: hidden;
+}
+
+#background {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ensures it fills without distortion */
+}
+
+#emoji-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.emoji {
+  position: absolute;
+  font-size: 32px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#instructions {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#targets {
+  font-size: 28px;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#overlay-message {
+  background: white;
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 36px;
+  font-weight: bold;
+}

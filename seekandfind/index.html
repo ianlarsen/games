@@ -2,29 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Emoji Park Hunt</title>
+  <title>Emoji Hunt Game Hub</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Optional: extra styling just for the hub page */
+    #hub-container {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .game-link {
+      display: inline-block;
+      margin: 15px;
+      padding: 15px 25px;
+      background: #132244;
+      color: #eef3ff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 20px;
+      transition: background 0.3s;
+    }
+    .game-link:hover {
+      background: #1f3666;
+    }
+  </style>
 </head>
 <body>
-  <div id="game-container">
-    <img id="background" src="assets/backgrounds/park.png" alt="Park Background">
-    <div id="emoji-layer"></div>
-    <div id="overlay">
-      <div id="overlay-message">Great Job!</div>
+  <div id="hub-container">
+    <h1>Emoji Seek & Find Hub</h1>
+    <p>Select a theme to start your hunt:</p>
+
+    <div>
+      <a class="game-link" href="park.html">🌳 Park Hunt</a>
+      <a class="game-link" href="space.html">🚀 Space Hunt</a>
+      <a class="game-link" href="castle.html">🏰 Castle Hunt</a>
+    </div>
+
+    <div style="margin-top:40px;">
+      <a href="../index.html" 
+         style="display:inline-block; padding:10px 20px; background:#132244; 
+                color:#eef3ff; text-decoration:none; border-radius:10px; 
+                font-size:18px;">
+        ⬅️ Back to Main Site
+      </a>
     </div>
   </div>
-  <div id="instructions">
-    <h2>Find these emojis:</h2>
-    <div id="targets"></div>
-  </div>
-<div style="margin-top:20px; text-align:center;">
-  <a href="../index.html" 
-     style="display:inline-block; padding:10px 20px; background:#132244; 
-            color:#eef3ff; text-decoration:none; border-radius:10px; 
-            font-size:18px;">
-    ⬅️ Back to Game Hub
-  </a>
-</div>
-  <script src="script.js"></script>
 </body>
 </html>

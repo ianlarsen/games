@@ -1,0 +1,66 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #000; /* dark space backdrop */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#game-container {
+  position: relative;
+  width: 500px;   /* match your image’s aspect ratio */
+  height: 333px;
+  overflow: hidden;
+}
+
+#background {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#emoji-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.emoji {
+  position: absolute;
+  font-size: 32px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#instructions {
+  margin-top: 20px;
+  text-align: center;
+  color: #fff;
+}
+
+#targets {
+  font-size: 28px;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#overlay-message {
+  background: white;
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 36px;
+  font-weight: bold;
+}
