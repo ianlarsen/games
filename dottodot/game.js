@@ -1,7 +1,7 @@
 /* Dot-to-Dot T-Rex (v2) */
 
 const LEVEL = {
-  imageSrc: "assets/images/trex-color.png",
+  imageSrc: "assets/images/trex.png",
   viewBox: [1000, 1000],
   dots: [
     { x: 513, y: 101 },  // 1 - top of head/first spike
