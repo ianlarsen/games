@@ -9,6 +9,7 @@
 <body>
   <main class="page">
     <header class="topbar">
+      <button id="backBtn" aria-label="Back to games" style="appearance: none; border: 1px solid #222; background: #fff; padding: 6px 10px; border-radius: 12px; font-weight: 600; cursor: pointer; margin-right: 10px;">← Back</button>
       <h1>Dot‑to‑Dot: T‑Rex</h1>
       <div class="status">
         <span id="progress">1 / 25</span>
@@ -17,7 +18,7 @@
     </header>
 
     <section class="board-wrap">
-      <img id="completedImage" src="assets/images/trex.png" alt="T‑Rex" />
+      <img id="completedImage" src="assets/images/trex-color.png" alt="T‑Rex" />
       <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
         <defs>
           <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
@@ -37,7 +38,11 @@
     <footer class="hint">Tap the dots in order: 1 → 25. Wrong taps buzz &amp; vibrate; correct taps draw a line. The T‑Rex appears when you finish.</footer>
   </main>
 
-<script src="game.js" defer></script>
-
+  <script src="game.js" defer></script>
+  <script>
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = '../index.html';
+    });
+  </script>
 </body>
 </html>
