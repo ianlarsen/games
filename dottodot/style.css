@@ -1,0 +1,112 @@
+/* =======================
+   Global Layout & Theming
+   ======================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+:root {
+  /* The board is a perfect square that fits 80% of the viewport height,
+     but never exceeds 95% of the viewport width. JS will override this
+     with a pixel value for older/mobile browsers. */
+  --board-size: min(80svh, 95vw);
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #111;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.3;
+}
+
+.page {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  padding: clamp(8px, 2.5vw, 18px);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar h1 { font-size: clamp(18px, 3.8vw, 28px); margin: 0; }
+.topbar .status { display: inline-flex; gap: 10px; align-items: center; }
+#resetBtn {
+  appearance: none;
+  border: 1px solid #222;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* =======================
+   Board (square container)
+   ======================= */
+.board-wrap {
+  position: relative;
+  margin: 0 auto;
+  width: var(--board-size);
+  height: var(--board-size); /* keep square */
+  border: 2px solid #111;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Completion image sits underneath and fades in on win */
+#completedImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 800ms ease;
+  pointer-events: none;
+}
+#completedImage.revealed { opacity: 1; }
+
+/* SVG board fills container */
+#board { position: absolute; inset: 0; width: 100%; height: 100%; }
+#path {
+  stroke: #111;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* Dots & labels */
+.dot .visual { fill: #111; stroke: #111; stroke-width: 0.5; }
+.dot .hit { fill: transparent; pointer-events: all; }
+.dot.active .ring { stroke: #111; stroke-width: 2.5; fill: none; r: 16; }
+.dot text {
+  font-size: 22px; /* SVG units; scales with viewBox */
+  fill: #111;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 4;
+  font-weight: 700;
+}
+
+/* Feedback */
+.dot.wrong .visual { fill: #b00020; }
+@keyframes nudge {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+.dot.wrong { animation: nudge 180ms ease; }
+
+.hint {
+  text-align: center;
+  font-size: clamp(12px, 2.8vw, 14px);
+  color: #333;
+}
