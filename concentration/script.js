@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             setTimeout(() => {
                 resetTiles();
-            }, 500);
+            }, 1500);
         }
     }
 
