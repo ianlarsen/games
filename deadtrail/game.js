@@ -14,13 +14,14 @@ let talkOpen = false, talkQueue = [], talkIndex = 0;
 let state = {
   sceneId: null, x: 0, y: 0, vx: 0, vy: 0, facing: 1,
   hp: 3, inventory: { cracker:0 },
-  flags: { carol_trust:0 }, muted: false, iFrames: 0, thrown: null
+  flags: { carol_trust:0 }, muted: false, iFrames: 0,
+  attackCooldown: 0
 };
 
 // Roomba easter egg state
 let roombaGag = {
-  x: -100, y: 620, vx: 2, sprite: null, 
-  nextTrigger: Date.now() + Math.random() * 30000 + 20000, // 20-50 seconds
+  x: -100, y: 0, vx: 2, sprite: null, 
+  nextTrigger: Date.now() + Math.random() * 30000 + 20000,
   active: false, shown: false
 };
 
@@ -94,7 +95,7 @@ function newGame(){
     flags:{carol_trust:0}, 
     muted:state.muted || false,
     iFrames: 0,
-    thrown: null
+    attackCooldown: 0
   };
   gotoScene(manifest.startScene, false);
 }
@@ -131,7 +132,7 @@ async function gotoScene(id, useSaved=false){
   for(const a of (scene.actors||[])){
     current.actors.push({
       id:a.id, x:a.x, y:a.y, talkable:!!a.talkable, ai:a.ai||null, speed:a.speed||0.8,
-      alpha:a.alpha??1, ghost:!!a.ghost, w:0, h:0, 
+      alpha:a.alpha??1, ghost:!!a.ghost, w:0, h:0, hp: a.ai==='zombie' ? 3 : 999,
       sprite: await loadImg(a.sprite), onTalk:a.onTalk||null
     });
   }
@@ -212,28 +213,56 @@ function nextDialogue(){
 function updateRoombaGag(){
   const now = Date.now();
   
-  // Start new roomba pass
   if(!roombaGag.active && now > roombaGag.nextTrigger){
     roombaGag.active = true;
     roombaGag.x = -100;
-    roombaGag.vx = 2 + Math.random() * 2; // random speed
+    roombaGag.y = current.bounds.ground - 20;
+    roombaGag.vx = 2 + Math.random() * 2;
     roombaGag.shown = false;
   }
   
-  // Move roomba across screen
   if(roombaGag.active){
     roombaGag.x += roombaGag.vx;
     
-    // Trigger Ed's line when roomba reaches middle
     if(!roombaGag.shown && roombaGag.x > 400){
       toast("ED: Damn robo vacuum!");
       roombaGag.shown = true;
     }
     
-    // Reset when off screen
     if(roombaGag.x > canvas.width + 100){
       roombaGag.active = false;
-      roombaGag.nextTrigger = now + Math.random() * 30000 + 20000; // 20-50s
+      roombaGag.nextTrigger = now + Math.random() * 30000 + 20000;
+    }
+  }
+}
+
+// ---- Combat System ----
+function attackZombies(){
+  if(state.attackCooldown > 0) return;
+  
+  const attackRange = 60;
+  const attackDir = state.facing;
+  const attackX = state.x + (attackDir > 0 ? current.player.w : -attackRange);
+  
+  for(let i = current.actors.length - 1; i >= 0; i--){
+    const a = current.actors[i];
+    if(a.ai !== 'zombie') continue;
+    
+    const distance = Math.abs(a.x - state.x);
+    if(distance < attackRange){
+      a.hp--;
+      toast("Hit!");
+      
+      // Knockback
+      a.x += attackDir * 40;
+      
+      if(a.hp <= 0){
+        current.actors.splice(i, 1);
+        toast("Zombie defeated!");
+      }
+      
+      state.attackCooldown = 20; // ~0.3 seconds
+      break;
     }
   }
 }
@@ -241,22 +270,9 @@ function updateRoombaGag(){
 // ---- UI helpers ----
 function drawBG(){
   if(!current || !current.bg) return;
-  const bg=current.bg; 
-  // Fit background to canvas exactly
-  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(current.bg, 0, 0, canvas.width, canvas.height);
 }
-function drawSprite(img,x,y,flip=false,alpha=1){
-  ctx.save(); 
-  ctx.globalAlpha=alpha;
-  if(flip){ 
-    ctx.translate(x+img.width,y); 
-    ctx.scale(-1,1); 
-    ctx.drawImage(img,0,0); 
-  } else { 
-    ctx.drawImage(img,x,y); 
-  }
-  ctx.restore();
-}
+
 function updateHUD(){
   heartsEl.textContent = "❤".repeat(state.hp);
   invEl.textContent = `Snacks: ${state.inventory.cracker}`;
@@ -266,16 +282,23 @@ function updateHUD(){
 function step(){
   if(!scene || !current) return;
   
+  if(state.attackCooldown > 0) state.attackCooldown--;
+  
   if(!talkOpen){
     const L=keys['a']||keys['arrowleft'];
     const R=keys['d']||keys['arrowright'];
     if(L){ state.vx=-3; state.facing=-1; } 
     else if(R){ state.vx=3; state.facing=1; } 
     else state.vx=0;
+    
+    // Space to attack
+    if(keys[' '] || keys['spacebar']){
+      attackZombies();
+    }
   }
   
   state.x = clamp(state.x + state.vx, current.bounds.left, 
-                  current.bounds.right - current.player.w);
+                  current.bounds.right - current.player.w * 0.5);
 
   if(keys['e'] && !talkOpen){ 
     if(tryTalk()){}
@@ -287,9 +310,12 @@ function step(){
   for(const a of current.actors){
     if(a.ai==='zombie'){
       const dir = Math.sign((state.x - a.x));
-      a.x += dir * a.speed * 2;
-      const pr=rect(state.x,state.y,current.player.w,current.player.h);
-      const zr=rect(a.x,a.y,a.w,a.h);
+      a.x += dir * a.speed;
+      
+      const playerScale = 0.5;
+      const pr=rect(state.x, state.y - current.player.h * playerScale, 
+                    current.player.w * playerScale, current.player.h * playerScale);
+      const zr=rect(a.x, a.y - a.h * 0.5, a.w * 0.5, a.h * 0.5);
       if(hit(pr,zr)) hurtPlayer();
     }
   }
@@ -301,6 +327,7 @@ function hurtPlayer(){
   if(state.iFrames>0) return;
   state.hp--; 
   state.iFrames=60;
+  toast("Hit!");
   if(state.hp<=0){ 
     toast("Game Over");
     setTimeout(()=>newGame(), 2000);
@@ -323,8 +350,10 @@ function tryTalk(){
 function tryPickup(){
   for(let i=current.items.length-1;i>=0;i--){
     const it=current.items[i];
-    if(hit(rect(state.x,state.y,current.player.w,current.player.h), 
-           rect(it.x,it.y,it.w,it.h))){
+    const pr = rect(state.x, state.y - current.player.h * 0.5, 
+                    current.player.w * 0.5, current.player.h * 0.5);
+    const ir = rect(it.x, it.y - it.h * 0.5, it.w * 0.5, it.h * 0.5);
+    if(hit(pr, ir)){
       if(it.type==='cracker'){ 
         state.inventory.cracker++; 
         toast("Picked up Bioinspired Snack"); 
@@ -359,42 +388,43 @@ function toast(t){ toastText=t; toastTimer=90; }
 function draw(){
   if(!current) return;
   
-  // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
   drawBG();
+  
+  // Ground level for this background
+  const groundY = 580;
+  const scale = 0.5;
   
   // Draw items
   for(const it of current.items) {
-    // Scale down items if needed
-    const scale = 0.5; // Adjust this to make items smaller
-    ctx.drawImage(it.sprite, it.x, it.y - it.h, it.w * scale, it.h * scale);
+    const itemY = groundY - (it.h * scale);
+    ctx.drawImage(it.sprite, it.x, itemY, it.w * scale, it.h * scale);
   }
   
   // Draw roomba gag
   if(roombaGag.active && roombaGag.sprite){
-    ctx.drawImage(roombaGag.sprite, roombaGag.x, roombaGag.y - 32, 64, 32);
+    ctx.drawImage(roombaGag.sprite, roombaGag.x, groundY - 20, 48, 24);
   }
   
-  // Draw actors (scaled down)
+  // Draw actors
   for(const a of current.actors){
-    const scale = 0.5; // Make characters smaller
+    const actorY = groundY - (a.h * scale);
     ctx.save();
     ctx.globalAlpha = a.alpha ?? 1;
-    ctx.drawImage(a.sprite, a.x, a.y - a.h * scale, a.w * scale, a.h * scale);
+    ctx.drawImage(a.sprite, a.x, actorY, a.w * scale, a.h * scale);
     ctx.restore();
   }
   
-  // Draw player (scaled down)
-  const playerScale = 0.5;
+  // Draw player
+  const playerY = groundY - (current.player.h * scale);
   ctx.save();
   if(state.facing < 0){
-    ctx.translate(state.x + current.player.w * playerScale, state.y - current.player.h * playerScale);
+    ctx.translate(state.x + current.player.w * scale, playerY);
     ctx.scale(-1, 1);
-    ctx.drawImage(current.player.sprite, 0, 0, current.player.w * playerScale, current.player.h * playerScale);
+    ctx.drawImage(current.player.sprite, 0, 0, current.player.w * scale, current.player.h * scale);
   } else {
-    ctx.drawImage(current.player.sprite, state.x, state.y - current.player.h * playerScale, 
-                  current.player.w * playerScale, current.player.h * playerScale);
+    ctx.drawImage(current.player.sprite, state.x, playerY, 
+                  current.player.w * scale, current.player.h * scale);
   }
   ctx.restore();
   
@@ -403,8 +433,7 @@ function draw(){
     if((state.iFrames%10)<5){ 
       ctx.globalAlpha=.4; 
       ctx.fillStyle='#f00'; 
-      ctx.fillRect(state.x, state.y - current.player.h * playerScale, 
-                   current.player.w * playerScale, current.player.h * playerScale); 
+      ctx.fillRect(state.x, playerY, current.player.w * scale, current.player.h * scale); 
       ctx.globalAlpha=1; 
     } 
     state.iFrames--; 
@@ -417,9 +446,9 @@ function draw(){
       ctx.lineWidth=3; 
       ctx.font="16px monospace"; 
       ctx.textBaseline="top"; 
-      ctx.strokeText(d.label,d.x-10,d.y || 620); 
+      ctx.strokeText(d.label, d.x-10, groundY + 20); 
       ctx.fillStyle="#fff"; 
-      ctx.fillText(d.label,d.x-10,d.y || 620); 
+      ctx.fillText(d.label, d.x-10, groundY + 20); 
     }
   }
   
@@ -479,7 +508,6 @@ async function loadLevels(){
       throw new Error("Invalid manifest - missing startScene");
     }
     
-    // Load roomba sprite for the gag
     roombaGag.sprite = await loadImg('assets/objects/roomba_side.png');
     
     loadGame();
