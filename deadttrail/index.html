@@ -1,168 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dead Trail</title>
-  <!--
-    This is a standalone HTML entry point for the Dead Trail prototype.
-    It doesn't require a build step or any server-side tooling.  All of
-    the game logic lives in ``game.js`` and styling comes from
-    ``style.css``.  Drop this folder into the root of your GitHub
-    repository (for example, as ``/docs``) and enable GitHub Pages on
-    that folder.  The game will run entirely in the browser.
-  -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.ico" />
+  <style>
+    body {
+      background: #0f0f12;
+      color: #f0f3f8;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      margin: 0; padding: 0;
+    }
+    #game {
+      max-width: 960px;
+      margin: 24px auto;
+      background: #14161b;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .hud {
+      background: #1a1b20;
+      padding: 8px 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .media {
+      background: #2a2c34;
+      width: 100%;
+      max-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .media img {
+      max-width: 100%;
+      border-radius: 6px;
+    }
+    .dialogue {
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .choices button {
+      display: block;
+      background: #1f222a;
+      color: #e2e8f0;
+      border: 1px solid #2c313d;
+      border-radius: 6px;
+      padding: 8px 14px;
+      margin: 6px 0;
+      cursor: pointer;
+      text-align: left;
+      width: fit-content;
+      transition: background 0.2s;
+    }
+    .choices button:hover {
+      background: #2c313d;
+    }
+    .center {
+      text-align: center;
+      margin-top: 24px;
+    }
+  </style>
 </head>
 <body>
-  <!-- The HUD will be injected here by game.js. -->
-  <div id="game"></div>
+  <div id="game">
+    <div class="hud" id="hud">Trust: 0</div>
+    <div class="media" id="media"></div>
+    <div class="dialogue" id="dialogue"></div>
+    <div class="choices" id="choices"></div>
+  </div>
+
   <script>
-    // The script below implements a minimal Dead Trail game using
-    // plain JavaScript.  It is embedded directly into the HTML to
-    // avoid issues when serving via ``file://`` or GitHub Pages.  If
-    // you prefer, you can move this code into a separate file and
-    // reference it via an external script tag instead.
-
-    // Grab the container element.  All UI will be rendered
-    // relative to this element.
-    const gameElement = document.getElementById('game');
-
-    // Game state.  You can expand this object with additional
-    // resources (food, ammo, etc.) as needed.
-    const gameState = {
-      started: false,
-      eventIndex: 0,
-      resources: {
-        trust: 0,
-      },
-    };
-
-    function createPlaceholder(label, width, height) {
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#333';
-      ctx.fillRect(0, 0, width, height);
-      ctx.strokeStyle = '#666';
-      ctx.strokeRect(0, 0, width - 1, height - 1);
-      ctx.fillStyle = '#aaa';
-      ctx.font = '16px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label, width / 2, height / 2);
-      return canvas;
-    }
-
-    function loadImageWithFallback(src, label, width, height) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.width = width;
-        img.height = height;
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(createPlaceholder(label, width, height));
-        img.src = src;
-      });
-    }
-
-    function renderHUD() {
-      let hud = document.getElementById('hud');
-      if (!hud) {
-        hud = document.createElement('div');
-        hud.id = 'hud';
-        gameElement.prepend(hud);
-      }
-      const { trust } = gameState.resources;
-      hud.textContent = `Trust: ${trust}`;
-    }
+    // ------------------ Core Game State ------------------
+    const state = { trust: 0, current: 0 };
 
     const events = [
       {
-        prompt: 'A Roomba thunks the same wall.  Microwave dings somewhere.',
-        speaker: 'Ed',
-        line: 'At least the Roombas don’t eat people.',
-        image: 'images/events/RoombaGag.png',
+        prompt: "A Roomba thunks the same wall. Microwave dings somewhere.",
+        speaker: "Ed",
+        line: "At least the Roombas don’t eat people.",
+        image: "images/events/RoombaGag.png", // if missing, placeholder shows
         choices: [
-          { label: 'Let Ed tinker', effects: { trust: 1 } },
-          { label: 'Ignore it', effects: { trust: -1 } },
+          { label: "Let Ed tinker", effects: { trust: +1 } },
+          { label: "Ignore it", effects: { trust: -1 } },
         ],
       },
       {
-        prompt: 'You catch a glint—Jamaal signalling toward the treeline.',
-        speaker: 'John',
-        line: 'We can argue about titles, or we can survive.',
-        image: 'images/events/JamaalSignal.png',
+        prompt: "You catch a glint—Jamaal signalling toward the treeline.",
+        speaker: "John",
+        line: "We can argue about titles, or we can survive.",
+        image: "images/portraits/John.png", // if missing, placeholder shows
         choices: [
-          { label: 'Confront Jamaal', effects: { trust: -1 } },
-          { label: 'Watch quietly', effects: { trust: 1 } },
+          { label: "Confront Jamaal", effects: { trust: -1 } },
+          { label: "Watch quietly", effects: { trust: +1 } },
         ],
       },
-      // Additional events can be added here.
     ];
 
-    function showTitle() {
-      gameElement.innerHTML = '';
-      const hud = document.getElementById('hud');
-      if (hud) hud.remove();
-      const title = document.createElement('h1');
-      title.textContent = 'Dead Trail';
-      const subtitle = document.createElement('p');
-      subtitle.textContent = 'An Oregon Trail–style survival game';
-      const startBtn = document.createElement('button');
-      startBtn.textContent = 'Start Game';
-      startBtn.onclick = () => {
-        gameState.started = true;
-        gameState.eventIndex = 0;
-        gameState.resources.trust = 0;
-        showNextEvent();
-      };
-      gameElement.appendChild(title);
-      gameElement.appendChild(subtitle);
-      gameElement.appendChild(startBtn);
-    }
-
-    async function showNextEvent() {
-      gameElement.innerHTML = '';
-      renderHUD();
-      if (gameState.eventIndex >= events.length) {
-        const endMsg = document.createElement('p');
-        endMsg.textContent = 'The journey continues…';
-        const restartBtn = document.createElement('button');
-        restartBtn.textContent = 'Restart';
-        restartBtn.onclick = showTitle;
-        gameElement.appendChild(endMsg);
-        gameElement.appendChild(restartBtn);
-        return;
+    // ------------------ Placeholder Maker ------------------
+    function makePlaceholder(label, w, h) {
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#2a2c34"; ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle = "#1b1d24"; ctx.lineWidth = 2;
+      for (let i=-h;i<w;i+=16) {
+        ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+h,h); ctx.stroke();
       }
-      const event = events[gameState.eventIndex];
-      const media = await loadImageWithFallback(event.image, 'Event', 800, 360);
-      const promptEl = document.createElement('p');
-      promptEl.textContent = event.prompt;
-      const lineEl = document.createElement('p');
-      lineEl.textContent = `${event.speaker}: "${event.line}"`;
-      const choicesContainer = document.createElement('div');
-      choicesContainer.className = 'choices';
-      event.choices.forEach((choice) => {
-        const btn = document.createElement('button');
-        btn.textContent = choice.label;
-        btn.onclick = () => {
-          Object.entries(choice.effects).forEach(([key, delta]) => {
-            gameState.resources[key] = (gameState.resources[key] || 0) + delta;
-          });
-          gameState.eventIndex += 1;
-          showNextEvent();
-        };
-        choicesContainer.appendChild(btn);
-      });
-      gameElement.appendChild(media);
-      gameElement.appendChild(promptEl);
-      gameElement.appendChild(lineEl);
-      gameElement.appendChild(choicesContainer);
+      ctx.strokeStyle = "#4a5568"; ctx.lineWidth = 4;
+      ctx.strokeRect(2,2,w-4,h-4);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = `bold ${Math.max(14, Math.floor(w*0.05))}px system-ui,Segoe UI,Roboto`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(label || "Event", w/2, h/2);
+      return canvas.toDataURL("image/png");
     }
 
-    // Kick off the title screen when the script loads.
-    showTitle();
+    // ------------------ Render Functions ------------------
+    function renderHUD() {
+      document.getElementById("hud").textContent = `Trust: ${state.trust}`;
+    }
+
+    function renderEvent(event) {
+      const media = document.getElementById("media");
+      const dialogue = document.getElementById("dialogue");
+      const choices = document.getElementById("choices");
+
+      media.innerHTML = "";
+      dialogue.innerHTML = "";
+      choices.innerHTML = "";
+
+      // Render image or placeholder
+      const img = document.createElement("img");
+      img.width = 800;
+      img.height = 360;
+      const imageSrc = event.image && event.image.trim() ? event.image : "";
+      img.src = imageSrc || makePlaceholder("Event", 800, 360);
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = makePlaceholder("Event", 800, 360);
+      };
+      media.appendChild(img);
+
+      // Dialogue
+      const text = document.createElement("div");
+      text.innerHTML = `<p>${event.prompt}</p><p><strong>${event.speaker}:</strong> “${event.line}”</p>`;
+      dialogue.appendChild(text);
+
+      // Choices
+      event.choices.forEach((ch) => {
+        const btn = document.createElement("button");
+        btn.textContent = ch.label;
+        btn.onclick = () => {
+          if (ch.effects && typeof ch.effects.trust === "number") {
+            state.trust += ch.effects.trust;
+          }
+          state.current++;
+          if (state.current >= events.length) {
+            endGame();
+          } else {
+            renderHUD();
+            renderEvent(events[state.current]);
+          }
+        };
+        choices.appendChild(btn);
+      });
+    }
+
+    function endGame() {
+      const media = document.getElementById("media");
+      const dialogue = document.getElementById("dialogue");
+      const choices = document.getElementById("choices");
+      media.innerHTML = "";
+      dialogue.innerHTML = `<div class="center"><h2>The journey continues…</h2></div>`;
+      choices.innerHTML = `<div class="center"><button onclick="restart()">Restart</button></div>`;
+    }
+
+    function restart() {
+      state.trust = 0;
+      state.current = 0;
+      renderHUD();
+      renderEvent(events[0]);
+    }
+
+    // ------------------ Start Game ------------------
+    renderHUD();
+    renderEvent(events[0]);
   </script>
 </body>
 </html>
