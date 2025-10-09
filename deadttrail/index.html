@@ -1,197 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
- <base href="./">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dead Trail</title>
-  <link rel="icon" href="favicon.ico" />
   <style>
-    body {
-      background: #0f0f12;
-      color: #f0f3f8;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
-      margin: 0; padding: 0;
+    :root {
+      --bg:#0f0f12; --panel:#14161b; --muted:#aab3c0; --text:#f0f3f8;
+      --ink:#e2e8f0; --accent:#9ae6b4; --panel2:#1a1b20; --panel3:#2a2c34;
+      --border:#2c313d;
     }
-    #game {
-      max-width: 960px;
-      margin: 24px auto;
-      background: #14161b;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-    .hud {
-      background: #1a1b20;
-      padding: 8px 12px;
-      font-weight: bold;
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-    .media {
-      background: #2a2c34;
-      width: 100%;
-      max-height: 400px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      margin-bottom: 16px;
-    }
-    .media img {
-      max-width: 100%;
-      border-radius: 6px;
-    }
-    .dialogue {
-      margin-bottom: 12px;
-      line-height: 1.5;
-    }
-    .choices button {
-      display: block;
-      background: #1f222a;
-      color: #e2e8f0;
-      border: 1px solid #2c313d;
-      border-radius: 6px;
-      padding: 8px 14px;
-      margin: 6px 0;
-      cursor: pointer;
-      text-align: left;
-      width: fit-content;
-      transition: background 0.2s;
-    }
-    .choices button:hover {
-      background: #2c313d;
-    }
-    .center {
-      text-align: center;
-      margin-top: 24px;
-    }
+    * { box-sizing: border-box; }
+    html,body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial; }
+    #game { max-width: 960px; margin: 24px auto; padding: 16px; background: var(--panel); border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+    .hud { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-weight:600; margin-bottom:12px; }
+    .media { background: var(--panel3); border: 1px solid var(--border); border-radius: 8px; height: 360px; display:flex; align-items:center; justify-content:center; margin-bottom: 16px; overflow:hidden; }
+    .media img { max-width: 100%; max-height: 100%; display:block; }
+    .dialogue { line-height: 1.55; }
+    .dialogue p { margin: 8px 0; }
+    .choices { margin-top: 12px; }
+    .choices button { display:block; background:#1f222a; color:var(--ink); border:1px solid var(--border); border-radius:8px; padding:8px 14px; margin:8px 0; cursor:pointer; width:fit-content; }
+    .choices button:hover { background:#2c313d; }
+    .center { text-align:center; margin: 24px 0 8px; }
+    .small { color: var(--muted); font-size: .9rem; }
   </style>
 </head>
 <body>
   <div id="game">
-    <div class="hud" id="hud">Trust: 0</div>
-    <div class="media" id="media"></div>
-    <div class="dialogue" id="dialogue"></div>
-    <div class="choices" id="choices"></div>
+    <div id="hud" class="hud">Trust: 0</div>
+    <div id="media" class="media"></div>
+    <div id="dialogue" class="dialogue"></div>
+    <div id="choices" class="choices"></div>
   </div>
 
   <script>
-    // ------------------ Core Game State ------------------
-    const state = { trust: 0, current: 0 };
+  // ---------- Robust path resolution + placeholder drawing ----------
 
-    const events = [
-      {
-        prompt: "A Roomba thunks the same wall. Microwave dings somewhere.",
-        speaker: "Ed",
-        line: "At least the Roombas don’t eat people.",
-        image: "images/events/RoombaGag.png", // if missing, placeholder shows
-        choices: [
-          { label: "Let Ed tinker", effects: { trust: +1 } },
-          { label: "Ignore it", effects: { trust: -1 } },
-        ],
-      },
-      {
-        prompt: "You catch a glint—Jamaal signalling toward the treeline.",
-        speaker: "John",
-        line: "We can argue about titles, or we can survive.",
-        image: "images/portraits/John.png", // if missing, placeholder shows
-        choices: [
-          { label: "Confront Jamaal", effects: { trust: -1 } },
-          { label: "Watch quietly", effects: { trust: +1 } },
-        ],
-      },
-    ];
+  // Draw a crude placeholder if nothing loads.
+  function makePlaceholder(label, w=800, h=360) {
+    const c = document.createElement('canvas');
+    c.width=w; c.height=h;
+    const g = c.getContext('2d');
+    g.fillStyle = '#2a2c34'; g.fillRect(0,0,w,h);
+    g.strokeStyle = '#1b1d24'; g.lineWidth = 2;
+    for (let i=-h;i<w;i+=16){ g.beginPath(); g.moveTo(i,0); g.lineTo(i+h,h); g.stroke(); }
+    g.strokeStyle = '#4a5568'; g.lineWidth = 4; g.strokeRect(2,2,w-4,h-4);
+    g.fillStyle = '#e2e8f0'; g.font = `bold ${Math.max(14, Math.floor(w*0.05))}px system-ui,Segoe UI,Roboto`;
+    g.textAlign='center'; g.textBaseline='middle';
+    g.fillText(label||'Event', w/2, h/2);
+    return c.toDataURL('image/png');
+  }
 
-    // ------------------ Placeholder Maker ------------------
-    function makePlaceholder(label, w, h) {
-      const canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#2a2c34"; ctx.fillRect(0,0,w,h);
-      ctx.strokeStyle = "#1b1d24"; ctx.lineWidth = 2;
-      for (let i=-h;i<w;i+=16) {
-        ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+h,h); ctx.stroke();
-      }
-      ctx.strokeStyle = "#4a5568"; ctx.lineWidth = 4;
-      ctx.strokeRect(2,2,w-4,h-4);
-      ctx.fillStyle = "#e2e8f0";
-      ctx.font = `bold ${Math.max(14, Math.floor(w*0.05))}px system-ui,Segoe UI,Roboto`;
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(label || "Event", w/2, h/2);
-      return canvas.toDataURL("image/png");
-    }
+  // Build a list of candidate URLs for an asset, trying multiple likely roots.
+  function buildCandidates(relPath) {
+    // If the caller gave a full path (starts with http(s) or /), just try it.
+    if (!relPath || /^\s*$/.test(relPath)) return [];
+    if (/^https?:\/\//i.test(relPath) || relPath.startsWith('/')) return [relPath];
 
-    // ------------------ Render Functions ------------------
-    function renderHUD() {
-      document.getElementById("hud").textContent = `Trust: ${state.trust}`;
-    }
+    const path = window.location.pathname;               // e.g. /my-repo/deadtrail/index.html
+    const parts = path.split('/').filter(Boolean);       // ["my-repo","deadtrail","index.html"] (project page)
+    const fileDirParts = parts.slice(0, -1);             // ["my-repo","deadtrail"]
+    const repo = parts[0] || '';                         // "my-repo" (blank on user site)
+    const sub  = parts[1] || '';                         // "deadtrail" if nested
 
-    function renderEvent(event) {
-      const media = document.getElementById("media");
-      const dialogue = document.getElementById("dialogue");
-      const choices = document.getElementById("choices");
+    // Helper to join segments safely
+    const j = (...segs) => '/' + segs.filter(Boolean).join('/');
 
-      media.innerHTML = "";
-      dialogue.innerHTML = "";
-      choices.innerHTML = "";
+    // We accept short keys like 'portraits/rick.png' and expand to several roots.
+    const withImages = (p) => p.startsWith('images/') || p.startsWith('public/images/') ? p : `images/${p}`;
+    const withPublic = (p) => p.startsWith('public/images/') ? p : `public/${withImages(p)}`;
 
-      // Render image or placeholder
-      const img = document.createElement("img");
-      img.width = 800;
-      img.height = 360;
-      const imageSrc = event.image && event.image.trim() ? event.image : "";
-      img.src = imageSrc || makePlaceholder("Event", 800, 360);
-      img.onerror = () => {
-        img.onerror = null;
-        img.src = makePlaceholder("Event", 800, 360);
+    const p = withImages(relPath);       // images/portraits/...
+    const q = withPublic(relPath);       // public/images/portraits/...
+
+    const sameDir = j(...fileDirParts);        // /my-repo/deadtrail
+    const repoRoot = repo ? j(repo) : '/';     // /my-repo or /
+
+    const candidates = [
+      // same folder as index.html
+      j(...fileDirParts, p),            // /my-repo/deadtrail/images/...
+      j(...fileDirParts, q),            // /my-repo/deadtrail/public/images/...
+      // relative without leading slash (for local file:// or some hosts)
+      p, q,
+      // repo root (GitHub Pages project sites)
+      j(repo, p),                       // /my-repo/images/...
+      j(repo, q),                       // /my-repo/public/images/...
+      // two-level nested (if you published under repo/subfolder)
+      sub ? j(repo, sub, p) : null,
+      sub ? j(repo, sub, q) : null,
+    ].filter(Boolean);
+
+    // De-duplicate while preserving order
+    return [...new Set(candidates)];
+  }
+
+  // Try each candidate in order; fall back to placeholder if all fail.
+  function loadSmartImage(imgEl, relPath, label='Event') {
+    const tries = buildCandidates(relPath);
+    if (!tries.length) { imgEl.src = makePlaceholder(label); return; }
+    let i = 0;
+    const next = () => {
+      if (i >= tries.length) { imgEl.onerror = null; imgEl.src = makePlaceholder(label); return; }
+      imgEl.onerror = () => { i++; next(); };
+      imgEl.src = tries[i];
+    };
+    next();
+  }
+
+  // ---------- Minimal Oregon Trail loop (with sprite/event images) ----------
+
+  const state = { trust: 0, i: 0 };
+
+  // Use short keys like 'portraits/rick.png' or 'events/RoombaGag.png'.
+  // The loader will search: images/... , public/images/... , and repo-prefixed paths.
+  const events = [
+    {
+      prompt: "A Roomba thunks the same wall. Microwave dings somewhere.",
+      speaker: "Ed",
+      line: "At least the Roombas don’t eat people.",
+      image: "events/RoombaGag.png",        // optional; will try many roots, else placeholder
+      choices: [
+        { label: "Let Ed tinker", effects: { trust:+1 } },
+        { label: "Ignore it", effects: { trust:-1 } },
+      ],
+    },
+    {
+      prompt: "You catch a glint—Jamaal signalling toward the treeline.",
+      speaker: "John",
+      line: "We can argue about titles, or we can survive.",
+      image: "portraits/rick.png",          // try your sprite here (rick.png, daryl.png, etc.)
+      choices: [
+        { label: "Confront Jamaal", effects: { trust:-1 } },
+        { label: "Watch quietly", effects: { trust:+1 } },
+      ],
+    },
+    {
+      prompt: "Noise rises in the yard. Floodlights flicker.",
+      speaker: "Carol",
+      line: "They’re inside!",
+      image: "backgrounds/PrisonExterior.png", // backgrounds work too
+      choices: [
+        { label: "Fall back to inner gate", effects: { trust:+1 } },
+        { label: "Hold the yard", effects: { trust:-1 } },
+      ],
+    },
+  ];
+
+  const hud = document.getElementById('hud');
+  const media = document.getElementById('media');
+  const dialogue = document.getElementById('dialogue');
+  const choices = document.getElementById('choices');
+
+  function renderHUD(){ hud.textContent = `Trust: ${state.trust}`; }
+
+  function renderEvent(ev){
+    media.innerHTML = ''; dialogue.innerHTML = ''; choices.innerHTML = '';
+    const img = document.createElement('img');
+    img.width = 800; img.height = 360; img.alt = 'Event';
+    // Always attempt to load something; if ev.image is missing/blank we still show placeholder.
+    if (ev.image && String(ev.image).trim()) loadSmartImage(img, ev.image, 'Event');
+    else img.src = makePlaceholder('Event');
+    media.appendChild(img);
+
+    const block = document.createElement('div');
+    block.innerHTML = `<p>${ev.prompt}</p><p><strong>${ev.speaker}:</strong> “${ev.line}”</p>`;
+    dialogue.appendChild(block);
+
+    ev.choices.forEach(c => {
+      const b = document.createElement('button');
+      b.textContent = c.label;
+      b.onclick = () => {
+        if (c.effects && typeof c.effects.trust === 'number') state.trust += c.effects.trust;
+        state.i++;
+        if (state.i >= events.length) endGame(); else { renderHUD(); renderEvent(events[state.i]); }
       };
-      media.appendChild(img);
+      choices.appendChild(b);
+    });
+  }
 
-      // Dialogue
-      const text = document.createElement("div");
-      text.innerHTML = `<p>${event.prompt}</p><p><strong>${event.speaker}:</strong> “${event.line}”</p>`;
-      dialogue.appendChild(text);
+  function endGame(){
+    media.innerHTML = '';
+    dialogue.innerHTML = `<div class="center"><h2>The journey continues…</h2><p class="small">Sprites/backgrounds will load automatically when placed in <code>images/</code> or <code>public/images/</code>.</p></div>`;
+    choices.innerHTML = `<div class="center"><button onclick="restart()">Restart</button></div>`;
+  }
+  function restart(){ state.trust=0; state.i=0; renderHUD(); renderEvent(events[0]); }
 
-      // Choices
-      event.choices.forEach((ch) => {
-        const btn = document.createElement("button");
-        btn.textContent = ch.label;
-        btn.onclick = () => {
-          if (ch.effects && typeof ch.effects.trust === "number") {
-            state.trust += ch.effects.trust;
-          }
-          state.current++;
-          if (state.current >= events.length) {
-            endGame();
-          } else {
-            renderHUD();
-            renderEvent(events[state.current]);
-          }
-        };
-        choices.appendChild(btn);
-      });
-    }
-
-    function endGame() {
-      const media = document.getElementById("media");
-      const dialogue = document.getElementById("dialogue");
-      const choices = document.getElementById("choices");
-      media.innerHTML = "";
-      dialogue.innerHTML = `<div class="center"><h2>The journey continues…</h2></div>`;
-      choices.innerHTML = `<div class="center"><button onclick="restart()">Restart</button></div>`;
-    }
-
-    function restart() {
-      state.trust = 0;
-      state.current = 0;
-      renderHUD();
-      renderEvent(events[0]);
-    }
-
-    // ------------------ Start Game ------------------
-    renderHUD();
-    renderEvent(events[0]);
+  // boot
+  renderHUD(); renderEvent(events[0]);
   </script>
 </body>
 </html>
