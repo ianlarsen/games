@@ -1,0 +1,41 @@
+{
+  "party": [
+    {
+      "id": "john",
+      "name": "John",
+      "roleTags": [
+        "leader"
+      ],
+      "morale": 3,
+      "health": "OK"
+    },
+    {
+      "id": "ed",
+      "name": "Ed",
+      "roleTags": [
+        "fixer",
+        "comic"
+      ],
+      "morale": 3,
+      "health": "OK"
+    },
+    {
+      "id": "mac",
+      "name": "Mac",
+      "roleTags": [
+        "steady"
+      ],
+      "morale": 3,
+      "health": "OK"
+    },
+    {
+      "id": "carol",
+      "name": "Carol",
+      "roleTags": [
+        "guard"
+      ],
+      "morale": 3,
+      "health": "OK"
+    }
+  ]
+}

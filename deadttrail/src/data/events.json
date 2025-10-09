@@ -1,0 +1,24 @@
+[
+  {
+    "id": "roomba_gag",
+    "chapter": 1,
+    "prompt": "A Roomba bumps endlessly into a wall. Somewhere, a microwave dings.",
+    "speaker": "Ed",
+    "line": "At least the Roombas don\u2019t eat people.",
+    "choices": [
+      {
+        "label": "Let Ed tinker",
+        "effects": {
+          "parts": -1,
+          "trust": 1
+        }
+      },
+      {
+        "label": "Ignore it",
+        "effects": {
+          "morale_all": -1
+        }
+      }
+    ]
+  }
+]
