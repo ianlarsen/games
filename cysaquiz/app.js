@@ -16,17 +16,37 @@
   let currentQuiz = [];
   let userAnswers = [];
   let currentQuestionIndex = 0;
+  // Track which category of questions the user wishes to practice.
+  // Options: 'general', 'acronym', 'both'. Defaults to 'general'.
+  let selectedCategory = 'general';
 
   /**
    * Fetch the question bank from the JSON file. This returns a promise
    * resolved with the array of question objects.
    */
+  /**
+   * Load both general and acronym question banks. The base quiz_data.json
+   * contains the standard CySA+ questions extracted from the PDF and
+   * acronym_data.json holds questions generated from cybersecurity
+   * acronyms. Each question object is assigned a `category` property
+   * ("general" or "acronym") to allow filtering on the home screen.
+   */
   function loadQuestions() {
-    return fetch('quiz_data.json')
-      .then((res) => res.json())
-      .then((data) => {
-        allQuestions = data;
+    // Fetch both files in parallel
+    return Promise.all([
+      fetch('quiz_data.json').then((res) => res.json()),
+      fetch('acronym_data.json').then((res) => res.json()).catch(() => [])
+    ]).then(([general, acronym]) => {
+      // Tag general questions
+      general.forEach((q) => {
+        if (!q.category) q.category = 'general';
       });
+      // Ensure acronym questions are tagged correctly
+      acronym.forEach((q) => {
+        q.category = 'acronym';
+      });
+      allQuestions = [...general, ...acronym];
+    });
   }
 
   /**
@@ -124,11 +144,19 @@
    */
   function renderHome() {
     // compute stats
-    const total = allQuestions.length;
-    let masteredCount = 0;
+    const totals = { general: 0, acronym: 0 };
+    const masteredCounts = { general: 0, acronym: 0 };
     for (const q of allQuestions) {
-      if (isMastered(q)) masteredCount++;
+      if (q.category === 'general') {
+        totals.general++;
+        if (isMastered(q)) masteredCounts.general++;
+      } else if (q.category === 'acronym') {
+        totals.acronym++;
+        if (isMastered(q)) masteredCounts.acronym++;
+      }
     }
+    const total = totals.general + totals.acronym;
+    const masteredCount = masteredCounts.general + masteredCounts.acronym;
     const remaining = total - masteredCount;
     appEl.innerHTML = '';
     const container = document.createElement('div');
@@ -142,8 +170,10 @@
         <li><strong>Total questions:</strong> ${total}</li>
         <li><strong>Mastered:</strong> ${masteredCount}</li>
         <li><strong>Remaining:</strong> ${remaining}</li>
+        <li><strong>General:</strong> ${totals.general - masteredCounts.general} remaining / ${totals.general} total</li>
+        <li><strong>Acronyms:</strong> ${totals.acronym - masteredCounts.acronym} remaining / ${totals.acronym} total</li>
       </ul>
-      <p>Enter the number of questions you wish to practice. Only un‑mastered questions will be served.</p>
+      <p>Select which question pool to draw from, then enter the number of questions you wish to practice. Only un‑mastered questions will be served.</p>
     `;
     container.appendChild(statsDiv);
     // Controls section
@@ -158,6 +188,33 @@
     input.min = '1';
     input.id = 'numQuestions';
     input.placeholder = 'e.g., 10';
+
+    // Category selection
+    const catLabel = document.createElement('label');
+    catLabel.textContent = 'Question pool:';
+    const catContainer = document.createElement('div');
+    catContainer.className = 'category-select';
+    ['general', 'acronym', 'both'].forEach((cat) => {
+      const radioId = `cat-${cat}`;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cat-option';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'category';
+      radio.value = cat;
+      radio.id = radioId;
+      if (cat === selectedCategory) radio.checked = true;
+      radio.addEventListener('change', () => {
+        selectedCategory = cat;
+      });
+      const lbl = document.createElement('label');
+      lbl.setAttribute('for', radioId);
+      // Capitalize first letter for display
+      lbl.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+      wrapper.appendChild(radio);
+      wrapper.appendChild(lbl);
+      catContainer.appendChild(wrapper);
+    });
     // start button
     const startBtn = document.createElement('button');
     startBtn.className = 'primary';
@@ -168,6 +225,8 @@
     resetBtn.textContent = 'Reset Progress';
     controlsDiv.appendChild(label);
     controlsDiv.appendChild(input);
+    controlsDiv.appendChild(catLabel);
+    controlsDiv.appendChild(catContainer);
     controlsDiv.appendChild(startBtn);
     controlsDiv.appendChild(resetBtn);
     container.appendChild(controlsDiv);
@@ -200,10 +259,18 @@
    * @param {Number} numRequested
    */
   function startQuiz(numRequested) {
-    // Build list of un‑mastered questions
-    const available = allQuestions.filter((q) => !isMastered(q));
+    // Build list of un‑mastered questions filtered by selected category
+    let available;
+    if (selectedCategory === 'general') {
+      available = allQuestions.filter((q) => q.category === 'general' && !isMastered(q));
+    } else if (selectedCategory === 'acronym') {
+      available = allQuestions.filter((q) => q.category === 'acronym' && !isMastered(q));
+    } else {
+      // both
+      available = allQuestions.filter((q) => !isMastered(q));
+    }
     if (available.length === 0) {
-      alert('Congratulations! All questions have been mastered. You may reset your progress to start over.');
+      alert('Congratulations! All selected questions have been mastered. You may reset your progress to start over.');
       renderHome();
       return;
     }

@@ -1,0 +1,752 @@
+[
+  {
+    "number": "A1",
+    "category": "acronym",
+    "question": "What does the acronym APT stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Advanced persistent threat"
+      },
+      {
+        "letter": "B",
+        "text": "Automated Protection Toolkit"
+      },
+      {
+        "letter": "C",
+        "text": "Adaptive Penetration Technique"
+      },
+      {
+        "letter": "D",
+        "text": "Advanced Privacy Technology"
+      }
+    ],
+    "answer": "A",
+    "explanation": "APT stands for Advanced persistent threat, a stealthy threat actor that gains unauthorized access and remains undetected."
+  },
+  {
+    "number": "A2",
+    "category": "acronym",
+    "question": "What does the acronym ACL stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Authentication Control Logic"
+      },
+      {
+        "letter": "B",
+        "text": "Access Control List"
+      },
+      {
+        "letter": "C",
+        "text": "Asymmetric Cryptographic Layer"
+      },
+      {
+        "letter": "D",
+        "text": "Active Connection Log"
+      }
+    ],
+    "answer": "B",
+    "explanation": "An ACL (Access Control List) specifies which users or systems can access a resource."
+  },
+  {
+    "number": "A3",
+    "category": "acronym",
+    "question": "What does the acronym ARP stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Authorization Request Protocol"
+      },
+      {
+        "letter": "B",
+        "text": "Access Relay Program"
+      },
+      {
+        "letter": "C",
+        "text": "Automatic Routing Process"
+      },
+      {
+        "letter": "D",
+        "text": "Address Resolution Protocol"
+      }
+    ],
+    "answer": "D",
+    "explanation": "ARP stands for Address Resolution Protocol; it maps IP addresses to MAC addresses on a local network."
+  },
+  {
+    "number": "A4",
+    "category": "acronym",
+    "question": "What does the acronym BYOD stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Backup Your Online Data"
+      },
+      {
+        "letter": "B",
+        "text": "Build Your Own Database"
+      },
+      {
+        "letter": "C",
+        "text": "Bring Your Own Device"
+      },
+      {
+        "letter": "D",
+        "text": "Buy Your Own Device"
+      }
+    ],
+    "answer": "C",
+    "explanation": "BYOD means Bring Your Own Device, a policy allowing employees to use personal devices for work."
+  },
+  {
+    "number": "A5",
+    "category": "acronym",
+    "question": "What does the acronym CASB stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Central Authentication Service Block"
+      },
+      {
+        "letter": "B",
+        "text": "Cloud Access Security Broker"
+      },
+      {
+        "letter": "C",
+        "text": "Cybersecurity Application Security Box"
+      },
+      {
+        "letter": "D",
+        "text": "Common Application Security Baseline"
+      }
+    ],
+    "answer": "B",
+    "explanation": "CASB stands for Cloud Access Security Broker, a service that provides visibility and control over cloud applications."
+  },
+  {
+    "number": "A6",
+    "category": "acronym",
+    "question": "What does the acronym DLP stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Distributed Log Protection"
+      },
+      {
+        "letter": "B",
+        "text": "Dynamic Link Protocol"
+      },
+      {
+        "letter": "C",
+        "text": "Data Link Policy"
+      },
+      {
+        "letter": "D",
+        "text": "Data Loss Prevention"
+      }
+    ],
+    "answer": "D",
+    "explanation": "DLP stands for Data Loss Prevention, a strategy and tools for preventing data exfiltration."
+  },
+  {
+    "number": "A7",
+    "category": "acronym",
+    "question": "What does the acronym DNS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Digital Network Service"
+      },
+      {
+        "letter": "B",
+        "text": "Domain Name System"
+      },
+      {
+        "letter": "C",
+        "text": "Data Name Server"
+      },
+      {
+        "letter": "D",
+        "text": "Device Naming Scheme"
+      }
+    ],
+    "answer": "B",
+    "explanation": "DNS stands for Domain Name System, which translates human\u2011readable domain names into IP addresses."
+  },
+  {
+    "number": "A8",
+    "category": "acronym",
+    "question": "What does the acronym IDS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Identity Directory Server"
+      },
+      {
+        "letter": "B",
+        "text": "Integrated Defense Strategy"
+      },
+      {
+        "letter": "C",
+        "text": "Internet Data Service"
+      },
+      {
+        "letter": "D",
+        "text": "Intrusion Detection System"
+      }
+    ],
+    "answer": "D",
+    "explanation": "An IDS (Intrusion Detection System) monitors networks or systems for malicious activity or policy violations."
+  },
+  {
+    "number": "A9",
+    "category": "acronym",
+    "question": "What does the acronym IPS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Internal Packet Scanner"
+      },
+      {
+        "letter": "B",
+        "text": "Information Protection Service"
+      },
+      {
+        "letter": "C",
+        "text": "Intrusion Prevention System"
+      },
+      {
+        "letter": "D",
+        "text": "Internet Protocol Security"
+      }
+    ],
+    "answer": "C",
+    "explanation": "An IPS (Intrusion Prevention System) detects and automatically blocks network intrusions."
+  },
+  {
+    "number": "A10",
+    "category": "acronym",
+    "question": "What does the acronym CVE stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Critical Vulnerability Enumeration"
+      },
+      {
+        "letter": "B",
+        "text": "Central Virus Engine"
+      },
+      {
+        "letter": "C",
+        "text": "Certified Vulnerability Exchange"
+      },
+      {
+        "letter": "D",
+        "text": "Common Vulnerabilities and Exposures"
+      }
+    ],
+    "answer": "D",
+    "explanation": "CVE stands for Common Vulnerabilities and Exposures, a system for cataloging publicly disclosed cybersecurity vulnerabilities."
+  },
+  {
+    "number": "A11",
+    "category": "acronym",
+    "question": "What does the acronym CVSS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Common Vulnerability Scoring System"
+      },
+      {
+        "letter": "B",
+        "text": "Critical Value Scoring System"
+      },
+      {
+        "letter": "C",
+        "text": "Cybersecurity Vulnerability Severity Scale"
+      },
+      {
+        "letter": "D",
+        "text": "Common Virus Scoring Scheme"
+      }
+    ],
+    "answer": "A",
+    "explanation": "CVSS stands for Common Vulnerability Scoring System, a framework for rating the severity of vulnerabilities."
+  },
+  {
+    "number": "A12",
+    "category": "acronym",
+    "question": "What does the acronym DKIM stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Dynamic Key Integrity Mechanism"
+      },
+      {
+        "letter": "B",
+        "text": "Digital Key Identity Management"
+      },
+      {
+        "letter": "C",
+        "text": "Domain Key Infrastructure Model"
+      },
+      {
+        "letter": "D",
+        "text": "DomainKeys Identified Mail"
+      }
+    ],
+    "answer": "D",
+    "explanation": "DKIM stands for DomainKeys Identified Mail, a method for validating email authenticity using cryptographic signatures."
+  },
+  {
+    "number": "A13",
+    "category": "acronym",
+    "question": "What does the acronym DMARC stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Data Message Authorization, Relay, and Control"
+      },
+      {
+        "letter": "B",
+        "text": "Distributed Mail Authentication Relay Channel"
+      },
+      {
+        "letter": "C",
+        "text": "Domain-based Message Authentication, Reporting, and Conformance"
+      },
+      {
+        "letter": "D",
+        "text": "Domain Mail Access Relay Control"
+      }
+    ],
+    "answer": "C",
+    "explanation": "DMARC stands for Domain-based Message Authentication, Reporting, and Conformance; it builds on SPF and DKIM to help combat email spoofing."
+  },
+  {
+    "number": "A14",
+    "category": "acronym",
+    "question": "What does the acronym EDR stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Enhanced Digital Resilience"
+      },
+      {
+        "letter": "B",
+        "text": "Endpoint Data Relay"
+      },
+      {
+        "letter": "C",
+        "text": "Endpoint Detection and Response"
+      },
+      {
+        "letter": "D",
+        "text": "Enterprise Data Recovery"
+      }
+    ],
+    "answer": "C",
+    "explanation": "EDR stands for Endpoint Detection and Response, tools that continuously monitor endpoint devices to detect and respond to threats."
+  },
+  {
+    "number": "A15",
+    "category": "acronym",
+    "question": "What does the acronym HSTS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "HTTP Strict Transport Security"
+      },
+      {
+        "letter": "B",
+        "text": "Hyper Transport Security Protocol"
+      },
+      {
+        "letter": "C",
+        "text": "Host Secure Transport Service"
+      },
+      {
+        "letter": "D",
+        "text": "High-Speed Transport Security"
+      }
+    ],
+    "answer": "A",
+    "explanation": "HSTS stands for HTTP Strict Transport Security, a security policy that forces browsers to communicate with sites over HTTPS only."
+  },
+  {
+    "number": "A16",
+    "category": "acronym",
+    "question": "What does the acronym IAM stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Information Authentication Model"
+      },
+      {
+        "letter": "B",
+        "text": "Identity and Access Management"
+      },
+      {
+        "letter": "C",
+        "text": "Integrated Account Monitoring"
+      },
+      {
+        "letter": "D",
+        "text": "Internet Access Mechanism"
+      }
+    ],
+    "answer": "B",
+    "explanation": "IAM stands for Identity and Access Management, frameworks and processes for managing digital identities and controlling access."
+  },
+  {
+    "number": "A17",
+    "category": "acronym",
+    "question": "What does the acronym SIEM stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Secure Infrastructure Event Management"
+      },
+      {
+        "letter": "B",
+        "text": "Security Information and Event Management"
+      },
+      {
+        "letter": "C",
+        "text": "Security Incident and Event Monitor"
+      },
+      {
+        "letter": "D",
+        "text": "System Integrity Event Monitor"
+      }
+    ],
+    "answer": "B",
+    "explanation": "SIEM stands for Security Information and Event Management; it aggregates and analyzes log data from various sources to detect security threats."
+  },
+  {
+    "number": "A18",
+    "category": "acronym",
+    "question": "What does the acronym SAML stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Security Assertion Markup Language"
+      },
+      {
+        "letter": "B",
+        "text": "Secure Access Management Layer"
+      },
+      {
+        "letter": "C",
+        "text": "System Authentication Markup Language"
+      },
+      {
+        "letter": "D",
+        "text": "Session Authorization Mapping Log"
+      }
+    ],
+    "answer": "A",
+    "explanation": "SAML stands for Security Assertion Markup Language, an open standard for exchanging authentication and authorization data between parties."
+  },
+  {
+    "number": "A19",
+    "category": "acronym",
+    "question": "What does the acronym RBAC stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Role-Based Authorization Code"
+      },
+      {
+        "letter": "B",
+        "text": "Remote Backup Access Configuration"
+      },
+      {
+        "letter": "C",
+        "text": "Role-Based Access Control"
+      },
+      {
+        "letter": "D",
+        "text": "Resource-Based Authentication Control"
+      }
+    ],
+    "answer": "C",
+    "explanation": "RBAC stands for Role-Based Access Control, a method that restricts system access to authorized users based on their roles."
+  },
+  {
+    "number": "A20",
+    "category": "acronym",
+    "question": "What does the acronym VPN stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Variable Private Node"
+      },
+      {
+        "letter": "B",
+        "text": "Virtual Public Node"
+      },
+      {
+        "letter": "C",
+        "text": "Verified Personal Network"
+      },
+      {
+        "letter": "D",
+        "text": "Virtual Private Network"
+      }
+    ],
+    "answer": "D",
+    "explanation": "VPN stands for Virtual Private Network, a technology that creates a secure, encrypted connection over a public network."
+  },
+  {
+    "number": "A21",
+    "category": "acronym",
+    "question": "What does the acronym VLAN stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Validated Local Access Node"
+      },
+      {
+        "letter": "B",
+        "text": "Virtual Large Area Network"
+      },
+      {
+        "letter": "C",
+        "text": "Variable Local Access Network"
+      },
+      {
+        "letter": "D",
+        "text": "Virtual Local Area Network"
+      }
+    ],
+    "answer": "D",
+    "explanation": "VLAN stands for Virtual Local Area Network, a logical segmentation of a physical network to isolate traffic."
+  },
+  {
+    "number": "A22",
+    "category": "acronym",
+    "question": "What does the acronym XSS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "External System Spoofing"
+      },
+      {
+        "letter": "B",
+        "text": "XML Style Sheet"
+      },
+      {
+        "letter": "C",
+        "text": "Cross-Site Scripting"
+      },
+      {
+        "letter": "D",
+        "text": "Cross-Server Sniffing"
+      }
+    ],
+    "answer": "C",
+    "explanation": "XSS stands for Cross-Site Scripting, a vulnerability that allows attackers to inject malicious scripts into web pages viewed by other users."
+  },
+  {
+    "number": "A23",
+    "category": "acronym",
+    "question": "What does the acronym SQL stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Structured Query Language"
+      },
+      {
+        "letter": "B",
+        "text": "Standard Queue Language"
+      },
+      {
+        "letter": "C",
+        "text": "Structured Question Logic"
+      },
+      {
+        "letter": "D",
+        "text": "Simple Query Logic"
+      }
+    ],
+    "answer": "A",
+    "explanation": "SQL stands for Structured Query Language, a programming language used to manage data in relational databases."
+  },
+  {
+    "number": "A24",
+    "category": "acronym",
+    "question": "What does the acronym SSH stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Secure Server Handshake"
+      },
+      {
+        "letter": "B",
+        "text": "Secure Shell"
+      },
+      {
+        "letter": "C",
+        "text": "Server Side Hashing"
+      },
+      {
+        "letter": "D",
+        "text": "System Secure Host"
+      }
+    ],
+    "answer": "B",
+    "explanation": "SSH stands for Secure Shell, a protocol used to securely connect to remote systems and execute commands."
+  },
+  {
+    "number": "A25",
+    "category": "acronym",
+    "question": "What does the acronym TLS stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Transmission Layer Security"
+      },
+      {
+        "letter": "B",
+        "text": "Transport Layer Security"
+      },
+      {
+        "letter": "C",
+        "text": "Transport Layer Service"
+      },
+      {
+        "letter": "D",
+        "text": "Total Link Security"
+      }
+    ],
+    "answer": "B",
+    "explanation": "TLS stands for Transport Layer Security, a cryptographic protocol designed to secure communications over a network."
+  },
+  {
+    "number": "A26",
+    "category": "acronym",
+    "question": "What does the acronym SLA stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Secure Login Authentication"
+      },
+      {
+        "letter": "B",
+        "text": "Service-Level Agreement"
+      },
+      {
+        "letter": "C",
+        "text": "Service License Authorization"
+      },
+      {
+        "letter": "D",
+        "text": "Software License Agreement"
+      }
+    ],
+    "answer": "B",
+    "explanation": "SLA stands for Service-Level Agreement, a formal contract that defines the expected level of service between a provider and a customer."
+  },
+  {
+    "number": "A27",
+    "category": "acronym",
+    "question": "What does the acronym OWASP stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Open Web Application Security Project"
+      },
+      {
+        "letter": "B",
+        "text": "Online Web Application Safety Program"
+      },
+      {
+        "letter": "C",
+        "text": "Open Web Assessment Standards Project"
+      },
+      {
+        "letter": "D",
+        "text": "Open Worldwide Application Security Platform"
+      }
+    ],
+    "answer": "A",
+    "explanation": "OWASP stands for Open Web Application Security Project, a nonprofit organization focused on improving software security."
+  },
+  {
+    "number": "A28",
+    "category": "acronym",
+    "question": "What does the acronym OSINT stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Open Source Intelligence"
+      },
+      {
+        "letter": "B",
+        "text": "Open Systems Intelligence Toolkit"
+      },
+      {
+        "letter": "C",
+        "text": "Open Security Information Network"
+      },
+      {
+        "letter": "D",
+        "text": "Operational Security Intelligence"
+      }
+    ],
+    "answer": "A",
+    "explanation": "OSINT stands for Open Source Intelligence, the collection and analysis of data from publicly available sources."
+  },
+  {
+    "number": "A29",
+    "category": "acronym",
+    "question": "What does the acronym SASE stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Secure Access Service Edge"
+      },
+      {
+        "letter": "B",
+        "text": "System Access Security Exchange"
+      },
+      {
+        "letter": "C",
+        "text": "Security Assessment Service Engine"
+      },
+      {
+        "letter": "D",
+        "text": "Secure Application Service Edge"
+      }
+    ],
+    "answer": "A",
+    "explanation": "SASE stands for Secure Access Service Edge, a network architecture that combines WAN and security functions in the cloud."
+  },
+  {
+    "number": "A30",
+    "category": "acronym",
+    "question": "What does the acronym SSO stand for?",
+    "options": [
+      {
+        "letter": "A",
+        "text": "Simple Sign-Off"
+      },
+      {
+        "letter": "B",
+        "text": "Single Sign-On"
+      },
+      {
+        "letter": "C",
+        "text": "Single System Override"
+      },
+      {
+        "letter": "D",
+        "text": "Secure Session Operation"
+      }
+    ],
+    "answer": "B",
+    "explanation": "SSO stands for Single Sign-On, an authentication method that allows users to access multiple applications with one set of credentials."
+  }
+]
