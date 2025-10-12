@@ -94,13 +94,9 @@
     </div>
 
     <script>
-        // --- IMPORTANT ---
-        // I will need the URL to your GitHub repository where the images are stored.
-        // Once you provide the URL, I can replace these placeholder paths.
-        // For example, the final URL might look like:
-        // 'https://raw.githubusercontent.com/YourUsername/YourRepo/main/images/john.png'
-
-        const ASSET_BASE_PATH = 'https://raw.githubusercontent.com/user/repo/main/'; // Replace with your GitHub Raw base URL
+        // This constant now points to a local "images" folder.
+        // Make sure your index.html file and your "images" folder are in the same directory.
+        const ASSET_BASE_PATH = 'images/';
 
         const assets = {
             // Characters
@@ -386,7 +382,7 @@
             dialogueTextEl.innerText = dialogueData.text;
             choicesBoxEl.innerHTML = ''; // Clear old choices
 
-            if (dialogueData.choices && dialogueData.choices.length > 0) {
+            if (dialogeData.choices && dialogueData.choices.length > 0) {
                 dialogueData.choices.forEach(choice => {
                     const btn = document.createElement('button');
                     btn.innerText = choice.text;
@@ -431,7 +427,4 @@
 
 </body>
 </html>
-
-
-
 
