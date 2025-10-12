@@ -378,21 +378,41 @@
             }
         }
 
+        /**
+         * Render a dialogue window with text and optional choices.  The story
+         * engine passes a `dialogueData` object that contains the text to
+         * display and an array of choice definitions.  Each choice can have
+         * a `text` property (the label on the button) and an optional
+         * `target` property which, when selected, updates the current
+         * scene and re-renders the game.  When `target` is null or
+         * undefined the dialogue simply closes without changing the
+         * scene.  Note that previously this function contained a typo
+         * (`dialogeData`) which prevented the choices from being
+         * processed, breaking the game.  This corrected version uses
+         * `dialogueData` consistently.
+         *
+         * @param {Object} dialogueData
+         */
         function showDialogue(dialogueData) {
+            // Set the dialogue text
             dialogueTextEl.innerText = dialogueData.text;
-            choicesBoxEl.innerHTML = ''; // Clear old choices
+            // Clear any existing choice buttons
+            choicesBoxEl.innerHTML = '';
 
-            if (dialogeData.choices && dialogueData.choices.length > 0) {
+            // Render choice buttons if provided
+            if (dialogueData.choices && dialogueData.choices.length > 0) {
                 dialogueData.choices.forEach(choice => {
                     const btn = document.createElement('button');
                     btn.innerText = choice.text;
                     btn.className = 'choice-btn';
                     btn.onclick = () => {
+                        // If a target is defined, transition to that scene
                         if (choice.target) {
                             gameState.currentScene = choice.target;
                             dialogueBoxEl.style.display = 'none';
                             renderScene();
                         } else {
+                            // Otherwise just hide the dialogue box
                             dialogueBoxEl.style.display = 'none';
                         }
                     };
@@ -400,6 +420,7 @@
                 });
             }
 
+            // Show the dialogue box
             dialogueBoxEl.style.display = 'block';
         }
 
