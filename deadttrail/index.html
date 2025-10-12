@@ -1,192 +1,437 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dead Trail</title>
-  <style>
-    :root {
-      --bg:#0f0f12; --panel:#14161b; --muted:#aab3c0; --text:#f0f3f8;
-      --ink:#e2e8f0; --accent:#9ae6b4; --panel2:#1a1b20; --panel3:#2a2c34;
-      --border:#2c313d;
-    }
-    * { box-sizing: border-box; }
-    html,body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial; }
-    #game { max-width: 960px; margin: 24px auto; padding: 16px; background: var(--panel); border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
-    .hud { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-weight:600; margin-bottom:12px; }
-    .media { background: var(--panel3); border: 1px solid var(--border); border-radius: 8px; height: 360px; display:flex; align-items:center; justify-content:center; margin-bottom: 16px; overflow:hidden; }
-    .media img { max-width: 100%; max-height: 100%; display:block; }
-    .dialogue { line-height: 1.55; }
-    .dialogue p { margin: 8px 0; }
-    .choices { margin-top: 12px; }
-    .choices button { display:block; background:#1f222a; color:var(--ink); border:1px solid var(--border); border-radius:8px; padding:8px 14px; margin:8px 0; cursor:pointer; width:fit-content; }
-    .choices button:hover { background:#2c313d; }
-    .center { text-align:center; margin: 24px 0 8px; }
-    .small { color: var(--muted); font-size: .9rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.M.A.A.L. - An Interactive Story</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 1024px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            border: 4px solid #4a4a4a;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #scene {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            border-radius: 4px;
+        }
+        .character, .object {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+            image-rendering: pixelated; /* Ensures pixel art doesn't blur */
+        }
+        .character:hover, .object:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 8px #ffffff);
+        }
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 3px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        #choices-box {
+            margin-top: 15px;
+        }
+        .choice-btn {
+            background-color: #333;
+            border: 2px solid #555;
+            color: #fff;
+            padding: 10px 15px;
+            margin-right: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .choice-btn:hover {
+            background-color: #555;
+            border-color: #777;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<body>
-  <div id="game">
-    <div id="hud" class="hud">Trust: 0</div>
-    <div id="media" class="media"></div>
-    <div id="dialogue" class="dialogue"></div>
-    <div id="choices" class="choices"></div>
-  </div>
+<body class="bg-gray-900 flex items-center justify-center h-screen p-4">
 
-  <script>
-  // ---------- Robust path resolution + placeholder drawing ----------
+    <div id="game-container">
+        <!-- The scene background will be set here -->
+        <div id="scene">
+            <!-- Characters and objects will be added here by JavaScript -->
+        </div>
 
-  // Draw a crude placeholder if nothing loads.
-  function makePlaceholder(label, w=800, h=360) {
-    const c = document.createElement('canvas');
-    c.width=w; c.height=h;
-    const g = c.getContext('2d');
-    g.fillStyle = '#2a2c34'; g.fillRect(0,0,w,h);
-    g.strokeStyle = '#1b1d24'; g.lineWidth = 2;
-    for (let i=-h;i<w;i+=16){ g.beginPath(); g.moveTo(i,0); g.lineTo(i+h,h); g.stroke(); }
-    g.strokeStyle = '#4a5568'; g.lineWidth = 4; g.strokeRect(2,2,w-4,h-4);
-    g.fillStyle = '#e2e8f0'; g.font = `bold ${Math.max(14, Math.floor(w*0.05))}px system-ui,Segoe UI,Roboto`;
-    g.textAlign='center'; g.textBaseline='middle';
-    g.fillText(label||'Event', w/2, h/2);
-    return c.toDataURL('image/png');
-  }
+        <!-- Dialogue box for text and choices -->
+        <div id="dialogue-box">
+            <p id="dialogue-text"></p>
+            <div id="choices-box">
+                <!-- Buttons for choices will be added here -->
+            </div>
+        </div>
+    </div>
 
-  // Build a list of candidate URLs for an asset, trying multiple likely roots.
-  function buildCandidates(relPath) {
-    // If the caller gave a full path (starts with http(s) or /), just try it.
-    if (!relPath || /^\s*$/.test(relPath)) return [];
-    if (/^https?:\/\//i.test(relPath) || relPath.startsWith('/')) return [relPath];
+    <script>
+        // --- IMPORTANT ---
+        // I will need the URL to your GitHub repository where the images are stored.
+        // Once you provide the URL, I can replace these placeholder paths.
+        // For example, the final URL might look like:
+        // 'https://raw.githubusercontent.com/YourUsername/YourRepo/main/images/john.png'
 
-    const path = window.location.pathname;               // e.g. /my-repo/deadtrail/index.html
-    const parts = path.split('/').filter(Boolean);       // ["my-repo","deadtrail","index.html"] (project page)
-    const fileDirParts = parts.slice(0, -1);             // ["my-repo","deadtrail"]
-    const repo = parts[0] || '';                         // "my-repo" (blank on user site)
-    const sub  = parts[1] || '';                         // "deadtrail" if nested
+        const ASSET_BASE_PATH = 'https://raw.githubusercontent.com/user/repo/main/'; // Replace with your GitHub Raw base URL
 
-    // Helper to join segments safely
-    const j = (...segs) => '/' + segs.filter(Boolean).join('/');
+        const assets = {
+            // Characters
+            'john': ASSET_BASE_PATH + 'john.png',
+            'jamaal': ASSET_BASE_PATH + 'jamaal.png',
+            'dave': ASSET_BASE_PATH + 'dave.png',
+            'zombie1': ASSET_BASE_PATH + 'zombie1.png',
+            'rick': ASSET_BASE_PATH + 'rick.png',
+            'daryl': ASSET_BASE_PATH + 'daryl.png',
+            'carol': ASSET_BASE_PATH + 'carol.png',
+            
+            // Scenery
+            'abandoned_office': ASSET_BASE_PATH + 'abandoned_office.png',
+            'woods': ASSET_BASE_PATH + 'woods.png',
+            'prison_exterior': ASSET_BASE_PATH + 'prison_exterior.png',
+            'prison_interior': ASSET_BASE_PATH + 'prison_interior.png',
 
-    // We accept short keys like 'portraits/rick.png' and expand to several roots.
-    const withImages = (p) => p.startsWith('images/') || p.startsWith('public/images/') ? p : `images/${p}`;
-    const withPublic = (p) => p.startsWith('public/images/') ? p : `public/${withImages(p)}`;
+            // Objects
+            'filing_cabinet': ASSET_BASE_PATH + 'filing_cabinet.png',
+            'microwave': ASSET_BASE_PATH + 'microwave.png'
+        };
 
-    const p = withImages(relPath);       // images/portraits/...
-    const q = withPublic(relPath);       // public/images/portraits/...
+        // This object holds the entire story structure.
+        const storyData = {
+            'office_start': {
+                background: assets.abandoned_office,
+                characters: [
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '10%' },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '55%', width: '12%' },
+                ],
+                objects: [
+                    { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '5%', width: '10%' },
+                    { id: 'microwave_obj', asset: assets.microwave, bottom: '18%', left: '80%', width: '12%' }
+                ],
+                onLoad: {
+                    type: 'dialogue',
+                    text: "The office is thick with the stench of decay. The flickering lights cast long, distorted shadows. We need to find supplies, fast.",
+                    choices: [
+                        { text: "Okay, let's search.", target: null } // null target just closes the box
+                    ]
+                },
+                interactions: {
+                    'john': {
+                        type: 'dialogue',
+                        text: "John: Stay sharp. We don't know what's in here. Check everything.",
+                        choices: [
+                            { text: "Right.", target: null }
+                        ]
+                    },
+                    'jamaal': {
+                        type: 'dialogue',
+                        text: "Jamaal: Keep your eyes peeled. I'm not trying to become zombie-chow today. Maybe we can find some hand sanitizer to sell.",
+                        choices: [
+                            { text: "Stay focused.", target: null }
+                        ]
+                    },
+                    'filing_cabinet': {
+                        type: 'dialogue',
+                        text: "It's a dusty, old filing cabinet. It looks like it's already been picked clean.",
+                        choices: [
+                            { text: "Leave it.", target: null }
+                        ]
+                    },
+                    'microwave_obj': {
+                        type: 'dialogue',
+                        text: "A grimy microwave. Someone left something in here a long, long time ago. The smell is... memorable. Reminds you of Rob C.'s fish.",
+                        choices: [
+                            { text: "Step away. Slowly.", target: null },
+                            { text: "A new beginning!", target: 'zombie_surprise' }
+                        ]
+                    }
+                }
+            },
+            'zombie_surprise': {
+                background: assets.abandoned_office,
+                characters: [
+                     { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '10%' },
+                     { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '55%', width: '12%' },
+                     { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '75%', width: '10%' }
+                ],
+                objects: [
+                     { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '5%', width: '10%' }
+                ],
+                 onLoad: {
+                    type: 'dialogue',
+                    text: "As you reach for the microwave, a decaying corpse that was propped against a desk lurches towards you!",
+                    choices: [
+                        { text: "Fight!", target: 'game_over_fight' },
+                        { text: "Run for the service tunnel!", target: 'forest_escape' }
+                    ]
+                },
+                interactions: {
+                    'john': {
+                        type: 'dialogue',
+                        text: "John: No time to talk, let's move!",
+                        choices: [{ text: "Go!", target: null }]
+                    },
+                    'jamaal': {
+                        type: 'dialogue',
+                        text: "Jamaal: I told you this was a bad idea! My entrepreneurial spirit does not extend to being eaten!",
+                        choices: [{ text: "Let's go!", target: null }]
+                    },
+                    'zombie1': {
+                        type: 'dialogue',
+                        text: "The zombie groans, its empty eyes fixed on you. It smells awful.",
+                        choices: [{ text: "Back away.", target: null }]
+                    }
+                }
+            },
+            'forest_escape': {
+                background: assets.woods,
+                characters: [
+                    { id: 'john', asset: assets.john, bottom: '15%', left: '40%', width: '12%' },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '14%' },
+                ],
+                objects: [],
+                onLoad: {
+                    type: 'dialogue',
+                    text: "You make a daring escape through a narrow service tunnel, emerging into a dense forest. Exhausted and low on supplies, you stumble upon a high chain-link fence...",
+                    choices: [
+                        { text: "A prison?", target: null }
+                    ]
+                },
+                interactions: {
+                    'john': {
+                        type: 'dialogue',
+                        text: "John: That's... something. Looks secure, at least.",
+                        choices: [{ text: "Let's approach carefully.", target: 'prison_approach' }]
+                    }
+                }
+            },
+            'prison_approach': {
+                background: assets.prison_exterior,
+                characters: [
+                    { id: 'john', asset: assets.john, bottom: '5%', left: '25%', width: '10%' },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '40%', width: '12%' },
+                ],
+                objects: [],
+                onLoad: {
+                    type: 'dialogue',
+                    text: "A voice shouts from a guard tower: \"Hold it right there! State your business!\"",
+                    choices: [
+                        { text: '"We\'re survivors. Looking for shelter."', target: 'prison_standoff' }
+                    ]
+                },
+                interactions: {
+                     'john': {
+                        type: 'dialogue',
+                        text: "John: Easy now. Let's not make any sudden moves.",
+                        choices: [{ text: "Right.", target: null }]
+                    },
+                    'jamaal': {
+                        type: 'dialogue',
+                        text: "Jamaal: Let John do the talking. I'll assess the... real estate.",
+                        choices: [{ text: "Okay.", target: null }]
+                    }
+                }
+            },
+            'prison_standoff': {
+                background: assets.prison_exterior,
+                 characters: [
+                    { id: 'john', asset: assets.john, bottom: '5%', left: '25%', width: '10%' },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '40%', width: '12%' },
+                ],
+                objects: [],
+                onLoad: {
+                    type: 'dialogue',
+                    text: "Another voice scoffs from the tower: \"Peace? Ain't seen much of that lately.\" After a long, tense moment, the first voice returns: \"Alright. Come on in. Slow and steady.\"",
+                    choices: [
+                        { text: "Enter the prison.", target: 'prison_interior_welcome' }
+                    ]
+                },
+                interactions: {}
+            },
+            'prison_interior_welcome': {
+                background: assets.prison_interior,
+                characters: [
+                    { id: 'rick', asset: assets.rick, bottom: '10%', left: '20%', width: '11%' },
+                    { id: 'carol', asset: assets.carol, bottom: '10%', left: '35%', width: '10%' },
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '60%', width: '10%' },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '75%', width: '12%' },
+                ],
+                objects: [],
+                onLoad: {
+                    type: 'dialogue',
+                    text: "You step inside. The air is heavy with mistrust. Rick's group watches your every move.",
+                    choices: [
+                        { text: "This is tense.", target: null }
+                    ]
+                },
+                interactions: {
+                    'rick': {
+                        type: 'dialogue',
+                        text: "Rick: You can stay for now. We have rules. You follow them, you're welcome. You break them, you're out. Any questions?",
+                        choices: [{ text: "Understood.", target: null }]
+                    },
+                     'carol': {
+                        type: 'dialogue',
+                        text: "Carol: Don't mind Rick, he's just cautious. We've all been through a lot. You all look hungry.",
+                        choices: [{ text: "We are.", target: null }]
+                    },
+                     'john': {
+                        type: 'dialogue',
+                        text: "John: (to Jamaal) Let's not cause any trouble. These people are survivors, just like us.",
+                        choices: [{ text: "Agreed.", target: null }]
+                    },
+                    'jamaal': {
+                        type: 'dialogue',
+                        text: "Jamaal: (Quietly) Look at these walls, John. The concrete work... a little bio-inspired reinforcement, and this place could be a fortress. A very marketable fortress.",
+                        choices: [{ text: "Focus, Jamaal.", target: null }]
+                    }
+                }
+            },
+            'game_over_fight': {
+                background: assets.abandoned_office,
+                characters: [],
+                objects: [],
+                onLoad: {
+                    type: 'dialogue',
+                    text: "You tried to fight the zombie with your bare hands. It did not go well. You have died.",
+                    choices: [
+                        { text: "Start Over", target: 'office_start' }
+                    ]
+                },
+                interactions: {}
+            }
+        };
 
-    const sameDir = j(...fileDirParts);        // /my-repo/deadtrail
-    const repoRoot = repo ? j(repo) : '/';     // /my-repo or /
+        // This object keeps track of where the player is in the story.
+        let gameState = {
+            currentScene: 'office_start',
+        };
 
-    const candidates = [
-      // same folder as index.html
-      j(...fileDirParts, p),            // /my-repo/deadtrail/images/...
-      j(...fileDirParts, q),            // /my-repo/deadtrail/public/images/...
-      // relative without leading slash (for local file:// or some hosts)
-      p, q,
-      // repo root (GitHub Pages project sites)
-      j(repo, p),                       // /my-repo/images/...
-      j(repo, q),                       // /my-repo/public/images/...
-      // two-level nested (if you published under repo/subfolder)
-      sub ? j(repo, sub, p) : null,
-      sub ? j(repo, sub, q) : null,
-    ].filter(Boolean);
+        const sceneEl = document.getElementById('scene');
+        const dialogueBoxEl = document.getElementById('dialogue-box');
+        const dialogueTextEl = document.getElementById('dialogue-text');
+        const choicesBoxEl = document.getElementById('choices-box');
 
-    // De-duplicate while preserving order
-    return [...new Set(candidates)];
-  }
+        function renderScene() {
+            const sceneData = storyData[gameState.currentScene];
+            if (!sceneData) {
+                console.error("Scene not found:", gameState.currentScene);
+                return;
+            }
 
-  // Try each candidate in order; fall back to placeholder if all fail.
-  function loadSmartImage(imgEl, relPath, label='Event') {
-    const tries = buildCandidates(relPath);
-    if (!tries.length) { imgEl.src = makePlaceholder(label); return; }
-    let i = 0;
-    const next = () => {
-      if (i >= tries.length) { imgEl.onerror = null; imgEl.src = makePlaceholder(label); return; }
-      imgEl.onerror = () => { i++; next(); };
-      imgEl.src = tries[i];
-    };
-    next();
-  }
+            // 1. Clear previous scene
+            sceneEl.innerHTML = '';
 
-  // ---------- Minimal Oregon Trail loop (with sprite/event images) ----------
+            // 2. Set background
+            sceneEl.style.backgroundImage = `url('${sceneData.background}')`;
 
-  const state = { trust: 0, i: 0 };
+            // 3. Render characters
+            sceneData.characters.forEach(char => {
+                const charEl = document.createElement('img');
+                charEl.src = char.asset;
+                charEl.className = 'character';
+                charEl.style.bottom = char.bottom;
+                charEl.style.left = char.left;
+                charEl.style.width = char.width;
+                charEl.dataset.interactionId = char.id;
+                sceneEl.appendChild(charEl);
+            });
 
-  // Use short keys like 'portraits/rick.png' or 'events/RoombaGag.png'.
-  // The loader will search: images/... , public/images/... , and repo-prefixed paths.
-  const events = [
-    {
-      prompt: "A Roomba thunks the same wall. Microwave dings somewhere.",
-      speaker: "Ed",
-      line: "At least the Roombas don’t eat people.",
-      image: "events/RoombaGag.png",        // optional; will try many roots, else placeholder
-      choices: [
-        { label: "Let Ed tinker", effects: { trust:+1 } },
-        { label: "Ignore it", effects: { trust:-1 } },
-      ],
-    },
-    {
-      prompt: "You catch a glint—Jamaal signalling toward the treeline.",
-      speaker: "John",
-      line: "We can argue about titles, or we can survive.",
-      image: "portraits/rick.png",          // try your sprite here (rick.png, daryl.png, etc.)
-      choices: [
-        { label: "Confront Jamaal", effects: { trust:-1 } },
-        { label: "Watch quietly", effects: { trust:+1 } },
-      ],
-    },
-    {
-      prompt: "Noise rises in the yard. Floodlights flicker.",
-      speaker: "Carol",
-      line: "They’re inside!",
-      image: "backgrounds/PrisonExterior.png", // backgrounds work too
-      choices: [
-        { label: "Fall back to inner gate", effects: { trust:+1 } },
-        { label: "Hold the yard", effects: { trust:-1 } },
-      ],
-    },
-  ];
+            // 4. Render objects
+            sceneData.objects.forEach(obj => {
+                const objEl = document.createElement('img');
+                objEl.src = obj.asset;
+                objEl.className = 'object';
+                objEl.style.bottom = obj.bottom;
+                objEl.style.left = obj.left;
+                objEl.style.width = obj.width;
+                objEl.dataset.interactionId = obj.id;
+                sceneEl.appendChild(objEl);
+            });
+            
+            // 5. Show initial dialogue for the scene if it exists
+            if (sceneData.onLoad) {
+                 showDialogue(sceneData.onLoad);
+            }
+        }
 
-  const hud = document.getElementById('hud');
-  const media = document.getElementById('media');
-  const dialogue = document.getElementById('dialogue');
-  const choices = document.getElementById('choices');
+        function showDialogue(dialogueData) {
+            dialogueTextEl.innerText = dialogueData.text;
+            choicesBoxEl.innerHTML = ''; // Clear old choices
 
-  function renderHUD(){ hud.textContent = `Trust: ${state.trust}`; }
+            if (dialogueData.choices && dialogueData.choices.length > 0) {
+                dialogueData.choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.innerText = choice.text;
+                    btn.className = 'choice-btn';
+                    btn.onclick = () => {
+                        if (choice.target) {
+                            gameState.currentScene = choice.target;
+                            dialogueBoxEl.style.display = 'none';
+                            renderScene();
+                        } else {
+                            dialogueBoxEl.style.display = 'none';
+                        }
+                    };
+                    choicesBoxEl.appendChild(btn);
+                });
+            }
 
-  function renderEvent(ev){
-    media.innerHTML = ''; dialogue.innerHTML = ''; choices.innerHTML = '';
-    const img = document.createElement('img');
-    img.width = 800; img.height = 360; img.alt = 'Event';
-    // Always attempt to load something; if ev.image is missing/blank we still show placeholder.
-    if (ev.image && String(ev.image).trim()) loadSmartImage(img, ev.image, 'Event');
-    else img.src = makePlaceholder('Event');
-    media.appendChild(img);
+            dialogueBoxEl.style.display = 'block';
+        }
 
-    const block = document.createElement('div');
-    block.innerHTML = `<p>${ev.prompt}</p><p><strong>${ev.speaker}:</strong> “${ev.line}”</p>`;
-    dialogue.appendChild(block);
+        // Event listener for clicks on characters or objects
+        sceneEl.addEventListener('click', (e) => {
+            const interactionId = e.target.dataset.interactionId;
+            if (interactionId) {
+                const sceneData = storyData[gameState.currentScene];
+                const interaction = sceneData.interactions[interactionId];
+                if (interaction) {
+                    if (interaction.type === 'dialogue') {
+                        showDialogue(interaction);
+                    }
+                }
+            }
+        });
 
-    ev.choices.forEach(c => {
-      const b = document.createElement('button');
-      b.textContent = c.label;
-      b.onclick = () => {
-        if (c.effects && typeof c.effects.trust === 'number') state.trust += c.effects.trust;
-        state.i++;
-        if (state.i >= events.length) endGame(); else { renderHUD(); renderEvent(events[state.i]); }
-      };
-      choices.appendChild(b);
-    });
-  }
 
-  function endGame(){
-    media.innerHTML = '';
-    dialogue.innerHTML = `<div class="center"><h2>The journey continues…</h2><p class="small">Sprites/backgrounds will load automatically when placed in <code>images/</code> or <code>public/images/</code>.</p></div>`;
-    choices.innerHTML = `<div class="center"><button onclick="restart()">Restart</button></div>`;
-  }
-  function restart(){ state.trust=0; state.i=0; renderHUD(); renderEvent(events[0]); }
+        // Initial game setup
+        window.onload = () => {
+            renderScene();
+        };
 
-  // boot
-  renderHUD(); renderEvent(events[0]);
-  </script>
+    </script>
+
 </body>
 </html>
+
+
+
+
