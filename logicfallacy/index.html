@@ -9,9 +9,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@1.0.3/build/css/opendyslexic.min.css');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8; /* A light, calming blue-gray */
+        }
+        body.opendyslexic {
+            font-family: 'OpenDyslexic', sans-serif;
         }
         .card {
             background-color: white;
@@ -35,18 +39,22 @@
             cursor: pointer;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .btn-primary {
             background-color: #3b82f6;
             color: white;
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background-color: #2563eb;
         }
         .btn-secondary {
             background-color: #e5e7eb; /* Light gray */
             color: #374151; /* Dark gray text */
         }
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background-color: #d1d5db;
         }
         .feedback {
@@ -66,13 +74,30 @@
         .fade-in {
             animation: fadeIn 0.5s ease-in-out forwards;
         }
+        /* Toggle Switch styling */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68d391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68d391;
+        }
     </style>
 </head>
 <body class="antialiased text-slate-800">
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- Accessibility Toggle -->
+        <div class="absolute top-4 right-4 flex items-center space-x-2">
+            <span class="text-sm font-medium text-slate-600">OpenDyslexic</span>
+            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="toggle" id="dyslexic-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                <label for="dyslexic-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+            </div>
+        </div>
 
         <!-- Header -->
-        <header class="text-center mb-8">
+        <header class="text-center mb-8 pt-8">
             <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Logical Fallacy Trainer</h1>
             <p class="mt-2 text-lg text-slate-600">Sharpen your critical thinking skills.</p>
         </header>
@@ -87,12 +112,24 @@
         <main id="main-content">
             <!-- Learn Mode -->
             <div id="learn-mode" class="space-y-6">
+                 <!-- Fallacy Selector -->
+                <div class="card">
+                     <label for="fallacy-select" class="block mb-2 text-sm font-medium text-gray-900">Choose a fallacy to study:</label>
+                     <select id="fallacy-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                         <!-- Options will be populated by JS -->
+                     </select>
+                </div>
+
                 <div id="fallacy-display" class="card">
-                    <div class="flex justify-between items-start">
-                        <h2 id="fallacy-name" class="text-2xl md:text-3xl font-bold text-blue-600 mb-2"></h2>
-                        <span id="fallacy-progress" class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded"></span>
+                    <div class="flex flex-col-reverse sm:flex-row justify-between items-start">
+                        <div>
+                            <h2 id="fallacy-name" class="text-2xl md:text-3xl font-bold text-blue-600 mb-2"></h2>
+                            <p id="fallacy-def" class="text-slate-600 mb-4"></p>
+                        </div>
+                        <div id="fallacy-icon" class="w-16 h-16 sm:w-24 sm:h-24 mb-4 sm:mb-0 sm:ml-6 flex-shrink-0 text-slate-400">
+                            <!-- SVG Icon will be injected here -->
+                        </div>
                     </div>
-                    <p id="fallacy-def" class="text-slate-600 mb-4"></p>
                     <h3 class="font-semibold mb-2 text-slate-700">Examples:</h3>
                     <ul id="fallacy-examples" class="list-disc list-inside space-y-2 text-slate-600"></ul>
                 </div>
@@ -107,14 +144,17 @@
                     <div id="learn-feedback" class="feedback text-center mt-4 font-semibold text-xl h-6"></div>
                 </div>
 
-                <div id="learn-navigation" class="flex justify-center gap-4 pt-4">
+                <div id="learn-navigation" class="flex justify-between items-center gap-4 pt-4">
+                    <button id="prev-fallacy-btn" class="btn btn-secondary">Previous</button>
+                    <button id="start-challenge-btn" class="btn btn-primary flex-grow">Start Challenge</button>
                     <button id="review-btn" class="btn btn-secondary hidden">Review Fallacy</button>
-                    <button id="next-fallacy-btn" class="btn btn-primary">Start Challenge</button>
+                    <button id="next-fallacy-btn" class="btn btn-secondary">Next</button>
                 </div>
             </div>
 
             <!-- Quiz Mode -->
             <div id="quiz-mode" class="hidden">
+                <!-- ... (Quiz mode HTML is unchanged) ... -->
                 <div id="quiz-setup" class="card text-center">
                     <h2 class="text-2xl font-bold mb-4">Fallacy Quiz</h2>
                     <p class="text-slate-600 mb-6">Select the number of questions you'd like to answer.</p>
@@ -164,18 +204,34 @@
           { "fallacy": "Appeal to Pity", "definition": "Attempting to persuade by arousing sympathy or pity rather than offering relevant evidence.", "examples": [ "You should give me the job because I'm struggling with rent and need money. – appeals to personal hardship instead of qualifications.", "I deserve a passing grade because I'm going through a tough time, not because of my work. – uses emotional appeal instead of academic performance.", "Please accept my paper even though it's late because my dog is sick and I'm stressed. – attempts to excuse lateness through pity." ] }
         ];
 
+        const fallacyIcons = {
+            "Ad Hominem (including Tu Quoque)": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632zM15 19.5a3 3 0 00-3-3H6a3 3 0 00-3 3v.161a3.756 3.756 0 001.02 2.488" /><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 9.75L15 12m0 0l2.25 2.25M15 12l2.25-2.25M15 12l-2.25 2.25" /></svg>`,
+            "Straw Man": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.284.144A9.094 9.094 0 0112 18.72a9.094 9.094 0 01-5.758-.479m5.758.479L12 21m-2.242-2.28a9.094 9.094 0 01-5.758-.479M12 18.72a9.094 9.094 0 00-3.741-.479m3.741.479c-.022.022-.042.045-.064.067m-3.677-.134l-.064-.067m3.677.134l-.064.067m3.741-.479c-.022.022-.042.045-.064.067m-3.677.134l-.064-.067m3.677.134l-.064-.067m3.741-.479c-.022.022-.042.045-.064.067M3 9.75a3 3 0 013-3h12a3 3 0 013 3v9a3 3 0 01-3 3H6a3 3 0 01-3-3v-9z" /></svg>`,
+            "Red Herring": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            "False Dilemma (Either/Or)": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5M3.75 6.75h16.5M3.75 17.25h16.5" /></svg>`,
+            "Slippery Slope": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25L12 21m0 0l-3.75-3.75M12 21V3" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            "Hasty Generalization": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v.01M12 12v.01M12 18v.01M18 12h.01M6 12h.01" /></svg>`,
+            "Appeal to Authority": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            "Circular Reasoning (Begging the Question)": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.696L19.015 7.749M9.348 16.023l-3.181-3.183a8.25 8.25 0 0111.664 0l-3.181 3.183" /></svg>`,
+            "Equivocation": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12s4.03 8.25 9 8.25z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" /></svg>`,
+            "Appeal to Ignorance": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            "Appeal to Pity": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.5 4.5 0 0012 15a4.5 4.5 0 00-3.182 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 9.75a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75V9.75zm6 0a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75V9.75z" /></svg>`
+        };
+
         // DOM Elements
         const learnModeDiv = document.getElementById('learn-mode');
         const quizModeDiv = document.getElementById('quiz-mode');
         const learnModeBtn = document.getElementById('learn-mode-btn');
         const quizModeBtn = document.getElementById('quiz-mode-btn');
+        const dyslexicToggle = document.getElementById('dyslexic-toggle');
 
         // Learn Mode Elements
+        const fallacySelect = document.getElementById('fallacy-select');
         const fallacyDisplay = document.getElementById('fallacy-display');
         const fallacyNameEl = document.getElementById('fallacy-name');
+        const fallacyIconEl = document.getElementById('fallacy-icon');
         const fallacyDefEl = document.getElementById('fallacy-def');
         const fallacyExamplesEl = document.getElementById('fallacy-examples');
-        const fallacyProgressEl = document.getElementById('fallacy-progress');
         const scenarioQuizDiv = document.getElementById('scenario-quiz');
         const scenarioTextEl = document.getElementById('scenario-text');
         const scenarioFallacyNameEl = document.getElementById('scenario-fallacy-name');
@@ -183,8 +239,11 @@
         const falseBtn = document.getElementById('false-btn');
         const learnFeedbackEl = document.getElementById('learn-feedback');
         const learnNavDiv = document.getElementById('learn-navigation');
-        const reviewBtn = document.getElementById('review-btn');
+        const prevFallacyBtn = document.getElementById('prev-fallacy-btn');
         const nextFallacyBtn = document.getElementById('next-fallacy-btn');
+        const reviewBtn = document.getElementById('review-btn');
+        const startChallengeBtn = document.getElementById('start-challenge-btn');
+
 
         // Quiz Mode Elements
         const quizSetupDiv = document.getElementById('quiz-setup');
@@ -205,7 +264,6 @@
             currentFallacyIndex: 0,
             scenarios: [],
             currentScenarioIndex: 0,
-            challengeActive: false,
         };
         let quizState = {
             questions: [],
@@ -236,37 +294,56 @@
         }
         
         // --- LEARN MODE ---
+        function populateFallacyDropdown() {
+            fallaciesData.forEach((fallacy, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = fallacy.fallacy;
+                fallacySelect.appendChild(option);
+            });
+        }
+        
         function initLearnMode() {
-            learnState.currentFallacyIndex = 0;
-            learnState.challengeActive = false;
-            displayFallacy(0);
+            displayFallacy(learnState.currentFallacyIndex);
         }
 
         function displayFallacy(index) {
-            const fallacy = fallaciesData[index];
+            learnState.currentFallacyIndex = parseInt(index);
+            const fallacy = fallaciesData[learnState.currentFallacyIndex];
+
             fallacyNameEl.textContent = fallacy.fallacy;
             fallacyDefEl.textContent = fallacy.definition;
+            fallacyIconEl.innerHTML = fallacyIcons[fallacy.fallacy] || '';
             fallacyExamplesEl.innerHTML = fallacy.examples.map(ex => `<li>${ex}</li>`).join('');
-            fallacyProgressEl.textContent = `Fallacy ${index + 1} of ${fallaciesData.length}`;
+            
+            fallacySelect.value = learnState.currentFallacyIndex;
+            
+            // Update nav buttons
+            prevFallacyBtn.disabled = learnState.currentFallacyIndex === 0;
+            nextFallacyBtn.disabled = learnState.currentFallacyIndex === fallaciesData.length - 1;
 
+            // Reset view
             fallacyDisplay.classList.remove('hidden');
             scenarioQuizDiv.classList.add('hidden');
             learnNavDiv.classList.remove('hidden');
-            nextFallacyBtn.textContent = 'Start Challenge';
+            startChallengeBtn.classList.remove('hidden');
             reviewBtn.classList.add('hidden');
+            prevFallacyBtn.classList.remove('hidden');
+            nextFallacyBtn.classList.remove('hidden');
+
+
             fallacyDisplay.classList.remove('fade-in');
             void fallacyDisplay.offsetWidth; // Trigger reflow
             fallacyDisplay.classList.add('fade-in');
         }
 
         function startLearnChallenge() {
-            learnState.challengeActive = true;
             learnState.currentScenarioIndex = 0;
             generateLearnScenarios();
             displayLearnScenario();
             fallacyDisplay.classList.add('hidden');
-            scenarioQuizDiv.classList.remove('hidden');
             learnNavDiv.classList.add('hidden');
+            scenarioQuizDiv.classList.remove('hidden');
             scenarioQuizDiv.classList.remove('fade-in');
             void scenarioQuizDiv.offsetWidth;
             scenarioQuizDiv.classList.add('fade-in');
@@ -326,27 +403,12 @@
         function endLearnChallenge() {
             scenarioQuizDiv.classList.add('hidden');
             learnNavDiv.classList.remove('hidden');
+            startChallengeBtn.classList.add('hidden');
             reviewBtn.classList.remove('hidden');
-            if (learnState.currentFallacyIndex === fallaciesData.length - 1) {
-                nextFallacyBtn.textContent = 'Finish Learning';
-            } else {
-                nextFallacyBtn.textContent = 'Next Fallacy';
-            }
+            prevFallacyBtn.classList.add('hidden');
+            nextFallacyBtn.classList.add('hidden');
         }
 
-        function nextLearnStep() {
-            if (learnState.challengeActive) {
-                learnState.currentFallacyIndex++;
-                if (learnState.currentFallacyIndex >= fallaciesData.length) {
-                    alert("Congratulations! You've reviewed all fallacies. Switch to Quiz mode to test your knowledge.");
-                    learnState.currentFallacyIndex = 0; // Reset for another pass
-                }
-                learnState.challengeActive = false;
-                displayFallacy(learnState.currentFallacyIndex);
-            } else {
-                startLearnChallenge();
-            }
-        }
 
         // --- QUIZ MODE ---
         function initQuizMode() {
@@ -403,9 +465,9 @@
             buttons.forEach(b => {
                 b.disabled = true;
                 if (b.textContent === correct) {
-                    b.classList.add('bg-green-500', 'text-white');
+                    b.classList.add('!bg-green-500', '!text-white');
                 } else if (b.textContent === selectedOption) {
-                    b.classList.add('bg-red-500', 'text-white');
+                    b.classList.add('!bg-red-500', '!text-white');
                 }
             });
 
@@ -448,13 +510,19 @@
         // Event Listeners
         learnModeBtn.addEventListener('click', () => switchMode('learn'));
         quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+        dyslexicToggle.addEventListener('change', () => {
+            document.body.classList.toggle('opendyslexic');
+        });
 
         // Learn Mode Listeners
-        nextFallacyBtn.addEventListener('click', nextLearnStep);
+        fallacySelect.addEventListener('change', (e) => displayFallacy(e.target.value));
+        prevFallacyBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex - 1));
+        nextFallacyBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex + 1));
+        startChallengeBtn.addEventListener('click', startLearnChallenge);
         reviewBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex));
         trueBtn.addEventListener('click', () => handleLearnAnswer(true));
         falseBtn.addEventListener('click', () => handleLearnAnswer(false));
-
+        
         // Quiz Mode Listeners
         document.querySelectorAll('.quiz-length-btn').forEach(btn => {
             btn.addEventListener('click', () => startQuiz(parseInt(btn.dataset.length)));
@@ -463,7 +531,9 @@
         retakeQuizBtn.addEventListener('click', initQuizMode);
         
         // Initial setup
+        populateFallacyDropdown();
         switchMode('learn');
     </script>
 </body>
 </html>
+
