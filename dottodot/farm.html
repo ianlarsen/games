@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dot‑to‑Dot: Farm Fun</title>
+  <style>
+    /* =======================
+       Global Layout & Theming
+       ======================= */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    :root {
+      /* The board is a perfect square that fits 80% of the viewport height,
+         but never exceeds 95% of the viewport width. JS will override this
+         with a pixel value for older/mobile browsers. */
+      --board-size: min(80svh, 95vw);
+    }
+
+    body {
+      margin: 0;
+      background: #f0f9ff;
+      color: #111;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.3;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100svh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      padding: clamp(8px, 2.5vw, 18px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .topbar h1 { font-size: clamp(18px, 3.8vw, 28px); margin: 0; }
+    .topbar .status { display: inline-flex; gap: 10px; align-items: center; font-weight: 500; }
+    #resetBtn {
+      appearance: none;
+      border: 1px solid #222;
+      background: #fff;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #resetBtn:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* =======================
+       Board (square container)
+       ======================= */
+    .board-wrap {
+      position: relative;
+      margin: 0 auto;
+      width: var(--board-size);
+      height: var(--board-size); /* keep square */
+      border: 2px solid #111;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Completion image sits underneath and fades in on win */
+    #completedImage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 800ms ease;
+      pointer-events: none;
+    }
+    #completedImage.revealed { opacity: 1; }
+
+    /* SVG board fills container */
+    #board { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #path {
+      stroke: #111;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    /* Dots & labels */
+    .dot .visual { fill: #111; stroke: #111; stroke-width: 0.5; transition: fill 0.2s; }
+    .dot .hit { fill: transparent; pointer-events: all; cursor: pointer; }
+    .dot.active .ring { stroke: #007bff; stroke-width: 2.5; fill: none; r: 16; transition: r 0.3s ease-out; }
+    .dot.active .visual { fill: #007bff; }
+    
+    .dot text {
+      font-size: 20px; /* SVG units; scales with viewBox */
+      fill: #111;
+      paint-order: stroke;
+      stroke: #fff;
+      stroke-width: 4;
+      font-weight: 700;
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none; /* IE 10+ */
+      user-select: none; 
+    }
+    .dot.active text {
+        font-size: 24px;
+        fill: #007bff;
+    }
+
+    /* Feedback */
+    .dot.wrong .visual { fill: #b00020; }
+    @keyframes nudge {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
+    }
+    .dot.wrong { animation: nudge 180ms ease; }
+
+    .hint {
+      text-align: center;
+      font-size: clamp(12px, 2.8vw, 14px);
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <h1>Dot‑to‑Dot: Farm Fun</h1>
+      <div class="status">
+        <span id="progress">1 / 120</span>
+        <button id="resetBtn" aria-label="Reset level">Reset</button>
+      </div>
+    </header>
+
+    <section class="board-wrap">
+      <!-- The user's uploaded farm.jpg will be used here -->
+      <img id="completedImage" src="farm.jpg" alt="A sunny farm scene with a barn, cow, sheep, pig, rooster, and duck" />
+      <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
+        <defs>
+          <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="3" result="HALO" />
+            <feGaussianBlur in="HALO" stdDeviation="2" result="BLUR" />
+            <feMerge>
+              <feMergeNode in="BLUR" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <polyline id="path" points="" />
+        <g id="dots"></g>
+      </svg>
+    </section>
+
+    <footer class="hint">Tap the dots in order: 1 → 120. When you're done, the full farm scene will appear!</footer>
+  </main>
+
+  <script>
+    /* Dot-to-Dot Farm Fun */
+
+    const LEVEL = {
+      imageSrc: "farm.jpg",
+      viewBox: [1000, 1000],
+      dots: [
+        // Barn and Silo (1-18)
+        { x: 508, y: 284 }, // 1 - Barn roof peak
+        { x: 620, y: 310 }, // 2
+        { x: 708, y: 322 }, // 3
+        { x: 719, y: 462 }, // 4 - Barn right edge
+        { x: 712, y: 555 }, // 5
+        { x: 506, y: 558 }, // 6 - Barn bottom middle
+        { x: 300, y: 555 }, // 7
+        { x: 292, y: 458 }, // 8 - Barn left edge
+        { x: 299, y: 348 }, // 9
+        { x: 250, y: 341 }, // 10 - Silo top right
+        { x: 215, y: 305 }, // 11
+        { x: 165, y: 303 }, // 12
+        { x: 130, y: 338 }, // 13
+        { x: 123, y: 400 }, // 14 - Silo left side
+        { x: 138, y: 475 }, // 15
+        { x: 155, y: 525 }, // 16
+        { x: 180, y: 550 }, // 17
+        { x: 220, y: 558 }, // 18 - Silo base
+        // Rooster and Fence (19-33)
+        { x: 742, y: 395 }, // 19 - Rooster comb
+        { x: 728, y: 418 }, // 20 - Rooster head
+        { x: 752, y: 450 }, // 21 - Rooster body
+        { x: 815, y: 440 }, // 22
+        { x: 860, y: 420 }, // 23 - Tail feathers
+        { x: 890, y: 390 }, // 24
+        { x: 880, y: 350 }, // 25
+        { x: 820, y: 355 }, // 26
+        { x: 780, y: 480 }, // 27 - Rooster feet
+        { x: 778, y: 520 }, // 28 - Fence post top
+        { x: 770, y: 610 }, // 29 - Fence post bottom
+        { x: 850, y: 575 }, // 30 - Fence rail right
+        { x: 940, y: 550 }, // 31 
+        { x: 775, y: 560 }, // 32 - Back to post
+        { x: 650, y: 580 }, // 33 - Fence rail left
+        // Cow (34-70)
+        { x: 400, y: 418 }, // 34 - Cow left horn
+        { x: 380, y: 445 }, // 35 - Cow left ear
+        { x: 420, y: 490 }, // 36 - Cow face side
+        { x: 440, y: 540 }, // 37
+        { x: 480, y: 565 }, // 38 - Nose
+        { x: 530, y: 560 }, // 39
+        { x: 545, y: 520 }, // 40
+        { x: 535, y: 450 }, // 41
+        { x: 500, y: 420 }, // 42 - Right ear
+        { x: 525, y: 400 }, // 43 - Right horn
+        { x: 570, y: 450 }, // 44 - Top of head
+        { x: 620, y: 480 }, // 45 - Back of neck
+        { x: 650, y: 540 }, // 46 - Back
+        { x: 660, y: 600 }, // 47
+        { x: 650, y: 650 }, // 48
+        { x: 620, y: 680 }, // 49
+        { x: 580, y: 670 }, // 50 - Tail start
+        { x: 540, y: 700 }, // 51
+        { x: 510, y: 750 }, // 52 - Tail end
+        { x: 590, y: 690 }, // 53 - Back to body
+        { x: 610, y: 720 }, // 54 - Back leg top
+        { x: 620, y: 780 }, // 55
+        { x: 610, y: 840 }, // 56 - Back hoof
+        { x: 580, y: 845 }, // 57
+        { x: 560, y: 780 }, // 58 - Udder
+        { x: 520, y: 770 }, // 59
+        { x: 480, y: 780 }, // 60 - Belly
+        { x: 440, y: 770 }, // 61
+        { x: 430, y: 790 }, // 62 - Front leg top
+        { x: 440, y: 830 }, // 63
+        { x: 430, y: 860 }, // 64 - Front hoof
+        { x: 400, y: 865 }, // 65
+        { x: 380, y: 830 }, // 66
+        { x: 390, y: 780 }, // 67
+        { x: 390, y: 720 }, // 68 - Chest
+        { x: 390, y: 650 }, // 69
+        { x: 395, y: 580 }, // 70 - Neck
+        // Sheep (71-86)
+        { x: 340, y: 680 }, // 71 - Sheep back
+        { x: 300, y: 690 }, // 72
+        { x: 260, y: 720 }, // 73
+        { x: 230, y: 770 }, // 74 - Sheep face
+        { x: 240, y: 810 }, // 75
+        { x: 280, y: 820 }, // 76 - Sheep chest
+        { x: 290, y: 840 }, // 77 - Front leg
+        { x: 280, y: 870 }, // 78
+        { x: 310, y: 865 }, // 79 - Back leg
+        { x: 320, y: 840 }, // 80
+        { x: 325, y: 810 }, // 81 - Belly
+        { x: 350, y: 780 }, // 82
+        { x: 370, y: 750 }, // 83
+        { x: 380, y: 720 }, // 84
+        { x: 365, y: 690 }, // 85
+        { x: 250, y: 740 }, // 86 - Ear
+        // Pig and Mud (87-105)
+        { x: 670, y: 800 }, // 87 - Mud left
+        { x: 720, y: 780 }, // 88
+        { x: 750, y: 800 }, // 89 - Pig snout
+        { x: 790, y: 820 }, // 90 - Pig ear
+        { x: 820, y: 810 }, // 91
+        { x: 850, y: 830 }, // 92 - Pig back
+        { x: 870, y: 860 }, // 93
+        { x: 860, y: 890 }, // 94 - Tail
+        { x: 830, y: 910 }, // 95 - Back leg
+        { x: 800, y: 915 }, // 96
+        { x: 760, y: 910 }, // 97 - Belly
+        { x: 730, y: 900 }, // 98
+        { x: 720, y: 880 }, // 99 - Front leg
+        { x: 735, y: 840 }, // 100 - Chin
+        { x: 800, y: 930 }, // 101 - Mud bottom
+        { x: 850, y: 925 }, // 102
+        { x: 900, y: 900 }, // 103
+        { x: 910, y: 850 }, // 104
+        { x: 850, y: 800 }, // 105 - Mud right
+        // Duck (106-120)
+        { x: 195, y: 740 }, // 106 - Duck beak
+        { x: 170, y: 750 }, // 107
+        { x: 150, y: 760 }, // 108 - Head
+        { x: 140, y: 780 }, // 109
+        { x: 155, y: 800 }, // 110 - Back
+        { x: 180, y: 810 }, // 111
+        { x: 200, y: 805 }, // 112 - Tail
+        { x: 190, y: 790 }, // 113 - Belly
+        { x: 175, y: 785 }, // 114
+        { x: 160, y: 795 }, // 115
+        { x: 150, y: 810 }, // 116
+        { x: 140, y: 830 }, // 117 - Feet start
+        { x: 130, y: 840 }, // 118
+        { x: 150, y: 845 }, // 119
+        { x: 170, y: 840 }, // 120
+      ],
+    };
+
+    let state = {
+      expected: 1,
+      points: [],
+      poly: null,
+      audioCtx: null,
+      started: false,
+      finished: false,
+    };
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    function init() {
+      const svg = document.getElementById("board");
+      svg.setAttribute("viewBox", "0 0 1000 1000");
+      setBoardTo80vh();
+      window.addEventListener("resize", setBoardTo80vh);
+      window.addEventListener("orientationchange", setBoardTo80vh);
+
+      const path = document.getElementById("path");
+      state.poly = path;
+      updateProgress();
+
+      renderDots();
+      setActiveDot(1);
+
+      document.getElementById("resetBtn").addEventListener("click", resetGame, { passive: true });
+    }
+
+    function renderDots() {
+      const dotsGroup = document.getElementById("dots");
+      while (dotsGroup.firstChild) dotsGroup.removeChild(dotsGroup.firstChild);
+      
+      LEVEL.dots.forEach((pt, i) => {
+        const g = el("g", { class: "dot", "data-index": i + 1 });
+        const ring = el("circle", { class: "ring", cx: pt.x, cy: pt.y, r: 0 });
+        const visual = el("circle", { class: "visual", cx: pt.x, cy: pt.y, r: 7 });
+        const hit = el("circle", { class: "hit", cx: pt.x, cy: pt.y, r: 25 });
+        
+        let labelX = pt.x;
+        let labelY = pt.y - 22; // Default above
+        let anchor = "middle";
+
+        if (pt.y < 50) labelY = pt.y + 26; // If near top, move below
+        if (pt.x > 950) { labelX = pt.x - 20; anchor = "end"; } // If near right, move left
+        if (pt.x < 50) { labelX = pt.x + 20; anchor = "start"; } // If near left, move right
+
+        const label = el("text", { x: labelX, y: labelY, "text-anchor": anchor, "dominant-baseline": "central" });
+        label.textContent = i + 1;
+        
+        g.appendChild(ring);
+        g.appendChild(visual);
+        g.appendChild(hit);
+        g.appendChild(label);
+        dotsGroup.appendChild(g);
+        
+        g.addEventListener("pointerdown", onDotPointer);
+      });
+    }
+
+    function onDotPointer(e) {
+      e.preventDefault();
+      const g = e.currentTarget;
+      const index = Number(g.getAttribute("data-index"));
+      ensureAudio();
+
+      if (state.finished) return;
+
+      if (index === state.expected) {
+        goodTap(index);
+      } else {
+        badTap(g);
+      }
+    }
+
+    function goodTap(index) {
+      const pt = LEVEL.dots[index - 1];
+      const dotElement = document.querySelector(`.dot[data-index="${index}"]`);
+      if(dotElement) {
+        dotElement.style.visibility = 'hidden';
+      }
+
+      if (!state.started) {
+        state.started = true;
+        state.points = [`${pt.x},${pt.y}`];
+      } else {
+        state.points.push(`${pt.x},${pt.y}`);
+        state.poly.setAttribute("points", state.points.join(" "));
+      }
+
+      ding();
+
+      state.expected++;
+      updateProgress();
+
+      clearActiveDot();
+      if (state.expected <= LEVEL.dots.length) {
+        setActiveDot(state.expected);
+      } else {
+        win();
+      }
+    }
+
+    function badTap(g) {
+      buzz();
+      if ("vibrate" in navigator) navigator.vibrate(25);
+      g.classList.add("wrong");
+      setTimeout(() => g.classList.remove("wrong"), 200);
+    }
+
+    function win() {
+      state.finished = true;
+      chime();
+      document.getElementById("completedImage").classList.add("revealed");
+    }
+
+    function resetGame() {
+      state = { 
+        expected: 1, 
+        points: [], 
+        poly: state.poly, 
+        audioCtx: state.audioCtx, 
+        started: false, 
+        finished: false 
+      };
+      state.poly.setAttribute("points", "");
+      document.getElementById("completedImage").classList.remove("revealed");
+      document.querySelectorAll(".dot").forEach((g) => {
+          g.classList.remove("wrong", "active");
+          g.style.visibility = 'visible';
+      });
+      setActiveDot(1);
+      updateProgress();
+    }
+
+    function ensureAudio() {
+      if (!state.audioCtx) {
+        try {
+          state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {
+          console.error("Web Audio API is not supported in this browser.");
+        }
+      }
+    }
+
+    function tone({ freq = 440, type = "sine", duration = 0.1, gain = 0.06, when = 0 }) {
+      if (!state.audioCtx) return;
+      const ctx = state.audioCtx;
+      const t0 = ctx.currentTime + when;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      amp.gain.setValueAtTime(gain, t0);
+      amp.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.connect(amp).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    }
+
+    function ding() {
+      tone({ freq: 880, duration: 0.07, gain: 0.055 });
+      tone({ freq: 1320, duration: 0.09, gain: 0.05, when: 0.06 });
+    }
+
+    function buzz() {
+      tone({ freq: 220, type: "sawtooth", duration: 0.08, gain: 0.06 });
+      tone({ freq: 160, type: "square", duration: 0.08, gain: 0.05, when: 0.06 });
+    }
+
+    function chime() {
+      const freqs = [523.25, 659.25, 783.99, 1046.5];
+      freqs.forEach((f, i) => tone({ freq: f, duration: 0.18, gain: 0.06, when: i * 0.12 }));
+    }
+
+    function setActiveDot(n) {
+      const g = document.querySelector(`.dot[data-index="${n}"]`);
+      if (!g) return;
+      if (g.parentNode) g.parentNode.appendChild(g); // Bring to front
+      g.classList.add("active");
+      const ring = g.querySelector(".ring");
+      if (ring) ring.setAttribute("r", "16");
+      const hit = g.querySelector(".hit");
+      if (hit) hit.setAttribute("r", "32");
+    }
+
+    function clearActiveDot() {
+      const g = document.querySelector(`.dot.active`);
+      if (!g) return;
+      g.classList.remove("active");
+      const ring = g.querySelector(".ring");
+      if (ring) ring.setAttribute("r", "0");
+      const hit = g.querySelector(".hit");
+      if (hit) hit.setAttribute("r", "25");
+    }
+
+    function updateProgress() {
+      const total = LEVEL.dots.length;
+      const current = Math.min(state.expected, total);
+      const el = document.getElementById("progress");
+      if (el) el.textContent = `${current} / ${total}`;
+    }
+
+    function el(tag, attrs = {}) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, String(v)));
+      return node;
+    }
+
+    function setBoardTo80vh() {
+      const visualH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      const H = Math.max(0, visualH) * 0.8;
+      const W = window.innerWidth * 0.95;
+      const size = Math.min(H, W);
+      document.documentElement.style.setProperty("--board-size", size + "px");
+    }
+  </script>
+</body>
+</html>

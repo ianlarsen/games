@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dot‑to‑Dot: Knight's Quest</title>
+  <style>
+    /* =======================
+       Global Layout & Theming
+       ======================= */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    :root {
+      /* The board is a perfect square that fits 80% of the viewport height,
+         but never exceeds 95% of the viewport width. JS will override this
+         with a pixel value for older/mobile browsers. */
+      --board-size: min(80svh, 95vw);
+    }
+
+    body {
+      margin: 0;
+      background: #e8f5e9; /* Light green for a meadow feel */
+      color: #111;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.3;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100svh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      padding: clamp(8px, 2.5vw, 18px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .topbar h1 { font-size: clamp(18px, 3.8vw, 28px); margin: 0; }
+    .topbar .status { display: inline-flex; gap: 10px; align-items: center; font-weight: 500; }
+    #resetBtn {
+      appearance: none;
+      border: 1px solid #222;
+      background: #fff;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #resetBtn:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* =======================
+       Board (square container)
+       ======================= */
+    .board-wrap {
+      position: relative;
+      margin: 0 auto;
+      width: var(--board-size);
+      height: var(--board-size); /* keep square */
+      border: 2px solid #111;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Completion image sits underneath and fades in on win */
+    #completedImage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 800ms ease;
+      pointer-events: none;
+    }
+    #completedImage.revealed { opacity: 1; }
+
+    /* SVG board fills container */
+    #board { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #path {
+      stroke: #111;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    /* Dots & labels */
+    .dot .visual { fill: #111; stroke: #111; stroke-width: 0.5; transition: fill 0.2s; }
+    .dot .hit { fill: transparent; pointer-events: all; cursor: pointer; }
+    .dot.active .ring { stroke: #007bff; stroke-width: 2.5; fill: none; r: 16; transition: r 0.3s ease-out; }
+    .dot.active .visual { fill: #007bff; }
+    
+    .dot text {
+      font-size: 20px; /* SVG units; scales with viewBox */
+      fill: #111;
+      paint-order: stroke;
+      stroke: #fff;
+      stroke-width: 4;
+      font-weight: 700;
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none; /* IE 10+ */
+      user-select: none; 
+    }
+    .dot.active text {
+        font-size: 24px;
+        fill: #007bff;
+    }
+
+    /* Feedback */
+    .dot.wrong .visual { fill: #b00020; }
+    @keyframes nudge {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
+    }
+    .dot.wrong { animation: nudge 180ms ease; }
+
+    .hint {
+      text-align: center;
+      font-size: clamp(12px, 2.8vw, 14px);
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <h1>Dot‑to‑Dot: Knight's Quest</h1>
+      <div class="status">
+        <span id="progress">1 / 115</span>
+        <button id="resetBtn" aria-label="Reset level">Reset</button>
+      </div>
+    </header>
+
+    <section class="board-wrap">
+      <img id="completedImage" src="knight.jpg" alt="A cartoon knight on a white horse, with a castle and a dragon in the background." />
+      <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
+        <defs>
+          <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="3" result="HALO" />
+            <feGaussianBlur in="HALO" stdDeviation="2" result="BLUR" />
+            <feMerge>
+              <feMergeNode in="BLUR" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <polyline id="path" points="" />
+        <g id="dots"></g>
+      </svg>
+    </section>
+
+    <footer class="hint">Tap the dots in order: 1 → 115. When you're done, the full knightly scene will appear!</footer>
+  </main>
+
+  <script>
+    /* Dot-to-Dot Knight's Quest */
+
+    const LEVEL = {
+      imageSrc: "knight.jpg",
+      viewBox: [1000, 1000],
+      dots: [
+        // Knight (1-35)
+        { x: 508, y: 340 }, // 1 - Plume on helmet
+        { x: 540, y: 360 }, // 2
+        { x: 565, y: 390 }, // 3 - Helmet right side
+        { x: 560, y: 430 }, // 4
+        { x: 545, y: 460 }, // 5 - Visor
+        { x: 510, y: 470 }, // 6
+        { x: 470, y: 465 }, // 7
+        { x: 455, y: 440 }, // 8 - Helmet left side
+        { x: 460, y: 400 }, // 9
+        { x: 480, y: 365 }, // 10
+        { x: 500, y: 345 }, // 11
+        { x: 575, y: 480 }, // 12 - Right Shoulder
+        { x: 580, y: 520 }, // 13
+        { x: 570, y: 560 }, // 14 - Right Arm
+        { x: 560, y: 600 }, // 15
+        { x: 550, y: 640 }, // 16 - Right Leg
+        { x: 565, y: 680 }, // 17
+        { x: 480, y: 685 }, // 18 - Body bottom
+        { x: 410, y: 680 }, // 19
+        { x: 400, y: 640 }, // 20 - Left Leg
+        { x: 415, y: 600 }, // 21
+        { x: 420, y: 560 }, // 22 - Left Arm
+        { x: 410, y: 520 }, // 23
+        { x: 425, y: 480 }, // 24 - Left Shoulder / Cape
+        { x: 380, y: 490 }, // 25 - Cape
+        { x: 350, y: 530 }, // 26
+        { x: 360, y: 580 }, // 27
+        { x: 380, y: 620 }, // 28
+        { x: 430, y: 470 }, // 29 - Flag Pole
+        { x: 430, y: 430 }, // 30
+        { x: 435, y: 390 }, // 31
+        { x: 470, y: 405 }, // 32 - Flag top
+        { x: 510, y: 395 }, // 33
+        { x: 500, y: 425 }, // 34
+        { x: 470, y: 435 }, // 35 - Flag bottom
+        // Horse (36-80)
+        { x: 410, y: 690 }, // 36 - Horse blanket front
+        { x: 390, y: 750 }, // 37
+        { x: 400, y: 810 }, // 38 - Front left leg
+        { x: 390, y: 860 }, // 39
+        { x: 370, y: 890 }, // 40 - Hoof
+        { x: 450, y: 895 }, // 41 - Between legs
+        { x: 460, y: 860 }, // 42 - Front right leg
+        { x: 470, y: 890 }, // 43
+        { x: 520, y: 890 }, // 44 - Belly
+        { x: 580, y: 885 }, // 45
+        { x: 610, y: 850 }, // 46 - Back right leg
+        { x: 620, y: 890 }, // 47
+        { x: 670, y: 885 }, // 48 - Between legs
+        { x: 680, y: 850 }, // 49 - Back left leg
+        { x: 690, y: 810 }, // 50
+        { x: 680, y: 750 }, // 51
+        { x: 690, y: 690 }, // 52 - Back of blanket
+        { x: 700, y: 640 }, // 53 - Horse rump
+        { x: 720, y: 680 }, // 54 - Tail top
+        { x: 750, y: 720 }, // 55
+        { x: 760, y: 770 }, // 56
+        { x: 750, y: 820 }, // 57 - Tail bottom
+        { x: 720, y: 780 }, // 58
+        { x: 700, y: 730 }, // 59
+        { x: 690, y: 620 }, // 60 - Back
+        { x: 650, y: 580 }, // 61
+        { x: 620, y: 550 }, // 62
+        { x: 630, y: 510 }, // 63 - Neck
+        { x: 660, y: 480 }, // 64
+        { x: 700, y: 490 }, // 65 - Head
+        { x: 730, y: 520 }, // 66 - Snout
+        { x: 750, y: 560 }, // 67
+        { x: 740, y: 600 }, // 68
+        { x: 710, y: 610 }, // 69 - Jaw
+        { x: 680, y: 590 }, // 70
+        { x: 660, y: 540 }, // 71
+        { x: 680, y: 510 }, // 72
+        { x: 690, y: 460 }, // 73 - Ear
+        { x: 660, y: 460 }, // 74
+        { x: 630, y: 480 }, // 75
+        { x: 610, y: 520 }, // 76
+        { x: 570, y: 530 }, // 77 - Bridle
+        { x: 700, y: 540 }, // 78
+        { x: 725, y: 570 }, // 79
+        { x: 615, y: 590 }, // 80
+        // Dragon (81-115)
+        { x: 705, y: 190 }, // 81 - Left wing tip
+        { x: 740, y: 220 }, // 82
+        { x: 770, y: 230 }, // 83
+        { x: 785, y: 200 }, // 84 - Head top
+        { x: 810, y: 195 }, // 85
+        { x: 830, y: 220 }, // 86
+        { x: 820, y: 250 }, // 87 - Snout
+        { x: 790, y: 270 }, // 88
+        { x: 760, y: 260 }, // 89
+        { x: 750, y: 280 }, // 90 - Body front
+        { x: 770, y: 310 }, // 91
+        { x: 800, y: 340 }, // 92
+        { x: 830, y: 370 }, // 93
+        { x: 850, y: 410 }, // 94 - Tail tip
+        { x: 820, y: 390 }, // 95
+        { x: 790, y: 370 }, // 96
+        { x: 760, y: 350 }, // 97
+        { x: 740, y: 380 }, // 98 - Leg
+        { x: 770, y: 395 }, // 99
+        { x: 740, y: 330 }, // 100 - Belly
+        { x: 710, y: 300 }, // 101
+        { x: 680, y: 280 }, // 102
+        { x: 690, y: 310 }, // 103 - Arm
+        { x: 720, y: 320 }, // 104
+        { x: 690, y: 260 }, // 105 - Back
+        { x: 750, y: 240 }, // 106
+        { x: 810, y: 270 }, // 107 - Right wing
+        { x: 850, y: 290 }, // 108
+        { x: 880, y: 280 }, // 109
+        { x: 895, y: 250 }, // 110 - Wing tip
+        { x: 860, y: 240 }, // 111
+        { x: 820, y: 260 }, // 112
+        { x: 780, y: 250 }, // 113
+        { x: 720, y: 230 }, // 114
+        { x: 690, y: 220 }, // 115
+      ],
+    };
+
+    let state = {
+      expected: 1,
+      points: [],
+      poly: null,
+      audioCtx: null,
+      started: false,
+      finished: false,
+    };
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    function init() {
+      const svg = document.getElementById("board");
+      svg.setAttribute("viewBox", "0 0 1000 1000");
+      setBoardTo80vh();
+      window.addEventListener("resize", setBoardTo80vh);
+      window.addEventListener("orientationchange", setBoardTo80vh);
+
+      const path = document.getElementById("path");
+      state.poly = path;
+      updateProgress();
+
+      renderDots();
+      setActiveDot(1);
+
+      document.getElementById("resetBtn").addEventListener("click", resetGame, { passive: true });
+    }
+
+    function renderDots() {
+      const dotsGroup = document.getElementById("dots");
+      while (dotsGroup.firstChild) dotsGroup.removeChild(dotsGroup.firstChild);
+      
+      LEVEL.dots.forEach((pt, i) => {
+        const g = el("g", { class: "dot", "data-index": i + 1 });
+        const ring = el("circle", { class: "ring", cx: pt.x, cy: pt.y, r: 0 });
+        const visual = el("circle", { class: "visual", cx: pt.x, cy: pt.y, r: 7 });
+        const hit = el("circle", { class: "hit", cx: pt.x, cy: pt.y, r: 25 });
+        
+        let labelX = pt.x;
+        let labelY = pt.y - 22; // Default above
+        let anchor = "middle";
+
+        if (pt.y < 50) labelY = pt.y + 26; // If near top, move below
+        if (pt.x > 950) { labelX = pt.x - 20; anchor = "end"; } // If near right, move left
+        if (pt.x < 50) { labelX = pt.x + 20; anchor = "start"; } // If near left, move right
+
+        const label = el("text", { x: labelX, y: labelY, "text-anchor": anchor, "dominant-baseline": "central" });
+        label.textContent = i + 1;
+        
+        g.appendChild(ring);
+        g.appendChild(visual);
+        g.appendChild(hit);
+        g.appendChild(label);
+        dotsGroup.appendChild(g);
+        
+        g.addEventListener("pointerdown", onDotPointer);
+      });
+    }
+
+    function onDotPointer(e) {
+      e.preventDefault();
+      const g = e.currentTarget;
+      const index = Number(g.getAttribute("data-index"));
+      ensureAudio();
+
+      if (state.finished) return;
+
+      if (index === state.expected) {
+        goodTap(index);
+      } else {
+        badTap(g);
+      }
+    }
+
+    function goodTap(index) {
+      const pt = LEVEL.dots[index - 1];
+      const dotElement = document.querySelector(`.dot[data-index="${index}"]`);
+      if(dotElement) {
+        dotElement.style.visibility = 'hidden';
+      }
+
+      if (!state.started) {
+        state.started = true;
+        state.points = [`${pt.x},${pt.y}`];
+      } else {
+        state.points.push(`${pt.x},${pt.y}`);
+        state.poly.setAttribute("points", state.points.join(" "));
+      }
+
+      ding();
+
+      state.expected++;
+      updateProgress();
+
+      clearActiveDot();
+      if (state.expected <= LEVEL.dots.length) {
+        setActiveDot(state.expected);
+      } else {
+        win();
+      }
+    }
+
+    function badTap(g) {
+      buzz();
+      if ("vibrate" in navigator) navigator.vibrate(25);
+      g.classList.add("wrong");
+      setTimeout(() => g.classList.remove("wrong"), 200);
+    }
+
+    function win() {
+      state.finished = true;
+      chime();
+      document.getElementById("completedImage").classList.add("revealed");
+    }
+
+    function resetGame() {
+      state = { 
+        expected: 1, 
+        points: [], 
+        poly: state.poly, 
+        audioCtx: state.audioCtx, 
+        started: false, 
+        finished: false 
+      };
+      state.poly.setAttribute("points", "");
+      document.getElementById("completedImage").classList.remove("revealed");
+      document.querySelectorAll(".dot").forEach((g) => {
+          g.classList.remove("wrong", "active");
+          g.style.visibility = 'visible';
+      });
+      setActiveDot(1);
+      updateProgress();
+    }
+
+    function ensureAudio() {
+      if (!state.audioCtx) {
+        try {
+          state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {
+          console.error("Web Audio API is not supported in this browser.");
+        }
+      }
+    }
+
+    function tone({ freq = 440, type = "sine", duration = 0.1, gain = 0.06, when = 0 }) {
+      if (!state.audioCtx) return;
+      const ctx = state.audioCtx;
+      const t0 = ctx.currentTime + when;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      amp.gain.setValueAtTime(gain, t0);
+      amp.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.connect(amp).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    }
+
+    function ding() {
+      tone({ freq: 880, duration: 0.07, gain: 0.055 });
+      tone({ freq: 1320, duration: 0.09, gain: 0.05, when: 0.06 });
+    }
+
+    function buzz() {
+      tone({ freq: 220, type: "sawtooth", duration: 0.08, gain: 0.06 });
+      tone({ freq: 160, type: "square", duration: 0.08, gain: 0.05, when: 0.06 });
+    }
+
+    function chime() {
+      const freqs = [523.25, 659.25, 783.99, 1046.5];
+      freqs.forEach((f, i) => tone({ freq: f, duration: 0.18, gain: 0.06, when: i * 0.12 }));
+    }
+
+    function setActiveDot(n) {
+      const g = document.querySelector(`.dot[data-index="${n}"]`);
+      if (!g) return;
+      if (g.parentNode) g.parentNode.appendChild(g); // Bring to front
+      g.classList.add("active");
+      const ring = g.querySelector(".ring");
+      if (ring) ring.setAttribute("r", "16");
+      const hit = g.querySelector(".hit");
+      if (hit) hit.setAttribute("r", "32");
+    }
+
+    function clearActiveDot() {
+      const g = document.querySelector(`.dot.active`);
+      if (!g) return;
+      g.classList.remove("active");
+      const ring = g.querySelector(".ring");
+      if (ring) ring.setAttribute("r", "0");
+      const hit = g.querySelector(".hit");
+      if (hit) hit.setAttribute("r", "25");
+    }
+
+    function updateProgress() {
+      const total = LEVEL.dots.length;
+      const current = Math.min(state.expected, total);
+      const el = document.getElementById("progress");
+      if (el) el.textContent = `${current} / ${total}`;
+    }
+
+    function el(tag, attrs = {}) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, String(v)));
+      return node;
+    }
+
+    function setBoardTo80vh() {
+      const visualH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      const H = Math.max(0, visualH) * 0.8;
+      const W = window.innerWidth * 0.95;
+      const size = Math.min(H, W);
+      document.documentElement.style.setProperty("--board-size", size + "px");
+    }
+  </script>
+</body>
+</html>
+

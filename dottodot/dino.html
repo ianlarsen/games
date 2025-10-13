@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dot‑to‑Dot: T‑Rex</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <button id="backBtn" aria-label="Back to games" style="appearance: none; border: 1px solid #222; background: #fff; padding: 6px 10px; border-radius: 12px; font-weight: 600; cursor: pointer; margin-right: 10px;">← Back</button>
+      <h1>Dot‑to‑Dot: T‑Rex</h1>
+      <div class="status">
+        <span id="progress">1 / 25</span>
+        <button id="resetBtn" aria-label="Reset level">Reset</button>
+      </div>
+    </header>
+
+    <section class="board-wrap">
+      <img id="completedImage" src="assets/images/trex.png" alt="T‑Rex" />
+      <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
+        <defs>
+          <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="3" result="HALO" />
+            <feGaussianBlur in="HALO" stdDeviation="2" result="BLUR" />
+            <feMerge>
+              <feMergeNode in="BLUR" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <polyline id="path" points="" />
+        <g id="dots"></g>
+      </svg>
+    </section>
+
+    <footer class="hint">Tap the dots in order: 1 → 25. Wrong taps buzz &amp; vibrate; correct taps draw a line. The T‑Rex appears when you finish.</footer>
+  </main>
+
+  <script src="game.js" defer></script>
+  <script>
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>
