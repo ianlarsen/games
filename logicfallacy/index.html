@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logical Fallacy Trainer</title>
+    <title>Logical Fallacy & Argument Trainer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,10 +24,10 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             transition: all 0.3s ease-in-out;
         }
-        .tab-button {
+        .tab-button, .topic-button {
             transition: all 0.2s ease-in-out;
         }
-        .tab-button.active {
+        .tab-button.active, .topic-button.active {
             background-color: #3b82f6; /* A vibrant blue */
             color: white;
         }
@@ -98,9 +98,19 @@
 
         <!-- Header -->
         <header class="text-center mb-8 pt-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Logical Fallacy Trainer</h1>
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Argument & Fallacy Trainer</h1>
             <p class="mt-2 text-lg text-slate-600">Sharpen your critical thinking skills.</p>
         </header>
+
+        <!-- Topic Selector -->
+        <div class="text-center mb-6">
+            <h2 class="text-xl font-semibold mb-3">What would you like to study?</h2>
+            <div class="flex justify-center bg-slate-200 rounded-lg p-1 max-w-md mx-auto">
+                <button id="topic-fallacies-btn" class="topic-button w-1/2 p-2 rounded-md font-semibold active">Logical Fallacies</button>
+                <button id="topic-structure-btn" class="topic-button w-1/2 p-2 rounded-md font-semibold">Argument Structure</button>
+            </div>
+        </div>
+
 
         <!-- Mode Switcher -->
         <div class="flex justify-center mb-8 bg-slate-200 rounded-lg p-1 max-w-sm mx-auto">
@@ -112,30 +122,23 @@
         <main id="main-content">
             <!-- Learn Mode -->
             <div id="learn-mode" class="space-y-6">
-                 <!-- Fallacy Selector -->
+                 <!-- Concept Selector -->
                 <div class="card">
-                     <label for="fallacy-select" class="block mb-2 text-sm font-medium text-gray-900">Choose a fallacy to study:</label>
-                     <select id="fallacy-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                     <label for="concept-select" class="block mb-2 text-sm font-medium text-gray-900">Choose a concept to study:</label>
+                     <select id="concept-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                          <!-- Options will be populated by JS -->
                      </select>
                 </div>
 
-                <div id="fallacy-display" class="card">
-                    <div class="flex flex-col-reverse sm:flex-row justify-between items-start">
-                        <div>
-                            <h2 id="fallacy-name" class="text-2xl md:text-3xl font-bold text-blue-600 mb-2"></h2>
-                            <p id="fallacy-def" class="text-slate-600 mb-4"></p>
-                        </div>
-                        <div id="fallacy-icon" class="w-16 h-16 sm:w-24 sm:h-24 mb-4 sm:mb-0 sm:ml-6 flex-shrink-0 text-slate-400">
-                            <!-- SVG Icon will be injected here -->
-                        </div>
-                    </div>
+                <div id="concept-display" class="card">
+                    <h2 id="concept-name" class="text-2xl md:text-3xl font-bold text-blue-600 mb-2"></h2>
+                    <p id="concept-def" class="text-slate-600 mb-4"></p>
                     <h3 class="font-semibold mb-2 text-slate-700">Examples:</h3>
-                    <ul id="fallacy-examples" class="list-disc list-inside space-y-2 text-slate-600"></ul>
+                    <ul id="concept-examples" class="list-disc list-inside space-y-2 text-slate-600"></ul>
                 </div>
 
                 <div id="scenario-quiz" class="card hidden">
-                    <p class="text-slate-600 mb-4">Is the following scenario an example of a <strong id="scenario-fallacy-name" class="font-semibold"></strong>?</p>
+                    <p class="text-slate-600 mb-4">Is the following scenario an example of a <strong id="scenario-concept-name" class="font-semibold"></strong>?</p>
                     <p id="scenario-text" class="text-lg font-medium p-4 bg-slate-50 rounded-lg mb-6"></p>
                     <div class="flex justify-center gap-4">
                         <button id="true-btn" class="btn btn-primary w-28">True</button>
@@ -145,29 +148,27 @@
                 </div>
 
                 <div id="learn-navigation" class="flex justify-between items-center gap-4 pt-4">
-                    <button id="prev-fallacy-btn" class="btn btn-secondary">Previous</button>
+                    <button id="prev-concept-btn" class="btn btn-secondary">Previous</button>
                     <button id="start-challenge-btn" class="btn btn-primary flex-grow">Start Challenge</button>
-                    <button id="review-btn" class="btn btn-secondary hidden">Review Fallacy</button>
-                    <button id="next-fallacy-btn" class="btn btn-secondary">Next</button>
+                    <button id="review-btn" class="btn btn-secondary hidden">Review Concept</button>
+                    <button id="next-concept-btn" class="btn btn-secondary">Next</button>
                 </div>
             </div>
 
             <!-- Quiz Mode -->
             <div id="quiz-mode" class="hidden">
-                <!-- ... (Quiz mode HTML is unchanged) ... -->
                 <div id="quiz-setup" class="card text-center">
-                    <h2 class="text-2xl font-bold mb-4">Fallacy Quiz</h2>
-                    <p class="text-slate-600 mb-6">Select the number of questions you'd like to answer.</p>
+                    <h2 class="text-2xl font-bold mb-4">Comprehensive Quiz</h2>
+                    <p class="text-slate-600 mb-6">This quiz includes questions on both Logical Fallacies and Argument Structure. Select the number of questions you'd like to answer.</p>
                     <div class="flex justify-center gap-4">
                         <button class="btn btn-secondary quiz-length-btn" data-length="5">5 Questions</button>
                         <button class="btn btn-secondary quiz-length-btn" data-length="10">10 Questions</button>
                         <button class="btn btn-secondary quiz-length-btn" data-length="15">15 Questions</button>
                     </div>
                 </div>
-
                 <div id="quiz-question-area" class="card hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold">Identify the Fallacy</h3>
+                        <h3 class="text-xl font-semibold">Identify the Concept</h3>
                         <span id="quiz-progress" class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded"></span>
                     </div>
                     <p id="quiz-question-text" class="text-lg p-4 bg-slate-50 rounded-lg mb-6"></p>
@@ -177,7 +178,6 @@
                          <button id="next-question-btn" class="btn btn-primary hidden">Next Question</button>
                     </div>
                 </div>
-
                 <div id="quiz-results" class="card text-center hidden">
                     <h2 class="text-2xl font-bold mb-2">Quiz Complete!</h2>
                     <p class="text-4xl font-bold my-4" id="quiz-score"></p>
@@ -189,34 +189,26 @@
     </div>
 
     <script type="module">
-        // Data derived from the user-provided CSV file
         const fallaciesData = [
-          { "fallacy": "Ad Hominem (including Tu Quoque)", "definition": "Attacking the person making the argument or pointing to their hypocrisy instead of addressing the argument’s reasoning.", "examples": [ "We shouldn't listen to her argument about climate policy because she didn't even finish high school. – attacks the person's education rather than engaging with the argument.", "Don't listen to Senator Smith's speech about economic reforms; he's been divorced three times. – irrelevant personal details are used to discredit their argument.", "My parents say I shouldn't smoke, but they smoked when they were my age, so their argument is invalid. – a tu quoque response that focuses on hypocrisy instead of the merits of the argument." ] },
-          { "fallacy": "Straw Man", "definition": "Misrepresenting or oversimplifying someone’s argument to make it easier to attack.", "examples": [ "Feminists want to eliminate all differences between men and women; that's ridiculous because people are biologically different. – misrepresents feminist positions to attack them.", "People who support increasing the minimum wage want to give everyone free money without working. – exaggerates opponents’ stance to make it seem unreasonable.", "Environmentalists care more about trees than people; they would rather let humans die than cut down a tree. – distorts the environmental argument to an extreme version." ] },
-          { "fallacy": "Red Herring", "definition": "Introducing an irrelevant issue to distract from the real argument.", "examples": [ "We shouldn't worry about the rising cost of healthcare. The real problem is that people aren't exercising enough. – diverts from healthcare costs to personal fitness.", "When asked about his voting record on environmental issues, the candidate brings up his opponent's personal life. – changes the subject to avoid the question.", "You're complaining about the new office coffee machine, but what about the fact that we got a raise last year? – introduces an unrelated positive point to deflect criticism." ] },
-          { "fallacy": "False Dilemma (Either/Or)", "definition": "Presenting only two choices as the only possibilities, when in fact more possibilities exist.", "examples": [ "Either you're with us, or you're against us. – forces a choice between two extremes, ignoring neutral or alternative positions.", "You can either support the new bill or you support crime. – creates a false dichotomy to pressure support for the bill.", "We have to either cut education spending or go into massive debt. – ignores other possibilities like raising taxes or cutting other programs." ] },
-          { "fallacy": "Slippery Slope", "definition": "Arguing that a small first step will inevitably lead to a chain of related, negative events.", "examples": [ "If we allow same-sex marriage, then the next thing you know, people will be marrying their pets. – makes an unsupported leap to an extreme outcome.", "If you let a student retake a test, then you'll have to let all students retake all tests, and no one will study. – exaggerates the consequences of a single action.", "If we ban a certain type of weapon, soon the government will take away all our guns. – claims one action will lead to a total loss of rights without evidence." ] },
-          { "fallacy": "Hasty Generalization", "definition": "Drawing a broad conclusion based on a small or unrepresentative sample.", "examples": [ "I met two people from that country, and they were both rude. Therefore, everyone from that country is rude. – generalizes from a sample size of two.", "My grandfather smoked his whole life and lived to be 90, so smoking isn't actually bad for you. – uses a single anecdote to dismiss extensive scientific evidence.", "This one article I read online says that climate change is a hoax, so all the scientists must be wrong. – relies on a single source to form a sweeping conclusion." ] },
-          { "fallacy": "Appeal to Authority", "definition": "Using the opinion of an authority figure, or an institution of authority, in place of an actual argument, especially when the authority is not an expert in the relevant field.", "examples": [ "A famous actor said this new diet is the best, so it must be true. – relies on a celebrity's endorsement for a health claim.", "My professor said that this politician is corrupt, so he must be. – accepts a claim as true based on an authority figure's opinion, without examining the evidence.", "The government says this is safe, so we have nothing to worry about. – assumes truth based solely on the source's authority." ] },
-          { "fallacy": "Circular Reasoning (Begging the Question)", "definition": "An argument where the conclusion is assumed in one of the premises. It's a statement that proves itself.", "examples": [ "The Bible is the word of God because it says so in the Bible. – the premise (the Bible is true) is the same as the conclusion.", "He is a good communicator because he speaks effectively. – 'good communicator' and 'speaks effectively' are the same thing.", "You have to do what I say because I'm the boss. – the authority to be obeyed is based on the position that claims authority." ] },
-          { "fallacy": "Equivocation", "definition": "Using a key word in different senses within the same argument, creating ambiguity.", "examples": [ "Feathers are light. What is light cannot be dark. Therefore, feathers cannot be dark. – switches between 'light' meaning weight and brightness.", "The sign said ‘fine for parking here’, so parking here is fine. – interprets 'fine' as good instead of a penalty.", "All trees have bark. Every dog barks. So every dog is a tree. – conflates 'bark' as a tree’s covering and a dog's noise." ] },
-          { "fallacy": "Appeal to Ignorance", "definition": "Claiming something is true because it hasn't been proven false or vice versa.", "examples": [ "Nobody has proven that aliens don't exist, so they must be out there. – uses lack of disproof as proof.", "There's no evidence that this herbal remedy doesn't work, so it must work. – assumes effectiveness because of absent evidence to the contrary.", "No one has shown that ghosts aren't real; therefore, ghosts exist. – uses absence of evidence as positive evidence." ] },
-          { "fallacy": "Appeal to Pity", "definition": "Attempting to persuade by arousing sympathy or pity rather than offering relevant evidence.", "examples": [ "You should give me the job because I'm struggling with rent and need money. – appeals to personal hardship instead of qualifications.", "I deserve a passing grade because I'm going through a tough time, not because of my work. – uses emotional appeal instead of academic performance.", "Please accept my paper even though it's late because my dog is sick and I'm stressed. – attempts to excuse lateness through pity." ] }
+          { "concept": "Ad Hominem (including Tu Quoque)", "definition": "Attacking the person making the argument or pointing to their hypocrisy instead of addressing the argument’s reasoning.", "examples": [ "We shouldn't listen to her argument about climate policy because she didn't even finish high school.", "Don't listen to Senator Smith's speech about economic reforms; he's been divorced three times.", "My parents say I shouldn't smoke, but they smoked when they were my age, so their argument is invalid." ] },
+          { "concept": "Straw Man", "definition": "Misrepresenting or oversimplifying someone’s argument to make it easier to attack.", "examples": [ "Feminists want to eliminate all differences between men and women; that's ridiculous because people are biologically different.", "People who support increasing the minimum wage want to give everyone free money without working.", "Environmentalists care more about trees than people; they would rather let humans die than cut down a tree." ] },
+          { "concept": "Red Herring", "definition": "Introducing an irrelevant issue to distract from the real argument.", "examples": [ "We shouldn't worry about the rising cost of healthcare. The real problem is that people aren't exercising enough.", "When asked about his voting record on environmental issues, the candidate brings up his opponent's personal life.", "You're complaining about the new office coffee machine, but what about the fact that we got a raise last year?" ] },
+          { "concept": "False Dilemma (Either/Or)", "definition": "Presenting only two choices as the only possibilities, when in fact more possibilities exist.", "examples": [ "Either you're with us, or you're against us.", "You can either support the new bill or you support crime.", "We have to either cut education spending or go into massive debt." ] },
+          { "concept": "Slippery Slope", "definition": "Arguing that a small first step will inevitably lead to a chain of related, negative events.", "examples": [ "If we allow same-sex marriage, then the next thing you know, people will be marrying their pets.", "If you let a student retake a test, then you'll have to let all students retake all tests, and no one will study.", "If we ban a certain type of weapon, soon the government will take away all our guns." ] },
+          { "concept": "Hasty Generalization", "definition": "Drawing a broad conclusion based on a small or unrepresentative sample.", "examples": [ "I met two people from that country, and they were both rude. Therefore, everyone from that country is rude.", "My grandfather smoked his whole life and lived to be 90, so smoking isn't actually bad for you.", "This one article I read online says that climate change is a hoax, so all the scientists must be wrong." ] },
+          { "concept": "Appeal to Authority", "definition": "Using the opinion of an authority figure, or an institution of authority, in place of an actual argument, especially when the authority is not an expert in the relevant field.", "examples": [ "A famous actor said this new diet is the best, so it must be true.", "My professor said that this politician is corrupt, so he must be.", "The government says this is safe, so we have nothing to worry about." ] },
+          { "concept": "Circular Reasoning (Begging the Question)", "definition": "An argument where the conclusion is assumed in one of the premises. It's a statement that proves itself.", "examples": [ "The Bible is the word of God because it says so in the Bible.", "He is a good communicator because he speaks effectively.", "You have to do what I say because I'm the boss." ] },
+          { "concept": "Equivocation", "definition": "Using a key word in different senses within the same argument, creating ambiguity.", "examples": [ "Feathers are light. What is light cannot be dark. Therefore, feathers cannot be dark.", "The sign said ‘fine for parking here’, so parking here is fine.", "All trees have bark. Every dog barks. So every dog is a tree." ] },
+          { "concept": "Appeal to Ignorance", "definition": "Claiming something is true because it hasn't been proven false or vice versa.", "examples": [ "Nobody has proven that aliens don't exist, so they must be out there.", "There's no evidence that this herbal remedy doesn't work, so it must work.", "No one has shown that ghosts aren't real; therefore, ghosts exist." ] },
+          { "concept": "Appeal to Pity", "definition": "Attempting to persuade by arousing sympathy or pity rather than offering relevant evidence.", "examples": [ "You should give me the job because I'm struggling with rent and need money.", "I deserve a passing grade because I'm going through a tough time, not because of my work.", "Please accept my paper even though it's late because my dog is sick and I'm stressed." ] }
         ];
 
-        const fallacyIcons = {
-            "Ad Hominem (including Tu Quoque)": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632zM15 19.5a3 3 0 00-3-3H6a3 3 0 00-3 3v.161a3.756 3.756 0 001.02 2.488" /><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 9.75L15 12m0 0l2.25 2.25M15 12l2.25-2.25M15 12l-2.25 2.25" /></svg>`,
-            "Straw Man": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.284.144A9.094 9.094 0 0112 18.72a9.094 9.094 0 01-5.758-.479m5.758.479L12 21m-2.242-2.28a9.094 9.094 0 01-5.758-.479M12 18.72a9.094 9.094 0 00-3.741-.479m3.741.479c-.022.022-.042.045-.064.067m-3.677-.134l-.064-.067m3.677.134l-.064.067m3.741-.479c-.022.022-.042.045-.064.067m-3.677.134l-.064-.067m3.677.134l-.064-.067m3.741-.479c-.022.022-.042.045-.064.067M3 9.75a3 3 0 013-3h12a3 3 0 013 3v9a3 3 0 01-3 3H6a3 3 0 01-3-3v-9z" /></svg>`,
-            "Red Herring": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
-            "False Dilemma (Either/Or)": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5M3.75 6.75h16.5M3.75 17.25h16.5" /></svg>`,
-            "Slippery Slope": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25L12 21m0 0l-3.75-3.75M12 21V3" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
-            "Hasty Generalization": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v.01M12 12v.01M12 18v.01M18 12h.01M6 12h.01" /></svg>`,
-            "Appeal to Authority": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
-            "Circular Reasoning (Begging the Question)": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.696L19.015 7.749M9.348 16.023l-3.181-3.183a8.25 8.25 0 0111.664 0l-3.181 3.183" /></svg>`,
-            "Equivocation": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12s4.03 8.25 9 8.25z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" /></svg>`,
-            "Appeal to Ignorance": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
-            "Appeal to Pity": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.5 4.5 0 0012 15a4.5 4.5 0 00-3.182 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 9.75a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75V9.75zm6 0a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75V9.75z" /></svg>`
-        };
+        const structureData = [
+            { "concept": "Identify Premises and Conclusion", "definition": "An argument consists of premises (reasons) offered to support a conclusion; to evaluate it, first identify these parts. A conclusion is the statement the author wants us to accept, and premises provide evidence or reasons.", "examples": [ "A letter to the editor lists reasons for closing a park, such as safety concerns and maintenance costs, but never explicitly states the conclusion. To understand the argument, ask: “Is the writer arguing to close the park or to call for better policing?”", "Someone asserts, “All athletes are dedicated; Ana is dedicated; therefore, Ana is an athlete.” By identifying the conclusion (Ana is an athlete) and premises (All athletes are dedicated; Ana is dedicated), you can see that the argument’s structure is flawed.", "In a speech, a candidate lists promises such as improving schools and lowering taxes, then says “Therefore, vote for me.”" ]},
+            { "concept": "Evaluate the Connection between Premises and Conclusion", "definition": "Once you identify the premises and conclusion, you must determine whether the premises actually support the conclusion. Ask yourself: if the premises are true, do they provide good reason to accept the conclusion?", "examples": [ "The premise that a company’s profits have increased does not, by itself, justify the conclusion that its employees are well-paid. The connection is weak without additional information.", "If someone argues, “All dogs are mammals, and Fido is a dog, so Fido is a mammal,” the premises strongly support the conclusion.", "An advertisement claims a new car is safe because it has a premium sound system. The premise (good sound system) is irrelevant to the conclusion (safety)." ]},
+            { "concept": "Consider Alternative Explanations", "definition": "When an argument presents a cause-and-effect relationship or an interpretation of evidence, it’s important to ask whether other explanations could also account for the evidence. This helps determine the argument’s strength.", "examples": [ "In a criminal trial, evidence seems to point to one suspect. To evaluate the inference, consider alternative suspects or motives before concluding guilt.", "After observing a correlation between violent video games and aggression, ask whether socioeconomic status, upbringing, or stress could be alternative explanations.", "A student blames poor grades on the teacher’s bias. Consider whether factors like study habits or attendance might also explain the outcome." ]},
+            { "concept": "Recognizing Bias and Perspective", "definition": "Arguments often reflect the point of view or bias of the speaker. Identifying the perspective helps you weigh the evidence and decide how much weight to give it.", "examples": [ "A news outlet with a political slant reports an event selectively. Being aware of the outlet’s bias prompts you to seek alternative sources for a balanced understanding.", "A product review written by the manufacturer is likely biased. Recognizing this encourages you to look for independent reviews before purchasing.", "A friend’s enthusiastic recommendation of a film may stem from their admiration of the lead actor. By considering this bias, you can adjust your expectations accordingly." ]}
+        ];
 
         // DOM Elements
         const learnModeDiv = document.getElementById('learn-mode');
@@ -224,23 +216,24 @@
         const learnModeBtn = document.getElementById('learn-mode-btn');
         const quizModeBtn = document.getElementById('quiz-mode-btn');
         const dyslexicToggle = document.getElementById('dyslexic-toggle');
+        const topicFallaciesBtn = document.getElementById('topic-fallacies-btn');
+        const topicStructureBtn = document.getElementById('topic-structure-btn');
 
         // Learn Mode Elements
-        const fallacySelect = document.getElementById('fallacy-select');
-        const fallacyDisplay = document.getElementById('fallacy-display');
-        const fallacyNameEl = document.getElementById('fallacy-name');
-        const fallacyIconEl = document.getElementById('fallacy-icon');
-        const fallacyDefEl = document.getElementById('fallacy-def');
-        const fallacyExamplesEl = document.getElementById('fallacy-examples');
+        const conceptSelect = document.getElementById('concept-select');
+        const conceptDisplay = document.getElementById('concept-display');
+        const conceptNameEl = document.getElementById('concept-name');
+        const conceptDefEl = document.getElementById('concept-def');
+        const conceptExamplesEl = document.getElementById('concept-examples');
         const scenarioQuizDiv = document.getElementById('scenario-quiz');
         const scenarioTextEl = document.getElementById('scenario-text');
-        const scenarioFallacyNameEl = document.getElementById('scenario-fallacy-name');
+        const scenarioConceptNameEl = document.getElementById('scenario-concept-name');
         const trueBtn = document.getElementById('true-btn');
         const falseBtn = document.getElementById('false-btn');
         const learnFeedbackEl = document.getElementById('learn-feedback');
         const learnNavDiv = document.getElementById('learn-navigation');
-        const prevFallacyBtn = document.getElementById('prev-fallacy-btn');
-        const nextFallacyBtn = document.getElementById('next-fallacy-btn');
+        const prevConceptBtn = document.getElementById('prev-concept-btn');
+        const nextConceptBtn = document.getElementById('next-concept-btn');
         const reviewBtn = document.getElementById('review-btn');
         const startChallengeBtn = document.getElementById('start-challenge-btn');
 
@@ -260,8 +253,9 @@
 
         // State variables
         let currentMode = 'learn';
+        let currentTopic = 'fallacies';
         let learnState = {
-            currentFallacyIndex: 0,
+            currentConceptIndex: 0,
             scenarios: [],
             currentScenarioIndex: 0,
         };
@@ -275,6 +269,19 @@
         // Utility Functions
         const shuffleArray = (array) => array.slice().sort(() => Math.random() - 0.5);
         const getRandomItem = (array) => array[Math.floor(Math.random() * array.length)];
+        
+        function switchTopic(topic) {
+            currentTopic = topic;
+            if (topic === 'fallacies') {
+                topicFallaciesBtn.classList.add('active');
+                topicStructureBtn.classList.remove('active');
+            } else {
+                topicFallaciesBtn.classList.remove('active');
+                topicStructureBtn.classList.add('active');
+            }
+            // Re-initialize the current mode with the new topic
+            switchMode(currentMode);
+        }
         
         function switchMode(mode) {
             currentMode = mode;
@@ -294,54 +301,56 @@
         }
         
         // --- LEARN MODE ---
-        function populateFallacyDropdown() {
-            fallaciesData.forEach((fallacy, index) => {
+        function populateConceptDropdown() {
+            const data = currentTopic === 'fallacies' ? fallaciesData : structureData;
+            conceptSelect.innerHTML = '';
+            data.forEach((item, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                option.textContent = fallacy.fallacy;
-                fallacySelect.appendChild(option);
+                option.textContent = item.concept;
+                conceptSelect.appendChild(option);
             });
         }
         
         function initLearnMode() {
-            displayFallacy(learnState.currentFallacyIndex);
+            learnState.currentConceptIndex = 0;
+            populateConceptDropdown();
+            displayLearnItem(0);
         }
 
-        function displayFallacy(index) {
-            learnState.currentFallacyIndex = parseInt(index);
-            const fallacy = fallaciesData[learnState.currentFallacyIndex];
+        function displayLearnItem(index) {
+            learnState.currentConceptIndex = parseInt(index);
+            const data = currentTopic === 'fallacies' ? fallaciesData : structureData;
+            const item = data[learnState.currentConceptIndex];
 
-            fallacyNameEl.textContent = fallacy.fallacy;
-            fallacyDefEl.textContent = fallacy.definition;
-            fallacyIconEl.innerHTML = fallacyIcons[fallacy.fallacy] || '';
-            fallacyExamplesEl.innerHTML = fallacy.examples.map(ex => `<li>${ex}</li>`).join('');
+            conceptNameEl.textContent = item.concept;
+            conceptDefEl.textContent = item.definition;
+            conceptExamplesEl.innerHTML = item.examples.map(ex => `<li>${ex}</li>`).join('');
             
-            fallacySelect.value = learnState.currentFallacyIndex;
+            conceptSelect.value = learnState.currentConceptIndex;
             
-            // Update nav buttons
-            prevFallacyBtn.disabled = learnState.currentFallacyIndex === 0;
-            nextFallacyBtn.disabled = learnState.currentFallacyIndex === fallaciesData.length - 1;
+            prevConceptBtn.disabled = learnState.currentConceptIndex === 0;
+            nextConceptBtn.disabled = learnState.currentConceptIndex === data.length - 1;
 
-            // Reset view
-            fallacyDisplay.classList.remove('hidden');
+            conceptDisplay.classList.remove('hidden');
             scenarioQuizDiv.classList.add('hidden');
             learnNavDiv.classList.remove('hidden');
             startChallengeBtn.classList.remove('hidden');
             reviewBtn.classList.add('hidden');
-            prevFallacyBtn.classList.remove('hidden');
-            nextFallacyBtn.classList.remove('hidden');
+            prevConceptBtn.classList.remove('hidden');
+            nextConceptBtn.classList.remove('hidden');
 
 
-            fallacyDisplay.classList.remove('fade-in');
-            void fallacyDisplay.offsetWidth; // Trigger reflow
-            fallacyDisplay.classList.add('fade-in');
+            conceptDisplay.classList.remove('fade-in');
+            void conceptDisplay.offsetWidth; // Trigger reflow
+            conceptDisplay.classList.add('fade-in');
         }
 
         function startLearnChallenge() {
             learnState.currentScenarioIndex = 0;
             generateLearnScenarios();
             displayLearnScenario();
-            fallacyDisplay.classList.add('hidden');
+            conceptDisplay.classList.add('hidden');
             learnNavDiv.classList.add('hidden');
             scenarioQuizDiv.classList.remove('hidden');
             scenarioQuizDiv.classList.remove('fade-in');
@@ -350,17 +359,16 @@
         }
 
         function generateLearnScenarios() {
-            const currentFallacy = fallaciesData[learnState.currentFallacyIndex];
-            const otherFallacies = fallaciesData.filter((_, i) => i !== learnState.currentFallacyIndex);
+            const dataPool = currentTopic === 'fallacies' ? fallaciesData : structureData;
+            const currentConcept = dataPool[learnState.currentConceptIndex];
+            const otherConcepts = dataPool.filter((_, i) => i !== learnState.currentConceptIndex);
             
             learnState.scenarios = [];
-            // Add one true example
-            learnState.scenarios.push({ text: getRandomItem(currentFallacy.examples), isCorrectFallacy: true });
+            learnState.scenarios.push({ text: getRandomItem(currentConcept.examples), isCorrectConcept: true });
 
-            // Add two false examples
-            const falseFallacies = shuffleArray(otherFallacies).slice(0, 2);
-            falseFallacies.forEach(fallacy => {
-                learnState.scenarios.push({ text: getRandomItem(fallacy.examples), isCorrectFallacy: false });
+            const falseConcepts = shuffleArray(otherConcepts).slice(0, 2);
+            falseConcepts.forEach(concept => {
+                learnState.scenarios.push({ text: getRandomItem(concept.examples), isCorrectConcept: false });
             });
 
             learnState.scenarios = shuffleArray(learnState.scenarios);
@@ -368,9 +376,10 @@
 
         function displayLearnScenario() {
             const scenario = learnState.scenarios[learnState.currentScenarioIndex];
-            const currentFallacyName = fallaciesData[learnState.currentFallacyIndex].fallacy;
+            const dataPool = currentTopic === 'fallacies' ? fallaciesData : structureData;
+            const currentConceptName = dataPool[learnState.currentConceptIndex].concept;
             
-            scenarioFallacyNameEl.textContent = currentFallacyName;
+            scenarioConceptNameEl.textContent = currentConceptName;
             scenarioTextEl.textContent = scenario.text;
             learnFeedbackEl.textContent = '';
             trueBtn.disabled = false;
@@ -380,7 +389,7 @@
         function handleLearnAnswer(userAnswer) {
             trueBtn.disabled = true;
             falseBtn.disabled = true;
-            const correct = learnState.scenarios[learnState.currentScenarioIndex].isCorrectFallacy;
+            const correct = learnState.scenarios[learnState.currentScenarioIndex].isCorrectConcept;
 
             if (userAnswer === correct) {
                 learnFeedbackEl.textContent = 'Correct!';
@@ -405,8 +414,8 @@
             learnNavDiv.classList.remove('hidden');
             startChallengeBtn.classList.add('hidden');
             reviewBtn.classList.remove('hidden');
-            prevFallacyBtn.classList.add('hidden');
-            nextFallacyBtn.classList.add('hidden');
+            prevConceptBtn.classList.add('hidden');
+            nextConceptBtn.classList.add('hidden');
         }
 
 
@@ -431,14 +440,15 @@
         }
 
         function generateQuizQuestions(numQuestions) {
-            const allExamples = fallaciesData.flatMap(f => f.examples.map(ex => ({ text: ex, correctFallacy: f.fallacy })));
+            const combinedData = [...fallaciesData, ...structureData];
+            const allExamples = combinedData.flatMap(item => item.examples.map(ex => ({ text: ex, correctConcept: item.concept })));
             const shuffledExamples = shuffleArray(allExamples).slice(0, numQuestions);
             
             quizState.questions = shuffledExamples.map(q => {
-                const distractors = shuffleArray(fallaciesData.filter(f => f.fallacy !== q.correctFallacy))
+                const distractors = shuffleArray(combinedData.filter(item => item.concept !== q.correctConcept))
                     .slice(0, 3)
-                    .map(f => f.fallacy);
-                const options = shuffleArray([q.correctFallacy, ...distractors]);
+                    .map(item => item.concept);
+                const options = shuffleArray([q.correctConcept, ...distractors]);
                 return { ...q, options };
             });
         }
@@ -460,7 +470,7 @@
         }
 
         function handleQuizAnswer(selectedOption) {
-            const correct = quizState.questions[quizState.currentQuestionIndex].correctFallacy;
+            const correct = quizState.questions[quizState.currentQuestionIndex].correctConcept;
             const buttons = quizOptionsDiv.querySelectorAll('button');
             buttons.forEach(b => {
                 b.disabled = true;
@@ -497,9 +507,9 @@
             quizScoreEl.textContent = `${quizState.score} / ${quizState.length}`;
             const percentage = (quizState.score / quizState.length) * 100;
             let summary = "Keep practicing!";
-            if (percentage > 90) summary = "Excellent work!";
-            else if (percentage > 70) summary = "Great job!";
-            else if (percentage > 50) summary = "Good effort!";
+            if (percentage >= 90) summary = "Excellent work!";
+            else if (percentage >= 70) summary = "Great job!";
+            else if (percentage >= 50) summary = "Good effort!";
             quizSummaryTextEl.textContent = summary;
             quizResultsDiv.classList.remove('fade-in');
             void quizResultsDiv.offsetWidth;
@@ -508,6 +518,8 @@
 
 
         // Event Listeners
+        topicFallaciesBtn.addEventListener('click', () => switchTopic('fallacies'));
+        topicStructureBtn.addEventListener('click', () => switchTopic('structure'));
         learnModeBtn.addEventListener('click', () => switchMode('learn'));
         quizModeBtn.addEventListener('click', () => switchMode('quiz'));
         dyslexicToggle.addEventListener('change', () => {
@@ -515,11 +527,11 @@
         });
 
         // Learn Mode Listeners
-        fallacySelect.addEventListener('change', (e) => displayFallacy(e.target.value));
-        prevFallacyBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex - 1));
-        nextFallacyBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex + 1));
+        conceptSelect.addEventListener('change', (e) => displayLearnItem(e.target.value));
+        prevConceptBtn.addEventListener('click', () => displayLearnItem(learnState.currentConceptIndex - 1));
+        nextConceptBtn.addEventListener('click', () => displayLearnItem(learnState.currentConceptIndex + 1));
         startChallengeBtn.addEventListener('click', startLearnChallenge);
-        reviewBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex));
+        reviewBtn.addEventListener('click', () => displayLearnItem(learnState.currentConceptIndex));
         trueBtn.addEventListener('click', () => handleLearnAnswer(true));
         falseBtn.addEventListener('click', () => handleLearnAnswer(false));
         
@@ -531,10 +543,8 @@
         retakeQuizBtn.addEventListener('click', initQuizMode);
         
         // Initial setup
-        populateFallacyDropdown();
-        switchMode('learn');
+        switchTopic('fallacies');
     </script>
 </body>
 </html>
-
 
