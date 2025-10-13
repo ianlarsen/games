@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logical Fallacy Trainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* A light, calming blue-gray */
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+        .tab-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            background-color: #3b82f6; /* A vibrant blue */
+            color: white;
+        }
+        .btn {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #374151; /* Dark gray text */
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .feedback {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .correct {
+            color: #16a34a; /* Green */
+        }
+        .incorrect {
+            color: #dc2626; /* Red */
+        }
+        /* Fade-in animation for elements */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Logical Fallacy Trainer</h1>
+            <p class="mt-2 text-lg text-slate-600">Sharpen your critical thinking skills.</p>
+        </header>
+
+        <!-- Mode Switcher -->
+        <div class="flex justify-center mb-8 bg-slate-200 rounded-lg p-1 max-w-sm mx-auto">
+            <button id="learn-mode-btn" class="tab-button w-1/2 p-2 rounded-md font-semibold active">Learn</button>
+            <button id="quiz-mode-btn" class="tab-button w-1/2 p-2 rounded-md font-semibold">Quiz</button>
+        </div>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- Learn Mode -->
+            <div id="learn-mode" class="space-y-6">
+                <div id="fallacy-display" class="card">
+                    <div class="flex justify-between items-start">
+                        <h2 id="fallacy-name" class="text-2xl md:text-3xl font-bold text-blue-600 mb-2"></h2>
+                        <span id="fallacy-progress" class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded"></span>
+                    </div>
+                    <p id="fallacy-def" class="text-slate-600 mb-4"></p>
+                    <h3 class="font-semibold mb-2 text-slate-700">Examples:</h3>
+                    <ul id="fallacy-examples" class="list-disc list-inside space-y-2 text-slate-600"></ul>
+                </div>
+
+                <div id="scenario-quiz" class="card hidden">
+                    <p class="text-slate-600 mb-4">Is the following scenario an example of a <strong id="scenario-fallacy-name" class="font-semibold"></strong>?</p>
+                    <p id="scenario-text" class="text-lg font-medium p-4 bg-slate-50 rounded-lg mb-6"></p>
+                    <div class="flex justify-center gap-4">
+                        <button id="true-btn" class="btn btn-primary w-28">True</button>
+                        <button id="false-btn" class="btn btn-primary w-28">False</button>
+                    </div>
+                    <div id="learn-feedback" class="feedback text-center mt-4 font-semibold text-xl h-6"></div>
+                </div>
+
+                <div id="learn-navigation" class="flex justify-center gap-4 pt-4">
+                    <button id="review-btn" class="btn btn-secondary hidden">Review Fallacy</button>
+                    <button id="next-fallacy-btn" class="btn btn-primary">Start Challenge</button>
+                </div>
+            </div>
+
+            <!-- Quiz Mode -->
+            <div id="quiz-mode" class="hidden">
+                <div id="quiz-setup" class="card text-center">
+                    <h2 class="text-2xl font-bold mb-4">Fallacy Quiz</h2>
+                    <p class="text-slate-600 mb-6">Select the number of questions you'd like to answer.</p>
+                    <div class="flex justify-center gap-4">
+                        <button class="btn btn-secondary quiz-length-btn" data-length="5">5 Questions</button>
+                        <button class="btn btn-secondary quiz-length-btn" data-length="10">10 Questions</button>
+                        <button class="btn btn-secondary quiz-length-btn" data-length="15">15 Questions</button>
+                    </div>
+                </div>
+
+                <div id="quiz-question-area" class="card hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Identify the Fallacy</h3>
+                        <span id="quiz-progress" class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded"></span>
+                    </div>
+                    <p id="quiz-question-text" class="text-lg p-4 bg-slate-50 rounded-lg mb-6"></p>
+                    <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <div id="quiz-feedback" class="feedback text-center mt-4 font-semibold text-xl h-6"></div>
+                    <div class="text-center mt-6">
+                         <button id="next-question-btn" class="btn btn-primary hidden">Next Question</button>
+                    </div>
+                </div>
+
+                <div id="quiz-results" class="card text-center hidden">
+                    <h2 class="text-2xl font-bold mb-2">Quiz Complete!</h2>
+                    <p class="text-4xl font-bold my-4" id="quiz-score"></p>
+                    <p class="text-slate-600 mb-6" id="quiz-summary-text"></p>
+                    <button id="retake-quiz-btn" class="btn btn-primary">Take Another Quiz</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Data derived from the user-provided CSV file
+        const fallaciesData = [
+          { "fallacy": "Ad Hominem (including Tu Quoque)", "definition": "Attacking the person making the argument or pointing to their hypocrisy instead of addressing the argument’s reasoning.", "examples": [ "We shouldn't listen to her argument about climate policy because she didn't even finish high school. – attacks the person's education rather than engaging with the argument.", "Don't listen to Senator Smith's speech about economic reforms; he's been divorced three times. – irrelevant personal details are used to discredit their argument.", "My parents say I shouldn't smoke, but they smoked when they were my age, so their argument is invalid. – a tu quoque response that focuses on hypocrisy instead of the merits of the argument." ] },
+          { "fallacy": "Straw Man", "definition": "Misrepresenting or oversimplifying someone’s argument to make it easier to attack.", "examples": [ "Feminists want to eliminate all differences between men and women; that's ridiculous because people are biologically different. – misrepresents feminist positions to attack them.", "People who support increasing the minimum wage want to give everyone free money without working. – exaggerates opponents’ stance to make it seem unreasonable.", "Environmentalists care more about trees than people; they would rather let humans die than cut down a tree. – distorts the environmental argument to an extreme version." ] },
+          { "fallacy": "Red Herring", "definition": "Introducing an irrelevant issue to distract from the real argument.", "examples": [ "We shouldn't worry about the rising cost of healthcare. The real problem is that people aren't exercising enough. – diverts from healthcare costs to personal fitness.", "When asked about his voting record on environmental issues, the candidate brings up his opponent's personal life. – changes the subject to avoid the question.", "You're complaining about the new office coffee machine, but what about the fact that we got a raise last year? – introduces an unrelated positive point to deflect criticism." ] },
+          { "fallacy": "False Dilemma (Either/Or)", "definition": "Presenting only two choices as the only possibilities, when in fact more possibilities exist.", "examples": [ "Either you're with us, or you're against us. – forces a choice between two extremes, ignoring neutral or alternative positions.", "You can either support the new bill or you support crime. – creates a false dichotomy to pressure support for the bill.", "We have to either cut education spending or go into massive debt. – ignores other possibilities like raising taxes or cutting other programs." ] },
+          { "fallacy": "Slippery Slope", "definition": "Arguing that a small first step will inevitably lead to a chain of related, negative events.", "examples": [ "If we allow same-sex marriage, then the next thing you know, people will be marrying their pets. – makes an unsupported leap to an extreme outcome.", "If you let a student retake a test, then you'll have to let all students retake all tests, and no one will study. – exaggerates the consequences of a single action.", "If we ban a certain type of weapon, soon the government will take away all our guns. – claims one action will lead to a total loss of rights without evidence." ] },
+          { "fallacy": "Hasty Generalization", "definition": "Drawing a broad conclusion based on a small or unrepresentative sample.", "examples": [ "I met two people from that country, and they were both rude. Therefore, everyone from that country is rude. – generalizes from a sample size of two.", "My grandfather smoked his whole life and lived to be 90, so smoking isn't actually bad for you. – uses a single anecdote to dismiss extensive scientific evidence.", "This one article I read online says that climate change is a hoax, so all the scientists must be wrong. – relies on a single source to form a sweeping conclusion." ] },
+          { "fallacy": "Appeal to Authority", "definition": "Using the opinion of an authority figure, or an institution of authority, in place of an actual argument, especially when the authority is not an expert in the relevant field.", "examples": [ "A famous actor said this new diet is the best, so it must be true. – relies on a celebrity's endorsement for a health claim.", "My professor said that this politician is corrupt, so he must be. – accepts a claim as true based on an authority figure's opinion, without examining the evidence.", "The government says this is safe, so we have nothing to worry about. – assumes truth based solely on the source's authority." ] },
+          { "fallacy": "Circular Reasoning (Begging the Question)", "definition": "An argument where the conclusion is assumed in one of the premises. It's a statement that proves itself.", "examples": [ "The Bible is the word of God because it says so in the Bible. – the premise (the Bible is true) is the same as the conclusion.", "He is a good communicator because he speaks effectively. – 'good communicator' and 'speaks effectively' are the same thing.", "You have to do what I say because I'm the boss. – the authority to be obeyed is based on the position that claims authority." ] },
+          { "fallacy": "Equivocation", "definition": "Using a key word in different senses within the same argument, creating ambiguity.", "examples": [ "Feathers are light. What is light cannot be dark. Therefore, feathers cannot be dark. – switches between 'light' meaning weight and brightness.", "The sign said ‘fine for parking here’, so parking here is fine. – interprets 'fine' as good instead of a penalty.", "All trees have bark. Every dog barks. So every dog is a tree. – conflates 'bark' as a tree’s covering and a dog's noise." ] },
+          { "fallacy": "Appeal to Ignorance", "definition": "Claiming something is true because it hasn't been proven false or vice versa.", "examples": [ "Nobody has proven that aliens don't exist, so they must be out there. – uses lack of disproof as proof.", "There's no evidence that this herbal remedy doesn't work, so it must work. – assumes effectiveness because of absent evidence to the contrary.", "No one has shown that ghosts aren't real; therefore, ghosts exist. – uses absence of evidence as positive evidence." ] },
+          { "fallacy": "Appeal to Pity", "definition": "Attempting to persuade by arousing sympathy or pity rather than offering relevant evidence.", "examples": [ "You should give me the job because I'm struggling with rent and need money. – appeals to personal hardship instead of qualifications.", "I deserve a passing grade because I'm going through a tough time, not because of my work. – uses emotional appeal instead of academic performance.", "Please accept my paper even though it's late because my dog is sick and I'm stressed. – attempts to excuse lateness through pity." ] }
+        ];
+
+        // DOM Elements
+        const learnModeDiv = document.getElementById('learn-mode');
+        const quizModeDiv = document.getElementById('quiz-mode');
+        const learnModeBtn = document.getElementById('learn-mode-btn');
+        const quizModeBtn = document.getElementById('quiz-mode-btn');
+
+        // Learn Mode Elements
+        const fallacyDisplay = document.getElementById('fallacy-display');
+        const fallacyNameEl = document.getElementById('fallacy-name');
+        const fallacyDefEl = document.getElementById('fallacy-def');
+        const fallacyExamplesEl = document.getElementById('fallacy-examples');
+        const fallacyProgressEl = document.getElementById('fallacy-progress');
+        const scenarioQuizDiv = document.getElementById('scenario-quiz');
+        const scenarioTextEl = document.getElementById('scenario-text');
+        const scenarioFallacyNameEl = document.getElementById('scenario-fallacy-name');
+        const trueBtn = document.getElementById('true-btn');
+        const falseBtn = document.getElementById('false-btn');
+        const learnFeedbackEl = document.getElementById('learn-feedback');
+        const learnNavDiv = document.getElementById('learn-navigation');
+        const reviewBtn = document.getElementById('review-btn');
+        const nextFallacyBtn = document.getElementById('next-fallacy-btn');
+
+        // Quiz Mode Elements
+        const quizSetupDiv = document.getElementById('quiz-setup');
+        const quizQuestionAreaDiv = document.getElementById('quiz-question-area');
+        const quizQuestionTextEl = document.getElementById('quiz-question-text');
+        const quizOptionsDiv = document.getElementById('quiz-options');
+        const quizProgressEl = document.getElementById('quiz-progress');
+        const quizFeedbackEl = document.getElementById('quiz-feedback');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const quizResultsDiv = document.getElementById('quiz-results');
+        const quizScoreEl = document.getElementById('quiz-score');
+        const quizSummaryTextEl = document.getElementById('quiz-summary-text');
+        const retakeQuizBtn = document.getElementById('retake-quiz-btn');
+
+        // State variables
+        let currentMode = 'learn';
+        let learnState = {
+            currentFallacyIndex: 0,
+            scenarios: [],
+            currentScenarioIndex: 0,
+            challengeActive: false,
+        };
+        let quizState = {
+            questions: [],
+            currentQuestionIndex: 0,
+            score: 0,
+            length: 0,
+        };
+
+        // Utility Functions
+        const shuffleArray = (array) => array.slice().sort(() => Math.random() - 0.5);
+        const getRandomItem = (array) => array[Math.floor(Math.random() * array.length)];
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            if (mode === 'learn') {
+                learnModeDiv.style.display = 'block';
+                quizModeDiv.style.display = 'none';
+                learnModeBtn.classList.add('active');
+                quizModeBtn.classList.remove('active');
+                initLearnMode();
+            } else {
+                learnModeDiv.style.display = 'none';
+                quizModeDiv.style.display = 'block';
+                learnModeBtn.classList.remove('active');
+                quizModeBtn.classList.add('active');
+                initQuizMode();
+            }
+        }
+        
+        // --- LEARN MODE ---
+        function initLearnMode() {
+            learnState.currentFallacyIndex = 0;
+            learnState.challengeActive = false;
+            displayFallacy(0);
+        }
+
+        function displayFallacy(index) {
+            const fallacy = fallaciesData[index];
+            fallacyNameEl.textContent = fallacy.fallacy;
+            fallacyDefEl.textContent = fallacy.definition;
+            fallacyExamplesEl.innerHTML = fallacy.examples.map(ex => `<li>${ex}</li>`).join('');
+            fallacyProgressEl.textContent = `Fallacy ${index + 1} of ${fallaciesData.length}`;
+
+            fallacyDisplay.classList.remove('hidden');
+            scenarioQuizDiv.classList.add('hidden');
+            learnNavDiv.classList.remove('hidden');
+            nextFallacyBtn.textContent = 'Start Challenge';
+            reviewBtn.classList.add('hidden');
+            fallacyDisplay.classList.remove('fade-in');
+            void fallacyDisplay.offsetWidth; // Trigger reflow
+            fallacyDisplay.classList.add('fade-in');
+        }
+
+        function startLearnChallenge() {
+            learnState.challengeActive = true;
+            learnState.currentScenarioIndex = 0;
+            generateLearnScenarios();
+            displayLearnScenario();
+            fallacyDisplay.classList.add('hidden');
+            scenarioQuizDiv.classList.remove('hidden');
+            learnNavDiv.classList.add('hidden');
+            scenarioQuizDiv.classList.remove('fade-in');
+            void scenarioQuizDiv.offsetWidth;
+            scenarioQuizDiv.classList.add('fade-in');
+        }
+
+        function generateLearnScenarios() {
+            const currentFallacy = fallaciesData[learnState.currentFallacyIndex];
+            const otherFallacies = fallaciesData.filter((_, i) => i !== learnState.currentFallacyIndex);
+            
+            learnState.scenarios = [];
+            // Add one true example
+            learnState.scenarios.push({ text: getRandomItem(currentFallacy.examples), isCorrectFallacy: true });
+
+            // Add two false examples
+            const falseFallacies = shuffleArray(otherFallacies).slice(0, 2);
+            falseFallacies.forEach(fallacy => {
+                learnState.scenarios.push({ text: getRandomItem(fallacy.examples), isCorrectFallacy: false });
+            });
+
+            learnState.scenarios = shuffleArray(learnState.scenarios);
+        }
+
+        function displayLearnScenario() {
+            const scenario = learnState.scenarios[learnState.currentScenarioIndex];
+            const currentFallacyName = fallaciesData[learnState.currentFallacyIndex].fallacy;
+            
+            scenarioFallacyNameEl.textContent = currentFallacyName;
+            scenarioTextEl.textContent = scenario.text;
+            learnFeedbackEl.textContent = '';
+            trueBtn.disabled = false;
+            falseBtn.disabled = false;
+        }
+
+        function handleLearnAnswer(userAnswer) {
+            trueBtn.disabled = true;
+            falseBtn.disabled = true;
+            const correct = learnState.scenarios[learnState.currentScenarioIndex].isCorrectFallacy;
+
+            if (userAnswer === correct) {
+                learnFeedbackEl.textContent = 'Correct!';
+                learnFeedbackEl.className = 'feedback text-center mt-4 font-semibold text-xl h-6 correct';
+            } else {
+                learnFeedbackEl.textContent = 'Incorrect.';
+                learnFeedbackEl.className = 'feedback text-center mt-4 font-semibold text-xl h-6 incorrect';
+            }
+
+            setTimeout(() => {
+                learnState.currentScenarioIndex++;
+                if (learnState.currentScenarioIndex < learnState.scenarios.length) {
+                    displayLearnScenario();
+                } else {
+                    endLearnChallenge();
+                }
+            }, 1500);
+        }
+
+        function endLearnChallenge() {
+            scenarioQuizDiv.classList.add('hidden');
+            learnNavDiv.classList.remove('hidden');
+            reviewBtn.classList.remove('hidden');
+            if (learnState.currentFallacyIndex === fallaciesData.length - 1) {
+                nextFallacyBtn.textContent = 'Finish Learning';
+            } else {
+                nextFallacyBtn.textContent = 'Next Fallacy';
+            }
+        }
+
+        function nextLearnStep() {
+            if (learnState.challengeActive) {
+                learnState.currentFallacyIndex++;
+                if (learnState.currentFallacyIndex >= fallaciesData.length) {
+                    alert("Congratulations! You've reviewed all fallacies. Switch to Quiz mode to test your knowledge.");
+                    learnState.currentFallacyIndex = 0; // Reset for another pass
+                }
+                learnState.challengeActive = false;
+                displayFallacy(learnState.currentFallacyIndex);
+            } else {
+                startLearnChallenge();
+            }
+        }
+
+        // --- QUIZ MODE ---
+        function initQuizMode() {
+            quizSetupDiv.classList.remove('hidden');
+            quizQuestionAreaDiv.classList.add('hidden');
+            quizResultsDiv.classList.add('hidden');
+        }
+
+        function startQuiz(length) {
+            quizState.length = length;
+            quizState.score = 0;
+            quizState.currentQuestionIndex = 0;
+            generateQuizQuestions(length);
+            quizSetupDiv.classList.add('hidden');
+            quizQuestionAreaDiv.classList.remove('hidden');
+            quizQuestionAreaDiv.classList.remove('fade-in');
+            void quizQuestionAreaDiv.offsetWidth;
+            quizQuestionAreaDiv.classList.add('fade-in');
+            displayQuizQuestion();
+        }
+
+        function generateQuizQuestions(numQuestions) {
+            const allExamples = fallaciesData.flatMap(f => f.examples.map(ex => ({ text: ex, correctFallacy: f.fallacy })));
+            const shuffledExamples = shuffleArray(allExamples).slice(0, numQuestions);
+            
+            quizState.questions = shuffledExamples.map(q => {
+                const distractors = shuffleArray(fallaciesData.filter(f => f.fallacy !== q.correctFallacy))
+                    .slice(0, 3)
+                    .map(f => f.fallacy);
+                const options = shuffleArray([q.correctFallacy, ...distractors]);
+                return { ...q, options };
+            });
+        }
+
+        function displayQuizQuestion() {
+            const q = quizState.questions[quizState.currentQuestionIndex];
+            quizQuestionTextEl.textContent = q.text;
+            quizProgressEl.textContent = `Question ${quizState.currentQuestionIndex + 1} of ${quizState.length}`;
+            quizOptionsDiv.innerHTML = '';
+            q.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'btn btn-secondary text-left';
+                button.onclick = () => handleQuizAnswer(option);
+                quizOptionsDiv.appendChild(button);
+            });
+            quizFeedbackEl.textContent = '';
+            nextQuestionBtn.classList.add('hidden');
+        }
+
+        function handleQuizAnswer(selectedOption) {
+            const correct = quizState.questions[quizState.currentQuestionIndex].correctFallacy;
+            const buttons = quizOptionsDiv.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.disabled = true;
+                if (b.textContent === correct) {
+                    b.classList.add('bg-green-500', 'text-white');
+                } else if (b.textContent === selectedOption) {
+                    b.classList.add('bg-red-500', 'text-white');
+                }
+            });
+
+            if (selectedOption === correct) {
+                quizState.score++;
+                quizFeedbackEl.textContent = 'Correct!';
+                quizFeedbackEl.className = 'feedback text-center mt-4 font-semibold text-xl h-6 correct';
+            } else {
+                quizFeedbackEl.textContent = 'Incorrect.';
+                quizFeedbackEl.className = 'feedback text-center mt-4 font-semibold text-xl h-6 incorrect';
+            }
+            nextQuestionBtn.classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            quizState.currentQuestionIndex++;
+            if (quizState.currentQuestionIndex < quizState.length) {
+                displayQuizQuestion();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function showQuizResults() {
+            quizQuestionAreaDiv.classList.add('hidden');
+            quizResultsDiv.classList.remove('hidden');
+            quizScoreEl.textContent = `${quizState.score} / ${quizState.length}`;
+            const percentage = (quizState.score / quizState.length) * 100;
+            let summary = "Keep practicing!";
+            if (percentage > 90) summary = "Excellent work!";
+            else if (percentage > 70) summary = "Great job!";
+            else if (percentage > 50) summary = "Good effort!";
+            quizSummaryTextEl.textContent = summary;
+            quizResultsDiv.classList.remove('fade-in');
+            void quizResultsDiv.offsetWidth;
+            quizResultsDiv.classList.add('fade-in');
+        }
+
+
+        // Event Listeners
+        learnModeBtn.addEventListener('click', () => switchMode('learn'));
+        quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+
+        // Learn Mode Listeners
+        nextFallacyBtn.addEventListener('click', nextLearnStep);
+        reviewBtn.addEventListener('click', () => displayFallacy(learnState.currentFallacyIndex));
+        trueBtn.addEventListener('click', () => handleLearnAnswer(true));
+        falseBtn.addEventListener('click', () => handleLearnAnswer(false));
+
+        // Quiz Mode Listeners
+        document.querySelectorAll('.quiz-length-btn').forEach(btn => {
+            btn.addEventListener('click', () => startQuiz(parseInt(btn.dataset.length)));
+        });
+        nextQuestionBtn.addEventListener('click', nextQuizQuestion);
+        retakeQuizBtn.addEventListener('click', initQuizMode);
+        
+        // Initial setup
+        switchMode('learn');
+    </script>
+</body>
+</html>
