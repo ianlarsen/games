@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dot-to-Dot Game Collection</title>
+    <title>Dot-to-Dot Challenge</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,79 +12,81 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .game-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <div class="container mx-auto px-4 py-8 sm:py-12">
-        <!-- Header -->
-        <header class="text-center mb-8 sm:mb-12">
-            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800">Dot-to-Dot Collection</h1>
-            <p class="mt-2 text-lg text-gray-600">Click on a puzzle to start playing!</p>
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800">Dot-to-Dot Challenge</h1>
+            <p class="text-lg text-gray-600 mt-2">Select a puzzle to begin!</p>
         </header>
 
-        <!-- Game Links Grid -->
-        <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-
-            <!-- Dinosaur Game -->
-            <a href="trex.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
-                <div class="aspect-w-16 aspect-h-9">
-                    <img src="images/trex.png" alt="Dinosaur Puzzle" class="w-full h-48 object-cover">
+        <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- T-Rex Card -->
+            <a href="trex.html" class="group block bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="overflow-hidden">
+                    <img src="images/trex.png" alt="T-Rex" class="w-full h-48 object-cover">
                 </div>
-                <div class="p-5">
-                    <h2 class="text-2xl font-bold text-gray-900">Dinosaur</h2>
-                    <p class="mt-1 text-gray-500">Connect the dots to reveal a T-Rex!</p>
-                </div>
-            </a>
-
-            <!-- Fish Game -->
-            <a href="fish.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
-                 <div class="aspect-w-16 aspect-h-9">
-                    <img src="images/fish.png" alt="Fish Puzzle" class="w-full h-48 object-cover">
-                </div>
-                <div class="p-5">
-                    <h2 class="text-2xl font-bold text-gray-900">Fish</h2>
-                    <p class="mt-1 text-gray-500">Can you uncover the hidden sea creature?</p>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800">T-Rex</h2>
+                    <p class="text-gray-600 mt-1">A fearsome dinosaur adventure!</p>
                 </div>
             </a>
 
-            <!-- Farm Game -->
-            <a href="farm.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
-                 <div class="aspect-w-16 aspect-h-9">
-                    <img src="images/farm.png" alt="Farm Puzzle" class="w-full h-48 object-cover">
+            <!-- Fish Card -->
+            <a href="fish.html" class="group block bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="overflow-hidden">
+                    <img src="images/fish.png" alt="Fish" class="w-full h-48 object-cover">
                 </div>
-                <div class="p-5">
-                    <h2 class="text-2xl font-bold text-gray-900">Farm</h2>
-                    <p class="mt-1 text-gray-500">A peaceful scene is waiting to be drawn.</p>
-                </div>
-            </a>
-
-            <!-- Space Game -->
-            <a href="space.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
-                 <div class="aspect-w-16 aspect-h-9">
-                    <img src="images/space.png" alt="Space Puzzle" class="w-full h-48 object-cover">
-                </div>
-                <div class="p-5">
-                    <h2 class="text-2xl font-bold text-gray-900">Space</h2>
-                    <p class="mt-1 text-gray-500">Connect the stars to launch a shuttle.</p>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Fish</h2>
+                    <p class="text-gray-600 mt-1">An underwater puzzle.</p>
                 </div>
             </a>
 
-            <!-- Knight Game -->
-            <a href="knight.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
-                 <div class="aspect-w-16 aspect-h-9">
-                    <img src="images/knight.png" alt="Knight Puzzle" class="w-full h-48 object-cover">
+            <!-- Farm Card -->
+            <a href="farm.html" class="group block bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="overflow-hidden">
+                    <img src="images/farm.png" alt="Farm" class="w-full h-48 object-cover">
                 </div>
-                <div class="p-5">
-                    <h2 class="text-2xl font-bold text-gray-900">Knight</h2>
-                    <p class="mt-1 text-gray-500">Reveal a valiant hero from medieval times.</p>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Farm</h2>
+                    <p class="text-gray-600 mt-1">A charming countryside scene.</p>
+                </div>
+            </a>
+
+            <!-- Space Card -->
+            <a href="space.html" class="group block bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="overflow-hidden">
+                    <img src="images/space.png" alt="Space Shuttle" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Space Shuttle</h2>
+                    <p class="text-gray-600 mt-1">An out-of-this-world journey.</p>
+                </div>
+            </a>
+
+            <!-- Knight Card -->
+            <a href="knight.html" class="group block bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="overflow-hidden">
+                    <img src="images/knight.png" alt="Knight" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Knight</h2>
+                    <p class="text-gray-600 mt-1">A medieval mystery.</p>
+                </div>
+            </a>
+
+            <!-- Monkey Card -->
+            <a href="monkey.html" class="group block bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="overflow-hidden">
+                    <img src="images/monkey.png" alt="Monkey" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Monkey</h2>
+                    <p class="text-gray-600 mt-1">A playful jungle puzzle.</p>
                 </div>
             </a>
 
