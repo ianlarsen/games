@@ -1,515 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Dot‑to‑Dot: Jungle Fun</title>
-  <style>
-    /* =======================
-       Global Layout & Theming
-       ======================= */
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    :root {
-      /* The board is a perfect square that fits 80% of the viewport height,
-         but never exceeds 95% of the viewport width. JS will override this
-         with a pixel value for older/mobile browsers. */
-      --board-size: min(80svh, 95vw);
-    }
-
-    body {
-      margin: 0;
-      background: #e0f2f1; /* Light teal for a jungle feel */
-      color: #111;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.3;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .page {
-      min-height: 100svh;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 12px;
-      padding: clamp(8px, 2.5vw, 18px);
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .topbar h1 { font-size: clamp(18px, 3.8vw, 28px); margin: 0; }
-    .topbar .status { display: inline-flex; gap: 10px; align-items: center; font-weight: 500; }
-    #resetBtn {
-      appearance: none;
-      border: 1px solid #222;
-      background: #fff;
-      padding: 6px 10px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    #resetBtn:hover {
-        background-color: #f0f0f0;
-    }
-
-    /* =======================
-       Board (square container)
-       ======================= */
-    .board-wrap {
-      position: relative;
-      margin: 0 auto;
-      width: var(--board-size);
-      height: var(--board-size); /* keep square */
-      border: 2px solid #111;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    /* Completion image sits underneath and fades in on win */
-    #completedImage {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      opacity: 0;
-      transition: opacity 800ms ease;
-      pointer-events: none;
-    }
-    #completedImage.revealed { opacity: 1; }
-
-    /* SVG board fills container */
-    #board { position: absolute; inset: 0; width: 100%; height: 100%; }
-    #path {
-      stroke: #111;
-      stroke-width: 6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      fill: none;
-    }
-
-    /* Dots & labels */
-    .dot .visual { fill: #111; stroke: #111; stroke-width: 0.5; transition: fill 0.2s; }
-    .dot .hit { fill: transparent; pointer-events: all; cursor: pointer; }
-    .dot.active .ring { stroke: #007bff; stroke-width: 2.5; fill: none; r: 16; transition: r 0.3s ease-out; }
-    .dot.active .visual { fill: #007bff; }
-    
-    .dot text {
-      font-size: 20px; /* SVG units; scales with viewBox */
-      fill: #111;
-      paint-order: stroke;
-      stroke: #fff;
-      stroke-width: 4;
-      font-weight: 700;
-      -webkit-user-select: none; /* Safari */
-      -ms-user-select: none; /* IE 10+ */
-      user-select: none; 
-    }
-    .dot.active text {
-        font-size: 24px;
-        fill: #007bff;
-    }
-
-    /* Feedback */
-    .dot.wrong .visual { fill: #b00020; }
-    @keyframes nudge {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      50% { transform: translateX(4px); }
-      75% { transform: translateX(-3px); }
-      100% { transform: translateX(0); }
-    }
-    .dot.wrong { animation: nudge 180ms ease; }
-
-    .hint {
-      text-align: center;
-      font-size: clamp(12px, 2.8vw, 14px);
-      color: #333;
-    }
-  </style>
-</head>
-<body>
-  <main class="page">
-    <header class="topbar">
-      <h1>Dot‑to‑Dot: Jungle Fun</h1>
-      <div class="status">
-        <span id="progress">1 / 115</span>
-        <button id="resetBtn" aria-label="Reset level">Reset</button>
-      </div>
-    </header>
-
-    <section class="board-wrap">
-      <img id="completedImage" src="monkey.jpg" alt="A cartoon jungle scene with a monkey, leopard cub, parrot, and frog." />
-      <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
-        <defs>
-          <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
-            <feMorphology in="SourceAlpha" operator="dilate" radius="3" result="HALO" />
-            <feGaussianBlur in="HALO" stdDeviation="2" result="BLUR" />
-            <feMerge>
-              <feMergeNode in="BLUR" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <polyline id="path" points="" />
-        <g id="dots"></g>
-      </svg>
-    </section>
-
-    <footer class="hint">Tap the dots in order: 1 → 115. When you're done, the full jungle scene will appear!</footer>
-  </main>
-
-  <script>
-    /* Dot-to-Dot Jungle Fun */
-
-    const LEVEL = {
-      imageSrc: "monkey.jpg",
-      viewBox: [1000, 1000],
-      dots: [
-        // Monkey (1-40)
-        { x: 497, y: 340 }, // 1 - Top of head
-        { x: 550, y: 350 }, // 2
-        { x: 600, y: 380 }, // 3 - Right ear
-        { x: 615, y: 420 }, // 4
-        { x: 605, y: 460 }, // 5 - Face
-        { x: 580, y: 500 }, // 6
-        { x: 540, y: 525 }, // 7 - Mouth
-        { x: 495, y: 530 }, // 8
-        { x: 450, y: 520 }, // 9
-        { x: 410, y: 490 }, // 10
-        { x: 385, y: 450 }, // 11
-        { x: 380, y: 410 }, // 12 - Left ear
-        { x: 395, y: 370 }, // 13
-        { x: 440, y: 345 }, // 14
-        { x: 630, y: 500 }, // 15 - Right arm
-        { x: 650, y: 450 }, // 16
-        { x: 640, y: 400 }, // 17
-        { x: 620, y: 360 }, // 18 - Right hand
-        { x: 580, y: 340 }, // 19
-        { x: 360, y: 490 }, // 20 - Left arm
-        { x: 340, y: 440 }, // 21
-        { x: 350, y: 390 }, // 22
-        { x: 380, y: 350 }, // 23 - Left hand
-        { x: 420, y: 340 }, // 24
-        { x: 480, y: 550 }, // 25 - Body
-        { x: 560, y: 560 }, // 26
-        { x: 600, y: 600 }, // 27
-        { x: 610, y: 650 }, // 28 - Right leg
-        { x: 600, y: 700 }, // 29
-        { x: 580, y: 740 }, // 30 - Foot
-        { x: 540, y: 730 }, // 31
-        { x: 500, y: 700 }, // 32
-        { x: 460, y: 730 }, // 33
-        { x: 420, y: 740 }, // 34 - Left foot
-        { x: 400, y: 700 }, // 35
-        { x: 390, y: 650 }, // 36 - Left leg
-        { x: 400, y: 600 }, // 37
-        { x: 420, y: 560 }, // 38
-        { x: 450, y: 545 }, // 39
-        { x: 495, y: 550 }, // 40
-        // Leopard Cub (41-75)
-        { x: 236, y: 680 }, // 41 - Left ear
-        { x: 280, y: 665 }, // 42
-        { x: 330, y: 670 }, // 43 - Right ear
-        { x: 350, y: 700 }, // 44
-        { x: 340, y: 740 }, // 45 - Face
-        { x: 320, y: 780 }, // 46
-        { x: 280, y: 800 }, // 47
-        { x: 240, y: 790 }, // 48
-        { x: 215, y: 760 }, // 49
-        { x: 210, y: 720 }, // 50
-        { x: 360, y: 780 }, // 51 - Body
-        { x: 380, y: 820 }, // 52
-        { x: 385, y: 860 }, // 53
-        { x: 370, y: 890 }, // 54 - Paw
-        { x: 340, y: 895 }, // 55
-        { x: 310, y: 880 }, // 56
-        { x: 280, y: 890 }, // 57 - Left paw
-        { x: 250, y: 890 }, // 58
-        { x: 220, y: 870 }, // 59
-        { x: 200, y: 840 }, // 60
-        { x: 180, y: 800 }, // 61 - Back
-        { x: 170, y: 750 }, // 62
-        { x: 190, y: 710 }, // 63
-        { x: 220, y: 690 }, // 64
-        { x: 150, y: 780 }, // 65 - Tail
-        { x: 120, y: 810 }, // 66
-        { x: 100, y: 790 }, // 67
-        { x: 130, y: 760 }, // 68
-        { x: 300, y: 920 }, // 69 - Spots
-        { x: 350, y: 840 }, // 70
-        { x: 250, y: 850 }, // 71
-        { x: 200, y: 780 }, // 72
-        { x: 190, y: 820 }, // 73
-        { x: 320, y: 710 }, // 74
-        { x: 260, y: 730 }, // 75
-        // Parrot (76-100)
-        { x: 800, y: 220 }, // 76 - Head crest
-        { x: 830, y: 210 }, // 77
-        { x: 860, y: 225 }, // 78
-        { x: 870, y: 250 }, // 79 - Beak
-        { x: 850, y: 260 }, // 80
-        { x: 830, y: 250 }, // 81
-        { x: 820, y: 280 }, // 82 - Body
-        { x: 840, y: 320 }, // 83
-        { x: 860, y: 360 }, // 84
-        { x: 880, y: 400 }, // 85 - Wing
-        { x: 920, y: 420 }, // 86
-        { x: 950, y: 410 }, // 87
-        { x: 940, y: 380 }, // 88
-        { x: 910, y: 350 }, // 89
-        { x: 875, y: 330 }, // 90
-        { x: 810, y: 350 }, // 91 - Tail
-        { x: 780, y: 390 }, // 92
-        { x: 750, y: 370 }, // 93
-        { x: 780, y: 340 }, // 94
-        { x: 800, y: 310 }, // 95
-        { x: 790, y: 270 }, // 96
-        { x: 770, y: 250 }, // 97
-        { x: 780, y: 230 }, // 98
-        { x: 880, y: 280 }, // 99 - Eye area
-        { x: 805, y: 245 }, // 100
-        // Frog (101-115)
-        { x: 740, y: 710 }, // 101 - Left eye
-        { x: 770, y: 700 }, // 102
-        { x: 800, y: 710 }, // 103 - Right eye
-        { x: 805, y: 740 }, // 104
-        { x: 780, y: 760 }, // 105 - Mouth
-        { x: 750, y: 760 }, // 106
-        { x: 725, y: 740 }, // 107
-        { x: 720, y: 770 }, // 108 - Body
-        { x: 750, y: 790 }, // 109
-        { x: 790, y: 790 }, // 110
-        { x: 820, y: 770 }, // 111
-        { x: 830, y: 800 }, // 112 - Right foot
-        { x: 790, y: 810 }, // 113
-        { x: 740, y: 810 }, // 114
-        { x: 700, y: 800 }, // 115 - Left foot
-      ],
-    };
-
-    let state = {
-      expected: 1,
-      points: [],
-      poly: null,
-      audioCtx: null,
-      started: false,
-      finished: false,
-    };
-
-    document.addEventListener("DOMContentLoaded", init);
-
-    function init() {
-      const svg = document.getElementById("board");
-      svg.setAttribute("viewBox", "0 0 1000 1000");
-      setBoardTo80vh();
-      window.addEventListener("resize", setBoardTo80vh);
-      window.addEventListener("orientationchange", setBoardTo80vh);
-
-      const path = document.getElementById("path");
-      state.poly = path;
-      updateProgress();
-
-      renderDots();
-      setActiveDot(1);
-
-      document.getElementById("resetBtn").addEventListener("click", resetGame, { passive: true });
-    }
-
-    function renderDots() {
-      const dotsGroup = document.getElementById("dots");
-      while (dotsGroup.firstChild) dotsGroup.removeChild(dotsGroup.firstChild);
-      
-      LEVEL.dots.forEach((pt, i) => {
-        const g = el("g", { class: "dot", "data-index": i + 1 });
-        const ring = el("circle", { class: "ring", cx: pt.x, cy: pt.y, r: 0 });
-        const visual = el("circle", { class: "visual", cx: pt.x, cy: pt.y, r: 7 });
-        const hit = el("circle", { class: "hit", cx: pt.x, cy: pt.y, r: 25 });
-        
-        let labelX = pt.x;
-        let labelY = pt.y - 22; // Default above
-        let anchor = "middle";
-
-        if (pt.y < 50) labelY = pt.y + 26; // If near top, move below
-        if (pt.x > 950) { labelX = pt.x - 20; anchor = "end"; } // If near right, move left
-        if (pt.x < 50) { labelX = pt.x + 20; anchor = "start"; } // If near left, move right
-
-        const label = el("text", { x: labelX, y: labelY, "text-anchor": anchor, "dominant-baseline": "central" });
-        label.textContent = i + 1;
-        
-        g.appendChild(ring);
-        g.appendChild(visual);
-        g.appendChild(hit);
-        g.appendChild(label);
-        dotsGroup.appendChild(g);
-        
-        g.addEventListener("pointerdown", onDotPointer);
-      });
-    }
-
-    function onDotPointer(e) {
-      e.preventDefault();
-      const g = e.currentTarget;
-      const index = Number(g.getAttribute("data-index"));
-      ensureAudio();
-
-      if (state.finished) return;
-
-      if (index === state.expected) {
-        goodTap(index);
-      } else {
-        badTap(g);
-      }
-    }
-
-    function goodTap(index) {
-      const pt = LEVEL.dots[index - 1];
-      const dotElement = document.querySelector(`.dot[data-index="${index}"]`);
-      if(dotElement) {
-        dotElement.style.visibility = 'hidden';
-      }
-
-      if (!state.started) {
-        state.started = true;
-        state.points = [`${pt.x},${pt.y}`];
-      } else {
-        state.points.push(`${pt.x},${pt.y}`);
-        state.poly.setAttribute("points", state.points.join(" "));
-      }
-
-      ding();
-
-      state.expected++;
-      updateProgress();
-
-      clearActiveDot();
-      if (state.expected <= LEVEL.dots.length) {
-        setActiveDot(state.expected);
-      } else {
-        win();
-      }
-    }
-
-    function badTap(g) {
-      buzz();
-      if ("vibrate" in navigator) navigator.vibrate(25);
-      g.classList.add("wrong");
-      setTimeout(() => g.classList.remove("wrong"), 200);
-    }
-
-    function win() {
-      state.finished = true;
-      chime();
-      document.getElementById("completedImage").classList.add("revealed");
-    }
-
-    function resetGame() {
-      state = { 
-        expected: 1, 
-        points: [], 
-        poly: state.poly, 
-        audioCtx: state.audioCtx, 
-        started: false, 
-        finished: false 
-      };
-      state.poly.setAttribute("points", "");
-      document.getElementById("completedImage").classList.remove("revealed");
-      document.querySelectorAll(".dot").forEach((g) => {
-          g.classList.remove("wrong", "active");
-          g.style.visibility = 'visible';
-      });
-      setActiveDot(1);
-      updateProgress();
-    }
-
-    function ensureAudio() {
-      if (!state.audioCtx) {
-        try {
-          state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        } catch(e) {
-          console.error("Web Audio API is not supported in this browser.");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dot-to-Dot: Monkey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation; /* Prevents double-tap zoom on mobile */
         }
-      }
-    }
+        .dot {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        #dots {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .dot-circle {
+            fill: #4F46E5; /* Indigo */
+            stroke: white;
+            stroke-width: 4px;
+        }
+        .dot-circle-next {
+             fill: #10B981; /* Emerald */
+        }
+        .dot-label {
+            fill: white;
+            font-size: 16px;
+            font-weight: 600;
+            text-anchor: middle;
+            alignment-baseline: central;
+            pointer-events: none; /* Make text non-interactive */
+        }
+        /* Style for dots that have been connected */
+        .dot-connected .dot-circle {
+            fill: #9CA3AF; /* gray-400 */
+        }
+        .dot-connected .dot-label {
+            fill: #E5E7EB; /* gray-200 */
+        }
+        #path {
+            stroke: #4F46E5;
+            stroke-width: 5px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .board-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            aspect-ratio: 1 / 1;
+        }
+        #board, #completedImage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        /* Vibration animation for wrong taps */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
 
-    function tone({ freq = 440, type = "sine", duration = 0.1, gain = 0.06, when = 0 }) {
-      if (!state.audioCtx) return;
-      const ctx = state.audioCtx;
-      const t0 = ctx.currentTime + when;
-      const osc = ctx.createOscillator();
-      const amp = ctx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, t0);
-      amp.gain.setValueAtTime(gain, t0);
-      amp.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-      osc.connect(amp).connect(ctx.destination);
-      osc.start(t0);
-      osc.stop(t0 + duration + 0.02);
-    }
+    <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back</a>
+                <h1 class="text-2xl font-bold text-gray-800">Dot-to-Dot: Monkey</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="progress" class="text-lg font-semibold text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">1 / 66</span>
+                <button id="resetBtn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition">Reset</button>
+            </div>
+        </header>
 
-    function ding() {
-      tone({ freq: 880, duration: 0.07, gain: 0.055 });
-      tone({ freq: 1320, duration: 0.09, gain: 0.05, when: 0.06 });
-    }
+        <!-- Game Board -->
+        <div class="board-wrap rounded-lg overflow-hidden bg-gray-50 border">
+            <img id="completedImage" src="images/monkey.png" alt="Completed puzzle" style="opacity: 0; transition: opacity 0.5s ease-in-out; object-fit: cover;"/>
+            <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
+                <polyline id="path" points="" />
+                <g id="dots"></g>
+            </svg>
+        </div>
 
-    function buzz() {
-      tone({ freq: 220, type: "sawtooth", duration: 0.08, gain: 0.06 });
-      tone({ freq: 160, type: "square", duration: 0.08, gain: 0.05, when: 0.06 });
-    }
+        <!-- Hint Footer -->
+        <footer class="text-center mt-4 text-gray-500">
+            Tap the dots in order to reveal the picture!
+        </footer>
+    </main>
 
-    function chime() {
-      const freqs = [523.25, 659.25, 783.99, 1046.5];
-      freqs.forEach((f, i) => tone({ freq: f, duration: 0.18, gain: 0.06, when: i * 0.12 }));
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const dotsContainer = document.getElementById('dots');
+            const path = document.getElementById('path');
+            const progressEl = document.getElementById('progress');
+            const resetBtn = document.getElementById('resetBtn');
+            const completedImage = document.getElementById('completedImage');
+            const mainContainer = document.querySelector('main');
 
-    function setActiveDot(n) {
-      const g = document.querySelector(`.dot[data-index="${n}"]`);
-      if (!g) return;
-      if (g.parentNode) g.parentNode.appendChild(g); // Bring to front
-      g.classList.add("active");
-      const ring = g.querySelector(".ring");
-      if (ring) ring.setAttribute("r", "16");
-      const hit = g.querySelector(".hit");
-      if (hit) hit.setAttribute("r", "32");
-    }
+            // --- Your custom Monkey coordinates ---
+            const dotCoordinates = [
+                { x: 462, y: 490 }, { x: 368, y: 455 }, { x: 346, y: 411 }, { x: 350, y: 325 }, 
+                { x: 350, y: 282 }, { x: 416, y: 271 }, { x: 401, y: 300 }, { x: 364, y: 335 }, 
+                { x: 396, y: 419 }, { x: 447, y: 447 }, { x: 440, y: 421 }, { x: 437, y: 393 }, 
+                { x: 463, y: 401 }, { x: 506, y: 357 }, { x: 574, y: 373 }, { x: 584, y: 409 }, 
+                { x: 607, y: 413 }, { x: 623, y: 427 }, { x: 646, y: 431 }, { x: 648, y: 352 }, 
+                { x: 617, y: 302 }, { x: 665, y: 276 }, { x: 671, y: 325 }, { x: 698, y: 436 }, 
+                { x: 604, y: 500 }, { x: 595, y: 558 }, { x: 602, y: 582 }, { x: 650, y: 606 }, 
+                { x: 587, y: 667 }, { x: 582, y: 728 }, { x: 543, y: 726 }, { x: 523, y: 672 }, 
+                { x: 567, y: 667 }, { x: 577, y: 634 }, { x: 533, y: 629 }, { x: 470, y: 615 }, 
+                { x: 501, y: 657 }, { x: 453, y: 704 }, { x: 453, y: 706 }, { x: 429, y: 701 }, 
+                { x: 430, y: 665 }, { x: 407, y: 573 }, { x: 421, y: 545 }, { x: 485, y: 559 }, 
+                { x: 493, y: 541 }, { x: 475, y: 498 }, { x: 358, y: 449 }, { x: 343, y: 267 }, 
+                { x: 404, y: 267 }, { x: 406, y: 297 }, { x: 383, y: 337 }, { x: 406, y: 424 }, 
+                { x: 435, y: 452 }, { x: 432, y: 419 }, { x: 465, y: 396 }, { x: 491, y: 365 }, 
+                { x: 544, y: 352 }, { x: 580, y: 393 }, { x: 618, y: 439 }, { x: 660, y: 419 }, 
+                { x: 650, y: 340 }, { x: 623, y: 289 }, { x: 676, y: 330 }, { x: 679, y: 396 }, 
+                { x: 691, y: 454 }, { x: 609, y: 497 }
+            ];
 
-    function clearActiveDot() {
-      const g = document.querySelector(`.dot.active`);
-      if (!g) return;
-      g.classList.remove("active");
-      const ring = g.querySelector(".ring");
-      if (ring) ring.setAttribute("r", "0");
-      const hit = g.querySelector(".hit");
-      if (hit) hit.setAttribute("r", "25");
-    }
+            let currentDot = 1;
+            const totalDots = dotCoordinates.length;
 
-    function updateProgress() {
-      const total = LEVEL.dots.length;
-      const current = Math.min(state.expected, total);
-      const el = document.getElementById("progress");
-      if (el) el.textContent = `${current} / ${total}`;
-    }
+            function initGame() {
+                currentDot = 1;
+                path.setAttribute('points', '');
+                dotsContainer.innerHTML = '';
+                completedImage.style.opacity = '0';
 
-    function el(tag, attrs = {}) {
-      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
-      Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, String(v)));
-      return node;
-    }
+                dotsContainer.style.display = '';
+                path.style.display = '';
+                dotsContainer.style.opacity = '1';
+                path.style.opacity = '1';
+                
+                dotCoordinates.forEach((dot, index) => {
+                    const dotNumber = index + 1;
+                    
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    g.classList.add('dot');
+                    g.dataset.dot = dotNumber;
 
-    function setBoardTo80vh() {
-      const visualH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-      const H = Math.max(0, visualH) * 0.8;
-      const W = window.innerWidth * 0.95;
-      const size = Math.min(H, W);
-      document.documentElement.style.setProperty("--board-size", size + "px");
-    }
-  </script>
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', dot.x);
+                    circle.setAttribute('cy', dot.y);
+                    circle.setAttribute('r', 15);
+                    circle.classList.add('dot-circle');
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', dot.x);
+                    text.setAttribute('y', dot.y);
+                    text.textContent = dotNumber;
+                    text.classList.add('dot-label');
+
+                    g.appendChild(circle);
+                    g.appendChild(text);
+                    dotsContainer.appendChild(g);
+                });
+
+                updateUI();
+                addEventListeners();
+            }
+
+            function updateUI() {
+                progressEl.textContent = `${Math.min(currentDot, totalDots)} / ${totalDots}`;
+                
+                document.querySelectorAll('.dot').forEach((dotEl) => {
+                    const circle = dotEl.querySelector('.dot-circle');
+                    if (!dotEl.classList.contains('dot-connected')) {
+                         if (parseInt(dotEl.dataset.dot) === currentDot) {
+                            circle.classList.add('dot-circle-next');
+                        } else {
+                            circle.classList.remove('dot-circle-next');
+                        }
+                    }
+                });
+            }
+
+            function handleDotClick(e) {
+                const clickedDot = parseInt(e.currentTarget.dataset.dot);
+
+                if (clickedDot === currentDot) {
+                    const { x, y } = dotCoordinates[currentDot - 1];
+                    const currentPoints = path.getAttribute('points');
+                    path.setAttribute('points', `${currentPoints} ${x},${y}`);
+
+                    e.currentTarget.classList.add('dot-connected');
+                    e.currentTarget.querySelector('.dot-circle').classList.remove('dot-circle-next');
+
+                    currentDot++;
+                    updateUI();
+
+                    if (currentDot > totalDots) {
+                        finishGame();
+                    }
+                } else {
+                    mainContainer.classList.add('shake');
+                    if (window.navigator.vibrate) {
+                        window.navigator.vibrate(200);
+                    }
+                    setTimeout(() => mainContainer.classList.remove('shake'), 500);
+                }
+            }
+            
+            function finishGame() {
+                // Connect back to the start
+                const { x, y } = dotCoordinates[0];
+                const currentPoints = path.getAttribute('points');
+                path.setAttribute('points', `${currentPoints} ${x},${y}`);
+
+                completedImage.style.opacity = '1';
+                progressEl.textContent = `Complete!`;
+
+                dotsContainer.style.opacity = '0';
+                path.style.opacity = '0';
+            }
+
+            function addEventListeners() {
+                document.querySelectorAll('.dot').forEach(dot => {
+                    dot.addEventListener('click', handleDotClick);
+                });
+            }
+
+            resetBtn.addEventListener('click', initGame);
+
+            initGame();
+        });
+    </script>
+
 </body>
 </html>
-
