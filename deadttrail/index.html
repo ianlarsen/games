@@ -36,6 +36,12 @@
             transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
             image-rendering: pixelated; /* Ensures pixel art doesn't blur */
         }
+        .character.flipped {
+            transform: scaleX(-1);
+        }
+        .character.flipped:hover {
+            transform: scaleX(-1) scale(1.05);
+        }
         .character:hover, .object:hover {
             transform: scale(1.05);
             filter: drop-shadow(0 0 8px #ffffff);
@@ -86,7 +92,7 @@
 
         <!-- Dialogue box for text and choices -->
         <div id="dialogue-box">
-            <p id="dialogue-text"></p>
+            <p id="dialoge-text"></p>
             <div id="choices-box">
                 <!-- Buttons for choices will be added here -->
             </div>
@@ -94,245 +100,185 @@
     </div>
 
     <script>
-        // This constant now points to a local "images" folder.
-        // Make sure your index.html file and your "images" folder are in the same directory.
+        // All assets are assumed to be in a local "images" folder.
         const ASSET_BASE_PATH = 'images/';
 
         const assets = {
-            // Characters
+            // Your Team
             'john': ASSET_BASE_PATH + 'john.png',
             'jamaal': ASSET_BASE_PATH + 'jamaal.png',
             'dave': ASSET_BASE_PATH + 'dave.png',
-            'zombie1': ASSET_BASE_PATH + 'zombie1.png',
+            'mac': ASSET_BASE_PATH + 'michonne.png',
+            'ed': ASSET_BASE_PATH + 'ed.png',
+            'ian': ASSET_BASE_PATH + 'ian.png',
+            'justin': ASSET_BASE_PATH + 'justin.png',
+            'jason': ASSET_BASE_PATH + 'jason.png',
+
+            // Rick's Group
             'rick': ASSET_BASE_PATH + 'rick.png',
             'daryl': ASSET_BASE_PATH + 'daryl.png',
             'carol': ASSET_BASE_PATH + 'carol.png',
+            'maggie': ASSET_BASE_PATH + 'maggie.png',
+            'michonne': ASSET_BASE_PATH + 'michonne.png',
+
+            // Zombies
+            'zombie_rob': ASSET_BASE_PATH + 'zombie_rob.png',
+            'zombie_no_arm': ASSET_BASE_PATH + 'zombie_no_arm.png',
+            'zombie1': ASSET_BASE_PATH + 'zombie1.png',
+            'zombie2': ASSET_BASE_PATH + 'zombie2.png',
+            'zombie3': ASSET_BASE_PATH + 'zombie3.png',
             
             // Scenery
-            'abandoned_office': ASSET_BASE_PATH + 'abandoned_office.png',
+            'abandoned_office': ASSET_BASE_PATH + 'abandoned_office.png', // Restored .png background
             'woods': ASSET_BASE_PATH + 'woods.png',
             'prison_exterior': ASSET_BASE_PATH + 'prison_exterior.png',
             'prison_interior': ASSET_BASE_PATH + 'prison_interior.png',
+            'breakroom_bg': ASSET_BASE_PATH + 'breakroom.png',
 
             // Objects
             'filing_cabinet': ASSET_BASE_PATH + 'filing_cabinet.png',
-            'microwave': ASSET_BASE_PATH + 'microwave.png'
+            'microwave': ASSET_BASE_PATH + 'microwave.png',
+            'self_healing_concrete': ASSET_BASE_PATH + 'spider-silk.png',
+            'vending_machine': ASSET_BASE_PATH + 'vending_machine.png'
         };
 
-        // This object holds the entire story structure.
         const storyData = {
             'office_start': {
                 background: assets.abandoned_office,
                 characters: [
-                    { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '10%' },
-                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '55%', width: '12%' },
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '45%', width: '11%' },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '65%', width: '11%' },
                 ],
                 objects: [
-                    { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '5%', width: '10%' },
-                    { id: 'microwave_obj', asset: assets.microwave, bottom: '18%', left: '80%', width: '12%' }
+                    { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '10%', width: '18%' },
+                    { id: 'microwave_obj', asset: assets.microwave, bottom: '40%', left: '80%', width: '12%' }
                 ],
-                onLoad: {
-                    type: 'dialogue',
-                    text: "The office is thick with the stench of decay. The flickering lights cast long, distorted shadows. We need to find supplies, fast.",
-                    choices: [
-                        { text: "Okay, let's search.", target: null } // null target just closes the box
-                    ]
-                },
+                onLoad: { type: 'dialogue', text: "The office is thick with the stench of decay. We need to find supplies, fast.", choices: [{ text: "Okay, let's search.", target: null }] },
                 interactions: {
-                    'john': {
-                        type: 'dialogue',
-                        text: "John: Stay sharp. We don't know what's in here. Check everything.",
-                        choices: [
-                            { text: "Right.", target: null }
-                        ]
-                    },
-                    'jamaal': {
-                        type: 'dialogue',
-                        text: "Jamaal: Keep your eyes peeled. I'm not trying to become zombie-chow today. Maybe we can find some hand sanitizer to sell.",
-                        choices: [
-                            { text: "Stay focused.", target: null }
-                        ]
-                    },
-                    'filing_cabinet': {
-                        type: 'dialogue',
-                        text: "It's a dusty, old filing cabinet. It looks like it's already been picked clean.",
-                        choices: [
-                            { text: "Leave it.", target: null }
-                        ]
-                    },
-                    'microwave_obj': {
-                        type: 'dialogue',
-                        text: "A grimy microwave. Someone left something in here a long, long time ago. The smell is... memorable. Reminds you of Rob C.'s fish.",
-                        choices: [
-                            { text: "Step away. Slowly.", target: null },
-                            { text: "A new beginning!", target: 'zombie_surprise' }
-                        ]
-                    }
+                    'john': { type: 'dialogue', text: "John: Stay sharp. We don't know what's in here. Check everything.", choices: [ { text: "Right.", target: null } ] },
+                    'jamaal': { type: 'dialogue', text: "Jamaal: Keep your eyes peeled. I'm not trying to become zombie-chow today. Maybe we can find some hand sanitizer to sell.", choices: [{ text: "Stay focused.", target: null }] },
+                    'filing_cabinet': { type: 'dialogue', text: "It's a dusty, old filing cabinet. It looks like it's already been picked clean.", choices: [{ text: "Leave it.", target: null }] },
+                    'microwave_obj': { type: 'dialogue', text: "A grimy microwave. Someone left something in here a long, long time ago. The smell is... memorable. Reminds you of Rob C.'s fish.", choices: [{ text: "Step away. Slowly.", target: null }, { text: "A new beginning!", target: 'zombie_surprise' }] }
                 }
             },
             'zombie_surprise': {
                 background: assets.abandoned_office,
                 characters: [
-                     { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '10%' },
-                     { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '55%', width: '12%' },
-                     { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '75%', width: '10%' }
+                     { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '11%' },
+                     { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '55%', width: '11%' },
+                     { id: 'zombie_rob', asset: assets.zombie_rob, bottom: '10%', left: '75%', width: '14%', flipped: true }
                 ],
-                objects: [
-                     { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '5%', width: '10%' }
-                ],
-                 onLoad: {
-                    type: 'dialogue',
-                    text: "As you reach for the microwave, a decaying corpse that was propped against a desk lurches towards you!",
-                    choices: [
-                        { text: "Fight!", target: 'game_over_fight' },
-                        { text: "Run for the service tunnel!", target: 'forest_escape' }
-                    ]
-                },
-                interactions: {
-                    'john': {
-                        type: 'dialogue',
-                        text: "John: No time to talk, let's move!",
-                        choices: [{ text: "Go!", target: null }]
-                    },
-                    'jamaal': {
-                        type: 'dialogue',
-                        text: "Jamaal: I told you this was a bad idea! My entrepreneurial spirit does not extend to being eaten!",
-                        choices: [{ text: "Let's go!", target: null }]
-                    },
-                    'zombie1': {
-                        type: 'dialogue',
-                        text: "The zombie groans, its empty eyes fixed on you. It smells awful.",
-                        choices: [{ text: "Back away.", target: null }]
-                    }
-                }
+                objects: [ { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '32%', width: '18%' } ],
+                 onLoad: { type: 'dialogue', text: "As you reach for the microwave, a decaying corpse that was propped against a desk lurches towards you!", choices: [{ text: "Fight!", target: 'game_over_fight' }, { text: "Run for the service tunnel!", target: 'forest_escape' }] },
+                interactions: { 'zombie_rob': { type: 'dialogue', text: "The zombie groans, its empty eyes fixed on you. It's Rob C... or what's left of him.", choices: [{ text: "Back away.", target: null }] } }
             },
             'forest_escape': {
                 background: assets.woods,
-                characters: [
-                    { id: 'john', asset: assets.john, bottom: '15%', left: '40%', width: '12%' },
-                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '14%' },
-                ],
-                objects: [],
-                onLoad: {
-                    type: 'dialogue',
-                    text: "You make a daring escape through a narrow service tunnel, emerging into a dense forest. Exhausted and low on supplies, you stumble upon a high chain-link fence...",
-                    choices: [
-                        { text: "A prison?", target: null }
-                    ]
-                },
-                interactions: {
-                    'john': {
-                        type: 'dialogue',
-                        text: "John: That's... something. Looks secure, at least.",
-                        choices: [{ text: "Let's approach carefully.", target: 'prison_approach' }]
-                    }
-                }
+                characters: [ { id: 'john', asset: assets.john, bottom: '15%', left: '40%', width: '11%', flipped: true }, { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '11%', flipped: true } ],
+                onLoad: { type: 'dialogue', text: "You make a daring escape through a narrow service tunnel, emerging into a dense forest. Exhausted and low on supplies, you stumble upon a high chain-link fence...", choices: [{ text: "A prison?", target: 'prison_approach' }] },
+                interactions: {}
             },
             'prison_approach': {
                 background: assets.prison_exterior,
-                characters: [
-                    { id: 'john', asset: assets.john, bottom: '5%', left: '25%', width: '10%' },
-                    { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '40%', width: '12%' },
-                ],
-                objects: [],
-                onLoad: {
-                    type: 'dialogue',
-                    text: "A voice shouts from a guard tower: \"Hold it right there! State your business!\"",
-                    choices: [
-                        { text: '"We\'re survivors. Looking for shelter."', target: 'prison_standoff' }
-                    ]
-                },
-                interactions: {
-                     'john': {
-                        type: 'dialogue',
-                        text: "John: Easy now. Let's not make any sudden moves.",
-                        choices: [{ text: "Right.", target: null }]
-                    },
-                    'jamaal': {
-                        type: 'dialogue',
-                        text: "Jamaal: Let John do the talking. I'll assess the... real estate.",
-                        choices: [{ text: "Okay.", target: null }]
-                    }
-                }
+                characters: [ { id: 'john', asset: assets.john, bottom: '5%', left: '25%', width: '11%', flipped: true }, { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '40%', width: '11%', flipped: true } ],
+                onLoad: { type: 'dialogue', text: "A voice shouts from a guard tower: \"Hold it right there! State your business!\"", choices: [ { text: '\"We\'re survivors. Looking for shelter.\"', target: 'prison_standoff' }] },
+                interactions: {}
             },
             'prison_standoff': {
                 background: assets.prison_exterior,
-                 characters: [
-                    { id: 'john', asset: assets.john, bottom: '5%', left: '25%', width: '10%' },
-                    { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '40%', width: '12%' },
-                ],
-                objects: [],
-                onLoad: {
-                    type: 'dialogue',
-                    text: "Another voice scoffs from the tower: \"Peace? Ain't seen much of that lately.\" After a long, tense moment, the first voice returns: \"Alright. Come on in. Slow and steady.\"",
-                    choices: [
-                        { text: "Enter the prison.", target: 'prison_interior_welcome' }
-                    ]
-                },
+                 characters: [ { id: 'john', asset: assets.john, bottom: '5%', left: '45%', width: '11%', flipped: true }, { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '60%', width: '11%', flipped: true } ],
+                onLoad: { type: 'dialogue', text: "Another voice scoffs from the tower: \"Peace? Ain't seen much of that lately.\" After a long, tense moment, the first voice returns: \"Alright. Come on in. Slow and steady.\"", choices: [ { text: "Enter the prison.", target: 'prison_interior_welcome' } ]},
                 interactions: {}
             },
             'prison_interior_welcome': {
                 background: assets.prison_interior,
                 characters: [
-                    { id: 'rick', asset: assets.rick, bottom: '10%', left: '20%', width: '11%' },
-                    { id: 'carol', asset: assets.carol, bottom: '10%', left: '35%', width: '10%' },
-                    { id: 'john', asset: assets.john, bottom: '10%', left: '60%', width: '10%' },
-                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '75%', width: '12%' },
+                    { id: 'rick', asset: assets.rick, bottom: '10%', left: '20%', width: '15%', flipped: true },
+                    { id: 'carol', asset: assets.carol, bottom: '10%', left: '35%', width: '11%', flipped: true },
+                    { id: 'daryl', asset: assets.daryl, bottom: '10%', left: '5%', width: '15%', flipped: true },
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '60%', width: '11%', flipped: true },
+                    { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '75%', width: '11%', flipped: true },
                 ],
-                objects: [],
-                onLoad: {
-                    type: 'dialogue',
-                    text: "You step inside. The air is heavy with mistrust. Rick's group watches your every move.",
-                    choices: [
-                        { text: "This is tense.", target: null }
-                    ]
-                },
+                onLoad: { type: 'dialogue', text: "You step inside. The air is heavy with mistrust. A man with a crossbow gives you a hard stare.", choices: [{ text: "Let's find the rest of our group.", target: 'prison_yard_clash' }] },
                 interactions: {
-                    'rick': {
-                        type: 'dialogue',
-                        text: "Rick: You can stay for now. We have rules. You follow them, you're welcome. You break them, you're out. Any questions?",
-                        choices: [{ text: "Understood.", target: null }]
-                    },
-                     'carol': {
-                        type: 'dialogue',
-                        text: "Carol: Don't mind Rick, he's just cautious. We've all been through a lot. You all look hungry.",
-                        choices: [{ text: "We are.", target: null }]
-                    },
-                     'john': {
-                        type: 'dialogue',
-                        text: "John: (to Jamaal) Let's not cause any trouble. These people are survivors, just like us.",
-                        choices: [{ text: "Agreed.", target: null }]
-                    },
-                    'jamaal': {
-                        type: 'dialogue',
-                        text: "Jamaal: (Quietly) Look at these walls, John. The concrete work... a little bio-inspired reinforcement, and this place could be a fortress. A very marketable fortress.",
-                        choices: [{ text: "Focus, Jamaal.", target: null }]
-                    }
+                    'rick': { type: 'dialogue', text: "Rick: You can stay for now. We have rules. You follow them, you're welcome. You break them, you're out. Any questions?", choices: [{ text: "Understood.", target: null }] },
+                    'carol': { type: 'dialogue', text: "Carol: Don't mind Rick, he's just cautious. We've all been through a lot. You all look hungry.", choices: [{ text: "We are.", target: null }] },
+                    'daryl': { type: 'dialogue', text: "Daryl just grunts and keeps cleaning his crossbow.", choices: [{ text: "Best not to bother him.", target: null }] }
                 }
+            },
+            'prison_yard_clash': {
+                background: assets.prison_interior,
+                characters: [
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '10%', width: '11%' },
+                    { id: 'dave', asset: assets.dave, bottom: '10%', left: '25%', width: '11%' },
+                    { id: 'mac', asset: assets.mac, bottom: '10%', left: '45%', width: '11%' },
+                    { id: 'ed', asset: assets.ed, bottom: '10%', left: '65%', width: '15%', flipped: true },
+                    { id: 'daryl', asset: assets.daryl, bottom: '10%', left: '85%', width: '15%' }
+                ],
+                objects: [
+                    { id: 'vending', asset: assets.vending_machine, bottom: '10%', left: '1%', width: '11%'}
+                ],
+                onLoad: { type: 'dialogue', text: "You find the rest of your team. The tension between the two groups is palpable.", choices: [ { text: "Let's check the other cell block.", target: 'breakroom_discovery' }] },
+                interactions: {
+                    'dave': { type: 'dialogue', text: "Dave: I'm detecting inconsistencies in their stories... discrepancies in their behavior patterns... I think they’re hiding something big.", choices: [{ text: "Stay cool, Dave.", target: null }] },
+                    'mac': { type: 'dialogue', text: "Mac: (observing Carol from afar) She's too soft for this world. How long do you think that'll last?", choices: [{ text: "She's a survivor, like us.", target: null }] },
+                    'ed': { type: 'dialogue', text: "Ed: (to Daryl) I wonder if they had fish sticks in the prison cafeteria! Ha! It’s a shame all this food went to waste!", choices: [{ text: "Ed, maybe not now.", target: null }] },
+                    'daryl': { type: 'dialogue', text: "Daryl: (Glares at Ed) Watch your mouth, Hashbrown.", choices: [{ text: "Yikes.", target: null }] }
+                }
+            },
+            'breakroom_discovery': {
+                background: assets.breakroom_bg,
+                characters: [
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '15%', width: '11%' },
+                    { id: 'ian', asset: assets.ian, bottom: '10%', left: '40%', width: '11%', flipped: true },
+                    { id: 'justin', asset: assets.justin, bottom: '10%', left: '65%', width: '11%', flipped: true },
+                    { id: 'maggie', asset: assets.maggie, bottom: '10%', left: '85%', width: '11%', flipped: true },
+                ],
+                objects: [ { id: 'concrete_research', asset: assets.self_healing_concrete, bottom: '15%', left: '5%', width: '8%' } ],
+                onLoad: { type: 'dialogue', text: "You find Ian, Justin, and a woman named Maggie in a debris-filled room.", choices: [{ text: "What's going on here?", target: null }] },
+                interactions: {
+                    'ian': { type: 'dialogue', text: "Ian: (Whispering)...they’re not gone… they’re just… different. The walls here remember things... pain, loss...", choices: [{ text: "What are you talking about?", target: null }] },
+                    'justin': { type: 'dialogue', text: "Justin: Forget ghosts, John! I've been working on beetle-armor prototypes! Theoretically, they're walker-proof.", choices: [{ text: "Theoretically?", target: null }] },
+                    'maggie': { type: 'dialogue', text: "Maggie: Your friend Ed made a joke about the old inmates. Glenn didn't appreciate it. None of us did.", choices: [{ text: "I'll talk to him.", target: null }] },
+                    'concrete_research': { type: 'dialogue', text: "Justin: Oh, and check this out! Rob C. was experimenting with self-healing concrete! This could be a game-changer for reinforcing these walls!", choices: [{ text: "This is incredible! We have to tell Rick.", target: 'walker_outbreak' }] }
+                }
+            },
+            'walker_outbreak': {
+                background: assets.prison_interior,
+                characters: [
+                    { id: 'john', asset: assets.john, bottom: '10%', left: '20%', width: '11%' },
+                    { id: 'rick', asset: assets.rick, bottom: '10%', left: '40%', width: '15%', flipped: true },
+                    { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '65%', width: '20%', flipped: true },
+                    { id: 'zombie2', asset: assets.zombie2, bottom: '10%', left: '80%', width: '20%'},
+                ],
+                onLoad: { type: 'dialogue', text: "Suddenly, a loud alarm blares throughout the prison! A cell block door has been breached and walkers are pouring in!", choices: [{ text: "We have to fight together!", target: 'cliffhanger_ending' }] },
+                interactions: {
+                    'rick': { type: 'dialogue', text: "Rick: Everyone, form a line! Don't let them break through!", choices: [{ text: "Right behind you!", target: null }] }
+                }
+            },
+            'cliffhanger_ending': {
+                background: assets.prison_interior,
+                characters: [
+                    { id: 'ian', asset: assets.ian, bottom: '10%', left: '40%', width: '11%', flipped: true },
+                    { id: 'zombie3', asset: assets.zombie3, bottom: '10%', left: '55%', width: '11%' }
+                ],
+                onLoad: { type: 'dialogue', text: "After a brutal fight, you contain the outbreak. But in the distance, you see headlights approaching. The Governor... As the chaos dies down, you see Ian kneel beside a fallen walker. It looks at him and whispers one word: 'Help...'", choices: [{ text: "To be continued...", target: 'office_start' }] },
+                interactions: {}
             },
             'game_over_fight': {
                 background: assets.abandoned_office,
-                characters: [],
-                objects: [],
-                onLoad: {
-                    type: 'dialogue',
-                    text: "You tried to fight the zombie with your bare hands. It did not go well. You have died.",
-                    choices: [
-                        { text: "Start Over", target: 'office_start' }
-                    ]
-                },
-                interactions: {}
+                onLoad: { type: 'dialogue', text: "You tried to fight the zombie with your bare hands. It did not go well. You have died.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                characters: [], objects: [], interactions: {}
             }
         };
 
-        // This object keeps track of where the player is in the story.
         let gameState = {
             currentScene: 'office_start',
         };
 
         const sceneEl = document.getElementById('scene');
         const dialogueBoxEl = document.getElementById('dialogue-box');
-        const dialogueTextEl = document.getElementById('dialogue-text');
+        const dialogueTextEl = document.getElementById('dialoge-text');
         const choicesBoxEl = document.getElementById('choices-box');
 
         function renderScene() {
@@ -342,17 +288,16 @@
                 return;
             }
 
-            // 1. Clear previous scene
             sceneEl.innerHTML = '';
-
-            // 2. Set background
             sceneEl.style.backgroundImage = `url('${sceneData.background}')`;
 
-            // 3. Render characters
-            sceneData.characters.forEach(char => {
+            (sceneData.characters || []).forEach(char => {
                 const charEl = document.createElement('img');
                 charEl.src = char.asset;
                 charEl.className = 'character';
+                if (char.flipped) {
+                    charEl.classList.add('flipped');
+                }
                 charEl.style.bottom = char.bottom;
                 charEl.style.left = char.left;
                 charEl.style.width = char.width;
@@ -360,8 +305,7 @@
                 sceneEl.appendChild(charEl);
             });
 
-            // 4. Render objects
-            sceneData.objects.forEach(obj => {
+            (sceneData.objects || []).forEach(obj => {
                 const objEl = document.createElement('img');
                 objEl.src = obj.asset;
                 objEl.className = 'object';
@@ -372,47 +316,26 @@
                 sceneEl.appendChild(objEl);
             });
             
-            // 5. Show initial dialogue for the scene if it exists
             if (sceneData.onLoad) {
                  showDialogue(sceneData.onLoad);
             }
         }
 
-        /**
-         * Render a dialogue window with text and optional choices.  The story
-         * engine passes a `dialogueData` object that contains the text to
-         * display and an array of choice definitions.  Each choice can have
-         * a `text` property (the label on the button) and an optional
-         * `target` property which, when selected, updates the current
-         * scene and re-renders the game.  When `target` is null or
-         * undefined the dialogue simply closes without changing the
-         * scene.  Note that previously this function contained a typo
-         * (`dialogeData`) which prevented the choices from being
-         * processed, breaking the game.  This corrected version uses
-         * `dialogueData` consistently.
-         *
-         * @param {Object} dialogueData
-         */
         function showDialogue(dialogueData) {
-            // Set the dialogue text
             dialogueTextEl.innerText = dialogueData.text;
-            // Clear any existing choice buttons
             choicesBoxEl.innerHTML = '';
 
-            // Render choice buttons if provided
             if (dialogueData.choices && dialogueData.choices.length > 0) {
                 dialogueData.choices.forEach(choice => {
                     const btn = document.createElement('button');
                     btn.innerText = choice.text;
                     btn.className = 'choice-btn';
                     btn.onclick = () => {
-                        // If a target is defined, transition to that scene
                         if (choice.target) {
                             gameState.currentScene = choice.target;
                             dialogueBoxEl.style.display = 'none';
                             renderScene();
                         } else {
-                            // Otherwise just hide the dialogue box
                             dialogueBoxEl.style.display = 'none';
                         }
                     };
@@ -420,30 +343,23 @@
                 });
             }
 
-            // Show the dialogue box
             dialogueBoxEl.style.display = 'block';
         }
 
-        // Event listener for clicks on characters or objects
         sceneEl.addEventListener('click', (e) => {
             const interactionId = e.target.dataset.interactionId;
             if (interactionId) {
                 const sceneData = storyData[gameState.currentScene];
                 const interaction = sceneData.interactions[interactionId];
-                if (interaction) {
-                    if (interaction.type === 'dialogue') {
-                        showDialogue(interaction);
-                    }
+                if (interaction && interaction.type === 'dialogue') {
+                    showDialogue(interaction);
                 }
             }
         });
 
-
-        // Initial game setup
         window.onload = () => {
             renderScene();
         };
-
     </script>
 
 </body>
