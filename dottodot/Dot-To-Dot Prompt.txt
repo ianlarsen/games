@@ -1,0 +1,41 @@
+Here's a prompt you can use for the next dot-to-dot game:
+
+---
+
+**Prompt for Creating a New Dot-to-Dot Game:**
+
+I have a working dot-to-dot game for my 6-year-old son (OT sequencing activity). I need to create a new level with a different image.
+
+**What I have:**
+- Existing `index.html`, `style.css`, and `game.js` files
+- A dot-to-dot game using SVG with a 1000×1000 viewBox
+- Mobile-friendly with touch controls and audio feedback
+
+**What I need:**
+1. Help setting up temporary code to click and capture coordinates for the new image
+2. The new image is: [DESCRIBE YOUR NEW IMAGE - e.g., "a cartoon dinosaur", "a fire truck", "a butterfly"]
+3. Image file location: `assets/images/[FILENAME].png`
+
+**Requirements:**
+- Approximately 25 dots (can be more or less depending on the shape)
+- Dots must be spaced at least 50-80 units apart (for small fingers on mobile)
+- Path should change direction periodically to keep it engaging
+- Trace the outline logically (outer edges, key features)
+
+**Process needed:**
+1. Add temporary HTML button and click-logging script so I can click points on my image
+2. The script should log coordinates in format: `{ x: ###, y: ### },`
+3. After I collect coordinates, update the `LEVEL` object in `game.js` with new dots array
+4. Update `imageSrc` to point to my new image file
+5. Remove the temporary helper code from HTML
+
+**Current working structure:**
+- Board is 1000×1000 viewBox that auto-scales to 80% viewport height
+- Each dot needs: coordinates in viewBox space (0-1000 range)
+- Dots are automatically numbered 1 through N based on array order
+
+Can you provide the temporary click-logging code to add to my HTML, and explain the process step-by-step like last time?
+
+---
+
+This prompt gives all the context needed to recreate the same workflow for any new image!

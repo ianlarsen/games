@@ -1,108 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dot-to-Dot Collection</title>
-  <meta name="description" content="A collection of fun dot-to-dot games for kids, including dinosaurs, space, knights, and animals." />
-  <style>
-    :root{
-      --bg:#0b1220; --panel:#0f1a33; --card:#132244; --ink:#eef3ff; --muted:#c9d5ff;
-      --focus:#9fc0ff; --accent:#2c4a86; --radius:20px; --gap:1.2rem; --max:960px;
-    }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-         background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh;}
-    header,footer{background:var(--panel);border-bottom:1px solid #1b2a4a;padding:clamp(12px,3vw,18px);}
-    footer{border-top:1px solid #1b2a4a;text-align:center;opacity:.85}
-    header h1{margin:0;font-size:clamp(1.4rem,4vw,2rem);display:flex;align-items:center;gap:.6rem;}
-    .tts-toggle{margin-left:auto;background:transparent;color:var(--ink);border:2px solid var(--focus);
-                border-radius:999px;padding:.45rem .8rem;font-size:1rem;cursor:pointer;}
-    main{margin-inline:auto;width:min(100%,var(--max));padding:clamp(14px,4vw,28px);display:grid;gap:var(--gap);}
-    .grid{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-    .tile{background:var(--card);border:3px solid #1b2a4a;border-radius:var(--radius);text-decoration:none;color:inherit;
-          display:grid;place-items:center;gap:.3rem;padding:clamp(16px,4vw,28px);min-height:200px;
-          transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
-          box-shadow:0 6px 16px rgba(0,0,0,.25);}
-    .tile:hover,.tile:focus-visible{transform:translateY(-3px);border-color:var(--accent);
-          box-shadow:0 10px 24px rgba(0,0,0,.35);outline:none;}
-    .tile:focus-visible{box-shadow:0 0 0 5px var(--focus),0 10px 24px rgba(0,0,0,.35);}
-    .emoji{font-size:clamp(3rem,10vw,5rem);line-height:1;}
-    .label{font-size:clamp(1.1rem,3.6vw,1.6rem);font-weight:800;letter-spacing:.5px;}
-    .hint{color:var(--muted);font-size:clamp(.9rem,2.5vw,1rem);}
-    @media (prefers-reduced-motion: reduce){.tile{transition:none}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dot-to-Dot Game Collection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .game-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 </head>
-<body>
-  <header>
-    <h1 aria-label="Dot to Dot Collection. Choose a puzzle.">✏️ Dot-to-Dot Collection
-      <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
-    </h1>
-  </header>
+<body class="bg-gray-100">
 
-  <main>
-    <div class="grid">
-      <!-- Dino -->
-      <a class="tile" href="dino.html" data-say="Dinosaur Dot to Dot. Connect the dots to see the T-Rex." aria-label="Dinosaur Dot to Dot. Connect the dots to see the T-Rex.">
-        <div class="emoji" aria-hidden="true">🦖</div>
-        <div class="label">Dino</div>
-        <div class="hint">Tap to play</div>
-      </a>
+    <div class="container mx-auto px-4 py-8 sm:py-12">
+        <!-- Header -->
+        <header class="text-center mb-8 sm:mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800">Dot-to-Dot Collection</h1>
+            <p class="mt-2 text-lg text-gray-600">Click on a puzzle to start playing!</p>
+        </header>
 
-      <!-- Space -->
-      <a class="tile" href="space.html" data-say="Space Adventure Dot to Dot. Connect the dots to see the rocket." aria-label="Space Adventure Dot to Dot. Connect the dots to see the rocket.">
-        <div class="emoji" aria-hidden="true">🚀</div>
-        <div class="label">Space Adventure</div>
-        <div class="hint">Tap to play</div>
-      </a>
-      
-      <!-- Knight -->
-      <a class="tile" href="knight.html" data-say="Knight's Quest Dot to Dot. Connect the dots to see the knight." aria-label="Knight's Quest Dot to Dot. Connect the dots to see the knight.">
-        <div class="emoji" aria-hidden="true">🏰</div>
-        <div class="label">Knight's Quest</div>
-        <div class="hint">Tap to play</div>
-      </a>
+        <!-- Game Links Grid -->
+        <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
 
-      <!-- Farm -->
-      <a class="tile" href="farm.html" data-say="Farm Fun Dot to Dot. Connect the dots to see the farm animals." aria-label="Farm Fun Dot to Dot. Connect the dots to see the farm animals.">
-        <div class="emoji" aria-hidden="true">🚜</div>
-        <div class="label">Farm Fun</div>
-        <div class="hint">Tap to play</div>
-      </a>
+            <!-- Dinosaur Game -->
+            <a href="dino_dot_to_dot.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
+                <div class="aspect-w-16 aspect-h-9">
+                    <img src="images/trex.png" alt="Dinosaur Puzzle" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-5">
+                    <h2 class="text-2xl font-bold text-gray-900">Dinosaur</h2>
+                    <p class="mt-1 text-gray-500">Connect the dots to reveal a T-Rex!</p>
+                </div>
+            </a>
 
-      <!-- Fish -->
-      <a class="tile" href="fish.html" data-say="Ocean Fun Dot to Dot. Connect the dots to see the fish." aria-label="Ocean Fun Dot to Dot. Connect the dots to see the fish.">
-        <div class="emoji" aria-hidden="true">🐠</div>
-        <div class="label">Ocean Fun</div>
-        <div class="hint">Tap to play</div>
-      </a>
+            <!-- Fish Game -->
+            <a href="fish_dot_to_dot.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
+                 <div class="aspect-w-16 aspect-h-9">
+                    <img src="images/fish.png" alt="Fish Puzzle" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-5">
+                    <h2 class="text-2xl font-bold text-gray-900">Fish</h2>
+                    <p class="mt-1 text-gray-500">Can you uncover the hidden sea creature?</p>
+                </div>
+            </a>
 
-      <!-- Monkey -->
-      <a class="tile" href="monkey.html" data-say="Jungle Fun Dot to Dot. Connect the dots to see the monkey." aria-label="Jungle Fun Dot to Dot. Connect the dots to see the monkey.">
-        <div class="emoji" aria-hidden="true">🐒</div>
-        <div class="label">Jungle Fun</div>
-        <div class="hint">Tap to play</div>
-      </a>
+            <!-- Farm Game -->
+            <a href="farm_dot_to_dot.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
+                 <div class="aspect-w-16 aspect-h-9">
+                    <img src="images/farm.png" alt="Farm Puzzle" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-5">
+                    <h2 class="text-2xl font-bold text-gray-900">Farm</h2>
+                    <p class="mt-1 text-gray-500">A peaceful scene is waiting to be drawn.</p>
+                </div>
+            </a>
+
+            <!-- Space Game -->
+            <a href="space_dot_to_dot.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
+                 <div class="aspect-w-16 aspect-h-9">
+                    <img src="images/space.png" alt="Space Puzzle" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-5">
+                    <h2 class="text-2xl font-bold text-gray-900">Space</h2>
+                    <p class="mt-1 text-gray-500">Connect the stars to launch a shuttle.</p>
+                </div>
+            </a>
+
+            <!-- Knight Game -->
+            <a href="knight_dot_to_dot.html" class="game-card bg-white rounded-2xl shadow-lg overflow-hidden block">
+                 <div class="aspect-w-16 aspect-h-9">
+                    <img src="images/knight.png" alt="Knight Puzzle" class="w-full h-48 object-cover">
+                </div>
+                <div class="p-5">
+                    <h2 class="text-2xl font-bold text-gray-900">Knight</h2>
+                    <p class="mt-1 text-gray-500">Reveal a valiant hero from medieval times.</p>
+                </div>
+            </a>
+
+        </main>
     </div>
-  </main>
 
-  <footer>
-    <small>Press TAB to move. ENTER to pick. Big buttons for kids and early readers.</small>
-  </footer>
-
-  <script>
-    // Optional voice hints
-    (function(){
-      const btn = document.getElementById('tts'); let enabled=false;
-      const speak=(t)=>{ if(!enabled) return; try{ const u=new SpeechSynthesisUtterance(t); u.rate=.95; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} };
-      btn.addEventListener('click',()=>{ enabled=!enabled; btn.setAttribute('aria-pressed',String(enabled)); btn.textContent=enabled?'🔊 Sound On':'🔇 Sound Off'; if(enabled) speak('Sound on. Choose a game.');});
-      for(const tile of document.querySelectorAll('.tile')){
-        tile.addEventListener('focus',()=>speak(tile.dataset.say));
-        tile.addEventListener('mouseenter',()=>speak(tile.dataset.say));
-        tile.addEventListener('click',()=>speak('Loading ' + tile.dataset.say));
-      }
-    })();
-  </script>
 </body>
 </html>
-
