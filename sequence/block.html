@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequencing Game: Building a Block Tower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Drag and Drop Library -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #c3dafe;
+        }
+        .sortable-chosen {
+            cursor: grabbing;
+        }
+        .sequence-item {
+            touch-action: none;
+        }
+        /* Shake animation for incorrect answer */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Confetti styles */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0.7;
+            animation: fall 5s linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
+            <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Stories</a>
+            <button id="check-order-btn" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition opacity-50 cursor-not-allowed" disabled>Check Order</button>
+        </header>
+
+        <!-- Sequencing Container -->
+        <div id="sequence-container" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Sequence items will be generated here -->
+        </div>
+
+    </main>
+    
+    <!-- Confetti Container -->
+    <div id="confetti-container" class="confetti-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sequenceContainer = document.getElementById('sequence-container');
+            const checkOrderBtn = document.getElementById('check-order-btn');
+            const confettiContainer = document.getElementById('confetti-container');
+
+            const story = {
+                correctOrder: [1, 2, 3, 4, 5, 6],
+                steps: [
+                    { id: 1, image: "images/blocks_step1.png" },
+                    { id: 2, image: "images/blocks_step2.png" },
+                    { id: 3, image: "images/blocks_step3.png" },
+                    { id: 4, image: "images/blocks_step4.png" },
+                    { id: 5, image: "images/blocks_step5.png" },
+                    { id: 6, image: "images/blocks_step6.png" }
+                ]
+            };
+
+            let sortable;
+
+            function shuffle(array) {
+                let currentIndex = array.length, randomIndex;
+                while (currentIndex != 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            }
+
+            function loadStory(storyData) {
+                sequenceContainer.innerHTML = '';
+                const shuffledSteps = shuffle([...storyData.steps]);
+
+                shuffledSteps.forEach(step => {
+                    const item = document.createElement('div');
+                    item.dataset.id = step.id;
+                    item.classList.add('sequence-item', 'bg-white', 'border-2', 'border-transparent', 'rounded-lg', 'shadow-sm', 'cursor-grab', 'aspect-square', 'flex', 'items-center', 'justify-center', 'overflow-hidden');
+                    item.innerHTML = `<img src="${step.image}" alt="Story step ${step.id}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/200x200/e0e0e0/757575?text=Img'"/>`;
+                    sequenceContainer.appendChild(item);
+                });
+
+                sortable = new Sortable(sequenceContainer, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    onUpdate: () => {
+                        checkOrderBtn.disabled = false;
+                        checkOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+            }
+
+            function triggerConfetti() {
+                confettiContainer.innerHTML = '';
+                const colors = ['#ff5733', '#33ff57', '#3357ff', '#ff33a1', '#a133ff', '#33fff6'];
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.top = `${Math.random() * -50}vh`;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                    confettiContainer.appendChild(confetti);
+                }
+            }
+
+            function checkOrder() {
+                const currentOrder = Array.from(sequenceContainer.children).map(item => parseInt(item.dataset.id));
+                const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(story.correctOrder);
+                
+                if (isCorrect) {
+                    triggerConfetti();
+                    checkOrderBtn.disabled = true;
+                    checkOrderBtn.classList.add('bg-green-600', 'cursor-not-allowed');
+                    checkOrderBtn.textContent = 'Correct!';
+                    sortable.option('disabled', true);
+                    sequenceContainer.querySelectorAll('.sequence-item').forEach(item => {
+                        item.classList.add('border-green-500');
+                        item.classList.remove('cursor-grab');
+                    });
+                } else {
+                    sequenceContainer.classList.add('shake');
+                    if (window.navigator.vibrate) window.navigator.vibrate(200);
+                    setTimeout(() => sequenceContainer.classList.remove('shake'), 820);
+                }
+            }
+
+            checkOrderBtn.addEventListener('click', checkOrder);
+            loadStory(story);
+        });
+    </script>
+</body>
+</html>
+
