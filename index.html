@@ -20,7 +20,7 @@
     .logo-img {
       height: 1.2em; /* Adjust size relative to the font */
       vertical-align: middle;
-      margin-right: 0.1em; /* Small space between logo and text */
+      /* Removed margin-right to bring text closer */
       display: inline-block; /* Helps with alignment */
     }
     .tts-toggle{margin-left:auto;background:transparent;color:var(--ink);border:2px solid var(--accent);
@@ -44,7 +44,10 @@
 <body>
   <header>
     <h1 aria-label="OTGames. Choose a game.">
-      <img src="images/otg.png" alt="OTG Logo" class="logo-img" onerror="this.style.display='none'">ames
+      <!-- Wrapped logo and text in a span to treat them as a single item -->
+      <span style="display: inline-flex; align-items: center;">
+        <img src="images/otg.png" alt="OTG Logo" class="logo-img" onerror="this.style.display='none'">ames
+      </span>
       <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
     </h1>
   </header>
@@ -73,7 +76,7 @@
       </a>
 
       <!-- Sequencing -->
-      <a class="tile" href="./sequencing/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
+      <a class="tile" href="./sequence/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
         <div class="emoji" aria-hidden="true">1️⃣➡️</div>
         <div class="label">Sequencing</div>
         <div class="hint">Tap to play</div>
@@ -101,5 +104,7 @@
   </script>
 </body>
 </html>
+
+
 
 
