@@ -3,31 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Game Time!</title>
-  <meta name="description" content="Big, kid-friendly buttons that launch Concentration, Seek & Find, Dead Trail, and Dot-to-Dot." />
+  <title>OTGames</title>
+  <meta name="description" content="Big, kid-friendly buttons that launch Concentration, Seek & Find, Dot-to-Dot, and Sequencing." />
   <style>
     :root{
-      --bg:#0b1220; --panel:#0f1a33; --card:#132244; --ink:#eef3ff; --muted:#c9d5ff;
-      --focus:#9fc0ff; --accent:#2c4a86; --radius:20px; --gap:1.2rem; --max:960px;
+      --bg:#f4f7fc; --panel:#ffffff; --card:#ffffff; --ink:#2d3748; --muted:#718096;
+      --focus:#63b3ed; --accent:#3182ce; --radius:20px; --gap:1.2rem; --max:960px;
     }
     *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
          background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh;}
-    header,footer{background:var(--panel);border-bottom:1px solid #1b2a4a;padding:clamp(12px,3vw,18px);}
-    footer{border-top:1px solid #1b2a4a;text-align:center;opacity:.85}
+    header,footer{background:var(--panel);border-bottom:1px solid #e2e8f0;padding:clamp(12px,3vw,18px);}
+    footer{border-top:1px solid #e2e8f0;text-align:center;opacity:.85}
     header h1{margin:0;font-size:clamp(1.4rem,4vw,2rem);display:flex;align-items:center;gap:.6rem;}
-    .tts-toggle{margin-left:auto;background:transparent;color:var(--ink);border:2px solid var(--focus);
+    /* Style for the new logo */
+    .logo-img {
+      height: 1.2em; /* Adjust size relative to the font */
+      vertical-align: middle;
+      margin-right: 0.1em; /* Small space between logo and text */
+      display: inline-block; /* Helps with alignment */
+    }
+    .tts-toggle{margin-left:auto;background:transparent;color:var(--ink);border:2px solid var(--accent);
                 border-radius:999px;padding:.45rem .8rem;font-size:1rem;cursor:pointer;}
     main{margin-inline:auto;width:min(100%,var(--max));padding:clamp(14px,4vw,28px);display:grid;gap:var(--gap);}
     .grid{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-    .tile{background:var(--card);border:3px solid #1b2a4a;border-radius:var(--radius);text-decoration:none;color:inherit;
+    .tile{background:var(--card);border:3px solid transparent;border-radius:var(--radius);text-decoration:none;color:inherit;
           display:grid;place-items:center;gap:.3rem;padding:clamp(16px,4vw,28px);min-height:200px;
           transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
-          box-shadow:0 6px 16px rgba(0,0,0,.25);}
+          box-shadow:0 6px 16px rgba(0,0,0,.1);}
     .tile:hover,.tile:focus-visible{transform:translateY(-3px);border-color:var(--accent);
-          box-shadow:0 10px 24px rgba(0,0,0,.35);outline:none;}
-    .tile:focus-visible{box-shadow:0 0 0 5px var(--focus),0 10px 24px rgba(0,0,0,.35);}
-    .emoji{font-size:clamp(3rem,10vw,5rem);line-height:1;}
+          box-shadow:0 10px 24px rgba(0,0,0,.15);outline:none;}
+    .tile:focus-visible{box-shadow:0 0 0 5px var(--focus),0 10px 24px rgba(0,0,0,.15);}
+    /* Font size restored to original value for consistency */
+    .emoji{font-size:clamp(3rem,10vw,4.5rem);line-height:1;}
     .label{font-size:clamp(1.1rem,3.6vw,1.6rem);font-weight:800;letter-spacing:.5px;}
     .hint{color:var(--muted);font-size:clamp(.9rem,2.5vw,1rem);}
     @media (prefers-reduced-motion: reduce){.tile{transition:none}}
@@ -35,7 +43,8 @@
 </head>
 <body>
   <header>
-    <h1 aria-label="Game Time! Choose a game.">🎮 Game Time!
+    <h1 aria-label="OTGames. Choose a game.">
+      <img src="images/otg.png" alt="OTG Logo" class="logo-img" onerror="this.style.display='none'">ames
       <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
     </h1>
   </header>
@@ -57,12 +66,18 @@
       </a>
 
       <!-- Dot-to-Dot -->
-      <a class="tile" href="./dottodot/index.html" data-say="Dot to Dot. Connect the dots to reveal the T-Rex." aria-label="Dot to Dot. Connect the dots.">
+      <a class="tile" href="./dottodot/index.html" data-say="Dot to Dot. Connect the dots." aria-label="Dot to Dot. Connect the dots.">
         <div class="emoji" aria-hidden="true">🦖✏️</div>
         <div class="label">Dot-to-Dot</div>
         <div class="hint">Tap to play</div>
       </a>
 
+      <!-- Sequencing -->
+      <a class="tile" href="./sequencing/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
+        <div class="emoji" aria-hidden="true">1️⃣➡️</div>
+        <div class="label">Sequencing</div>
+        <div class="hint">Tap to play</div>
+      </a>
 
     </div>
   </main>
@@ -86,3 +101,5 @@
   </script>
 </body>
 </html>
+
+
