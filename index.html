@@ -6,82 +6,151 @@
   <title>OTGames</title>
   <meta name="description" content="Big, kid-friendly buttons that launch Concentration, Seek & Find, Dot-to-Dot, and Sequencing." />
   <style>
-    :root{
-      --bg:#f4f7fc; --panel:#ffffff; --card:#ffffff; --ink:#2d3748; --muted:#718096;
-      --focus:#63b3ed; --accent:#3182ce; --radius:20px; --gap:1.2rem; --max:960px;
+    :root {
+      --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
+      --focus: #63b3ed; --accent: #3182ce; --radius: 20px; --gap: 1.2rem; --max: 960px;
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-         background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr auto;min-height:100dvh;}
-    header,footer{background:var(--panel);border-bottom:1px solid #e2e8f0;padding:clamp(12px,3vw,18px);}
-    footer{border-top:1px solid #e2e8f0;text-align:center;opacity:.85}
-    header h1{margin:0;font-size:clamp(1.4rem,4vw,2rem);display:flex;align-items:center;gap:.6rem;}
-    /* Style for the new logo */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100dvh;
+    }
+    header, footer {
+      background: var(--panel);
+      border-bottom: 1px solid #e2e8f0;
+      padding: clamp(12px, 3vw, 18px);
+    }
+    footer {
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      opacity: .85;
+    }
+    header .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-inline: auto;
+        width: min(100%, var(--max));
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      display: flex;
+      align-items: center;
+      /* gap: 0.25rem; <--- This was the line causing the space. I've removed it. */
+    }
     .logo-img {
-      height: 1.2em; /* Adjust size relative to the font */
-      vertical-align: middle;
-      /* Removed margin-right to bring text closer */
-      display: inline-block; /* Helps with alignment */
+      height: 1.2em; /* Sizes the logo relative to the text */
+      width: auto;
+      margin-right: 0.1em; /* Add a tiny bit of space so they don't crash */
     }
-    .tts-toggle{margin-left:auto;background:transparent;color:var(--ink);border:2px solid var(--accent);
-                border-radius:999px;padding:.45rem .8rem;font-size:1rem;cursor:pointer;}
-    main{margin-inline:auto;width:min(100%,var(--max));padding:clamp(14px,4vw,28px);display:grid;gap:var(--gap);}
-    .grid{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-    .tile{background:var(--card);border:3px solid transparent;border-radius:var(--radius);text-decoration:none;color:inherit;
-          display:grid;place-items:center;gap:.3rem;padding:clamp(16px,4vw,28px);min-height:200px;
-          transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
-          box-shadow:0 6px 16px rgba(0,0,0,.1);}
-    .tile:hover,.tile:focus-visible{transform:translateY(-3px);border-color:var(--accent);
-          box-shadow:0 10px 24px rgba(0,0,0,.15);outline:none;}
-    .tile:focus-visible{box-shadow:0 0 0 5px var(--focus),0 10px 24px rgba(0,0,0,.15);}
-    /* Font size restored to original value for consistency */
-    .emoji{font-size:clamp(3rem,10vw,4.5rem);line-height:1;}
-    .label{font-size:clamp(1.1rem,3.6vw,1.6rem);font-weight:800;letter-spacing:.5px;}
-    .hint{color:var(--muted);font-size:clamp(.9rem,2.5vw,1rem);}
-    @media (prefers-reduced-motion: reduce){.tile{transition:none}}
+    .tts-toggle {
+      background: transparent;
+      color: var(--ink);
+      border: 2px solid var(--accent);
+      border-radius: 999px;
+      padding: .45rem .8rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    main {
+      margin-inline: auto;
+      width: min(100%, var(--max));
+      padding: clamp(14px, 4vw, 28px);
+    }
+    .grid {
+      display: grid;
+      gap: var(--gap);
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .tile {
+      background: var(--card);
+      border: 3px solid transparent;
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: inherit;
+      display: grid;
+      place-items: center;
+      gap: .3rem;
+      padding: clamp(16px, 4vw, 28px);
+      min-height: 200px;
+      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .1);
+    }
+    .tile:hover, .tile:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
+      outline: none;
+    }
+    .tile:focus-visible {
+      box-shadow: 0 0 0 5px var(--focus), 0 10px 24px rgba(0, 0, 0, .15);
+    }
+    .emoji {
+      font-size: clamp(3rem, 10vw, 4.5rem);
+      line-height: 1;
+    }
+    .label {
+      font-size: clamp(1.1rem, 3.6vw, 1.6rem);
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: clamp(.9rem, 2.5vw, 1rem);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tile { transition: none; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1 aria-label="OTGames. Choose a game.">
-      <!-- Wrapped logo and text in a span to treat them as a single item -->
-      <span style="display: inline-flex; align-items: center;">
-        <img src="images/otg.png" alt="OTG Logo" class="logo-img" onerror="this.style.display='none'">ames
-      </span>
-      <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
-    </h1>
+    <div class="header-content">
+        <h1>
+<img src="images/otg.png" alt="OTG Logo" class="logo-img" 
+     style="width: 100px; height: auto;" 
+     onerror="this.style.display='none'">ames            <span>ames</span>
+        </h1>
+        <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
+    </div>
   </header>
 
   <main>
     <div class="grid">
       <!-- Concentration -->
-      <a class="tile" href="./concentration/" data-say="Concentration. Match the cards." aria-label="Concentration. Match the cards.">
+      <a class="tile" href="concentration/index.html" data-say="Concentration. Match the cards." aria-label="Concentration. Match the cards.">
         <div class="emoji" aria-hidden="true">🧠🃏</div>
         <div class="label">Concentration</div>
         <div class="hint">Tap to play</div>
       </a>
 
       <!-- Seek & Find -->
-      <a class="tile" href="./seekandfind/" data-say="Seek and Find. Look for hidden things." aria-label="Seek and Find. Look for hidden things.">
+      <a class="tile" href="seekandfind/index.html" data-say="Seek and Find. Look for hidden things." aria-label="Seek and Find. Look for hidden things.">
         <div class="emoji" aria-hidden="true">🔎👀</div>
         <div class="label">Seek &amp; Find</div>
         <div class="hint">Tap to play</div>
       </a>
 
       <!-- Dot-to-Dot -->
-      <a class="tile" href="./dottodot/index.html" data-say="Dot to Dot. Connect the dots." aria-label="Dot to Dot. Connect the dots.">
+      <a class="tile" href="dottodot/index.html" data-say="Dot to Dot. Connect the dots." aria-label="Dot to Dot. Connect the dots.">
         <div class="emoji" aria-hidden="true">🦖✏️</div>
         <div class="label">Dot-to-Dot</div>
         <div class="hint">Tap to play</div>
       </a>
 
       <!-- Sequencing -->
-      <a class="tile" href="./sequence/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
+      <a class="tile" href="sequence/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
         <div class="emoji" aria-hidden="true">1️⃣➡️</div>
         <div class="label">Sequencing</div>
         <div class="hint">Tap to play</div>
       </a>
-
     </div>
   </main>
 
@@ -91,20 +160,32 @@
 
   <script>
     // Optional voice hints
-    (function(){
-      const btn = document.getElementById('tts'); let enabled=false;
-      const speak=(t)=>{ if(!enabled) return; try{ const u=new SpeechSynthesisUtterance(t); u.rate=.95; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} };
-      btn.addEventListener('click',()=>{ enabled=!enabled; btn.setAttribute('aria-pressed',String(enabled)); btn.textContent=enabled?'🔊 Sound On':'🔇 Sound Off'; if(enabled) speak('Sound on. Choose a game.');});
-      for(const tile of document.querySelectorAll('.tile')){
-        tile.addEventListener('focus',()=>speak(tile.dataset.say));
-        tile.addEventListener('mouseenter',()=>speak(tile.dataset.say));
-        tile.addEventListener('click',()=>speak('Loading ' + tile.dataset.say));
+    (function() {
+      const btn = document.getElementById('tts');
+      let enabled = false;
+      const speak = (t) => {
+        if (!enabled) return;
+        try {
+          const u = new SpeechSynthesisUtterance(t);
+          u.rate = .95;
+          u.pitch = 1.05;
+          speechSynthesis.cancel();
+          speechSynthesis.speak(u);
+        } catch (e) {}
+      };
+      btn.addEventListener('click', () => {
+        enabled = !enabled;
+        btn.setAttribute('aria-pressed', String(enabled));
+        btn.textContent = enabled ? '🔊 Sound On' : '🔇 Sound Off';
+        if (enabled) speak('Sound on. Choose a game.');
+      });
+      for (const tile of document.querySelectorAll('.tile')) {
+        tile.addEventListener('focus', () => speak(tile.dataset.say));
+        tile.addEventListener('mouseenter', () => speak(tile.dataset.say));
+        tile.addEventListener('click', () => speak('Loading ' + tile.dataset.say));
       }
     })();
   </script>
 </body>
 </html>
-
-
-
 
