@@ -53,8 +53,9 @@
         .win-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             display: flex;
+            flex-direction: column; /* Stack message and buttons vertically */
             align-items: center;
             justify-content: center;
             z-index: 1000;
@@ -121,6 +122,10 @@
     <!-- Win Overlay -->
     <div id="win-overlay" class="win-overlay">
         <div class="win-message">You Won!</div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+            <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+        </div>
     </div>
     <div id="confetti-container" class="confetti-container"></div>
 
@@ -137,8 +142,8 @@
             const movesCountSpan = document.getElementById('moves-count');
             const winOverlay = document.getElementById('win-overlay');
             const confettiContainer = document.getElementById('confetti-container');
+            const playAgainBtn = document.getElementById('play-again-btn');
 
-            // Sound elements
             const flipSound = document.getElementById('flip-sound');
             const matchSound = document.getElementById('match-sound');
             const winSound = document.getElementById('win-sound');
@@ -150,9 +155,21 @@
             let moves = 0;
             let pairsToMatch = 0;
             let matchedPairs = 0;
+            let audioUnlocked = false;
+
+            function unlockAudio() {
+                // A silent playback attempt on first user interaction to unlock audio context on mobile
+                if (audioUnlocked) return;
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    matchSound.play().then(() => matchSound.pause()).catch(() => {});
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+            }
 
             function playSound(sound) {
-                if (sound) {
+                if (sound && audioUnlocked) {
                     sound.currentTime = 0;
                     sound.play().catch(e => console.log("Sound play failed:", e));
                 }
@@ -199,6 +216,9 @@
             }
 
             function flipCard() {
+                if (!audioUnlocked) {
+                    unlockAudio();
+                }
                 if (lockBoard) return;
                 if (this === firstCard) return;
 
@@ -273,7 +293,8 @@
             }
             
             startBtn.addEventListener('click', createBoard);
-            createBoard(); // Initial board creation
+            playAgainBtn.addEventListener('click', createBoard);
+            createBoard();
         });
     </script>
 </body>
