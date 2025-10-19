@@ -38,16 +38,54 @@
             border-radius: 0.75rem;
         }
         .card-front {
-            background-color: #60a5fa; /* A friendly blue */
+            background-color: #60a5fa;
         }
         .card-back {
-            background-color: #f3f4f6; /* Light gray */
+            background-color: #f3f4f6;
             transform: rotateY(180deg);
             font-size: clamp(2rem, 10vw, 4rem);
         }
-        /* This is the key style: matched cards stay flipped */
         .card.matched .card-inner {
-            transform: rotateY(180deg); /* Explicitly stay flipped */
+            transform: rotateY(180deg);
+        }
+        
+        /* Win Overlay and Confetti */
+        .win-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .win-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .win-message {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .confetti-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1001;
+        }
+        .confetti {
+            position: absolute; width: 10px; height: 10px;
+            background-color: #f00; opacity: 0.8;
+            animation: fall 5s linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -78,8 +116,18 @@
         <div id="game-board" class="grid grid-cols-4 gap-4">
             <!-- Cards will be generated here -->
         </div>
-
     </main>
+
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="win-overlay">
+        <div class="win-message">You Won!</div>
+    </div>
+    <div id="confetti-container" class="confetti-container"></div>
+
+    <!-- Audio Elements -->
+    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+    <audio id="match-sound" src="sounds/match.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -87,6 +135,13 @@
             const difficultySelect = document.getElementById('difficulty');
             const startBtn = document.getElementById('start-btn');
             const movesCountSpan = document.getElementById('moves-count');
+            const winOverlay = document.getElementById('win-overlay');
+            const confettiContainer = document.getElementById('confetti-container');
+
+            // Sound elements
+            const flipSound = document.getElementById('flip-sound');
+            const matchSound = document.getElementById('match-sound');
+            const winSound = document.getElementById('win-sound');
 
             const emojis = ['😀', '😂', '😍', '🤔', '😎', '😢', '🤯', '🥳', '😴', '😇'];
             let firstCard = null;
@@ -96,8 +151,17 @@
             let pairsToMatch = 0;
             let matchedPairs = 0;
 
+            function playSound(sound) {
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.log("Sound play failed:", e));
+                }
+            }
+
             function createBoard() {
                 gameBoard.innerHTML = '';
+                winOverlay.classList.remove('show');
+                confettiContainer.innerHTML = '';
                 moves = 0;
                 matchedPairs = 0;
                 movesCountSpan.textContent = moves;
@@ -139,6 +203,7 @@
                 if (this === firstCard) return;
 
                 this.classList.add('flipped');
+                playSound(flipSound);
 
                 if (!firstCard) {
                     firstCard = this;
@@ -164,10 +229,12 @@
                 
                 firstCard.classList.add('matched');
                 secondCard.classList.add('matched');
+                
+                playSound(matchSound);
 
                 matchedPairs++;
                 if (matchedPairs === pairsToMatch) {
-                    // Could add a "You Won!" celebration here
+                    setTimeout(winGame, 500);
                 }
 
                 resetBoard();
@@ -183,6 +250,26 @@
 
             function resetBoard() {
                 [firstCard, secondCard, lockBoard] = [null, null, false];
+            }
+
+            function winGame() {
+                playSound(winSound);
+                triggerConfetti();
+                winOverlay.classList.add('show');
+            }
+            
+            function triggerConfetti() {
+                confettiContainer.innerHTML = '';
+                const colors = ['#ff5733', '#33ff57', '#3357ff', '#ff33a1', '#a133ff', '#33fff6'];
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.top = `${Math.random() * -50}vh`;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                    confettiContainer.appendChild(confetti);
+                }
             }
             
             startBtn.addEventListener('click', createBoard);
