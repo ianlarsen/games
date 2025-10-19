@@ -9,245 +9,123 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            touch-action: manipulation; /* Prevents double-tap zoom on mobile */
-        }
-        .dot {
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-        #dots {
-            transition: opacity 0.5s ease-in-out;
-        }
-        .dot-circle {
-            fill: #4F46E5; /* Indigo */
-            stroke: white;
-            stroke-width: 4px;
-        }
-        .dot-circle-next {
-             fill: #10B981; /* Emerald */
-        }
-        .dot-label {
-            fill: white;
-            font-size: 16px;
-            font-weight: 600;
-            text-anchor: middle;
-            alignment-baseline: central;
-            pointer-events: none; /* Make text non-interactive */
-        }
-        /* Style for dots that have been connected */
-        .dot-connected .dot-circle {
-            fill: #9CA3AF; /* gray-400 */
-        }
-        .dot-connected .dot-label {
-            fill: #E5E7EB; /* gray-200 */
-        }
-        #path {
-            stroke: #4F46E5;
-            stroke-width: 5px;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .board-wrap {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin: auto;
-            aspect-ratio: 1 / 1;
-        }
-        #board, #completedImage {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        /* Vibration animation for wrong taps */
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        .dot { cursor: pointer; }
+        #dots, #path { transition: opacity 0.5s ease-in-out; }
+        .dot-circle { fill: #4f46e5; stroke: white; stroke-width: 4px; }
+        .dot-circle-next { fill: #10B981; }
+        .dot-label { fill: white; font-size: 16px; font-weight: 600; text-anchor: middle; alignment-baseline: central; pointer-events: none; }
+        .dot-connected .dot-circle { fill: #9CA3AF; }
+        .dot-connected .dot-label { fill: #E5E7EB; }
+        #path { stroke: #4F46E5; stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .board-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+        #board, #completedImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-        .shake {
-            animation: shake 0.5s ease-in-out;
-        }
+        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 p-4 sm:p-8">
 
-    <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row items-center justify-between mb-4 pb-4 border-b">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Dot-to-Dot Challenge</h1>
-            <div class="flex items-center gap-4 mt-2 sm:mt-0">
+    <main class="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
+            <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to All Games</a>
             <div class="flex items-center gap-4">
-                <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back</a>
-                <h1 class="text-2xl font-bold text-gray-800">Dot-to-Dot: T-Rex</h1>
-            </div>
                 <span id="progress" class="text-lg font-semibold text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">1 / 28</span>
-                <button id="resetBtn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition">Reset</button>
+                <button id="resetBtn" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition">Reset</button>
             </div>
         </header>
 
-        <!-- Game Board -->
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Dot-to-Dot: Fish</h1>
+
         <div class="board-wrap rounded-lg overflow-hidden bg-gray-50 border">
-            <img id="completedImage" src="images/fish.png" alt="Completed puzzle" style="opacity: 0; transition: opacity 0.5s ease-in-out; object-fit: cover;"/>
-            <svg id="board" viewBox="0 0 1000 1000" role="img" aria-label="Dot to dot board">
-                <polyline id="path" points="" />
-                <g id="dots"></g>
-            </svg>
+            <img id="completedImage" src="images/fish.png" alt="Completed Fish" style="opacity: 0; transition: opacity 0.5s ease-in-out; object-fit: cover;"/>
+            <svg id="board" viewBox="0 0 1000 1000"><polyline id="path" points="" /><g id="dots"></g></svg>
         </div>
 
-        <!-- Hint Footer -->
-        <footer class="text-center mt-4 text-gray-500">
-            Tap the dots in order to reveal the picture!
-        </footer>
+        <footer class="text-center mt-6 text-gray-500">Tap the dots in order to reveal the picture!</footer>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const board = document.getElementById('board');
             const dotsContainer = document.getElementById('dots');
             const path = document.getElementById('path');
             const progressEl = document.getElementById('progress');
             const resetBtn = document.getElementById('resetBtn');
             const completedImage = document.getElementById('completedImage');
             const mainContainer = document.querySelector('main');
-
-            // --- Your custom fish coordinates ---
-            const dotCoordinates = [
-                { x: 307, y: 455 }, { x: 397, y: 383 }, { x: 460, y: 378 }, { x: 571, y: 322 }, 
-                { x: 599, y: 348 }, { x: 651, y: 407 }, { x: 699, y: 419 }, { x: 739, y: 458 }, 
-                { x: 798, y: 483 }, { x: 871, y: 496 }, { x: 854, y: 556 }, { x: 861, y: 632 }, 
-                { x: 828, y: 679 }, { x: 785, y: 665 }, { x: 737, y: 615 }, { x: 719, y: 620 }, 
-                { x: 648, y: 648 }, { x: 561, y: 681 }, { x: 574, y: 699 }, { x: 551, y: 742 }, 
-                { x: 518, y: 740 }, { x: 486, y: 698 }, { x: 417, y: 679 }, { x: 298, y: 605 }, 
-                { x: 275, y: 557 }, { x: 279, y: 552 }, { x: 292, y: 515 }, { x: 284, y: 478 }
-            ];
-
+            
+            const dotCoordinates = [ { x: 307, y: 455 }, { x: 397, y: 383 }, { x: 460, y: 378 }, { x: 571, y: 322 }, { x: 599, y: 348 }, { x: 651, y: 407 }, { x: 699, y: 419 }, { x: 739, y: 458 }, { x: 798, y: 483 }, { x: 871, y: 496 }, { x: 854, y: 556 }, { x: 861, y: 632 }, { x: 828, y: 679 }, { x: 785, y: 665 }, { x: 737, y: 615 }, { x: 719, y: 620 }, { x: 648, y: 648 }, { x: 561, y: 681 }, { x: 574, y: 699 }, { x: 551, y: 742 }, { x: 518, y: 740 }, { x: 486, y: 698 }, { x: 417, y: 679 }, { x: 298, y: 605 }, { x: 275, y: 557 }, { x: 279, y: 552 }, { x: 292, y: 515 }, { x: 284, y: 478 } ];
             let currentDot = 1;
             const totalDots = dotCoordinates.length;
 
             function initGame() {
-                // Reset state
                 currentDot = 1;
                 path.setAttribute('points', '');
                 dotsContainer.innerHTML = '';
                 completedImage.style.opacity = '0';
-
-                // Ensure dots and path are visible and opaque on reset
-                dotsContainer.style.display = '';
-                path.style.display = '';
                 dotsContainer.style.opacity = '1';
                 path.style.opacity = '1';
                 
-                // Draw dots and labels
                 dotCoordinates.forEach((dot, index) => {
                     const dotNumber = index + 1;
-                    
                     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     g.classList.add('dot');
                     g.dataset.dot = dotNumber;
-
-                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    circle.setAttribute('cx', dot.x);
-                    circle.setAttribute('cy', dot.y);
-                    circle.setAttribute('r', 15);
-                    circle.classList.add('dot-circle');
-                    
-                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    text.setAttribute('x', dot.x);
-                    text.setAttribute('y', dot.y);
-                    text.textContent = dotNumber;
-                    text.classList.add('dot-label');
-
-                    g.appendChild(circle);
-                    g.appendChild(text);
+                    g.innerHTML = `<circle cx="${dot.x}" cy="${dot.y}" r="15" class="dot-circle"></circle><text x="${dot.x}" y="${dot.y}" class="dot-label">${dotNumber}</text>`;
                     dotsContainer.appendChild(g);
                 });
-
                 updateUI();
                 addEventListeners();
             }
 
             function updateUI() {
                 progressEl.textContent = `${Math.min(currentDot, totalDots)} / ${totalDots}`;
-                
-                // Highlight the next correct dot
-                document.querySelectorAll('.dot').forEach((dotEl) => {
+                document.querySelectorAll('.dot').forEach(dotEl => {
                     const circle = dotEl.querySelector('.dot-circle');
-                    // Only highlight if it's not already connected
                     if (!dotEl.classList.contains('dot-connected')) {
-                         if (parseInt(dotEl.dataset.dot) === currentDot) {
-                            circle.classList.add('dot-circle-next');
-                        } else {
-                            circle.classList.remove('dot-circle-next');
-                        }
+                        circle.classList.toggle('dot-circle-next', parseInt(dotEl.dataset.dot) === currentDot);
                     }
                 });
             }
 
             function handleDotClick(e) {
                 const clickedDot = parseInt(e.currentTarget.dataset.dot);
-
                 if (clickedDot === currentDot) {
-                    // Correct dot clicked
                     const { x, y } = dotCoordinates[currentDot - 1];
-                    const currentPoints = path.getAttribute('points');
-                    path.setAttribute('points', `${currentPoints} ${x},${y}`);
-
-                    // Mark dot as connected instead of hiding it
+                    path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
                     e.currentTarget.classList.add('dot-connected');
-                    // Remove next-dot highlight after connecting
                     e.currentTarget.querySelector('.dot-circle').classList.remove('dot-circle-next');
-
                     currentDot++;
                     updateUI();
-
-                    if (currentDot > totalDots) {
-                        // Game finished
-                        finishGame();
-                    }
+                    if (currentDot > totalDots) finishGame();
                 } else {
-                    // Wrong dot clicked
                     mainContainer.classList.add('shake');
-                    if (window.navigator.vibrate) {
-                        window.navigator.vibrate(200); // Vibrate for 200ms
-                    }
+                    if (navigator.vibrate) navigator.vibrate(200);
                     setTimeout(() => mainContainer.classList.remove('shake'), 500);
                 }
             }
             
             function finishGame() {
-                 // Close the path by connecting back to the start
                 const { x, y } = dotCoordinates[0];
-                const currentPoints = path.getAttribute('points');
-                path.setAttribute('points', `${currentPoints} ${x},${y}`);
-
-                // Fade in completed image
+                path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
                 completedImage.style.opacity = '1';
                 progressEl.textContent = `Complete!`;
-
-                // Fade out dots and path
                 dotsContainer.style.opacity = '0';
                 path.style.opacity = '0';
             }
 
             function addEventListeners() {
-                document.querySelectorAll('.dot').forEach(dot => {
-                    dot.addEventListener('click', handleDotClick);
-                });
+                dotsContainer.querySelectorAll('.dot').forEach(dot => dot.addEventListener('click', handleDotClick));
             }
 
             resetBtn.addEventListener('click', initGame);
-
-            // Initial game setup
             initGame();
         });
     </script>
-
 </body>
 </html>
