@@ -1,30 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Emoji Space Hunt</title>
-  <link rel="stylesheet" href="space.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Space Hunt</title>
+    <style>
+        :root { --bg: #f4f7fc; --panel: #ffffff; --ink: #2d3748; --muted: #718096; --accent: #3182ce; }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        main {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--panel);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.1);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            padding-top: 66.66%; /* 3:2 Aspect Ratio */
+            background-color: #1e293b; /* Dark blue fallback */
+        }
+        #background-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .emoji-item {
+            position: absolute;
+            font-size: clamp(2rem, 8vw, 4rem);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            user-select: none;
+        }
+        .emoji-item:hover {
+            transform: scale(1.2);
+        }
+        #instructions {
+            padding: 1rem;
+            text-align: center;
+            background: #fdfdff;
+            border-top: 1px solid #e2e8f0;
+        }
+        #targets {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 2.5rem;
+            margin-top: 0.5rem;
+        }
+        .target-emoji.found {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        #overlay.show {
+            opacity: 1;
+        }
+        .back-link {
+            padding: 0.75rem 1.5rem;
+            background: var(--panel);
+            color: var(--ink);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,.1);
+            border: 1px solid #e2e8f0;
+        }
+    </style>
 </head>
 <body>
-  <div id="game-container">
-    <img id="background" src="assets/backgrounds/space.png" alt="Space Background">
-    <div id="emoji-layer"></div>
-    <div id="overlay">
-      <div id="overlay-message">Great Job!</div>
-    </div>
-  </div>
-  <div id="instructions">
-    <h2>Find these emojis:</h2>
-    <div id="targets"></div>
-  </div>
-  <div style="margin-top:20px; text-align:center;">
-    <a href="index.html" 
-       style="display:inline-block; padding:10px 20px; background:#132244; 
-              color:#eef3ff; text-decoration:none; border-radius:10px; 
-              font-size:18px;">
-      ⬅️ Back to to Seek & Find Menu
-    </a>
-  </div>
-  <script src="space.js"></script>
+    <main>
+        <div id="game-container">
+            <img id="background-img" src="images/space.png" alt="Space Background" onerror="this.src='https://placehold.co/900x600/1e293b/ffffff?text=Space+Image'">
+            <div id="emoji-layer"></div>
+            <div id="overlay">Great Job!</div>
+        </div>
+        <div id="instructions">
+            <h2>Find these emojis:</h2>
+            <div id="targets"></div>
+        </div>
+    </main>
+
+    <a href="index.html" class="back-link">⬅️ Back to Seek & Find Menu</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const emojiLayer = document.getElementById('emoji-layer');
+            const targetsContainer = document.getElementById('targets');
+            const overlay = document.getElementById('overlay');
+
+            const gameData = {
+                emojis: ['🚀', '👽', '🪐', '☄️', '⭐️', '🔭', '🛰️', '🌌'],
+                targets: ['👽', '🪐', '☄️'],
+                positions: [
+                    { top: '70%', left: '10%' }, { top: '20%', left: '80%' }, { top: '50%', left: '50%' },
+                    { top: '10%', left: '30%' }, { top: '85%', left: '85%' }, { top: '80%', left: '40%' },
+                    { top: '30%', left: '5%' }, { top: '5%', left: '90%' }
+                ]
+            };
+            
+            let foundCount = 0;
+            const totalTargets = gameData.targets.length;
+
+            function initGame() {
+                gameData.targets.forEach(target => {
+                    const span = document.createElement('span');
+                    span.textContent = target;
+                    span.classList.add('target-emoji');
+                    span.dataset.emoji = target;
+                    targetsContainer.appendChild(span);
+                });
+
+                gameData.emojis.forEach((emoji, index) => {
+                    const div = document.createElement('div');
+                    div.textContent = emoji;
+                    div.classList.add('emoji-item');
+                    div.style.top = gameData.positions[index].top;
+                    div.style.left = gameData.positions[index].left;
+                    
+                    if (gameData.targets.includes(emoji)) {
+                        div.dataset.target = 'true';
+                        div.addEventListener('click', handleEmojiClick);
+                    }
+                    emojiLayer.appendChild(div);
+                });
+            }
+
+            function handleEmojiClick(event) {
+                if (event.target.dataset.target === 'true') {
+                    event.target.style.pointerEvents = 'none';
+                    event.target.style.transform = 'scale(1.5)';
+                    event.target.style.opacity = '0.5';
+                    
+                    const foundEmoji = event.target.textContent;
+                    const targetEl = targetsContainer.querySelector(`[data-emoji="${foundEmoji}"]`);
+                    if (targetEl && !targetEl.classList.contains('found')) {
+                        targetEl.classList.add('found');
+                        foundCount++;
+                    }
+
+                    if (foundCount === totalTargets) {
+                        overlay.classList.add('show');
+                    }
+                }
+            }
+            initGame();
+        });
+    </script>
 </body>
 </html>
+
