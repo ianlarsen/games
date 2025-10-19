@@ -4,30 +4,191 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concentration Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .card {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+        }
+        .card-front {
+            background-color: #60a5fa; /* A friendly blue */
+        }
+        .card-back {
+            background-color: #f3f4f6; /* Light gray */
+            transform: rotateY(180deg);
+            font-size: clamp(2rem, 10vw, 4rem);
+        }
+        /* This is the key style: matched cards stay flipped */
+        .card.matched .card-inner {
+            transform: rotateY(180deg); /* Explicitly stay flipped */
+        }
+    </style>
 </head>
-<body>
-    <div id="controls">
-        <label for="difficulty">Select Difficulty:</label>
-        <select id="difficulty">
-            <option value="1">Very Easy</option>
-            <option value="2">Easy</option>
-            <option value="3">Medium</option>
-            <option value="4">Hard</option>
-            <option value="5">Very Hard</option>
-        </select>
-        <button id="start">Go</button>
-    </div>
-    <h1 id="message"></h1>
-    <div id="game-board"></div>
-<div style="margin-top:20px; text-align:center;">
-  <a href="../index.html" 
-     style="display:inline-block; padding:10px 20px; background:#132244; 
-            color:#eef3ff; text-decoration:none; border-radius:10px; 
-            font-size:18px;">
-    ⬅️ Back to Game Hub
-  </a>
-</div>
-    <script src="script.js"></script>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
+            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to All Games</a>
+            <div class="flex items-center gap-4">
+                <h2 class="text-xl font-bold">Moves: <span id="moves-count">0</span></h2>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div id="controls" class="flex flex-wrap items-center justify-center gap-4 mb-6">
+            <label for="difficulty" class="font-semibold text-lg">Difficulty:</label>
+            <select id="difficulty" class="p-2 border-2 border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="4">Very Easy (4 pairs)</option>
+                <option value="6" selected>Easy (6 pairs)</option>
+                <option value="8">Medium (8 pairs)</option>
+                <option value="10">Hard (10 pairs)</option>
+            </select>
+            <button id="start-btn" class="px-8 py-3 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Start</button>
+        </div>
+        
+        <!-- Game Board -->
+        <div id="game-board" class="grid grid-cols-4 gap-4">
+            <!-- Cards will be generated here -->
+        </div>
+
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameBoard = document.getElementById('game-board');
+            const difficultySelect = document.getElementById('difficulty');
+            const startBtn = document.getElementById('start-btn');
+            const movesCountSpan = document.getElementById('moves-count');
+
+            const emojis = ['😀', '😂', '😍', '🤔', '😎', '😢', '🤯', '🥳', '😴', '😇'];
+            let firstCard = null;
+            let secondCard = null;
+            let lockBoard = false;
+            let moves = 0;
+            let pairsToMatch = 0;
+            let matchedPairs = 0;
+
+            function createBoard() {
+                gameBoard.innerHTML = '';
+                moves = 0;
+                matchedPairs = 0;
+                movesCountSpan.textContent = moves;
+                
+                pairsToMatch = parseInt(difficultySelect.value);
+                const gameEmojis = emojis.slice(0, pairsToMatch);
+                const cardsArray = [...gameEmojis, ...gameEmojis];
+                
+                if (pairsToMatch === 10) {
+                    gameBoard.className = 'grid grid-cols-5 gap-2 sm:gap-4';
+                } else {
+                    gameBoard.className = 'grid grid-cols-4 gap-4';
+                }
+
+                shuffle(cardsArray);
+
+                cardsArray.forEach(emoji => {
+                    const card = document.createElement('div');
+                    card.classList.add('card', 'aspect-square');
+                    card.dataset.emoji = emoji;
+
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front"></div>
+                            <div class="card-back">${emoji}</div>
+                        </div>
+                    `;
+                    card.addEventListener('click', flipCard);
+                    gameBoard.appendChild(card);
+                });
+            }
+
+            function shuffle(array) {
+                array.sort(() => Math.random() - 0.5);
+            }
+
+            function flipCard() {
+                if (lockBoard) return;
+                if (this === firstCard) return;
+
+                this.classList.add('flipped');
+
+                if (!firstCard) {
+                    firstCard = this;
+                    return;
+                }
+
+                secondCard = this;
+                lockBoard = true;
+                moves++;
+                movesCountSpan.textContent = moves;
+
+                checkForMatch();
+            }
+
+            function checkForMatch() {
+                const isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+                isMatch ? disableCards() : unflipCards();
+            }
+
+            function disableCards() {
+                firstCard.removeEventListener('click', flipCard);
+                secondCard.removeEventListener('click', flipCard);
+                
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+
+                matchedPairs++;
+                if (matchedPairs === pairsToMatch) {
+                    // Could add a "You Won!" celebration here
+                }
+
+                resetBoard();
+            }
+
+            function unflipCards() {
+                setTimeout(() => {
+                    firstCard.classList.remove('flipped');
+                    secondCard.classList.remove('flipped');
+                    resetBoard();
+                }, 1000);
+            }
+
+            function resetBoard() {
+                [firstCard, secondCard, lockBoard] = [null, null, false];
+            }
+            
+            startBtn.addEventListener('click', createBoard);
+            createBoard(); // Initial board creation
+        });
+    </script>
 </body>
 </html>
+
