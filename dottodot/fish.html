@@ -21,19 +21,29 @@
         .board-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; }
         #board, #completedImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
         }
         .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        /* Win Overlay */
+        .win-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .win-overlay.show { opacity: 1; pointer-events: auto; }
+        .win-message { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
 
     <main class="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
         <header class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
-            <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to All Games</a>
+            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to All Games</a>
             <div class="flex items-center gap-4">
                 <span id="progress" class="text-lg font-semibold text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">1 / 28</span>
                 <button id="resetBtn" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition">Reset</button>
@@ -50,6 +60,19 @@
         <footer class="text-center mt-6 text-gray-500">Tap the dots in order to reveal the picture!</footer>
     </main>
 
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="win-overlay">
+        <div class="win-message">You Won!</div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+            <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dotsContainer = document.getElementById('dots');
@@ -58,12 +81,35 @@
             const resetBtn = document.getElementById('resetBtn');
             const completedImage = document.getElementById('completedImage');
             const mainContainer = document.querySelector('main');
+            const winOverlay = document.getElementById('win-overlay');
+            const playAgainBtn = document.getElementById('play-again-btn');
+
+            const flipSound = document.getElementById('flip-sound');
+            const winSound = document.getElementById('win-sound');
             
             const dotCoordinates = [ { x: 307, y: 455 }, { x: 397, y: 383 }, { x: 460, y: 378 }, { x: 571, y: 322 }, { x: 599, y: 348 }, { x: 651, y: 407 }, { x: 699, y: 419 }, { x: 739, y: 458 }, { x: 798, y: 483 }, { x: 871, y: 496 }, { x: 854, y: 556 }, { x: 861, y: 632 }, { x: 828, y: 679 }, { x: 785, y: 665 }, { x: 737, y: 615 }, { x: 719, y: 620 }, { x: 648, y: 648 }, { x: 561, y: 681 }, { x: 574, y: 699 }, { x: 551, y: 742 }, { x: 518, y: 740 }, { x: 486, y: 698 }, { x: 417, y: 679 }, { x: 298, y: 605 }, { x: 275, y: 557 }, { x: 279, y: 552 }, { x: 292, y: 515 }, { x: 284, y: 478 } ];
             let currentDot = 1;
             const totalDots = dotCoordinates.length;
+            let audioUnlocked = false;
+
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+            }
+
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.error("Sound play failed:", e));
+                }
+            }
 
             function initGame() {
+                winOverlay.classList.remove('show');
                 currentDot = 1;
                 path.setAttribute('points', '');
                 dotsContainer.innerHTML = '';
@@ -94,8 +140,10 @@
             }
 
             function handleDotClick(e) {
+                if (!audioUnlocked) unlockAudio();
                 const clickedDot = parseInt(e.currentTarget.dataset.dot);
                 if (clickedDot === currentDot) {
+                    playSound(flipSound);
                     const { x, y } = dotCoordinates[currentDot - 1];
                     path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
                     e.currentTarget.classList.add('dot-connected');
@@ -117,6 +165,9 @@
                 progressEl.textContent = `Complete!`;
                 dotsContainer.style.opacity = '0';
                 path.style.opacity = '0';
+                
+                playSound(winSound);
+                setTimeout(() => winOverlay.classList.add('show'), 500);
             }
 
             function addEventListeners() {
@@ -124,8 +175,10 @@
             }
 
             resetBtn.addEventListener('click', initGame);
+            playAgainBtn.addEventListener('click', initGame);
             initGame();
         });
     </script>
 </body>
 </html>
+

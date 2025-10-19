@@ -21,12 +21,22 @@
         .board-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; }
         #board, #completedImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
         }
         .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        /* Win Overlay */
+        .win-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .win-overlay.show { opacity: 1; pointer-events: auto; }
+        .win-message { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
@@ -50,6 +60,19 @@
         <footer class="text-center mt-6 text-gray-500">Tap the dots in order to reveal the picture!</footer>
     </main>
 
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="win-overlay">
+        <div class="win-message">You Won!</div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+            <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dotsContainer = document.getElementById('dots');
@@ -58,12 +81,35 @@
             const resetBtn = document.getElementById('resetBtn');
             const completedImage = document.getElementById('completedImage');
             const mainContainer = document.querySelector('main');
+            const winOverlay = document.getElementById('win-overlay');
+            const playAgainBtn = document.getElementById('play-again-btn');
+
+            const flipSound = document.getElementById('flip-sound');
+            const winSound = document.getElementById('win-sound');
             
             const dotCoordinates = [ { x: 26, y: 462 }, { x: 48, y: 465 }, { x: 64, y: 313 }, { x: 105, y: 256 }, { x: 134, y: 253 }, { x: 168, y: 311 }, { x: 205, y: 303 }, { x: 272, y: 263 }, { x: 376, y: 320 }, { x: 581, y: 328 }, { x: 638, y: 448 }, { x: 505, y: 435 }, { x: 446, y: 452 }, { x: 448, y: 483 }, { x: 508, y: 518 }, { x: 581, y: 521 }, { x: 644, y: 530 }, { x: 666, y: 580 }, { x: 685, y: 639 }, { x: 700, y: 710 }, { x: 662, y: 660 }, { x: 666, y: 707 }, { x: 718, y: 738 }, { x: 776, y: 758 }, { x: 834, y: 782 }, { x: 837, y: 845 }, { x: 777, y: 856 }, { x: 737, y: 868 }, { x: 676, y: 838 }, { x: 638, y: 804 }, { x: 594, y: 718 }, { x: 558, y: 777 }, { x: 524, y: 780 }, { x: 505, y: 716 }, { x: 497, y: 808 }, { x: 456, y: 804 }, { x: 444, y: 713 }, { x: 427, y: 791 }, { x: 387, y: 788 }, { x: 380, y: 697 }, { x: 349, y: 701 }, { x: 322, y: 838 }, { x: 198, y: 838 }, { x: 162, y: 767 }, { x: 161, y: 741 }, { x: 114, y: 753 }, { x: 63, y: 698 }, { x: 108, y: 644 }, { x: 152, y: 664 }, { x: 239, y: 697 }, { x: 296, y: 634 }, { x: 271, y: 614 }, { x: 61, y: 602 }, { x: 7, y: 502 } ];
             let currentDot = 1;
             const totalDots = dotCoordinates.length;
+            let audioUnlocked = false;
+
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+            }
+
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.error("Sound play failed:", e));
+                }
+            }
 
             function initGame() {
+                winOverlay.classList.remove('show');
                 currentDot = 1;
                 path.setAttribute('points', '');
                 dotsContainer.innerHTML = '';
@@ -94,8 +140,10 @@
             }
 
             function handleDotClick(e) {
+                if (!audioUnlocked) unlockAudio();
                 const clickedDot = parseInt(e.currentTarget.dataset.dot);
                 if (clickedDot === currentDot) {
+                    playSound(flipSound);
                     const { x, y } = dotCoordinates[currentDot - 1];
                     path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
                     e.currentTarget.classList.add('dot-connected');
@@ -117,6 +165,9 @@
                 progressEl.textContent = `Complete!`;
                 dotsContainer.style.opacity = '0';
                 path.style.opacity = '0';
+                
+                playSound(winSound);
+                setTimeout(() => winOverlay.classList.add('show'), 500);
             }
 
             function addEventListeners() {
@@ -124,6 +175,7 @@
             }
 
             resetBtn.addEventListener('click', initGame);
+            playAgainBtn.addEventListener('click', initGame);
             initGame();
         });
     </script>

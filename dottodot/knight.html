@@ -21,12 +21,22 @@
         .board-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; }
         #board, #completedImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
         }
         .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        /* Win Overlay */
+        .win-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .win-overlay.show { opacity: 1; pointer-events: auto; }
+        .win-message { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
@@ -50,6 +60,19 @@
         <footer class="text-center mt-6 text-gray-500">Tap the dots in order to reveal the picture!</footer>
     </main>
 
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="win-overlay">
+        <div class="win-message">You Won!</div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+            <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dotsContainer = document.getElementById('dots');
@@ -58,12 +81,35 @@
             const resetBtn = document.getElementById('resetBtn');
             const completedImage = document.getElementById('completedImage');
             const mainContainer = document.querySelector('main');
+            const winOverlay = document.getElementById('win-overlay');
+            const playAgainBtn = document.getElementById('play-again-btn');
+
+            const flipSound = document.getElementById('flip-sound');
+            const winSound = document.getElementById('win-sound');
             
             const dotCoordinates = [ { x: 81, y: 504 }, { x: 83, y: 415 }, { x: 108, y: 345 }, { x: 168, y: 232 }, { x: 214, y: 150 }, { x: 319, y: 69 }, { x: 382, y: 163 }, { x: 488, y: 224 }, { x: 547, y: 312 }, { x: 514, y: 349 }, { x: 615, y: 393 }, { x: 658, y: 453 }, { x: 750, y: 437 }, { x: 786, y: 527 }, { x: 826, y: 594 }, { x: 773, y: 647 }, { x: 729, y: 692 }, { x: 745, y: 783 }, { x: 757, y: 836 }, { x: 712, y: 914 }, { x: 673, y: 950 }, { x: 582, y: 929 }, { x: 551, y: 876 }, { x: 520, y: 919 }, { x: 464, y: 934 }, { x: 421, y: 931 }, { x: 394, y: 839 }, { x: 326, y: 805 }, { x: 383, y: 664 }, { x: 430, y: 560 }, { x: 302, y: 581 }, { x: 162, y: 587 }, { x: 75, y: 608 } ];
             let currentDot = 1;
             const totalDots = dotCoordinates.length;
+            let audioUnlocked = false;
+
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+            }
+
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.error("Sound play failed:", e));
+                }
+            }
 
             function initGame() {
+                winOverlay.classList.remove('show');
                 currentDot = 1;
                 path.setAttribute('points', '');
                 dotsContainer.innerHTML = '';
@@ -94,8 +140,10 @@
             }
 
             function handleDotClick(e) {
+                if (!audioUnlocked) unlockAudio();
                 const clickedDot = parseInt(e.currentTarget.dataset.dot);
                 if (clickedDot === currentDot) {
+                    playSound(flipSound);
                     const { x, y } = dotCoordinates[currentDot - 1];
                     path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
                     e.currentTarget.classList.add('dot-connected');
@@ -117,6 +165,9 @@
                 progressEl.textContent = `Complete!`;
                 dotsContainer.style.opacity = '0';
                 path.style.opacity = '0';
+                
+                playSound(winSound);
+                setTimeout(() => winOverlay.classList.add('show'), 500);
             }
 
             function addEventListeners() {
@@ -124,6 +175,7 @@
             }
 
             resetBtn.addEventListener('click', initGame);
+            playAgainBtn.addEventListener('click', initGame);
             initGame();
         });
     </script>
