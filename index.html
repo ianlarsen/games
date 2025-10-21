@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTGames</title>
-  <meta name="description" content="Big, kid-friendly buttons that launch Concentration, Seek & Find, Dot-to-Dot, and Sequencing." />
+  <meta name="description" content="A collection of fun, kid-friendly learning games." />
   <style>
     :root {
       --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
@@ -43,12 +43,6 @@
       font-size: clamp(1.4rem, 4vw, 2rem);
       display: flex;
       align-items: center;
-      /* gap: 0.25rem; <--- This was the line causing the space. I've removed it. */
-    }
-    .logo-img {
-      height: 1.2em; /* Sizes the logo relative to the text */
-      width: auto;
-      margin-right: 0.1em; /* Add a tiny bit of space so they don't crash */
     }
     .tts-toggle {
       background: transparent;
@@ -95,6 +89,9 @@
     .emoji {
       font-size: clamp(3rem, 10vw, 4.5rem);
       line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .label {
       font-size: clamp(1.1rem, 3.6vw, 1.6rem);
@@ -113,41 +110,67 @@
 <body>
   <header>
     <div class="header-content">
-        <h1>
-OTGames
-        </h1>
+        <h1>OTGames</h1>
         <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
     </div>
   </header>
 
   <main>
     <div class="grid">
+      <!-- Left or Right Game -->
+      <a class="tile" href="leftright/index.html" data-say="Left or Right. Which way are they facing?" aria-label="Left or Right. Which way are they facing?">
+        <div class="emoji" aria-hidden="true">⬅️➡️</div>
+        <div class="label">Left or Right</div>
+        <div class="hint">Which way are they facing?</div>
+      </a>
+
+      <!-- Letter Reversals Game -->
+      <a class="tile" href="letterreverse/index.html" data-say="Letter Reversals. Watch out for tricky letters." aria-label="Letter Reversals. Watch out for tricky letters.">
+        <div class="emoji" aria-hidden="true">🔄🔡</div>
+        <div class="label">Letter Reversals</div>
+        <div class="hint">Watch out for tricky letters!</div>
+      </a>
+
+      <!-- Shape Finder Game -->
+      <a class="tile" href="shapes/index.html" data-say="Shape Finder. Find the hidden shapes." aria-label="Shape Finder. Find the hidden shapes.">
+        <div class="emoji" aria-hidden="true">
+           <svg width="1em" height="1em" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font-size: 50px; overflow: visible; fill: currentColor;">
+            <text x="0" y="45">🔺</text>
+            <text x="50" y="45">⭐</text>
+            <text x="0" y="95">🟥</text>
+            <polygon points="55,95 95,95 85,55 65,55" />
+          </svg>
+        </div>
+        <div class="label">Shape Finder</div>
+        <div class="hint">Find the hidden shapes!</div>
+      </a>
+      
       <!-- Concentration -->
       <a class="tile" href="concentration/index.html" data-say="Concentration. Match the cards." aria-label="Concentration. Match the cards.">
-        <div class="emoji" aria-hidden="true">🧠🃏</div>
+        <div class="emoji" aria-hidden="true">🤔🃏</div>
         <div class="label">Concentration</div>
-        <div class="hint">Tap to play</div>
+        <div class="hint">Match the cards</div>
       </a>
 
       <!-- Seek & Find -->
       <a class="tile" href="seekandfind/index.html" data-say="Seek and Find. Look for hidden things." aria-label="Seek and Find. Look for hidden things.">
-        <div class="emoji" aria-hidden="true">🔎👀</div>
+        <div class="emoji" aria-hidden="true">🔎✨</div>
         <div class="label">Seek &amp; Find</div>
-        <div class="hint">Tap to play</div>
+        <div class="hint">Look for hidden things</div>
       </a>
 
       <!-- Dot-to-Dot -->
       <a class="tile" href="dottodot/index.html" data-say="Dot to Dot. Connect the dots." aria-label="Dot to Dot. Connect the dots.">
-        <div class="emoji" aria-hidden="true">🦖✏️</div>
+        <div class="emoji" aria-hidden="true">✏️🎨</div>
         <div class="label">Dot-to-Dot</div>
-        <div class="hint">Tap to play</div>
+        <div class="hint">Connect the dots</div>
       </a>
 
       <!-- Sequencing -->
       <a class="tile" href="sequence/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
-        <div class="emoji" aria-hidden="true">1️⃣➡️</div>
+        <div class="emoji" aria-hidden="true">📖</div>
         <div class="label">Sequencing</div>
-        <div class="hint">Tap to play</div>
+        <div class="hint">Put the stories in order</div>
       </a>
     </div>
   </main>
