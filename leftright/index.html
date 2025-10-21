@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Left and Right Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        .direction-btn.selected {
+            background-color: #fef08a; /* Yellow-200 for illumination */
+            transform: scale(1.05);
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <header class="flex flex-wrap items-center justify-start gap-4 mb-6 pb-4 border-b">
+            <a href="seekandfind_menu.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
+        </header>
+
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Which way is the animal facing?</h1>
+        </div>
+
+        <div id="image-container" class="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-6 overflow-hidden">
+            <img id="animal-image" src="" alt="An animal" class="max-w-full max-h-full object-contain">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <button id="left-btn" data-direction="left" class="direction-btn w-full py-6 text-3xl font-bold bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-transform transform">Left</button>
+            <button id="right-btn" data-direction="right" class="direction-btn w-full py-6 text-3xl font-bold bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-transform transform">Right</button>
+        </div>
+    </main>
+
+    <!-- Audio Elements -->
+    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+    <audio id="match-sound" src="sounds/match.mp3" preload="auto"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const animalImage = document.getElementById('animal-image');
+            const leftBtn = document.getElementById('left-btn');
+            const rightBtn = document.getElementById('right-btn');
+            const mainEl = document.querySelector('main');
+
+            const flipSound = document.getElementById('flip-sound');
+            const matchSound = document.getElementById('match-sound');
+            let audioUnlocked = false;
+
+            const animals = [
+                { src: 'images/horse_right.png', answer: 'right' }, { src: 'images/cow_left.png', answer: 'left' },
+                { src: 'images/pig_left.png', answer: 'left' }, { src: 'images/frog_right.png', answer: 'right' },
+                { src: 'images/turtle_left.png', answer: 'left' }, { src: 'images/goat_right.png', answer: 'right' },
+                { src: 'images/dog_right.png', answer: 'right' }, { src: 'images/cat_left.png', answer: 'left' },
+                { src: 'images/duck_left.png', answer: 'left' }, { src: 'images/chicken_right.png', answer: 'right' },
+                { src: 'images/sheep_right.png', answer: 'right' }, { src: 'images/rooster_left.png', answer: 'left' },
+                { src: 'images/bird_left.png', answer: 'left' }, { src: 'images/fish_right.png', answer: 'right' },
+                { src: 'images/snake_right.png', answer: 'right' }, { src: 'images/lizard_left.png', answer: 'left' },
+                { src: 'images/mouse_left.png', answer: 'left' }, { src: 'images/rabbit_right.png', answer: 'right' },
+                { src: 'images/bear_right.png', answer: 'right' }, { src: 'images/fox_left.png', answer: 'left' },
+            ];
+            
+            let shuffledAnimals = [];
+            let currentAnimalIndex = 0;
+            let processing = false;
+
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                flipSound.play().then(() => { flipSound.pause(); matchSound.play().then(() => matchSound.pause()).catch(()=>{}); audioUnlocked = true; }).catch(() => {});
+            }
+
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.error("Sound play failed:", e));
+                }
+            }
+            
+            function initGame() {
+                shuffledAnimals = [...animals].sort(() => Math.random() - 0.5);
+                currentAnimalIndex = 0;
+                loadAnimal();
+            }
+
+            function loadAnimal() {
+                if (currentAnimalIndex >= shuffledAnimals.length) {
+                    // When the list is finished, reshuffle and start from the beginning.
+                    shuffledAnimals.sort(() => Math.random() - 0.5);
+                    currentAnimalIndex = 0;
+                }
+                const animal = shuffledAnimals[currentAnimalIndex];
+                animalImage.src = animal.src;
+                animalImage.onerror = () => animalImage.src = `https://placehold.co/400x225/e0e0e0/757575?text=${animal.src.split('/')[1]}`;
+            }
+
+            function handleChoice(event) {
+                if (processing) return;
+                if (!audioUnlocked) unlockAudio();
+                
+                processing = true;
+                const selectedBtn = event.currentTarget;
+                const selectedDirection = selectedBtn.dataset.direction;
+                const correctDirection = shuffledAnimals[currentAnimalIndex].answer;
+
+                playSound(flipSound);
+                selectedBtn.classList.add('selected');
+
+                if (selectedDirection === correctDirection) {
+                    playSound(matchSound);
+                    setTimeout(() => {
+                        currentAnimalIndex++;
+                        loadAnimal();
+                        selectedBtn.classList.remove('selected');
+                        processing = false;
+                    }, 1000);
+                } else {
+                    mainEl.classList.add('shake');
+                    if (navigator.vibrate) navigator.vibrate(200);
+                    setTimeout(() => {
+                        mainEl.classList.remove('shake');
+                        selectedBtn.classList.remove('selected');
+                        processing = false;
+                    }, 1000);
+                }
+            }
+            
+            leftBtn.addEventListener('click', handleChoice);
+            rightBtn.addEventListener('click', handleChoice);
+
+            initGame();
+        });
+    </script>
+</body>
+</html>
+
