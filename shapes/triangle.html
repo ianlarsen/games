@@ -154,7 +154,7 @@
 </head>
 <body>
 
-    <a href="index.html" class="back-button">&larr; All Games</a>
+    <a href="../index.html" class="back-button">&larr; All Games</a>
 
     <main>
         <h1>Triangle Tap</h1>
@@ -282,39 +282,83 @@
         function generateShapes() {
             shapes = [];
             totalTriangles = 0;
-            const nonTriangles = [];
-            const triangles = [];
 
             const numTargetShapes = Math.floor(Math.random() * 6) + 5;
             const numDistractorShapes = Math.floor(Math.random() * 10) + 15;
             totalTriangles = numTargetShapes;
 
-            for(let i = 0; i < numTargetShapes; i++) {
-                const size = (Math.random() * (shapeBaseSize * 0.5) + (shapeBaseSize * 0.5)) * (canvas.width / 1000);
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const rotation = Math.random() * Math.PI * 2;
-                const shapeInfo = { found: false, color: `hsl(${Math.random() * 360}, 80%, 60%)` };
-                const shapeData = { type: 'triangle', points: createPolygon(3, size, x, y, rotation) };
-                triangles.push({ ...shapeData, ...shapeInfo });
-            }
+            const allPlacedShapes = [];
+            const maxAttemptsPerShape = 100;
 
-            for(let i = 0; i < numDistractorShapes; i++) {
-                const size = (Math.random() * (shapeBaseSize * 0.5) + (shapeBaseSize * 0.5)) * (canvas.width / 1000);
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const rotation = Math.random() * Math.PI * 2;
-                const shapeInfo = { found: false, color: `hsl(${Math.random() * 360}, 80%, 60%)` };
-                let shapeData;
-                if (Math.random() < 0.5) {
-                    shapeData = { type: 'square', points: createPolygon(4, size, x, y, rotation) };
-                } else {
-                     shapeData = { type: 'rhombus', points: createRhombus(size, x, y, rotation) };
+            const doesOverlap = (shapeA, shapeB) => {
+                const getBounds = (shape) => {
+                    const xCoords = shape.points.map(p => p.x);
+                    const yCoords = shape.points.map(p => p.y);
+                    return {
+                        minX: Math.min(...xCoords),
+                        maxX: Math.max(...xCoords),
+                        minY: Math.min(...yCoords),
+                        maxY: Math.max(...yCoords),
+                    };
+                };
+
+                const boundsA = getBounds(shapeA);
+                const boundsB = getBounds(shapeB);
+
+                const padding = -15; 
+
+                return boundsA.minX < boundsB.maxX + padding &&
+                       boundsA.maxX > boundsB.minX - padding &&
+                       boundsA.minY < boundsB.maxY + padding &&
+                       boundsA.maxY > boundsB.minY - padding;
+            };
+
+            const isCollidingWithAny = (newShape, existingShapes) => {
+                for (const existingShape of existingShapes) {
+                    if (doesOverlap(newShape, existingShape)) {
+                        return true;
+                    }
                 }
-                nonTriangles.push({ ...shapeData, ...shapeInfo });
-            }
+                return false;
+            };
             
-            shapes = [...triangles, ...nonTriangles].sort(() => Math.random() - 0.5);
+            const shapeTypesToGenerate = [
+                ...Array(numTargetShapes).fill('triangle'),
+                ...Array(numDistractorShapes).fill('distractor')
+            ].sort(() => Math.random() - 0.5);
+
+
+            for (const shapeType of shapeTypesToGenerate) {
+                let newShape;
+                let attempts = 0;
+                
+                do {
+                    const size = (Math.random() * (shapeBaseSize * 0.4) + (shapeBaseSize * 0.5)) * (canvas.width / 1000);
+                    const x = Math.random() * (canvas.width - size * 2) + size;
+                    const y = Math.random() * (canvas.height - size * 2) + size;
+                    const rotation = Math.random() * Math.PI * 2;
+                    
+                    if (shapeType === 'triangle') {
+                        newShape = { type: 'triangle', points: createPolygon(3, size, x, y, rotation) };
+                    } else { // distractor
+                        if (Math.random() < 0.5) {
+                            newShape = { type: 'square', points: createPolygon(4, size, x, y, rotation) };
+                        } else {
+                            newShape = { type: 'rhombus', points: createRhombus(size, x, y, rotation) };
+                        }
+                    }
+                    attempts++;
+                } while (isCollidingWithAny(newShape, allPlacedShapes) && attempts < maxAttemptsPerShape);
+
+                if (attempts < maxAttemptsPerShape) {
+                    allPlacedShapes.push({
+                        ...newShape,
+                        found: false,
+                        color: `hsl(${Math.random() * 360}, 80%, 60%)`
+                    });
+                }
+            }
+            shapes = allPlacedShapes;
         }
 
         function draw() {
@@ -353,10 +397,9 @@
             if (!isGameActive) return;
             event.preventDefault();
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
             const clientX = event.changedTouches ? event.changedTouches[0].clientX : event.clientX;
             const clientY = event.changedTouches ? event.changedTouches[0].clientY : event.clientY;
-            const clickPos = { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            const clickPos = { x: clientX - rect.left, y: clientY - rect.top };
 
             let correctClick = false;
             let wrongClick = false;
@@ -468,17 +511,13 @@
 
         function resizeCanvas() {
             const container = canvas.parentElement;
-            const size = Math.min(container.clientWidth, container.clientHeight);
+            const size = container.clientWidth;
             
             canvas.width = size;
             canvas.height = size;
-            canvas.style.width = `${size}px`;
-            canvas.style.height = `${size}px`;
 
             confettiCanvas.width = size;
             confettiCanvas.height = size;
-            confettiCanvas.style.width = `${size}px`;
-            confettiCanvas.style.height = `${size}px`;
             
             if (isGameActive) {
                 draw();
