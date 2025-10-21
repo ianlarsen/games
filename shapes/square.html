@@ -4,71 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Square Tap Game</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
+            --focus: #63b3ed; --accent: #3182ce; --success: #48bb78; --radius: 20px; --gap: 1.2rem; --max: 960px;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
-            font-family: 'Inter', sans-serif;
-            touch-action: manipulation; /* Prevents double-tap zoom on mobile */
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            display: grid;
+            place-items: center;
+            padding: var(--gap);
         }
-        .game-canvas {
+        .back-button {
+            position: absolute;
+            top: var(--gap);
+            left: var(--gap);
+            background: var(--panel);
+            color: var(--ink);
+            border: 2px solid #e2e8f0;
+            border-radius: 999px;
+            padding: .45rem .8rem;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            transition: all .15s ease;
         }
-        .status-card {
-            background-color: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .back-button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
         }
-        .start-screen, .win-screen {
-            background-color: rgba(0, 0, 0, 0.6);
+        main {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        .game-canvas-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            margin-block: 1rem;
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: var(--panel);
+            border-radius: var(--radius);
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0,0,0,.1);
+        }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 2rem;
         }
+        .overlay.hidden { display: none; }
+        .overlay h2 { font-size: clamp(1.8rem, 5vw, 2.5rem); margin: 0 0 .5rem; }
+        .overlay p { font-size: clamp(1rem, 3vw, 1.2rem); margin: 0 0 1.5rem; opacity: .9; }
+        .overlay .final-score { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: bold; margin-bottom: 1.5rem; }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: .8rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform .15s ease, background-color .15s ease;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-success { background: var(--success); }
+        
+        .status-card {
+            background: var(--panel);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: 0 6px 16px rgba(0,0,0,.1);
+        }
+        .status-card .label { color: var(--muted); font-weight: 600; }
+        .status-card .value { font-size: 2rem; font-weight: bold; color: var(--accent); }
+        .example-shape {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 1rem;
+        }
+        .slider-container {
+            width: 80%;
+            max-width: 300px;
+            margin-top: 1rem;
+        }
+        .slider-container label {
+            display: block;
+            margin-bottom: .5rem;
+            font-weight: 600;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center h-screen overflow-hidden">
+<body>
 
-    <div id="game-container" class="relative w-full h-full max-w-2xl max-h-[95vh] sm:max-h-[800px] p-4 flex flex-col items-center">
-        <h1 class="text-3xl sm:text-4xl font-bold text-center mb-4 text-indigo-600 dark:text-indigo-400">Square Tap</h1>
+    <a href="../index.html" class="back-button">&larr; All Games</a>
 
-        <div class="relative w-full aspect-square">
-            <canvas id="gameCanvas" class="game-canvas bg-white dark:bg-gray-800 w-full h-full"></canvas>
+    <main>
+        <h1>Square Tap</h1>
+        <div class="game-canvas-container">
+            <canvas id="gameCanvas"></canvas>
             
             <!-- Start Screen -->
-            <div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center rounded-xl start-screen">
-                <h2 class="text-3xl font-bold text-white mb-2">Form Constancy Challenge</h2>
-                <p class="text-lg text-gray-200 mb-6 px-4 text-center">How many squares can you find?</p>
-                <button id="startButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-lg transform hover:scale-105 transition-transform">
-                    Start Game
-                </button>
+            <div id="startScreen" class="overlay">
+                <h2>Shape Challenge</h2>
+                <svg class="example-shape" viewBox="0 0 100 100">
+                   <rect x="5" y="5" width="90" height="90" style="fill:none;stroke:white;stroke-width:5" />
+                </svg>
+                <p>How many squares can you find?</p>
+                 <div class="slider-container">
+                    <label for="sizeSlider">Shape Size</label>
+                    <input type="range" id="sizeSlider" min="30" max="100" value="65">
+                </div>
+                <button id="startButton" class="btn">Start Game</button>
             </div>
 
             <!-- Win Screen -->
-            <div id="winScreen" class="absolute inset-0 flex-col items-center justify-center rounded-xl win-screen hidden">
-                <canvas id="confettiCanvas" class="absolute inset-0 w-full h-full rounded-xl"></canvas>
-                <h2 class="text-4xl font-bold text-green-400 mb-2 z-10">You Win!</h2>
-                <p class="text-xl text-gray-200 mb-4 z-10">You found all the squares in:</p>
-                <p id="finalTime" class="text-5xl font-bold text-white mb-6 z-10">0.00s</p>
-                <button id="restartButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-lg transform hover:scale-105 transition-transform z-10">
-                    Play Again
-                </button>
+            <div id="winScreen" class="overlay hidden">
+                <canvas id="confettiCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
+                <h2 style="z-index: 1;">You Win!</h2>
+                <p style="z-index: 1;">Great job finding all the squares.</p>
+                <button id="restartButton" class="btn btn-success" style="z-index: 1;">Play Again</button>
             </div>
         </div>
 
-        <div class="status-card w-full mt-4 p-3 flex justify-around text-center">
-            <div>
-                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">Time</p>
-                <p id="timer" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0.00</p>
-            </div>
-            <div>
-                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">Found</p>
-                <p id="foundCounter" class="text-2xl font-bold text-green-500">0 / 0</p>
-            </div>
+        <div class="status-card">
+            <p class="label">Squares Found</p>
+            <p id="foundCounter" class="value">0 / 0</p>
         </div>
-
-    </div>
+    </main>
+    
+    <audio id="flipSound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="winSound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -77,32 +195,37 @@
         const restartButton = document.getElementById('restartButton');
         const startScreen = document.getElementById('startScreen');
         const winScreen = document.getElementById('winScreen');
-        const timerElement = document.getElementById('timer');
         const foundCounterElement = document.getElementById('foundCounter');
-        const finalTimeElement = document.getElementById('finalTime');
         const confettiCanvas = document.getElementById('confettiCanvas');
         const confettiCtx = confettiCanvas.getContext('2d');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const mainEl = document.querySelector('main');
 
-        let shapes = [];
-        let totalSquares = 0;
-        let foundSquares = 0;
-        let timerInterval;
-        let startTime;
-        let animationFrameId;
-        let confettiAnimationId;
-        let isGameActive = false;
+        const flipSound = document.getElementById('flipSound');
+        const winSound = document.getElementById('winSound');
+
+        let shapes = [], totalSquares = 0, foundSquares = 0;
+        let animationFrameId, confettiAnimationId, isGameActive = false;
         let confettiParticles = [];
+        let shapeBaseSize = 65;
 
+        // --- Sound Control ---
+        const playSound = (sound) => {
+            try {
+                sound.currentTime = 0;
+                sound.play();
+            } catch (e) {
+                console.error("Could not play sound", e);
+            }
+        };
+        
         // --- Shape Generation ---
         function createPolygon(sides, size, centerX, centerY, rotation) {
             const points = [];
             const angleStep = (Math.PI * 2) / sides;
             for (let i = 0; i < sides; i++) {
                 const angle = i * angleStep + rotation;
-                points.push({
-                    x: centerX + Math.cos(angle) * size,
-                    y: centerY + Math.sin(angle) * size,
-                });
+                points.push({ x: centerX + Math.cos(angle) * size, y: centerY + Math.sin(angle) * size });
             }
             return points;
         }
@@ -113,10 +236,7 @@
              for (let i = 0; i < 4; i++) {
                 const angle = i * angleStep + rotation;
                 const currentSize = (i % 2 === 0) ? size * 1.5 : size * 0.8;
-                points.push({
-                    x: centerX + Math.cos(angle) * currentSize,
-                    y: centerY + Math.sin(angle) * currentSize,
-                });
+                points.push({ x: centerX + Math.cos(angle) * currentSize, y: centerY + Math.sin(angle) * currentSize });
             }
             return points;
         }
@@ -126,33 +246,29 @@
             totalSquares = 0;
             const nonSquares = [];
             const squares = [];
-            const numShapes = Math.floor(Math.random() * 5) + 20; // 20-24 shapes
+            const numShapes = Math.floor(Math.random() * 5) + 20;
 
             for (let i = 0; i < numShapes; i++) {
-                const size = Math.random() * (canvas.width * 0.15) + (canvas.width * 0.05);
+                const size = (Math.random() * (shapeBaseSize * 0.5) + (shapeBaseSize * 0.5)) * (canvas.width / 1000);
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 const rotation = Math.random() * Math.PI * 2;
                 const shapeTypeRand = Math.random();
                 let shapeData;
-                const shapeInfo = {
-                    found: false,
-                    color: `hsl(${Math.random() * 360}, 80%, 60%)`
-                };
+                const shapeInfo = { found: false, color: `hsl(${Math.random() * 360}, 80%, 60%)` };
 
-                if (shapeTypeRand < 0.5) { // 50% chance of square
+                if (shapeTypeRand < 0.5) {
                     shapeData = { type: 'square', points: createPolygon(4, size, x, y, rotation) };
                     totalSquares++;
                     squares.push({ ...shapeData, ...shapeInfo });
-                } else if (shapeTypeRand < 0.85) { // 35% chance of triangle
+                } else if (shapeTypeRand < 0.85) {
                     shapeData = { type: 'triangle', points: createPolygon(3, size, x, y, rotation) };
                     nonSquares.push({ ...shapeData, ...shapeInfo });
-                } else { // 15% chance of rhombus
+                } else {
                      shapeData = { type: 'rhombus', points: createRhombus(size, x, y, rotation) };
                      nonSquares.push({ ...shapeData, ...shapeInfo });
                 }
             }
-            // Squares are added last to ensure they are rendered on top and are always clickable
             shapes = nonSquares.concat(squares);
         }
 
@@ -171,26 +287,16 @@
                     ctx.fillStyle = shape.color;
                     ctx.fill();
                 } else {
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = Math.max(2, canvas.width / 200);
                     ctx.strokeStyle = '#333';
-                    if (document.body.classList.contains('dark')) {
-                        ctx.strokeStyle = '#EEE';
-                    }
                     ctx.stroke();
                 }
             });
         }
         
         // --- Game Logic ---
-        function updateTimer() {
-            const currentTime = new Date();
-            const elapsedTime = ((currentTime - startTime) / 1000).toFixed(2);
-            timerElement.textContent = elapsedTime;
-        }
-        
         function pointInPolygon(point, vs) {
-            let x = point.x, y = point.y;
-            let inside = false;
+            let x = point.x, y = point.y, inside = false;
             for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
                 let xi = vs[i].x, yi = vs[i].y;
                 let xj = vs[j].x, yj = vs[j].y;
@@ -202,21 +308,14 @@
 
         function handleCanvasClick(event) {
             if (!isGameActive) return;
-
             event.preventDefault();
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
+            const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
             const clientX = event.changedTouches ? event.changedTouches[0].clientX : event.clientX;
             const clientY = event.changedTouches ? event.changedTouches[0].clientY : event.clientY;
+            const clickPos = { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
 
-            const clickPos = {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
-            };
-
-            // Iterate backwards to check topmost shapes first
+            let correctClick = false;
             for (let i = shapes.length - 1; i >= 0; i--) {
                 const shape = shapes[i];
                 if (!shape.found && pointInPolygon(clickPos, shape.points)) {
@@ -224,14 +323,17 @@
                         shape.found = true;
                         foundSquares++;
                         updateFoundCounter();
-                        if (foundSquares === totalSquares) {
-                            endGame();
-                        }
-                    } else {
-                        // Penalty for wrong click? For now, nothing.
+                        playSound(flipSound);
+                        correctClick = true;
+                        if (foundSquares === totalSquares) endGame();
                     }
-                    break; // Stop after finding the first shape
+                    break;
                 }
+            }
+            if (!correctClick) {
+                 mainEl.classList.add('shake');
+                 if (navigator.vibrate) navigator.vibrate(200);
+                 setTimeout(() => mainEl.classList.remove('shake'), 820);
             }
         }
         
@@ -251,15 +353,13 @@
             confettiParticles = [];
             cancelAnimationFrame(confettiAnimationId);
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            shapeBaseSize = parseInt(sizeSlider.value, 10);
             
             generateShapes();
             updateFoundCounter();
             
             startScreen.classList.add('hidden');
             winScreen.classList.add('hidden');
-
-            startTime = new Date();
-            timerInterval = setInterval(updateTimer, 100);
             
             cancelAnimationFrame(animationFrameId);
             gameLoop();
@@ -267,8 +367,7 @@
 
         function endGame() {
             isGameActive = false;
-            clearInterval(timerInterval);
-            finalTimeElement.textContent = timerElement.textContent + 's';
+            playSound(winSound);
             winScreen.classList.remove('hidden');
             cancelAnimationFrame(animationFrameId);
             createConfetti();
@@ -282,43 +381,25 @@
             for (let i = 0; i < particleCount; i++) {
                 confettiParticles.push({
                     x: Math.random() * confettiCanvas.width,
-                    y: -Math.random() * confettiCanvas.height, // Start above the screen
+                    y: -Math.random() * confettiCanvas.height,
                     w: Math.random() * 10 + 5,
                     h: Math.random() * 10 + 5,
                     color: colors[Math.floor(Math.random() * colors.length)],
-                    speedX: (Math.random() - 0.5) * 10,
-                    speedY: Math.random() * 5 + 2,
+                    speedX: (Math.random() - 0.5) * 8,
+                    speedY: Math.random() * 3 + 1, // Slower speed
                     rotation: Math.random() * 360,
-                    rotationSpeed: (Math.random() - 0.5) * 10
+                    rotationSpeed: (Math.random() - 0.5) * 5
                 });
             }
         }
 
         function animateConfetti() {
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-
-            // Redraw found shapes on confetti canvas so confetti is behind them
-            shapes.forEach(shape => {
-                if(shape.found){
-                    confettiCtx.beginPath();
-                    confettiCtx.moveTo(shape.points[0].x, shape.points[0].y);
-                    for (let i = 1; i < shape.points.length; i++) {
-                        confettiCtx.lineTo(shape.points[i].x, shape.points[i].y);
-                    }
-                    confettiCtx.closePath();
-                    confettiCtx.fillStyle = shape.color;
-                    confettiCtx.fill();
-                }
-            });
-
-
             confettiParticles.forEach(p => {
                 p.x += p.speedX;
                 p.y += p.speedY;
                 p.rotation += p.rotationSpeed;
-
-                // Simple gravity
-                p.speedY += 0.1; 
+                p.speedY += 0.05; // Slower gravity
 
                 confettiCtx.save();
                 confettiCtx.translate(p.x + p.w / 2, p.y + p.h / 2);
@@ -327,34 +408,35 @@
                 confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
                 confettiCtx.restore();
 
-                // Reset particle when it goes off screen
                 if (p.y > confettiCanvas.height) {
                     p.y = -p.h;
                     p.x = Math.random() * confettiCanvas.width;
-                    p.speedX = (Math.random() - 0.5) * 10;
                 }
                  if (p.x > confettiCanvas.width + p.w || p.x < -p.w) {
                     p.x = Math.random() * confettiCanvas.width;
                     p.y = -p.h;
                  }
             });
-
             confettiAnimationId = requestAnimationFrame(animateConfetti);
         }
 
-
-        // --- Initialization and Event Listeners ---
+        // --- Init & Listeners ---
         function resizeCanvas() {
             const container = canvas.parentElement;
             const size = Math.min(container.clientWidth, container.clientHeight);
-            canvas.width = size;
-            canvas.height = size;
-            confettiCanvas.width = size;
-            confettiCanvas.height = size;
-            // Regenerate shapes on resize if game hasn't started
-            if (!isGameActive && totalSquares > 0) {
-                 draw();
-            } else if(!isGameActive) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            confettiCanvas.width = size * dpr;
+            confettiCanvas.height = size * dpr;
+            ctx.scale(dpr, dpr);
+            confettiCtx.scale(dpr,dpr);
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+            confettiCanvas.style.width = `${size}px`;
+            confettiCanvas.style.height = `${size}px`;
+            
+            if (!isGameActive) {
                 generateShapes();
                 draw();
             }
@@ -362,15 +444,14 @@
         
         window.addEventListener('resize', resizeCanvas);
         
-        // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
             resizeCanvas();
             startButton.addEventListener('click', startGame);
             restartButton.addEventListener('click', startGame);
-
             canvas.addEventListener('click', handleCanvasClick);
             canvas.addEventListener('touchstart', handleCanvasClick, { passive: false });
         });
     </script>
 </body>
 </html>
+

@@ -5,219 +5,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Star Tap Game</title>
     <style>
-        /* 1. The Core Design System */
         :root {
-            --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; 
-            --muted: #718096; --focus: #63b3ed; --accent: #3182ce; --win: #2f855a;
-            --radius: 20px; --gap: 1.2rem; --max: 960px;
+            --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
+            --focus: #63b3ed; --accent: #3182ce; --success: #48bb78; --radius: 20px; --gap: 1.2rem; --max: 960px;
         }
-
-        /* 2. Basic Body & Layout Styling */
         * { box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
             margin: 0;
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
             background: var(--bg);
             color: var(--ink);
-            padding: 1rem;
             display: grid;
-            grid-template-rows: auto 1fr;
-            min-height: 100dvh;
-            gap: 1rem;
-            touch-action: manipulation;
-        }
-        main {
-            width: min(100%, 700px);
-            margin-inline: auto;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        h1 {
-            font-size: clamp(1.8rem, 5vw, 2.5rem);
-            color: var(--accent);
-        }
-
-        /* 3. Header & Back Button */
-        header {
-            width: min(100%, var(--max));
-            margin-inline: auto;
+            place-items: center;
+            padding: var(--gap);
         }
         .back-button {
-            display: inline-block;
+            position: absolute;
+            top: var(--gap);
+            left: var(--gap);
             background: var(--panel);
             color: var(--ink);
+            border: 2px solid #e2e8f0;
+            border-radius: 999px;
+            padding: .45rem .8rem;
+            font-size: 1rem;
             font-weight: 600;
+            cursor: pointer;
             text-decoration: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0, .07);
-            transition: transform .12s ease, box-shadow .12s ease;
+            transition: all .15s ease;
         }
         .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0, .1);
+            border-color: var(--accent);
+            color: var(--accent);
         }
-
-        /* 4. Game-Specific Components */
-        .game-wrapper {
+        main {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        .game-canvas-container {
             position: relative;
             width: 100%;
             aspect-ratio: 1 / 1;
+            margin-block: 1rem;
         }
-        .game-canvas {
+        #gameCanvas {
             width: 100%;
             height: 100%;
             background: var(--panel);
             border-radius: var(--radius);
-            box-shadow: 0 6px 16px rgba(0,0,0,.1);
             cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0,0,0,.1);
         }
         .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0, .6);
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
             border-radius: var(--radius);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
             color: white;
-            padding: 1rem;
+            padding: 2rem;
         }
         .overlay.hidden { display: none; }
+        .overlay h2 { font-size: clamp(1.8rem, 5vw, 2.5rem); margin: 0 0 .5rem; }
+        .overlay p { font-size: clamp(1rem, 3vw, 1.2rem); margin: 0 0 1.5rem; opacity: .9; }
+        .overlay .final-score { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: bold; margin-bottom: 1.5rem; }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: .8rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform .15s ease, background-color .15s ease;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-success { background: var(--success); }
         
         .status-card {
             background: var(--panel);
             border-radius: var(--radius);
+            padding: 1rem;
             box-shadow: 0 6px 16px rgba(0,0,0,.1);
-            padding: var(--gap);
-            display: flex;
-            justify-content: center; /* Centered since there's only one item */
         }
-        .status-card p:first-child {
-            color: var(--muted);
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-        .status-card p:last-child {
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
-        #foundCounter { color: var(--win); }
-
-        /* 5. Buttons & UI Elements */
-        .button-primary {
-            background: var(--accent);
-            color: white;
-            font-size: 1.25rem;
-            font-weight: 700;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform .12s ease, box-shadow .12s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0, .15);
-        }
-        .button-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0, .2);
-        }
-        #restartButton { background-color: var(--win); }
-        .overlay h2 { font-size: 2rem; font-weight: 700; }
-        .overlay p { font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 40ch; }
-        .example-shape { width: 80px; height: 80px; margin-bottom: 1rem; }
-
-        /* Shake animation for wrong clicks */
-        @keyframes shake {
-          10%, 90% { transform: translate3d(-1px, 0, 0); }
-          20%, 80% { transform: translate3d(2px, 0, 0); }
-          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-          40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-        .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        /* NEW: Styles for the size slider */
-        .slider-container {
-            margin-top: 1rem;
+        .status-card p { margin: 0; }
+        .status-card .label { color: var(--muted); font-weight: 600; }
+        .status-card .value { font-size: 2rem; font-weight: bold; color: var(--accent); }
+        .example-shape {
+            width: 80px;
+            height: 80px;
             margin-bottom: 1rem;
+        }
+        .slider-container {
             width: 80%;
             max-width: 300px;
+            margin-top: 1rem;
         }
-        input[type=range] {
-            -webkit-appearance: none; appearance: none;
-            width: 100%; height: 8px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 5px; outline: none;
+        .slider-container label {
+            display: block;
+            margin-bottom: .5rem;
+            font-weight: 600;
         }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 20px; height: 20px;
-            background: var(--accent); cursor: pointer;
-            border-radius: 50%; border: 2px solid white;
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
         }
-        input[type=range]::-moz-range-thumb {
-            width: 20px; height: 20px;
-            background: var(--accent); cursor: pointer;
-            border-radius: 50%; border: 2px solid white;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 50%;
         }
+        input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
     </style>
 </head>
 <body>
-    
-    <header>
-        <a href="index.html" class="back-button">
-            &larr; Back to All Games
-        </a>
-    </header>
+
+    <a href="index.html" class="back-button">&larr; All Games</a>
 
     <main>
         <h1>Star Tap</h1>
-
-        <div class="game-wrapper">
-            <canvas id="gameCanvas" class="game-canvas"></canvas>
+        <div class="game-canvas-container">
+            <canvas id="gameCanvas"></canvas>
             
+            <!-- Start Screen -->
             <div id="startScreen" class="overlay">
-                <h2>Form Constancy Challenge</h2>
-                <svg class="example-shape" viewBox="0 0 100 100">
+                <h2>Shape Challenge</h2>
+                 <svg class="example-shape" viewBox="0 0 100 100">
                     <polygon points="50,5 61,40 98,40 68,62 79,96 50,75 21,96 32,62 2,40 39,40" style="fill:none;stroke:white;stroke-width:4" />
                 </svg>
                 <p>How many stars can you find?</p>
-                
                 <div class="slider-container">
-                    <label for="sizeSlider" class="text-white font-semibold mb-2 block">Adjust Shape Size</label>
-                    <input type="range" id="sizeSlider" min="0.5" max="1.5" value="1" step="0.1">
+                    <label for="sizeSlider">Shape Size</label>
+                    <input type="range" id="sizeSlider" min="30" max="100" value="65">
                 </div>
-
-                <button id="startButton" class="button-primary">Start Game</button>
+                <button id="startButton" class="btn">Start Game</button>
             </div>
 
+            <!-- Win Screen -->
             <div id="winScreen" class="overlay hidden">
-                <canvas id="confettiCanvas" style="position:absolute; inset:0; width:100%; height:100%; border-radius:var(--radius);"></canvas>
-                <h2 style="color:#68d391; z-index:1;">You Win!</h2>
-                <p style="z-index:1; font-size: 1.25rem;">Great job!</p>
-                <button id="restartButton" class="button-primary" style="z-index:1; margin-top: 1.5rem;">Play Again</button>
+                <canvas id="confettiCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
+                <h2 style="z-index: 1;">You Win!</h2>
+                <p style="z-index: 1;">Great job finding all the stars.</p>
+                <button id="restartButton" class="btn btn-success" style="z-index: 1;">Play Again</button>
             </div>
         </div>
 
         <div class="status-card">
-            <div>
-                <p>Found</p>
-                <p id="foundCounter">0 / 0</p>
-            </div>
+            <p class="label">Stars Found</p>
+            <p id="foundCounter" class="value">0 / 0</p>
         </div>
     </main>
-
-    <audio id="flipSound" src="sounds/flip.mp3" preload="auto"></audio>
-    <audio id="winSound" src="sounds/win.mp3" preload="auto"></audio>
+    
+    <audio id="flipSound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="winSound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
-        // --- Canvas & DOM Elements ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
@@ -227,18 +199,27 @@
         const foundCounterElement = document.getElementById('foundCounter');
         const confettiCanvas = document.getElementById('confettiCanvas');
         const confettiCtx = confettiCanvas.getContext('2d');
-        const mainContainer = document.querySelector('main');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const mainEl = document.querySelector('main');
+
         const flipSound = document.getElementById('flipSound');
         const winSound = document.getElementById('winSound');
-        const sizeSlider = document.getElementById('sizeSlider');
 
-
-        // --- Game State ---
         let shapes = [], totalStars = 0, foundStars = 0;
         let animationFrameId, confettiAnimationId, isGameActive = false;
         let confettiParticles = [];
-        let sizeMultiplier = 1;
+        let shapeBaseSize = 65;
 
+        // --- Sound Control ---
+        const playSound = (sound) => {
+            try {
+                sound.currentTime = 0;
+                sound.play();
+            } catch (e) {
+                console.error("Could not play sound", e);
+            }
+        };
+        
         // --- Shape Generation ---
         function createPolygon(sides, size, centerX, centerY, rotation) {
             const points = [];
@@ -249,9 +230,11 @@
             }
             return points;
         }
+        
         function createStar(size, centerX, centerY, rotation, numPoints = 5) {
             const points = [];
-            const outerRadius = size, innerRadius = size / 2.5;
+            const outerRadius = size;
+            const innerRadius = size / 2.5;
             const angleStep = Math.PI / numPoints;
             for (let i = 0; i < 2 * numPoints; i++) {
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
@@ -260,15 +243,16 @@
             }
             return points;
         }
+
         function generateShapes() {
-            shapes = []; totalStars = 0;
-            const nonStars = [], stars = [];
+            shapes = [];
+            totalStars = 0;
+            const nonStars = [];
+            const stars = [];
             const numShapes = Math.floor(Math.random() * 5) + 20;
 
             for (let i = 0; i < numShapes; i++) {
-                // Use the size multiplier here
-                const baseSize = Math.random() * (canvas.width * 0.15) + (canvas.width * 0.05);
-                const size = baseSize * sizeMultiplier;
+                const size = (Math.random() * (shapeBaseSize * 0.5) + (shapeBaseSize * 0.5)) * (canvas.width / 1000);
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 const rotation = Math.random() * Math.PI * 2;
@@ -284,8 +268,8 @@
                     shapeData = { type: 'triangle', points: createPolygon(3, size, x, y, rotation) };
                     nonStars.push({ ...shapeData, ...shapeInfo });
                 } else {
-                     shapeData = { type: 'square', points: createPolygon(4, size, x, y, rotation) };
-                     nonStars.push({ ...shapeData, ...shapeInfo });
+                    shapeData = { type: 'square', points: createPolygon(4, size, x, y, rotation) };
+                    nonStars.push({ ...shapeData, ...shapeInfo });
                 }
             }
             shapes = nonStars.concat(stars);
@@ -297,15 +281,17 @@
             shapes.forEach(shape => {
                 ctx.beginPath();
                 ctx.moveTo(shape.points[0].x, shape.points[0].y);
-                for (let i = 1; i < shape.points.length; i++) { ctx.lineTo(shape.points[i].x, shape.points[i].y); }
+                for (let i = 1; i < shape.points.length; i++) {
+                    ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                }
                 ctx.closePath();
                 
                 if (shape.found) {
                     ctx.fillStyle = shape.color;
                     ctx.fill();
                 } else {
-                    ctx.lineWidth = 3;
-                    ctx.strokeStyle = '#2d3748'; // Matches --ink color
+                    ctx.lineWidth = Math.max(2, canvas.width / 200);
+                    ctx.strokeStyle = '#333';
                     ctx.stroke();
                 }
             });
@@ -317,72 +303,71 @@
             for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
                 let xi = vs[i].x, yi = vs[i].y;
                 let xj = vs[j].x, yj = vs[j].y;
-                if (((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+                let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
             }
             return inside;
         }
+
         function handleCanvasClick(event) {
             if (!isGameActive) return;
             event.preventDefault();
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
+            const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
             const clientX = event.changedTouches ? event.changedTouches[0].clientX : event.clientX;
             const clientY = event.changedTouches ? event.changedTouches[0].clientY : event.clientY;
             const clickPos = { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
 
+            let correctClick = false;
             for (let i = shapes.length - 1; i >= 0; i--) {
                 const shape = shapes[i];
                 if (!shape.found && pointInPolygon(clickPos, shape.points)) {
                     if (shape.type === 'star') {
                         shape.found = true;
-                        playSound(flipSound);
                         foundStars++;
                         updateFoundCounter();
+                        playSound(flipSound);
+                        correctClick = true;
                         if (foundStars === totalStars) endGame();
-                    } else {
-                        handleWrongClick();
                     }
-                    break; 
+                    break;
                 }
+            }
+            if (!correctClick) {
+                 mainEl.classList.add('shake');
+                 if (navigator.vibrate) navigator.vibrate(200);
+                 setTimeout(() => mainEl.classList.remove('shake'), 820);
             }
         }
         
-        function playSound(audioElement) {
-            audioElement.currentTime = 0;
-            audioElement.play().catch(e => console.error("Sound play failed:", e));
+        function updateFoundCounter() {
+            foundCounterElement.textContent = `${foundStars} / ${totalStars}`;
         }
-
-        function handleWrongClick() {
-            if (navigator.vibrate) {
-                navigator.vibrate(100);
-            }
-            mainContainer.classList.add('shake');
-            setTimeout(() => {
-                mainContainer.classList.remove('shake');
-            }, 500);
-        }
-
-        function updateFoundCounter() { foundCounterElement.textContent = `${foundStars} / ${totalStars}`; }
 
         function gameLoop() {
             if (!isGameActive) return;
             draw();
             animationFrameId = requestAnimationFrame(gameLoop);
         }
+
         function startGame() {
             isGameActive = true;
             foundStars = 0;
             confettiParticles = [];
             cancelAnimationFrame(confettiAnimationId);
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            shapeBaseSize = parseInt(sizeSlider.value, 10);
+            
             generateShapes();
             updateFoundCounter();
+            
             startScreen.classList.add('hidden');
             winScreen.classList.add('hidden');
+            
             cancelAnimationFrame(animationFrameId);
             gameLoop();
         }
+
         function endGame() {
             isGameActive = false;
             playSound(winSound);
@@ -394,55 +379,80 @@
 
         // --- Celebration ---
         function createConfetti() {
-            const particleCount = 200, colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+            const particleCount = 200;
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
             for (let i = 0; i < particleCount; i++) {
                 confettiParticles.push({
-                    x: Math.random() * confettiCanvas.width, y: -Math.random() * confettiCanvas.height,
-                    w: Math.random() * 10 + 5, h: Math.random() * 10 + 5,
+                    x: Math.random() * confettiCanvas.width,
+                    y: -Math.random() * confettiCanvas.height,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
                     color: colors[Math.floor(Math.random() * colors.length)],
-                    speedX: (Math.random() - 0.5) * 8, 
-                    speedY: Math.random() * 2 + 1, // Slower
-                    rotation: Math.random() * 360, 
-                    rotationSpeed: (Math.random() - 0.5) * 8
+                    speedX: (Math.random() - 0.5) * 8,
+                    speedY: Math.random() * 3 + 1, // Slower speed
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 5
                 });
             }
         }
+
         function animateConfetti() {
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
             confettiParticles.forEach(p => {
-                p.x += p.speedX; p.y += p.speedY; p.rotation += p.rotationSpeed; 
-                p.speedY += 0.04; // Slower gravity
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.rotation += p.rotationSpeed;
+                p.speedY += 0.05; // Slower gravity
+
                 confettiCtx.save();
                 confettiCtx.translate(p.x + p.w / 2, p.y + p.h / 2);
                 confettiCtx.rotate(p.rotation * Math.PI / 180);
                 confettiCtx.fillStyle = p.color;
                 confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
                 confettiCtx.restore();
-                if (p.y > confettiCanvas.height) { p.y = -p.h; p.x = Math.random() * confettiCanvas.width; }
-                if (p.x > confettiCanvas.width + p.w || p.x < -p.w) { p.x = Math.random() * confettiCanvas.width; p.y = -p.h; }
+
+                if (p.y > confettiCanvas.height) {
+                    p.y = -p.h;
+                    p.x = Math.random() * confettiCanvas.width;
+                }
+                 if (p.x > confettiCanvas.width + p.w || p.x < -p.w) {
+                    p.x = Math.random() * confettiCanvas.width;
+                    p.y = -p.h;
+                 }
             });
             confettiAnimationId = requestAnimationFrame(animateConfetti);
         }
 
-        // --- Initialization ---
+        // --- Init & Listeners ---
         function resizeCanvas() {
-            const size = Math.min(canvas.parentElement.clientWidth, window.innerHeight * 0.7);
-            canvas.width = size; canvas.height = size;
-            confettiCanvas.width = size; confettiCanvas.height = size;
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            confettiCanvas.width = size * dpr;
+            confettiCanvas.height = size * dpr;
+            ctx.scale(dpr, dpr);
+            confettiCtx.scale(dpr,dpr);
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+            confettiCanvas.style.width = `${size}px`;
+            confettiCanvas.style.height = `${size}px`;
+            
             if (!isGameActive) {
-                if (totalStars > 0) draw(); else { generateShapes(); draw(); }
+                generateShapes();
+                draw();
             }
         }
+        
         window.addEventListener('resize', resizeCanvas);
+        
         document.addEventListener('DOMContentLoaded', () => {
             resizeCanvas();
             startButton.addEventListener('click', startGame);
             restartButton.addEventListener('click', startGame);
             canvas.addEventListener('click', handleCanvasClick);
             canvas.addEventListener('touchstart', handleCanvasClick, { passive: false });
-            sizeSlider.addEventListener('input', (e) => {
-                sizeMultiplier = parseFloat(e.target.value);
-            });
         });
     </script>
 </body>
