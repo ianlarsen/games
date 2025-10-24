@@ -54,11 +54,11 @@
     </main>
 
     <!-- Audio Elements -->
-    <!-- Note: Ensure left.mp3 and right.mp3 are in your sounds folder -->
+    <!-- Added win.mp3 sound -->
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
     <audio id="left-sound" src="../sounds/left.mp3" preload="auto"></audio>
     <audio id="right-sound" src="../sounds/right.mp3" preload="auto"></audio>
-    <!-- <audio id="match-sound" src="../sounds/match.mp3" preload="auto"></audio> --> <!-- Removed this line -->
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const animalImage = document.getElementById('animal-image');
@@ -66,9 +66,9 @@
             const mainEl = document.querySelector('main');
 
             // --- Audio ---
+            const winSound = document.getElementById('win-sound');
             const leftSound = document.getElementById('left-sound');
             const rightSound = document.getElementById('right-sound');
-            // const matchSound = document.getElementById('match-sound'); // Removed this line
             let audioUnlocked = false;
 
             // --- Game Data ---
@@ -88,7 +88,7 @@
             // --- Game State ---
             let shuffledAnimals = [];
             let currentAnimalIndex = 0;
-            let processing = false;
+            let processing = false; // Prevents multiple clicks while sounds are playing
 
             // --- Audio Functions ---
             function unlockAudio() {
@@ -96,12 +96,12 @@
                 // Pre-play all sounds on a user gesture
                 Promise.all([
                     leftSound.play(),
-                    rightSound.play()
-                    // matchSound.play() // Removed this line
+                    rightSound.play(),
+                    winSound.play() // Added winSound
                 ]).then(() => {
                     leftSound.pause();
                     rightSound.pause();
-                    // matchSound.pause(); // Removed this line
+                    winSound.pause(); // Added winSound
                     audioUnlocked = true;
                 }).catch(() => {});
             }
@@ -138,45 +138,67 @@
                 animalImage.onerror = () => animalImage.src = `https://placehold.co/400x225/e0e0e0/757575?text=${animal.src.split('/')[1]}`;
             }
 
+            // --- UPDATED handleChoice function ---
             function handleChoice(event) {
-                if (processing) return;
+                if (processing) return; // Exit if already processing a choice
                 if (!audioUnlocked) unlockAudio();
                 
                 const selectedDirection = event.target.value;
                 if (!selectedDirection) return; // Ignore if they re-select the "Select..." option
 
-                processing = true;
+                processing = true; // Set processing flag
                 const correctDirection = shuffledAnimals[currentAnimalIndex].answer;
-
-                // Play sound for the choice they made
-                if (selectedDirection === 'left') {
-                    playSound(leftSound);
-                } else if (selectedDirection === 'right') {
-                    playSound(rightSound);
-                }
 
                 if (selectedDirection === correctDirection) {
                     // --- CORRECT ---
-                    /* Removed match sound block
-                    setTimeout(() => {
-                        playSound(matchSound); // Play correct sound after a short delay
-                    }, 300); // 300ms delay
-                    */
                     
-                    setTimeout(() => {
-                        currentAnimalIndex++;
-                        loadAnimal();
-                        directionSelect.value = ""; // Reset dropdown
-                        processing = false;
-                    }, 1000); // 1 second delay before next animal
+                    // 1. Determine which sound to play first
+                    const choiceSound = (selectedDirection === 'left') ? leftSound : rightSound;
+
+                    // 2. Define what happens after the *first* sound finishes
+                    const playWinSound = () => {
+                        choiceSound.removeEventListener('ended', playWinSound); // Clean up listener
+                        
+                        // 3. Play the 'win' sound
+                        playSound(winSound);
+
+                        // 4. Define what happens after the 'win' sound finishes
+                        const loadNext = () => {
+                            winSound.removeEventListener('ended', loadNext); // Clean up listener
+
+                            // 5. Load the next animal and reset state (with a tiny buffer)
+                            setTimeout(() => {
+                                currentAnimalIndex++;
+                                loadAnimal();
+                                directionSelect.value = ""; // Reset dropdown
+                                processing = false; // Allow next choice
+                            }, 150); // Small delay
+                        };
+                        winSound.addEventListener('ended', loadNext);
+                    };
+                    choiceSound.addEventListener('ended', playWinSound);
+
+                    // 1a. Play the first (correct) sound
+                    playSound(choiceSound);
+
                 } else {
                     // --- INCORRECT ---
+                    
+                    // 1. Play the (wrong) choice sound
+                    if (selectedDirection === 'left') {
+                        playSound(leftSound);
+                    } else if (selectedDirection === 'right') {
+                        playSound(rightSound);
+                    }
+                    
                     mainEl.classList.add('game-shake');
                     triggerHapticFeedback();
+                    
+                    // 3. Reset after animation
                     setTimeout(() => {
                         mainEl.classList.remove('game-shake');
                         directionSelect.value = ""; // Reset dropdown
-                        processing = false;
+                        processing = false; // Allow next choice
                     }, 800);
                 }
             }
@@ -189,4 +211,3 @@
     </script>
 </body>
 </html>
-
