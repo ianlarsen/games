@@ -10,19 +10,39 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Drag and Drop Library -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
     <style>
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
         .sortable-ghost { opacity: 0.4; background-color: #c3dafe; }
         .sortable-chosen { cursor: grabbing; }
         .sequence-item { touch-action: none; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+
+        /* Standardized shake from style.css */
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
+        }
+
         .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1000; }
         .confetti { position: absolute; width: 10px; height: 10px; opacity: 0.7; animation: fall 5s linear forwards; }
         @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        
+        /* Win Overlay */
+        .win-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 999; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .win-overlay.show { opacity: 1; pointer-events: auto; }
+        .win-message { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
@@ -33,12 +53,33 @@
         </header>
         <div id="sequence-container" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
     </main>
+    
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="win-overlay">
+        <div class="win-message">Correct!</div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+            <a href="index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Stories</a>
+        </div>
+    </div>
     <div id="confetti-container" class="confetti-container"></div>
+
+    <!-- Audio Elements -->
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const sequenceContainer = document.getElementById('sequence-container');
             const checkOrderBtn = document.getElementById('check-order-btn');
             const confettiContainer = document.getElementById('confetti-container');
+            const winOverlay = document.getElementById('win-overlay');
+            const playAgainBtn = document.getElementById('play-again-btn');
+
+            const flipSound = document.getElementById('flip-sound');
+            const winSound = document.getElementById('win-sound');
+            let audioUnlocked = false;
+
             const story = {
                 correctOrder: [1, 2, 3, 4, 5, 6],
                 steps: [
@@ -47,7 +88,31 @@
                     { id: 5, image: "images/puzzle_step5.png" }, { id: 6, image: "images/puzzle_step6.png" }
                 ]
             };
+            
             let sortable;
+
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+            }
+
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.error("Sound play failed:", e));
+                }
+            }
+
+            function triggerHapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }
+
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
                 while (currentIndex != 0) {
@@ -57,9 +122,16 @@
                 }
                 return array;
             }
-            function loadStory(storyData) {
+
+            function loadStory() {
+                winOverlay.classList.remove('show');
                 sequenceContainer.innerHTML = '';
-                const shuffledSteps = shuffle([...storyData.steps]);
+                checkOrderBtn.disabled = true;
+                checkOrderBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                checkOrderBtn.textContent = 'Check Order';
+
+                const shuffledSteps = shuffle([...story.steps]);
+                
                 shuffledSteps.forEach(step => {
                     const item = document.createElement('div');
                     item.dataset.id = step.id;
@@ -67,11 +139,24 @@
                     item.innerHTML = `<img src="${step.image}" alt="Story step ${step.id}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/200x200/e0e0e0/757575?text=Img'"/>`;
                     sequenceContainer.appendChild(item);
                 });
-                sortable = new Sortable(sequenceContainer, {
-                    animation: 150, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
-                    onUpdate: () => { checkOrderBtn.disabled = false; checkOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+
+                if (sortable) {
+                    sortable.destroy();
+                }
+
+                sortable = new Sortable(sequenceContainer, { 
+                    animation: 150, 
+                    ghostClass: 'sortable-ghost', 
+                    chosenClass: 'sortable-chosen',
+                    onUpdate: () => { 
+                        if (!audioUnlocked) unlockAudio();
+                        playSound(flipSound);
+                        checkOrderBtn.disabled = false; 
+                        checkOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed'); 
+                    }
                 });
             }
+
             function triggerConfetti() {
                 confettiContainer.innerHTML = '';
                 const colors = ['#ff5733', '#33ff57', '#3357ff', '#ff33a1', '#a133ff', '#33fff6'];
@@ -86,24 +171,27 @@
                     confettiContainer.appendChild(confetti);
                 }
             }
+
             function checkOrder() {
                 const currentOrder = Array.from(sequenceContainer.children).map(item => parseInt(item.dataset.id));
                 const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(story.correctOrder);
+                
                 if (isCorrect) {
+                    playSound(winSound);
                     triggerConfetti();
-                    checkOrderBtn.disabled = true;
-                    checkOrderBtn.classList.add('bg-green-600', 'cursor-not-allowed');
-                    checkOrderBtn.textContent = 'Correct!';
+                    winOverlay.classList.add('show');
                     sortable.option('disabled', true);
-                    sequenceContainer.querySelectorAll('.sequence-item').forEach(item => { item.classList.add('border-green-500'); item.classList.remove('cursor-grab'); });
+                    checkOrderBtn.disabled = true;
                 } else {
-                    sequenceContainer.classList.add('shake');
-                    if (window.navigator.vibrate) window.navigator.vibrate(200);
-                    setTimeout(() => sequenceContainer.classList.remove('shake'), 820);
+                    sequenceContainer.classList.add('game-shake');
+                    triggerHapticFeedback();
+                    setTimeout(() => sequenceContainer.classList.remove('game-shake'), 300);
                 }
             }
+            
             checkOrderBtn.addEventListener('click', checkOrder);
-            loadStory(story);
+            playAgainBtn.addEventListener('click', loadStory);
+            loadStory();
         });
     </script>
 </body>
