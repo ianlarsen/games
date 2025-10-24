@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTGames</title>
   <meta name="description" content="A collection of fun, kid-friendly learning games." />
+  <!-- Link to shared CSS -->
+  <link rel="stylesheet" href="style/style.css">
   <style>
+    /* Specific styles for the main menu can override shared styles */
     :root {
       --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
       --focus: #63b3ed; --accent: #3182ce; --radius: 20px; --gap: 1.2rem; --max: 960px;
@@ -179,34 +182,77 @@
     <small>Press TAB to move. ENTER to pick. Big buttons for kids and early readers.</small>
   </footer>
 
+  <!-- Audio element for click sound -->
+  <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+
   <script>
-    // Optional voice hints
+    // --- Audio Playback ---
+    let audioUnlocked = false;
+    const flipSound = document.getElementById('flip-sound');
+
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        flipSound.play().then(() => {
+            flipSound.pause();
+            flipSound.currentTime = 0; // Reset for immediate playback on click
+            audioUnlocked = true;
+        }).catch(() => {});
+        // Remove the listener after the first interaction
+        document.body.removeEventListener('click', unlockAudio, true);
+        document.body.removeEventListener('touchstart', unlockAudio, true);
+    }
+    // Need a user interaction to unlock audio
+    document.body.addEventListener('click', unlockAudio, { once: true, capture: true });
+    document.body.addEventListener('touchstart', unlockAudio, { once: true, capture: true });
+
+
+    function playSound(sound) {
+        if (sound && audioUnlocked) {
+            sound.currentTime = 0;
+            sound.play().catch(e => console.error("Sound play failed:", e));
+        }
+    }
+
+    // --- TTS (Text-to-Speech) Hints ---
     (function() {
       const btn = document.getElementById('tts');
       let enabled = false;
       const speak = (t) => {
-        if (!enabled) return;
+        if (!enabled || !t) return;
         try {
           const u = new SpeechSynthesisUtterance(t);
           u.rate = .95;
           u.pitch = 1.05;
-          speechSynthesis.cancel();
+          speechSynthesis.cancel(); // Stop previous speech
           speechSynthesis.speak(u);
-        } catch (e) {}
+        } catch (e) { console.error("TTS failed:", e); }
       };
       btn.addEventListener('click', () => {
         enabled = !enabled;
         btn.setAttribute('aria-pressed', String(enabled));
         btn.textContent = enabled ? '🔊 Sound On' : '🔇 Sound Off';
         if (enabled) speak('Sound on. Choose a game.');
+        else speechSynthesis.cancel(); // Stop speech if turned off
       });
-      for (const tile of document.querySelectorAll('.tile')) {
-        tile.addEventListener('focus', () => speak(tile.dataset.say));
-        tile.addEventListener('mouseenter', () => speak(tile.dataset.say));
-        tile.addEventListener('click', () => speak('Loading ' + tile.dataset.say));
-      }
+      
+      // --- Tile Interaction (Sound + TTS) ---
+      document.querySelectorAll('.tile').forEach(tile => {
+        const textToSay = tile.dataset.say;
+        
+        // Play click sound and TTS on click
+        tile.addEventListener('click', (e) => {
+            // e.preventDefault(); // Keep if links should wait for sound/TTS
+            playSound(flipSound);
+            speak('Loading ' + textToSay); 
+            // Optional: Delay navigation slightly
+            // setTimeout(() => { window.location.href = tile.href; }, 300); 
+        });
+
+        // TTS on hover/focus
+        tile.addEventListener('mouseenter', () => speak(textToSay));
+        tile.addEventListener('focus', () => speak(textToSay));
+      });
     })();
   </script>
 </body>
 </html>
-
