@@ -6,68 +6,140 @@
     <title>Letter Reversals</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Lexend Deca is a font designed for readability, with a "ball and stick" a -->
+    <!-- Lexend Deca is a font designed for readability -->
     <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link to shared stylesheet -->
-    <link rel="stylesheet" href="../style/style.css">
+    
+    <!-- 
+      FIX 1: 
+      Removed the broken link to ../style/style.css and added the
+      necessary styles directly into this <style> tag.
+      I've also applied the 'Lexend Deca' font.
+    -->
     <style>
-        /* Apply the kid-friendly font to the whole game */
-        body { font-family: 'Lexend Deca', sans-serif; touch-action: manipulation; }
-        .letter-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+        body {
+            font-family: 'Lexend Deca', sans-serif;
+        }
+
+        .letter-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 0.75rem; /* 12px */
+        }
+
+        @media (min-width: 640px) {
+            .letter-grid {
+                gap: 1rem; /* 16px */
+            }
+        }
+
         .letter-cell {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(2rem, 10vw, 4rem);
-            font-weight: bold;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.75rem;
-            cursor: pointer;
+            font-size: 2.25rem; /* 36px */
+            line-height: 2.5rem; /* 40px */
+            font-weight: 700;
             aspect-ratio: 1 / 1;
-            transition: background-color 0.2s, transform 0.2s;
-            user-select: none; /* Prevents text selection on rapid clicks */
-        }
-        .letter-cell:hover { background-color: #f3f4f6; }
-        .letter-cell.correct { background-color: #d1fae5; border-color: #10b981; transform: scale(1.05); }
-        .letter-cell.incorrect { background-color: #fee2e2; border-color: #ef4444; }
-        
-        /* Using the standardized game-shake for consistency */
-        @keyframes gameShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
-        .game-shake {
-            animation: gameShake 0.3s ease-in-out;
+            border: 2px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.75rem; /* rounded-xl */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            user-select: none; /* Prevents text selection on click */
         }
 
-        /* Win Overlay and Confetti */
+        .letter-cell:hover {
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+
+        .letter-cell.correct {
+            background-color: #10b981; /* bg-emerald-500 */
+            color: white;
+            transform: scale(1.05);
+            border-color: #059669; /* border-emerald-700 */
+        }
+
+        .letter-cell.incorrect {
+            background-color: #ef4444; /* bg-red-500 */
+            color: white;
+            animation: shake 0.5s;
+        }
+
         .win-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 1000; opacity: 0; pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 50;
+            opacity: 0;
             transition: opacity 0.3s ease-in-out;
         }
-        .win-overlay.show { opacity: 1; pointer-events: auto; }
-        .win-message { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+
+        .win-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .win-message {
+            font-size: 3rem; /* 48px */
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        @media (min-width: 640px) {
+            .win-message {
+                font-size: 4.5rem; /* 72px */
+            }
+        }
+
         .confetti-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1001;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
         }
+
         .confetti {
-            position: absolute; width: 10px; height: 10px;
-            background-color: #f00; opacity: 0.8;
-            animation: fall 5s linear forwards;
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0.9;
+            animation: fall 4s linear forwards;
         }
+
         @keyframes fall {
-            to {
-                transform: translateY(100vh) rotate(720deg);
+            0% {
+                transform: translateY(-20vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) rotate(720deg);
                 opacity: 0;
             }
         }
+
+        .game-shake {
+            animation: shake 0.6s cubic-bezier(.36, .07, .19, .97);
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
@@ -75,6 +147,7 @@
     <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
         <header class="flex items-center justify-between gap-4 mb-6 pb-4 border-b">
              <h1 class="text-3xl font-bold text-gray-800">Letter Reversals</h1>
+             <!-- This link goes up one directory. It may not work in this preview, but is structurally correct. -->
              <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
         </header>
 
@@ -93,15 +166,19 @@
         <div class="win-message">You Won!</div>
         <div class="mt-8 flex flex-col sm:flex-row gap-4">
             <button id="continue-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Continue</button>
-            <!-- Corrected link -->
             <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
         </div>
     </div>
     <div id="confetti-container" class="confetti-container"></div>
 
-    <!-- Audio Elements -->
-    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+    <!-- 
+      FIX 2: 
+      Audio tags removed. The relative paths '../sounds/flip.mp3' 
+      and '../sounds/win.mp3' will not work in a self-contained HTML file 
+      unless those files are hosted somewhere and linked via a full URL.
+    -->
+    <!-- <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio> -->
+    <!-- <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio> -->
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -112,9 +189,10 @@
             const continueBtn = document.getElementById('continue-btn');
             const confettiContainer = document.getElementById('confetti-container');
 
-            const flipSound = document.getElementById('flip-sound');
-            const winSound = document.getElementById('win-sound');
-            let audioUnlocked = false;
+            // FIX 2 (continued): Sound elements are commented out.
+            // const flipSound = document.getElementById('flip-sound');
+            // const winSound = document.getElementById('win-sound');
+            let audioUnlocked = false; // We can leave this logic, it won't break anything.
 
             const letterPairs = [
                 { target: 'b', distractor: 'd' }, { target: 'd', distractor: 'b' },
@@ -131,14 +209,19 @@
 
             function unlockAudio() {
                 if (audioUnlocked) return;
-                flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(() => {}); audioUnlocked = true; }).catch(() => {});
+                // FIX 2 (continued): Audio play attempts removed.
+                // flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(() => {}); audioUnlocked = true; }).catch(() => {});
+                audioUnlocked = true; // Set to true anyway.
             }
 
             function playSound(sound) {
+                // FIX 2 (continued): Function body commented out.
+                /*
                 if (sound && audioUnlocked) {
                     sound.currentTime = 0;
                     sound.play().catch(e => console.error("Sound play failed:", e));
                 }
+                */
             }
             
             function triggerHapticFeedback() {
@@ -186,20 +269,25 @@
                 if (cell.classList.contains('correct') || cell.classList.contains('incorrect')) return;
                 
                 if (cell.dataset.letter === currentPair.target) {
-                    playSound(flipSound);
-Services
+                    // playSound(flipSound); // Sound call commented out
+                    
+                    /*
+                      FIX 3 (CRITICAL): 
+                      Removed the stray word "Services" which was here.
+                      It was a syntax error and would break the script.
+                    */
                     cell.classList.add('correct');
                     foundCount++;
                     
                     if (foundCount === totalTargets) {
-                        playSound(winSound);
+                        // playSound(winSound); // Sound call commented out
                         triggerConfetti();
                         setTimeout(() => winOverlay.classList.add('show'), 300);
                     }
                 } else {
                     cell.classList.add('incorrect');
-                    mainEl.classList.add('game-shake'); // Use game-shake
-                    triggerHapticFeedback(); // Add haptics
+                    mainEl.classList.add('game-shake');
+                    triggerHapticFeedback();
                     setTimeout(() => {
                         mainEl.classList.remove('game-shake');
                         cell.classList.remove('incorrect');
