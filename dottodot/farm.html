@@ -8,177 +8,400 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../style/style.css"> <!-- Shared stylesheet -->
     <style>
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
-        .dot { cursor: pointer; }
-        #dots, #path { transition: opacity 0.5s ease-in-out; }
-        .dot-circle { fill: #4f46e5; stroke: white; stroke-width: 4px; }
-        .dot-circle-next { fill: #10B981; }
-        .dot-label { fill: white; font-size: 16px; font-weight: 600; text-anchor: middle; alignment-baseline: central; pointer-events: none; }
-        .dot-connected .dot-circle { fill: #9CA3AF; }
-        .dot-connected .dot-label { fill: #E5E7EB; }
-        #path { stroke: #4F46E5; stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; fill: none; }
-        .board-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; }
-        #board, #completedImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
         }
-        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
-        
-        /* Win Overlay */
+
+        /* Game container to stack image, canvas, and dots */
+        #game-container {
+            position: relative;
+            width: 100%;
+            /* Aspect ratio based on a typical image, e.g., 4:3 */
+            aspect-ratio: 4 / 3; 
+            max-width: 800px; /* Max size of the game */
+            margin: auto;
+            border: 2px solid #ccc;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        #game-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Make image transparent so dots are clear */
+            opacity: 0; 
+            transition: opacity 1s ease-in-out;
+        }
+
+        #game-container img.finished {
+            opacity: 1; /* Show image when done */
+        }
+
+        #dot-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #dot-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .dot {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #3b82f6; /* Blue */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e3a8a;
+            cursor: pointer;
+            transform: translate(-50%, -50%); /* Center on coordinate */
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .dot:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .dot.next-dot {
+            /* Highlight the next expected dot */
+            background-color: #a3e635; /* Lime green */
+            border-color: #4d7c0f;
+            box-shadow: 0 0 15px 5px #a3e635;
+        }
+
+        .dot.completed {
+            /* Style for already-clicked dots */
+            background-color: #fca5a5; /* Red */
+            border-color: #b91c1c;
+            color: #7f1d1d;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
+        }
+
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* Win Overlay (from concentration game) */
         .win-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.6);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 1000; opacity: 0; pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s ease-in-out;
         }
-        .win-overlay.show { opacity: 1; pointer-events: auto; }
-        .win-message { color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .win-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .win-message {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
 
-    <main class="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+    <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <!-- Header -->
         <header class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b">
-            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to All Games</a>
-            <div class="flex items-center gap-4">
-                <span id="progress" class="text-lg font-semibold text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">1 / 58</span>
-                <button id="resetBtn" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition">Reset</button>
-            </div>
+            <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Dot-to-Dot</a>
+            <h1 class="text-2xl font-bold text-gray-800">Farm</h1>
         </header>
 
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Dot-to-Dot: Farm</h1>
-
-        <div class="board-wrap rounded-lg overflow-hidden bg-gray-50 border">
-            <img id="completedImage" src="images/farm.png" alt="Completed Farm" style="opacity: 0; transition: opacity 0.5s ease-in-out; object-fit: cover;"/>
-            <svg id="board" viewBox="0 0 1000 1000"><polyline id="path" points="" /><g id="dots"></g></svg>
+        <!-- Controls -->
+        <div id="controls" class="flex flex-wrap items-center justify-center gap-6 mb-6">
+            <span class="font-semibold text-lg">Count by:</span>
+            <div class="flex gap-4">
+                <label class="flex items-center gap-2 cursor-pointer text-lg">
+                    <input type="radio" name="increment" value="1" class="form-radio h-5 w-5 text-blue-600" checked>
+                    1s
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-lg">
+                    <input type="radio" name="increment" value="5" class="form-radio h-5 w-5 text-blue-600">
+                    5s
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-lg">
+                    <input type="radio" name="increment" value="10" class="form-radio h-5 w-5 text-blue-600">
+                    10s
+                </label>
+            </div>
         </div>
-
-        <footer class="text-center mt-6 text-gray-500">Tap the dots in order to reveal the picture!</footer>
+        
+        <!-- Game Board -->
+        <div id="game-container">
+            <img id="background-image" src="images/farm.png" alt="Farm scene">
+            <canvas id="dot-canvas"></canvas>
+            <div id="dot-container"></div>
+        </div>
     </main>
 
     <!-- Win Overlay -->
     <div id="win-overlay" class="win-overlay">
-        <div class="win-message">You Won!</div>
+        <div class="win-message">You Did It!</div>
         <div class="mt-8 flex flex-col sm:flex-row gap-4">
             <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
-            <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+            <a href="index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">More Games</a>
         </div>
     </div>
 
     <!-- Audio Elements -->
-    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
-
+    <audio id="click-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const dotsContainer = document.getElementById('dots');
-            const path = document.getElementById('path');
-            const progressEl = document.getElementById('progress');
-            const resetBtn = document.getElementById('resetBtn');
-            const completedImage = document.getElementById('completedImage');
-            const mainContainer = document.querySelector('main');
+            // --- Game Data ---
+            // Coordinates for 20 dots (as percentages)
+            const farmDots = [
+                { x: 20, y: 80 }, { x: 30, y: 80 }, { x: 40, y: 80 }, { x: 40, y: 65 },
+                { x: 45, y: 60 }, { x: 55, y: 60 }, { x: 60, y: 65 }, { x: 60, y: 80 },
+                { x: 70, y: 80 }, { x: 80, y: 80 }, { x: 80, y: 70 }, { x: 80, y: 55 },
+                { x: 85, y: 50 }, { x: 70, y: 35 }, { x: 50, y: 20 }, { x: 30, y: 35 },
+                { x: 15, y: 50 }, { x: 20, y: 55 }, { x: 20, y: 70 }, { x: 10, y: 80 } // Moved 20th dot left
+            ];
+            const dots = farmDots;
+
+            // --- DOM Elements ---
+            const gameContainer = document.getElementById('game-container');
+            const dotContainer = document.getElementById('dot-container');
+            const canvas = document.getElementById('dot-canvas');
+            const ctx = canvas.getContext('2d');
+            const bgImage = document.getElementById('background-image');
+            const incrementRadios = document.querySelectorAll('input[name="increment"]');
             const winOverlay = document.getElementById('win-overlay');
             const playAgainBtn = document.getElementById('play-again-btn');
 
-            const flipSound = document.getElementById('flip-sound');
+            // --- Audio Elements ---
+            const clickSound = document.getElementById('click-sound');
             const winSound = document.getElementById('win-sound');
-            
-            const dotCoordinates = [ { x: 26, y: 462 }, { x: 48, y: 465 }, { x: 64, y: 313 }, { x: 105, y: 256 }, { x: 134, y: 253 }, { x: 168, y: 311 }, { x: 205, y: 303 }, { x: 272, y: 263 }, { x: 376, y: 320 }, { x: 581, y: 328 }, { x: 638, y: 448 }, { x: 505, y: 435 }, { x: 446, y: 452 }, { x: 448, y: 483 }, { x: 508, y: 518 }, { x: 581, y: 521 }, { x: 644, y: 530 }, { x: 666, y: 580 }, { x: 685, y: 639 }, { x: 700, y: 710 }, { x: 662, y: 660 }, { x: 666, y: 707 }, { x: 718, y: 738 }, { x: 776, y: 758 }, { x: 834, y: 782 }, { x: 837, y: 845 }, { x: 777, y: 856 }, { x: 737, y: 868 }, { x: 676, y: 838 }, { x: 638, y: 804 }, { x: 594, y: 718 }, { x: 558, y: 777 }, { x: 524, y: 780 }, { x: 505, y: 716 }, { x: 497, y: 808 }, { x: 456, y: 804 }, { x: 444, y: 713 }, { x: 427, y: 791 }, { x: 387, y: 788 }, { x: 380, y: 697 }, { x: 349, y: 701 }, { x: 322, y: 838 }, { x: 198, y: 838 }, { x: 162, y: 767 }, { x: 161, y: 741 }, { x: 114, y: 753 }, { x: 63, y: 698 }, { x: 108, y: 644 }, { x: 152, y: 664 }, { x: 239, y: 697 }, { x: 296, y: 634 }, { x: 271, y: 614 }, { x: 61, y: 602 }, { x: 7, y: 502 } ];
-            let currentDot = 1;
-            const totalDots = dotCoordinates.length;
+
+            // --- Game State ---
+            let currentDotIndex = 0;
+            let currentIncrement = 1;
+            let lastPoint = null;
+            let allDots = []; // To store references to the dot DOM elements
             let audioUnlocked = false;
 
+            // --- Audio Functions ---
             function unlockAudio() {
                 if (audioUnlocked) return;
-                flipSound.play().then(() => {
-                    flipSound.pause();
-                    winSound.play().then(() => winSound.pause()).catch(() => {});
-                    audioUnlocked = true;
+                clickSound.play().then(() => {
+                    clickSound.pause();
                 }).catch(() => {});
+                winSound.play().then(() => winSound.pause()).catch(() => {});
+                audioUnlocked = true;
             }
 
             function playSound(sound) {
                 if (sound && audioUnlocked) {
                     sound.currentTime = 0;
-                    sound.play().catch(e => console.error("Sound play failed:", e));
+                    sound.play().catch(e => console.log("Sound play failed:", e));
+                }
+            }
+ 
+            // --- Haptic Feedback ---
+            function triggerHapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(100); // 100ms vibration
                 }
             }
 
+            // --- Game Logic ---
             function initGame() {
-                winOverlay.classList.remove('show');
-                currentDot = 1;
-                path.setAttribute('points', '');
-                dotsContainer.innerHTML = '';
-                completedImage.style.opacity = '0';
-                dotsContainer.style.opacity = '1';
-                path.style.opacity = '1';
+                // Get selected increment
+                currentIncrement = parseInt(document.querySelector('input[name="increment"]:checked').value);
                 
-                dotCoordinates.forEach((dot, index) => {
-                    const dotNumber = index + 1;
-                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                    g.classList.add('dot');
-                    g.dataset.dot = dotNumber;
-                    g.innerHTML = `<circle cx="${dot.x}" cy="${dot.y}" r="15" class="dot-circle"></circle><text x="${dot.x}" y="${dot.y}" class="dot-label">${dotNumber}</text>`;
-                    dotsContainer.appendChild(g);
-                });
-                updateUI();
-                addEventListeners();
+                // Reset state
+                currentDotIndex = 0;
+                lastPoint = null;
+                allDots = [];
+                dotContainer.innerHTML = '';
+                bgImage.classList.remove('finished');
+                winOverlay.classList.remove('show');
+                
+                // Resize canvas to match container
+                if (gameContainer.clientWidth > 0 && gameContainer.clientHeight > 0) {
+                    canvas.width = gameContainer.clientWidth;
+                    canvas.height = gameContainer.clientHeight;
+                } else {
+                    // Fallback or wait for layout
+                    setTimeout(initGame, 100); // Retry shortly
+                    return;
+                }
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#1e3a8a'; // Dark blue line
+                ctx.lineWidth = 3;
+                
+                drawDots();
+                highlightNextDot();
             }
 
-            function updateUI() {
-                progressEl.textContent = `${Math.min(currentDot, totalDots)} / ${totalDots}`;
-                document.querySelectorAll('.dot').forEach(dotEl => {
-                    const circle = dotEl.querySelector('.dot-circle');
-                    if (!dotEl.classList.contains('dot-connected')) {
-                        circle.classList.toggle('dot-circle-next', parseInt(dotEl.dataset.dot) === currentDot);
-                    }
+            function drawDots() {
+                dots.forEach((dot, index) => {
+                    const dotEl = document.createElement('div');
+                    dotEl.classList.add('dot');
+                    dotEl.style.left = `${dot.x}%`;
+                    dotEl.style.top = `${dot.y}%`;
+                    
+                    // Calculate dot label
+                    const label = (index + 1) * currentIncrement;
+                    dotEl.textContent = label;
+                    dotEl.dataset.index = index;
+                    
+                    dotEl.addEventListener('click', handleDotClick);
+                    dotContainer.appendChild(dotEl);
+                    allDots.push(dotEl);
                 });
+            }
+
+            function highlightNextDot() {
+                // Remove highlight from previous
+                const prevHighlight = document.querySelector('.next-dot');
+                if (prevHighlight) {
+                    prevHighlight.classList.remove('next-dot');
+                }
+                
+                // Add highlight to current
+                if (currentDotIndex < allDots.length) {
+                    allDots[currentDotIndex].classList.add('next-dot');
+                }
             }
 
             function handleDotClick(e) {
-                if (!audioUnlocked) unlockAudio();
-                const clickedDot = parseInt(e.currentTarget.dataset.dot);
-                if (clickedDot === currentDot) {
-                    playSound(flipSound);
-                    const { x, y } = dotCoordinates[currentDot - 1];
-                    path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
-                    e.currentTarget.classList.add('dot-connected');
-                    e.currentTarget.querySelector('.dot-circle').classList.remove('dot-circle-next');
-                    currentDot++;
-                    updateUI();
-                    if (currentDot > totalDots) finishGame();
+                if (!audioUnlocked) {
+                    unlockAudio();
+                }
+                playSound(clickSound); // Play click sound on any dot click
+
+                const clickedIndex = parseInt(e.target.dataset.index);
+
+                if (clickedIndex === currentDotIndex) {
+                    // --- CORRECT DOT ---
+                    const dotEl = allDots[clickedIndex];
+                    dotEl.classList.remove('next-dot');
+                    dotEl.classList.add('completed');
+                    
+                    // Get center of dot for drawing (in pixels)
+                    const rect = dotEl.getBoundingClientRect();
+                    const containerRect = gameContainer.getBoundingClientRect();
+                    const currentPoint = {
+                        x: rect.left - containerRect.left + rect.width / 2,
+                        y: rect.top - containerRect.top + rect.height / 2
+                    };
+
+                    if (lastPoint) {
+                        // Draw line from last point to this point
+                        ctx.beginPath();
+                        ctx.moveTo(lastPoint.x, lastPoint.y);
+                        ctx.lineTo(currentPoint.x, currentPoint.y);
+                        ctx.stroke();
+                    }
+                    lastPoint = currentPoint;
+                    
+                    currentDotIndex++;
+
+                    if (currentDotIndex === dots.length) {
+                        // --- GAME WON ---
+                        // Draw final line back to start
+                        const firstDotEl = allDots[0];
+                        const firstRect = firstDotEl.getBoundingClientRect();
+                        const firstPoint = {
+                            x: firstRect.left - containerRect.left + firstRect.width / 2,
+                            y: firstRect.top - containerRect.top + firstRect.height / 2
+                        };
+                        ctx.beginPath();
+                        ctx.moveTo(lastPoint.x, lastPoint.y);
+                        ctx.lineTo(firstPoint.x, firstPoint.y);
+                        ctx.stroke();
+
+                        winGame();
+                    } else {
+                        // Highlight the next dot
+                        highlightNextDot();
+                    }
+
                 } else {
-                    mainContainer.classList.add('shake');
-                    if (navigator.vibrate) navigator.vibrate(200);
-                    setTimeout(() => mainContainer.classList.remove('shake'), 500);
+                    // --- WRONG DOT ---
+                    gameContainer.classList.add('game-shake');
+                    triggerHapticFeedback();
+                    // Remove shake class after animation finishes
+                    setTimeout(() => {
+                        gameContainer.classList.remove('game-shake');
+                    }, 300);
                 }
             }
-            
-            function finishGame() {
-                const { x, y } = dotCoordinates[0];
-                path.setAttribute('points', `${path.getAttribute('points')} ${x},${y}`);
-                completedImage.style.opacity = '1';
-                progressEl.textContent = `Complete!`;
-                dotsContainer.style.opacity = '0';
-                path.style.opacity = '0';
-                
+
+            function winGame() {
                 playSound(winSound);
-                setTimeout(() => winOverlay.classList.add('show'), 500);
+                bgImage.classList.add('finished'); // Show the final image
+                winOverlay.classList.add('show');
+            }
+            
+            // --- Resize Logic ---
+            let resizeTimer;
+            function handleResize() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    console.log("Resizing...");
+                    initGame(); 
+                }, 250); // Debounce resize event
             }
 
-            function addEventListeners() {
-                dotsContainer.querySelectorAll('.dot').forEach(dot => dot.addEventListener('click', handleDotClick));
-            }
+            // --- Event Listeners ---
+            incrementRadios.forEach(radio => {
+                radio.addEventListener('change', initGame);
+            });
 
-            resetBtn.addEventListener('click', initGame);
             playAgainBtn.addEventListener('click', initGame);
-            initGame();
+
+            // Redraw on resize to keep canvas and container dimensions in sync
+            window.addEventListener('resize', handleResize);
+            
+            // Initial game setup
+            // Use setTimeout to ensure container has dimensions
+            setTimeout(initGame, 0);
         });
     </script>
 </body>
 </html>
+
 
