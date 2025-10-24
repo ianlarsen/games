@@ -9,6 +9,8 @@
     <!-- Lexend Deca is a font designed for readability, with a "ball and stick" a -->
     <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to shared stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
     <style>
         /* Apply the kid-friendly font to the whole game */
         body { font-family: 'Lexend Deca', sans-serif; touch-action: manipulation; }
@@ -29,11 +31,16 @@
         .letter-cell:hover { background-color: #f3f4f6; }
         .letter-cell.correct { background-color: #d1fae5; border-color: #10b981; transform: scale(1.05); }
         .letter-cell.incorrect { background-color: #fee2e2; border-color: #ef4444; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        
+        /* Using the standardized game-shake for consistency */
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
+        }
 
         /* Win Overlay and Confetti */
         .win-overlay {
@@ -66,12 +73,13 @@
 <body class="bg-gray-100 p-4 sm:p-8">
 
     <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
-        <header class="flex items-center justify-end gap-4 mb-6 pb-4 border-b">
+        <header class="flex items-center justify-between gap-4 mb-6 pb-4 border-b">
+             <h1 class="text-3xl font-bold text-gray-800">Letter Reversals</h1>
              <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
         </header>
 
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">Find all the letters that look like this:</h1>
+            <h2 class="text-2xl font-semibold text-gray-700">Find all the letters that look like this:</h2>
             <div id="target-letter" class="text-8xl font-bold text-blue-600 my-4"></div>
         </div>
 
@@ -85,14 +93,15 @@
         <div class="win-message">You Won!</div>
         <div class="mt-8 flex flex-col sm:flex-row gap-4">
             <button id="continue-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Continue</button>
-            <a href="..\index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+            <!-- Corrected link -->
+            <a href="../index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
         </div>
     </div>
     <div id="confetti-container" class="confetti-container"></div>
 
     <!-- Audio Elements -->
-    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -132,6 +141,12 @@
                 }
             }
             
+            function triggerHapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }
+
             function initGame() {
                 winOverlay.classList.remove('show');
                 confettiContainer.innerHTML = '';
@@ -139,7 +154,7 @@
                 foundCount = 0;
                 
                 currentPair = letterPairs[Math.floor(Math.random() * letterPairs.length)];
-                totalTargets = Math.floor(Math.random() * 5) + 8;
+                totalTargets = Math.floor(Math.random() * 5) + 8; // 8 to 12 targets
 
                 targetLetterEl.textContent = currentPair.target;
 
@@ -172,6 +187,7 @@
                 
                 if (cell.dataset.letter === currentPair.target) {
                     playSound(flipSound);
+Services
                     cell.classList.add('correct');
                     foundCount++;
                     
@@ -182,10 +198,10 @@
                     }
                 } else {
                     cell.classList.add('incorrect');
-                    mainEl.classList.add('shake');
-                    if (navigator.vibrate) navigator.vibrate(100);
+                    mainEl.classList.add('game-shake'); // Use game-shake
+                    triggerHapticFeedback(); // Add haptics
                     setTimeout(() => {
-                        mainEl.classList.remove('shake');
+                        mainEl.classList.remove('game-shake');
                         cell.classList.remove('incorrect');
                     }, 800);
                 }
@@ -211,4 +227,3 @@
     </script>
 </body>
 </html>
-
