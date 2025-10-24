@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Star Tap Game</title>
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
     <style>
         :root {
             --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
@@ -45,11 +47,17 @@
             max-width: 500px;
             text-align: center;
         }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        
+        /* Standardized shake from style.css */
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
+        }
+
         .game-canvas-container {
             position: relative;
             width: 100%;
@@ -155,7 +163,7 @@
 </head>
 <body>
 
-    <a href="shapes_menu.html" class="back-button">&larr; All Shape Games</a>
+    <a href="index.html" class="back-button">&larr; All Shape Games</a>
 
     <main>
         <h1>Star Tap</h1>
@@ -189,8 +197,8 @@
         </div>
     </main>
     
-    <audio id="correctSound" src="sounds/star.mp3" preload="auto"></audio>
-    <audio id="winSound" src="sounds/win.mp3" preload="auto"></audio>
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -205,8 +213,8 @@
         const sizeSlider = document.getElementById('sizeSlider');
         const mainEl = document.querySelector('main');
 
-        const correctSound = document.getElementById('correctSound');
-        const winSound = document.getElementById('winSound');
+        const flipSound = document.getElementById('flip-sound');
+        const winSound = document.getElementById('win-sound');
 
         let audioUnlocked = false;
         let shapes = [], totalStars = 0, foundStars = 0;
@@ -217,7 +225,7 @@
         // --- Sound Control ---
         function unlockAudio() {
             if (audioUnlocked) return;
-            correctSound.play().then(() => { correctSound.pause(); winSound.play().then(() => winSound.pause()).catch(()=>{}); audioUnlocked = true; }).catch(() => {});
+            flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(()=>{}); audioUnlocked = true; }).catch(() => {});
         }
 
         function playSound(sound) {
@@ -227,6 +235,12 @@
             }
         }
         
+        function triggerHapticFeedback() {
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+        }
+
         // --- Shape Generation ---
         function createPolygon(sides, size, centerX, centerY, rotation) {
             const points = [];
@@ -372,7 +386,12 @@
             const rect = canvas.getBoundingClientRect();
             const clientX = event.changedTouches ? event.changedTouches[0].clientX : event.clientX;
             const clientY = event.changedTouches ? event.changedTouches[0].clientY : event.clientY;
-            const clickPos = { x: clientX - rect.left, y: clientY - rect.top };
+            
+            // Adjust for canvas scaling
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clickPos = { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+
 
             let correctClick = false;
             let wrongClick = false;
@@ -383,7 +402,7 @@
                         shape.found = true;
                         foundStars++;
                         updateFoundCounter();
-                        playSound(correctSound);
+                        playSound(flipSound);
                         correctClick = true;
                         if (foundStars === totalStars) endGame();
                     } else {
@@ -393,9 +412,9 @@
                 }
             }
             if (wrongClick && !correctClick) {
-                 mainEl.classList.add('shake');
-                 if (navigator.vibrate) navigator.vibrate(200);
-                 setTimeout(() => mainEl.classList.remove('shake'), 820);
+                 mainEl.classList.add('game-shake');
+                 triggerHapticFeedback();
+                 setTimeout(() => mainEl.classList.remove('game-shake'), 300);
             }
         }
         
@@ -458,11 +477,12 @@
 
         function animateConfetti() {
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            let activeParticles = false;
             confettiParticles.forEach(p => {
                 p.x += p.speedX;
                 p.y += p.speedY;
                 p.rotation += p.rotationSpeed;
-                p.speedY += 0.05;
+                p.speedY += 0.05; // gravity
 
                 confettiCtx.save();
                 confettiCtx.translate(p.x + p.w / 2, p.y + p.h / 2);
@@ -471,31 +491,42 @@
                 confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
                 confettiCtx.restore();
 
-                if (p.y > confettiCanvas.height) {
-                    p.y = -p.h;
-                    p.x = Math.random() * confettiCanvas.width;
+                // Check if particle is still on screen
+                if (p.y <= confettiCanvas.height) {
+                    activeParticles = true;
                 }
-                 if (p.x > confettiCanvas.width + p.w || p.x < -p.w) {
-                    p.x = Math.random() * confettiCanvas.width;
-                    p.y = -p.h;
-                 }
             });
-            confettiAnimationId = requestAnimationFrame(animateConfetti);
+            
+            if (activeParticles) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            } else {
+                 confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }
         }
 
         // --- Init & Listeners ---
         function resizeCanvas() {
             const container = canvas.parentElement;
+            // Use clientWidth for responsive sizing
             const size = container.clientWidth;
 
+            // Set drawing buffer size
             canvas.width = size;
             canvas.height = size;
-
+            
             confettiCanvas.width = size;
             confettiCanvas.height = size;
             
+            // Scale canvas display size (already 100% via CSS)
+            
             if (isGameActive) {
+                // When resizing, we need to regenerate shapes based on new size
+                // or scale existing shapes. For simplicity, let's just redraw.
+                // A full regen would be better if aspect ratio could change, but it's 1:1.
                 draw();
+            } else {
+                // If game hasn't started, just clear
+                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
         }
         
@@ -511,4 +542,3 @@
     </script>
 </body>
 </html>
-

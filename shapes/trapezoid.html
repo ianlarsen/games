@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trapezoid Tap Game</title>
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
     <style>
         :root {
             --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; 
@@ -124,15 +126,17 @@
         .overlay h2 { font-size: 2rem; font-weight: 700; }
         .overlay p { font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 40ch; }
         .example-shape { width: 80px; height: 60px; margin-bottom: 1rem; }
-        @keyframes shake {
-          10%, 90% { transform: translate3d(-1px, 0, 0); }
-          20%, 80% { transform: translate3d(2px, 0, 0); }
-          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-          40%, 60% { transform: translate3d(4px, 0, 0); }
+        
+        /* Standardized shake from style.css */
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-        .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
         }
+
         .slider-container {
             margin-top: 1rem;
             margin-bottom: 1rem;
@@ -161,7 +165,7 @@
 <body>
     
     <header>
-        <a href="shapes_menu.html" class="back-button">
+        <a href="index.html" class="back-button">
             &larr; All Shape Games
         </a>
     </header>
@@ -203,8 +207,8 @@
         </div>
     </main>
 
-    <audio id="correctSound" src="sounds/trapezoid.mp3" preload="auto"></audio>
-    <audio id="winSound" src="sounds/win.mp3" preload="auto"></audio>
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -219,8 +223,8 @@
         const mainContainer = document.querySelector('main');
         const sizeSlider = document.getElementById('sizeSlider');
 
-        const correctSound = document.getElementById('correctSound');
-        const winSound = document.getElementById('winSound');
+        const flipSound = document.getElementById('flip-sound');
+        const winSound = document.getElementById('win-sound');
 
         let audioUnlocked = false;
         let shapes = [], totalTrapezoids = 0, foundTrapezoids = 0;
@@ -231,13 +235,19 @@
         // --- Sound Control ---
         function unlockAudio() {
             if (audioUnlocked) return;
-            correctSound.play().then(() => { correctSound.pause(); winSound.play().then(() => winSound.pause()).catch(()=>{}); audioUnlocked = true; }).catch(() => {});
+            flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(()=>{}); audioUnlocked = true; }).catch(() => {});
         }
 
         function playSound(sound) {
             if (audioUnlocked && sound) {
                 sound.currentTime = 0;
                 sound.play().catch(e => console.error("Sound play failed:", e));
+            }
+        }
+        
+        function triggerHapticFeedback() {
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
             }
         }
 
@@ -385,7 +395,11 @@
             const rect = canvas.getBoundingClientRect();
             const clientX = event.changedTouches ? event.changedTouches[0].clientX : event.clientX;
             const clientY = event.changedTouches ? event.changedTouches[0].clientY : event.clientY;
-            const clickPos = { x: clientX - rect.left, y: clientY - rect.top };
+            
+            // Adjust for canvas scaling
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clickPos = { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
             
             let correctClick = false;
             let wrongClick = false;
@@ -394,7 +408,7 @@
                 if (!shape.found && pointInPolygon(clickPos, shape.points)) {
                     if (shape.type === 'trapezoid') {
                         shape.found = true;
-                        playSound(correctSound);
+                        playSound(flipSound); // Changed from correctSound
                         foundTrapezoids++;
                         updateFoundCounter();
                         correctClick = true;
@@ -411,9 +425,9 @@
         }
         
         function handleWrongClick() {
-            if (navigator.vibrate) navigator.vibrate(100);
-            mainContainer.classList.add('shake');
-            setTimeout(() => mainContainer.classList.remove('shake'), 500);
+            triggerHapticFeedback();
+            mainContainer.classList.add('game-shake');
+            setTimeout(() => mainContainer.classList.remove('game-shake'), 300);
         }
         function updateFoundCounter() { foundCounterElement.textContent = `${foundTrapezoids} / ${totalTrapezoids}`; }
 
@@ -430,6 +444,7 @@
             confettiParticles = [];
             cancelAnimationFrame(confettiAnimationId);
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            sizeMultiplier = parseFloat(sizeSlider.value); // Apply slider value
             generateShapes();
             updateFoundCounter();
             startScreen.classList.add('hidden');
@@ -461,19 +476,27 @@
         }
         function animateConfetti() {
             confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            let activeParticles = false;
             confettiParticles.forEach(p => {
                 p.x += p.speedX; p.y += p.speedY; p.rotation += p.rotationSpeed; 
-                p.speedY += 0.04;
+                p.speedY += 0.04; // gravity
                 confettiCtx.save();
                 confettiCtx.translate(p.x + p.w / 2, p.y + p.h / 2);
                 confettiCtx.rotate(p.rotation * Math.PI / 180);
                 confettiCtx.fillStyle = p.color;
                 confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
                 confettiCtx.restore();
-                if (p.y > confettiCanvas.height) { p.y = -p.h; p.x = Math.random() * confettiCanvas.width; }
-                if (p.x > confettiCanvas.width + p.w || p.x < -p.w) { p.x = Math.random() * confettiCanvas.width; p.y = -p.h; }
+                 // Check if particle is still on screen
+                if (p.y <= confettiCanvas.height) {
+                    activeParticles = true;
+                }
             });
-            confettiAnimationId = requestAnimationFrame(animateConfetti);
+
+            if (activeParticles) {
+                 confettiAnimationId = requestAnimationFrame(animateConfetti);
+            } else {
+                 confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); // Clear when done
+            }
         }
 
         // --- Initialization ---
@@ -482,7 +505,12 @@
             canvas.width = size; canvas.height = size;
             confettiCanvas.width = size; confettiCanvas.height = size;
             if(isGameActive) {
+                // Regenerate shapes on resize to fit new canvas size better
+                // Or simply redraw if scaling is sufficient
+                generateShapes(); // Regenerating for better distribution
                 draw();
+            } else {
+                 ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear if not started
             }
         }
         window.addEventListener('resize', resizeCanvas);
@@ -494,9 +522,9 @@
             canvas.addEventListener('touchstart', handleCanvasClick, { passive: false });
             sizeSlider.addEventListener('input', (e) => {
                 sizeMultiplier = parseFloat(e.target.value);
+                // Optionally provide visual feedback or redraw preview shapes here
             });
         });
     </script>
 </body>
 </html>
-
