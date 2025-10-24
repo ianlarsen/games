@@ -8,55 +8,70 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to shared stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
     <style>
+        /* Game-specific styles */
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
-        .direction-btn.selected {
-            background-color: #fef08a; /* Yellow-200 for illumination */
-            transform: scale(1.05);
+        
+        select:invalid { color: #6b7280; } /* Gray color for placeholder */
+
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); }
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
         }
-        .shake { animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
 
     <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
         <header class="flex flex-wrap items-center justify-start gap-4 mb-6 pb-4 border-b">
-            <a href="..\index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
+            <!-- Corrected back link to main index -->
+            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
         </header>
 
         <div class="text-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Which way is the animal facing?</h1>
         </div>
 
-        <div id="image-container" class="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-6 overflow-hidden">
+        <div id="image-container" class="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-8 overflow-hidden border">
             <img id="animal-image" src="" alt="An animal" class="max-w-full max-h-full object-contain">
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <button id="left-btn" data-direction="left" class="direction-btn w-full py-6 text-3xl font-bold bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-transform transform">Left</button>
-            <button id="right-btn" data-direction="right" class="direction-btn w-full py-6 text-3xl font-bold bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-transform transform">Right</button>
+        <!-- New Dropdown UI -->
+        <div class="w-full max-w-sm mx-auto">
+             <label for="direction-select" class="block text-lg font-medium text-gray-700 text-center mb-2">Make your choice:</label>
+            <select id="direction-select" class="block w-full text-center p-4 text-2xl font-semibold border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <option value="" selected disabled>Select...</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+            </select>
         </div>
     </main>
 
     <!-- Audio Elements -->
-    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
-    <audio id="match-sound" src="sounds/match.mp3" preload="auto"></audio>
+    <!-- Note: Ensure left.mp3 and right.mp3 are in your sounds folder -->
+    <audio id="left-sound" src="../sounds/left.mp3" preload="auto"></audio>
+    <audio id="right-sound" src="../sounds/right.mp3" preload="auto"></audio>
+    <!-- <audio id="match-sound" src="../sounds/match.mp3" preload="auto"></audio> --> <!-- Removed this line -->
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const animalImage = document.getElementById('animal-image');
-            const leftBtn = document.getElementById('left-btn');
-            const rightBtn = document.getElementById('right-btn');
+            const directionSelect = document.getElementById('direction-select');
             const mainEl = document.querySelector('main');
 
-            const flipSound = document.getElementById('flip-sound');
-            const matchSound = document.getElementById('match-sound');
+            // --- Audio ---
+            const leftSound = document.getElementById('left-sound');
+            const rightSound = document.getElementById('right-sound');
+            // const matchSound = document.getElementById('match-sound'); // Removed this line
             let audioUnlocked = false;
 
+            // --- Game Data ---
             const animals = [
                 { src: 'images/horse_right.png', answer: 'right' }, { src: 'images/cow_left.png', answer: 'left' },
                 { src: 'images/pig_left.png', answer: 'left' }, { src: 'images/frog_right.png', answer: 'right' },
@@ -70,13 +85,25 @@
                 { src: 'images/bear_right.png', answer: 'right' }, { src: 'images/fox_left.png', answer: 'left' },
             ];
             
+            // --- Game State ---
             let shuffledAnimals = [];
             let currentAnimalIndex = 0;
             let processing = false;
 
+            // --- Audio Functions ---
             function unlockAudio() {
                 if (audioUnlocked) return;
-                flipSound.play().then(() => { flipSound.pause(); matchSound.play().then(() => matchSound.pause()).catch(()=>{}); audioUnlocked = true; }).catch(() => {});
+                // Pre-play all sounds on a user gesture
+                Promise.all([
+                    leftSound.play(),
+                    rightSound.play()
+                    // matchSound.play() // Removed this line
+                ]).then(() => {
+                    leftSound.pause();
+                    rightSound.pause();
+                    // matchSound.pause(); // Removed this line
+                    audioUnlocked = true;
+                }).catch(() => {});
             }
 
             function playSound(sound) {
@@ -85,7 +112,15 @@
                     sound.play().catch(e => console.error("Sound play failed:", e));
                 }
             }
+
+            // --- Haptic Feedback ---
+            function triggerHapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }
             
+            // --- Game Logic ---
             function initGame() {
                 shuffledAnimals = [...animals].sort(() => Math.random() - 0.5);
                 currentAnimalIndex = 0;
@@ -94,7 +129,7 @@
 
             function loadAnimal() {
                 if (currentAnimalIndex >= shuffledAnimals.length) {
-                    // When the list is finished, reshuffle and start from the beginning.
+                    // Reshuffle and start over
                     shuffledAnimals.sort(() => Math.random() - 0.5);
                     currentAnimalIndex = 0;
                 }
@@ -107,36 +142,48 @@
                 if (processing) return;
                 if (!audioUnlocked) unlockAudio();
                 
+                const selectedDirection = event.target.value;
+                if (!selectedDirection) return; // Ignore if they re-select the "Select..." option
+
                 processing = true;
-                const selectedBtn = event.currentTarget;
-                const selectedDirection = selectedBtn.dataset.direction;
                 const correctDirection = shuffledAnimals[currentAnimalIndex].answer;
 
-                playSound(flipSound);
-                selectedBtn.classList.add('selected');
+                // Play sound for the choice they made
+                if (selectedDirection === 'left') {
+                    playSound(leftSound);
+                } else if (selectedDirection === 'right') {
+                    playSound(rightSound);
+                }
 
                 if (selectedDirection === correctDirection) {
-                    playSound(matchSound);
+                    // --- CORRECT ---
+                    /* Removed match sound block
+                    setTimeout(() => {
+                        playSound(matchSound); // Play correct sound after a short delay
+                    }, 300); // 300ms delay
+                    */
+                    
                     setTimeout(() => {
                         currentAnimalIndex++;
                         loadAnimal();
-                        selectedBtn.classList.remove('selected');
+                        directionSelect.value = ""; // Reset dropdown
                         processing = false;
-                    }, 1000);
+                    }, 1000); // 1 second delay before next animal
                 } else {
-                    mainEl.classList.add('shake');
-                    if (navigator.vibrate) navigator.vibrate(200);
+                    // --- INCORRECT ---
+                    mainEl.classList.add('game-shake');
+                    triggerHapticFeedback();
                     setTimeout(() => {
-                        mainEl.classList.remove('shake');
-                        selectedBtn.classList.remove('selected');
+                        mainEl.classList.remove('game-shake');
+                        directionSelect.value = ""; // Reset dropdown
                         processing = false;
-                    }, 1000);
+                    }, 800);
                 }
             }
             
-            leftBtn.addEventListener('click', handleChoice);
-            rightBtn.addEventListener('click', handleChoice);
+            directionSelect.addEventListener('change', handleChoice);
 
+            // Initial load
             initGame();
         });
     </script>
