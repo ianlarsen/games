@@ -8,14 +8,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to shared stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
+        /* Custom styles from the original HTML */
         .emoji-item {
             position: absolute;
-            font-size: clamp(2rem, 8vw, 4rem);
+            font-size: clamp(1.25rem, 5vw, 2.5rem); /* Normalized font size */
             cursor: pointer;
             transition: transform 0.2s ease-in-out, opacity 0.3s;
             user-select: none;
@@ -23,10 +26,15 @@
         .emoji-item:hover {
             transform: scale(1.2);
         }
+        /* Style for the target list at the bottom */
+        .target-emoji {
+            transition: opacity 0.3s, text-decoration 0.3s;
+        }
         .target-emoji.found {
             text-decoration: line-through;
             opacity: 0.5;
         }
+        /* Win overlay styles from the original HTML */
         .win-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -50,6 +58,15 @@
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             text-align: center;
+        }
+        /* Standardized shake animation */
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
         }
     </style>
 </head>
@@ -80,34 +97,46 @@
         </div>
     </main>
 
-    <!-- Audio Elements -->
-    <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
+    <!-- Audio Elements pointing to shared sounds folder -->
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
             const emojiLayer = document.getElementById('emoji-layer');
             const targetsContainer = document.getElementById('targets');
             const winOverlay = document.getElementById('win-overlay');
             const playAgainBtn = document.getElementById('play-again-btn');
+            const mainEl = document.querySelector('main');
 
+            // --- Audio Elements ---
             const flipSound = document.getElementById('flip-sound');
             const winSound = document.getElementById('win-sound');
             let audioUnlocked = false;
 
-            const gameData = {
-                emojis: ['🚀', '👽', '🪐', '☄️', '⭐️', '🔭', '🛰️', '🌌'],
-                targets: ['👽', '🪐', '☄️'],
-                positions: [
-                    { top: '70%', left: '10%' }, { top: '20%', left: '80%' }, { top: '50%', left: '50%' },
-                    { top: '10%', left: '30%' }, { top: '85%', left: '85%' }, { top: '80%', left: '40%' },
-                    { top: '30%', left: '5%' }, { top: '5%', left: '90%' }
-                ]
-            };
-            
-            let foundCount = 0;
-            const totalTargets = gameData.targets.length;
+            // --- Game Data (from space.js) ---
+            const allEmojis = [
+                "🚀","🛸","👩‍🚀","🪐","🌌","🌠","☄️","🌑","🌕","🌟",
+                "🔭","👽","🛰️","📡","🪨"
+            ];
 
+            const positions = {
+                "🚀": {top:"40%", left:"20%", size:"40px"}, "🛸": {top:"25%", left:"70%", size:"35px"},
+                "👩‍🚀": {top:"60%", left:"50%", size:"45px"}, "🪐": {top:"15%", left:"40%", size:"55px"},
+                "🌌": {top:"5%", left:"10%", size:"28px"}, "🌠": {top:"30%", left:"80%", size:"28px"},
+                "☄️": {top:"70%", left:"15%", size:"28px"}, "🌑": {top:"20%", left:"60%", size:"30px"},
+                "🌕": {top:"10%", left:"85%", size:"30px"}, "🌟": {top:"50%", left:"75%", size:"20px"},
+                "🔭": {top:"80%", left:"40%", size:"28px"}, "👽": {top:"65%", left:"25%", size:"32px"},
+                "🛰️": {top:"35%", left:"55%", size:"28px"}, "📡": {top:"85%", left:"70%", size:"28px"},
+                "🪨": {top:"75%", left:"55%", size:"24px"},
+            };
+
+            // --- Game State ---
+            let currentTargets = [];
+            let foundCount = 0;
+
+            // --- Audio & Haptics ---
             function unlockAudio() {
                 if (audioUnlocked) return;
                 flipSound.play().then(() => {
@@ -123,14 +152,31 @@
                     sound.play().catch(e => console.error("Sound play failed:", e));
                 }
             }
+            
+            function triggerHapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }
 
-            function initGame() {
+            // --- Game Logic ---
+            function startRound() {
+                winOverlay.classList.remove('show');
                 emojiLayer.innerHTML = '';
                 targetsContainer.innerHTML = '';
-                winOverlay.classList.remove('show');
                 foundCount = 0;
+                
+                // Pick 3 random targets
+                currentTargets = [];
+                let availableEmojis = [...allEmojis];
+                while (currentTargets.length < 3) {
+                    const pickIndex = Math.floor(Math.random() * availableEmojis.length);
+                    const pick = availableEmojis.splice(pickIndex, 1)[0];
+                    currentTargets.push(pick);
+                }
 
-                gameData.targets.forEach(target => {
+                // Display targets at the bottom
+                currentTargets.forEach(target => {
                     const span = document.createElement('span');
                     span.textContent = target;
                     span.classList.add('target-emoji');
@@ -138,47 +184,53 @@
                     targetsContainer.appendChild(span);
                 });
 
-                const shuffledPositions = [...gameData.positions].sort(() => Math.random() - 0.5);
-
-                gameData.emojis.forEach((emoji, index) => {
-                    const div = document.createElement('div');
-                    div.textContent = emoji;
-                    div.classList.add('emoji-item');
-                    div.style.top = shuffledPositions[index].top;
-                    div.style.left = shuffledPositions[index].left;
+                // Place all emojis
+                allEmojis.forEach(e => {
+                    const span = document.createElement("span");
+                    span.textContent = e;
+                    span.classList.add("emoji-item"); // Use class from HTML
+                    span.style.top = positions[e].top;
+                    span.style.left = positions[e].left;
                     
-                    if (gameData.targets.includes(emoji)) {
-                        div.dataset.target = 'true';
-                        div.addEventListener('click', handleEmojiClick, { once: true });
+                    if (positions[e].size) {
+                        span.style.fontSize = positions[e].size;
                     }
-                    emojiLayer.appendChild(div);
+
+                    // Add click listener to ALL emojis
+                    span.addEventListener("click", () => {
+                        if (!audioUnlocked) unlockAudio();
+                        
+                        // Check if it's a target
+                        if (currentTargets.includes(e)) {
+                            // --- CORRECT ---
+                            const targetEl = targetsContainer.querySelector(`[data-emoji="${e}"]`);
+                            if (targetEl && !targetEl.classList.advisories('found')) {
+                                playSound(flipSound);
+                                span.style.transform = 'scale(1.2)';
+                                span.style.opacity = '0.5';
+                                
+                                targetEl.classList.add('found');
+                                foundCount++;
+
+                                if (foundCount === currentTargets.length) {
+                                    playSound(winSound);
+                                    setTimeout(() => winOverlay.classList.add('show'), 500);
+                                }
+                            }
+                        } else {
+                            // --- INCORRECT ---
+                            mainEl.classList.add('game-shake');
+                            triggerHapticFeedback();
+                            setTimeout(() => mainEl.classList.remove('game-shake'), 800);
+                        }
+                    });
+                    emojiLayer.appendChild(span);
                 });
             }
-
-            function handleEmojiClick(event) {
-                if (!audioUnlocked) unlockAudio();
-                
-                playSound(flipSound);
-                event.target.style.transform = 'scale(1.5)';
-                event.target.style.opacity = '0.5';
-                
-                const foundEmoji = event.target.textContent;
-                const targetEl = targetsContainer.querySelector(`[data-emoji="${foundEmoji}"]`);
-                if (targetEl) {
-                    targetEl.classList.add('found');
-                    foundCount++;
-                }
-
-                if (foundCount === totalTargets) {
-                    playSound(winSound);
-                    setTimeout(() => winOverlay.classList.add('show'), 300);
-                }
-            }
             
-            playAgainBtn.addEventListener('click', initGame);
-            initGame();
+            playAgainBtn.addEventListener('click', startRound);
+            startRound(); // Initial game start
         });
     </script>
 </body>
 </html>
-
