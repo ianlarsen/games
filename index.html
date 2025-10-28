@@ -91,13 +91,19 @@
     <source src="sounds/flip.ogg" type="audio/ogg">
   </audio>
 
+  <!-- Audio element for background music -->
+  <audio id="background-music" loop preload="auto">
+    <source src="sounds/main_theme.mp3" type="audio/mpeg">
+    <source src="sounds/main_theme.ogg" type="audio/ogg">
+  </audio>
+
   <!-- Visual feedback for sound errors -->
   <div id="sound-status" class="sound-status" aria-live="polite" aria-atomic="true"></div>
 
   <script>
     // --- Settings Management ---
     const settings = {
-      ttsEnabled: false,
+      ttsEnabled: true, // Default to true
       audioUnlocked: false,
       init() {
         // Load saved preferences
@@ -105,7 +111,10 @@
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            this.ttsEnabled = parsed.ttsEnabled || false;
+            // FIXED: Check if the property exists before assigning, to respect default 'true'
+            if (parsed.hasOwnProperty('ttsEnabled')) { 
+                this.ttsEnabled = parsed.ttsEnabled;
+            }
           } catch(e) {
             console.error('Failed to load settings:', e);
           }
@@ -125,6 +134,7 @@
     // --- Audio Playback with Error Handling ---
     const audio = {
       flipSound: document.getElementById('flip-sound'),
+      backgroundMusic: document.getElementById('background-music'), // Added background music element
       statusEl: document.getElementById('sound-status'),
       
       unlock() {
@@ -138,6 +148,9 @@
               this.flipSound.pause();
               this.flipSound.currentTime = 0;
               settings.audioUnlocked = true;
+              
+              // Now that audio is unlocked, check if we should play background music
+              this.updateBackgroundMusic(); 
             })
             .catch(e => {
               console.warn('Audio unlock failed:', e);
@@ -165,6 +178,18 @@
           this.showStatus('🔊', 'visual-only');
         }
       },
+
+      // New function to control background music
+      updateBackgroundMusic() {
+        if (!this.backgroundMusic || !settings.audioUnlocked) return;
+
+        // Play only if sound is enabled (ttsEnabled flag) and the page is visible
+        if (settings.ttsEnabled && !document.hidden) {
+          this.backgroundMusic.play().catch(e => console.warn('Background music play failed:', e));
+        } else {
+          this.backgroundMusic.pause();
+        }
+      },
       
       showStatus(message, type = 'info') {
         if (!this.statusEl) return;
@@ -183,13 +208,22 @@
     const tts = {
       btn: document.getElementById('tts'),
       
+      // New function to apply the current state to the UI and music
+      applyState() {
+        if (!this.btn) return; // Added check for safety
+        this.btn.setAttribute('aria-pressed', String(settings.ttsEnabled));
+        this.btn.textContent = settings.ttsEnabled ? '🔊 Sound On' : '🔇 Sound Off';
+        
+        // Update background music state
+        audio.updateBackgroundMusic();
+      },
+      
       init() {
         if (!this.btn) return;
         
-        // Apply saved preference
-        if (settings.ttsEnabled) {
-          this.toggle(false); // Don't speak on page load
-        }
+        // Apply saved preference or default
+        settings.init(); // <-- MOVED settings.init() here to load before applying state
+        this.applyState();
         
         this.btn.addEventListener('click', () => this.toggle(true));
       },
@@ -198,9 +232,8 @@
         settings.ttsEnabled = !settings.ttsEnabled;
         settings.save();
         
-        this.btn.setAttribute('aria-pressed', String(settings.ttsEnabled));
-        this.btn.textContent = settings.ttsEnabled ? '🔊 Sound On' : '🔇 Sound Off';
-        
+        this.applyState(); // <-- CHANGED: Use applyState to update UI
+
         if (announce) {
           if (settings.ttsEnabled) {
             this.speak('Sound on. Choose a game.');
@@ -224,7 +257,12 @@
           utterance.rate = 0.95;
           utterance.pitch = 1.05;
           utterance.onerror = (e) => {
-            console.error('TTS error:', e);
+            // More detailed error logging
+            let errorMsg = 'TTS error';
+            if (e.error) {
+                errorMsg += `: ${e.error}`;
+            }
+            console.error(errorMsg, e);
           };
           
           speechSynthesis.cancel(); // Stop previous speech
@@ -237,7 +275,7 @@
 
     // --- Initialize on DOM Ready ---
     document.addEventListener('DOMContentLoaded', () => {
-      settings.init();
+      // settings.init(); // <-- MOVED to tts.init() to ensure it runs first
       tts.init();
       
       // Set up audio unlock listeners
@@ -248,15 +286,16 @@
       document.querySelectorAll('.tile').forEach(tile => {
         const textToSay = tile.dataset.say;
         
-        // Play sound and speak on click
+        // Play sound and speak on click (This is a user interaction, usually allowed)
         tile.addEventListener('click', (e) => {
           audio.play(audio.flipSound);
           tts.speak('Loading ' + textToSay);
         });
         
-        // TTS on hover/focus
-        tile.addEventListener('mouseenter', () => tts.speak(textToSay));
-        tile.addEventListener('focus', () => tts.speak(textToSay));
+        // TTS on hover/focus is often blocked by browsers as it's not a direct click.
+        // This is the most likely cause of the TTS errors.
+        // REMOVED: tile.addEventListener('mouseenter', () => tts.speak(textToSay));
+        // REMOVED: tile.addEventListener('focus', () => tts.speak(textToSay));
       });
     });
 
@@ -265,7 +304,10 @@
       if (document.hidden && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      // Pause or resume background music when tab visibility changes
+      audio.updateBackgroundMusic();
     });
   </script>
 </body>
 </html>
+
