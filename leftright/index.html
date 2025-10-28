@@ -11,8 +11,10 @@
     <!-- Link to shared stylesheet -->
     <link rel="stylesheet" href="../style/style.css">
     <style>
-        /* Game-specific styles */
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        body { 
+  height: auto;
+  overflow-y: auto;
+font-family: 'Inter', sans-serif; touch-action: manipulation; }
         
         select:invalid { color: #6b7280; } /* Gray color for placeholder */
 
@@ -55,9 +57,9 @@
 
     <!-- Audio Elements -->
     <!-- Added win.mp3 sound -->
-    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
-    <audio id="left-sound" src="../sounds/left.mp3" preload="auto"></audio>
-    <audio id="right-sound" src="../sounds/right.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto" playsinline></audio>
+    <audio id="left-sound" src="../sounds/left.mp3" preload="auto" playsinline></audio>
+    <audio id="right-sound" src="../sounds/right.mp3" preload="auto" playsinline></audio>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
