@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="../style/style.css"> <!-- Shared stylesheet -->
     <style>
         body {
+   	    height: auto;
+	    overflow-y: auto;
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
@@ -62,44 +64,45 @@
             z-index: 2;
         }
 
-        .dot {
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            background-color: rgba(255, 255, 255, 0.9);
-            border: 2px solid #3b82f6; /* Blue */
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e3a8a;
-            cursor: pointer;
-            transform: translate(-50%, -50%); /* Center on coordinate */
-            transition: all 0.2s ease;
-            user-select: none;
-        }
+/* --- Make Farm dots look like T-Rex dots --- */
+.dot {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background-color: #4F46E5;   /* indigo fill like trex .dot-circle */
+  border: 4px solid #FFFFFF;   /* white stroke like trex */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;              /* white label like trex .dot-label */
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease;
+  user-select: none;
+}
 
-        .dot:hover {
-            transform: translate(-50%, -50%) scale(1.1);
-        }
+.dot:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+}
 
-        .dot.next-dot {
-            /* Highlight the next expected dot */
-            background-color: #a3e635; /* Lime green */
-            border-color: #4d7c0f;
-            box-shadow: 0 0 15px 5px #a3e635;
-        }
+/* highlight next dot (trex: .dot-circle-next = emerald) */
+.dot.next-dot {
+  background-color: #10B981;   /* emerald */
+  border-color: #FFFFFF;
+  box-shadow: none;            /* remove lime glow from old style */
+}
 
-        .dot.completed {
-            /* Style for already-clicked dots */
-            background-color: #fca5a5; /* Red */
-            border-color: #b91c1c;
-            color: #7f1d1d;
-            opacity: 0.7;
-            pointer-events: none;
-        }
+/* completed dot (trex greys it out) */
+.dot.completed {
+  background-color: #9CA3AF;   /* gray-400 */
+  border-color: #FFFFFF;
+  color: #E5E7EB;              /* gray-200 label */
+  opacity: 1;                  /* match trex (no extra fade) */
+  pointer-events: none;
+}
 
         .game-shake {
             animation: gameShake 0.3s ease-in-out;
@@ -153,6 +156,10 @@
                 <label class="flex items-center gap-2 cursor-pointer text-lg">
                     <input type="radio" name="increment" value="1" class="form-radio h-5 w-5 text-blue-600" checked>
                     1s
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-lg">
+                    <input type="radio" name="increment" value="2" class="form-radio h-5 w-5 text-blue-600">
+                    2s
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer text-lg">
                     <input type="radio" name="increment" value="5" class="form-radio h-5 w-5 text-blue-600">
@@ -268,8 +275,8 @@
                 }
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#1e3a8a'; // Dark blue line
-                ctx.lineWidth = 3;
+ctx.strokeStyle = '#4F46E5'; // match trex stroke
+ctx.lineWidth = 5;           // match trex thickness
                 
                 drawDots();
                 highlightNextDot();
