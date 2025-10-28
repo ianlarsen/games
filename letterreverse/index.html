@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+F<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -171,14 +171,9 @@
     </div>
     <div id="confetti-container" class="confetti-container"></div>
 
-    <!-- 
-      FIX 2: 
-      Audio tags removed. The relative paths '../sounds/flip.mp3' 
-      and '../sounds/win.mp3' will not work in a self-contained HTML file 
-      unless those files are hosted somewhere and linked via a full URL.
-    -->
-    <!-- <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio> -->
-    <!-- <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio> -->
+
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -189,9 +184,8 @@
             const continueBtn = document.getElementById('continue-btn');
             const confettiContainer = document.getElementById('confetti-container');
 
-            // FIX 2 (continued): Sound elements are commented out.
-            // const flipSound = document.getElementById('flip-sound');
-            // const winSound = document.getElementById('win-sound');
+            const flipSound = document.getElementById('flip-sound');
+            const winSound = document.getElementById('win-sound');
             let audioUnlocked = false; // We can leave this logic, it won't break anything.
 
             const letterPairs = [
@@ -209,19 +203,15 @@
 
             function unlockAudio() {
                 if (audioUnlocked) return;
-                // FIX 2 (continued): Audio play attempts removed.
-                // flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(() => {}); audioUnlocked = true; }).catch(() => {});
+                flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(() => {}); audioUnlocked = true; }).catch(() => {});
                 audioUnlocked = true; // Set to true anyway.
             }
 
             function playSound(sound) {
-                // FIX 2 (continued): Function body commented out.
-                /*
                 if (sound && audioUnlocked) {
                     sound.currentTime = 0;
                     sound.play().catch(e => console.error("Sound play failed:", e));
                 }
-                */
             }
             
             function triggerHapticFeedback() {
@@ -269,18 +259,13 @@
                 if (cell.classList.contains('correct') || cell.classList.contains('incorrect')) return;
                 
                 if (cell.dataset.letter === currentPair.target) {
-                    // playSound(flipSound); // Sound call commented out
+                     playSound(flipSound); // Sound call commented out
                     
-                    /*
-                      FIX 3 (CRITICAL): 
-                      Removed the stray word "Services" which was here.
-                      It was a syntax error and would break the script.
-                    */
                     cell.classList.add('correct');
                     foundCount++;
                     
                     if (foundCount === totalTargets) {
-                        // playSound(winSound); // Sound call commented out
+                        playSound(winSound); // Sound call commented out
                         triggerConfetti();
                         setTimeout(() => winOverlay.classList.add('show'), 300);
                     }
