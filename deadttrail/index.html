@@ -429,16 +429,27 @@
             }
         });
 
+        // Add debug message to screen
+        function showDebug(msg, color = 'lime') {
+            const debug = document.createElement('div');
+            debug.style.cssText = `position: fixed; top: 10px; right: 10px; background: black; color: ${color}; padding: 10px; border: 2px solid ${color}; font-size: 14px; z-index: 10000; max-width: 300px;`;
+            debug.innerHTML = msg;
+            document.body.appendChild(debug);
+        }
+
         window.onload = () => {
+            showDebug("✓ JavaScript is running!");
             console.log("Page loaded! Starting game...");
             console.log("Current scene:", gameState.currentScene);
             console.log("Scene data exists:", !!storyData[gameState.currentScene]);
             try {
                 renderScene();
+                showDebug("✓ JavaScript is running!<br>✓ RenderScene completed!", 'cyan');
                 console.log("RenderScene completed successfully");
             } catch(e) {
                 console.error("ERROR in renderScene:", e);
-                document.body.innerHTML = '<div style="color:red; padding:50px; font-size:20px;">ERROR: ' + e.message + '</div>';
+                showDebug("✗ ERROR: " + e.message, 'red');
+                document.body.innerHTML = '<div style="color:red; padding:50px; font-size:20px;">ERROR: ' + e.message + '<br><br>Stack: ' + e.stack + '</div>';
             }
         };
     </script>
