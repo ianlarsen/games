@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Beach Hunt</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to shared stylesheet -->
+    <link rel="stylesheet" href="../style/style.css">
+    <style>
+        body {
+	    height: auto;
+  	    overflow-y: auto;
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        /* Custom styles from the original HTML */
+        .emoji-item {
+            position: absolute;
+            font-size: clamp(1.25rem, 5vw, 2.5rem); /* Normalized font size */
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, opacity 0.3s;
+            user-select: none;
+            /* Added a subtle drop shadow for visibility on bright areas */
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .emoji-item:hover {
+            transform: scale(1.2);
+        }
+        /* Style for the target list at the bottom */
+        .target-emoji {
+            transition: opacity 0.3s, text-decoration 0.3s;
+        }
+        .target-emoji.found {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        /* Win overlay styles from the original HTML */
+        .win-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .win-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .win-message {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        /* Standardized shake animation */
+        @keyframes gameShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .game-shake {
+            animation: gameShake 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Seek & Find</a>
+        </header>
+        
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Beach Hunt</h1>
+
+<div id="game-container" class="relative w-full max-w-full h-[70vh] sm:h-[80vh] bg-gray-200 rounded-lg overflow-hidden border">
+            <!-- Updated image path and alt text -->
+            <img id="background-img" src="images/beach.png" alt="Beach Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/38bdf8/ffffff?text=Beach+Image'">
+            <div id="emoji-layer"></div>
+            <div id="win-overlay" class="win-overlay">
+                <div class="win-message">Great Job!</div>
+                <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <button id="play-again-btn" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+                    <a href="index.html" class="px-8 py-4 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Menu</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="instructions" class="mt-6 text-center">
+            <h2 class="text-xl font-bold text-gray-800">Find these emojis:</h2>
+            <div id="targets" class="flex justify-center flex-wrap gap-4 sm:gap-6 text-4xl sm:text-5xl mt-2"></div>
+        </div>
+    </main>
+
+    <!-- Audio Elements pointing to shared sounds folder -->
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const emojiLayer = document.getElementById('emoji-layer');
+            const targetsContainer = document.getElementById('targets');
+            const winOverlay = document.getElementById('win-overlay');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const mainEl = document.querySelector('main');
+
+            // --- Audio Elements ---
+            const flipSound = document.getElementById('flip-sound');
+            const winSound = document.getElementById('win-sound');
+            let audioUnlocked = false;
+
+            // --- Game Data (NEW for beach.html) ---
+            const allEmojis = [
+                "☀️", "🌴", "⛱️", "📖", "🕊️", "🏄‍♂️", "⛵", "🍦", 
+                "🏐", "🐢", "🤿", "🪙", "🦀", "🐠", "🐙", "⭐"
+            ];
+
+            const positions = {
+                "☀️": {top:"8%", left:"10%", size:"45px"},
+                "🌴": {top:"20%", left:"25%", size:"45px"},
+                "⛱️": {top:"30%", left:"11%", size:"35px"},
+                "📖": {top:"53%", left:"7%", size:"25px"},
+                "🕊️": {top:"10%", left:"65%", size:"35px"},
+                "🏄‍♂️": {top:"30%", left:"45%", size:"35px"},
+                "⛵": {top:"30%", left:"75%", size:"35px"},
+                "🍦": {top:"35%", left:"88%", size:"30px"},
+                "🏐": {top:"48%", left:"58%", size:"30px"},
+                "🐢": {top:"65%", left:"15%", size:"40px"},
+                "🤿": {top:"68%", left:"38%", size:"35px"},
+                "🪙": {top:"80%", left:"45%", size:"25px"}, // On treasure
+                "🦀": {top:"82%", left:"25%", size:"30px"},
+                "🐠": {top:"68%", left:"60%", size:"30px"}, // Yellow fish
+                "🐙": {top:"75%", left:"82%", size:"40px"},
+                "⭐": {top:"88%", left:"62%", size:"30px"}, // Starfish
+            };
+
+            // --- Game State ---
+            let currentTargets = [];
+            let foundCount = 0;
+
+            // --- Audio & Haptics ---
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                // Try playing and pausing sounds to unlock audio on mobile
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+            }
+
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.error("Sound play failed:", e));
+                }
+            }
+            
+            function triggerHapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }
+
+            // --- Game Logic ---
+            function startRound() {
+                winOverlay.classList.remove('show');
+                emojiLayer.innerHTML = '';
+                targetsContainer.innerHTML = '';
+                foundCount = 0;
+                
+                // Pick 3 random targets
+                currentTargets = [];
+                let availableEmojis = [...allEmojis];
+                while (currentTargets.length < 3) {
+                    const pickIndex = Math.floor(Math.random() * availableEmojis.length);
+                    const pick = availableEmojis.splice(pickIndex, 1)[0];
+                    currentTargets.push(pick);
+                }
+
+                // Display targets at the bottom
+                currentTargets.forEach(target => {
+                    const span = document.createElement('span');
+                    span.textContent = target;
+                    span.classList.add('target-emoji');
+                    span.dataset.emoji = target;
+                    targetsContainer.appendChild(span);
+                });
+
+                // Place all emojis
+                allEmojis.forEach(e => {
+                    const span = document.createElement("span");
+                    span.textContent = e;
+                    span.classList.add("emoji-item");
+                    span.style.top = positions[e].top;
+                    span.style.left = positions[e].left;
+                    
+                    if (positions[e].size) {
+                        span.style.fontSize = positions[e].size;
+                    }
+
+                    // Add click listener to ALL emojis
+                    span.addEventListener("click", () => {
+                        if (!audioUnlocked) unlockAudio();
+                        
+                        // Check if it's a target
+                        if (currentTargets.includes(e)) {
+                            // --- CORRECT ---
+                            const targetEl = targetsContainer.querySelector(`[data-emoji="${e}"]`);
+                            // Check if it hasn't been found already
+                            if (targetEl && !targetEl.classList.contains('found')) {
+                                playSound(flipSound);
+                                span.style.transform = 'scale(1.2)';
+                                span.style.opacity = '0.5';
+                                
+                                targetEl.classList.add('found');
+                                foundCount++;
+
+                                // Check for win
+                                if (foundCount === currentTargets.length) {
+                                    playSound(winSound);
+                                    setTimeout(() => winOverlay.classList.add('show'), 500);
+                                }
+                            }
+                        } else {
+                            // --- INCORRECT ---
+                            mainEl.classList.add('game-shake');
+                            triggerHapticFeedback();
+                            setTimeout(() => mainEl.classList.remove('game-shake'), 800);
+                        }
+                    });
+                    emojiLayer.appendChild(span);
+                });
+            }
+            
+            playAgainBtn.addEventListener('click', startRound);
+            startRound(); // Initial game start
+        });
+    </script>
+</body>
+</html>
