@@ -1,0 +1,241 @@
+/* OTGames Main Menu Styles */
+
+:root {
+  --bg: #f4f7fc; 
+  --panel: #ffffff; 
+  --card: #ffffff; 
+  --ink: #2d3748; 
+  --muted: #718096;
+  --focus: #63b3ed; 
+  --accent: #3182ce; 
+  --radius: 20px; 
+  --gap: 1.2rem; 
+  --max: 960px;
+}
+
+* { 
+  box-sizing: border-box; 
+}
+
+html, body { 
+  height: 100%; 
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+}
+
+/* Skip Link for Accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Header & Footer */
+header, footer {
+  background: var(--panel);
+  border-bottom: 1px solid #e2e8f0;
+  padding: clamp(12px, 3vw, 18px);
+}
+
+footer {
+  border-top: 1px solid #e2e8f0;
+  border-bottom: none;
+  text-align: center;
+  opacity: .85;
+}
+
+header .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-inline: auto;
+  width: min(100%, var(--max));
+}
+
+header h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  display: flex;
+  align-items: center;
+}
+
+/* TTS Toggle Button */
+.tts-toggle {
+  background: transparent;
+  color: var(--ink);
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  padding: .45rem .8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.tts-toggle:hover {
+  background-color: var(--accent);
+  color: white;
+}
+
+.tts-toggle:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tts-toggle:active {
+  transform: scale(0.98);
+}
+
+.tts-toggle[aria-pressed="true"] {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* Main Content Area */
+main {
+  margin-inline: auto;
+  width: min(100%, var(--max));
+  padding: clamp(14px, 4vw, 28px);
+}
+
+/* Game Grid */
+.grid {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* Game Tiles */
+.tile {
+  background: var(--card);
+  border: 3px solid transparent;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  gap: .3rem;
+  padding: clamp(16px, 4vw, 28px);
+  min-height: 200px;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .1);
+}
+
+.tile:hover, .tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
+  outline: none;
+}
+
+.tile:focus-visible {
+  box-shadow: 0 0 0 5px var(--focus), 0 10px 24px rgba(0, 0, 0, .15);
+}
+
+/* Tile Content */
+.emoji {
+  font-size: clamp(3rem, 10vw, 4.5rem);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  font-size: clamp(1.1rem, 3.6vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: clamp(.9rem, 2.5vw, 1rem);
+  text-align: center;
+}
+
+/* Sound Status Indicator */
+.sound-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.sound-status.error {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.sound-status.visual-only {
+  font-size: 1.5rem;
+  padding: 4px 8px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .tile { 
+    transition: none; 
+  }
+  
+  .tts-toggle {
+    transition: none;
+  }
+  
+  .sound-status {
+    transition: none;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --bg: white;
+    --panel: white;
+    --card: white;
+    --ink: black;
+    --accent: #0050d8;
+    --focus: #0050d8;
+  }
+  
+  .tile {
+    border: 3px solid currentColor;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .skip-link,
+  .tts-toggle,
+  .sound-status {
+    display: none;
+  }
+  
+  .tile {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

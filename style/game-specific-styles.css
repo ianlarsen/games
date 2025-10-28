@@ -1,0 +1,150 @@
+/* Game-Specific Styles - To be moved to individual game folders */
+
+/* ===== CONCENTRATION GAME STYLES ===== */
+/* Move these to concentration/style.css */
+
+.concentration-game body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.concentration-game #controls {
+    margin-bottom: 20px;
+}
+
+.concentration-game #difficulty, 
+.concentration-game #start {
+    font-size: 30px;
+    padding: 10px;
+}
+
+.concentration-game #game-board {
+    display: grid;
+    gap: 10px;
+}
+
+.concentration-game .tile {
+    position: relative;
+    perspective: 1000px;
+}
+
+.concentration-game .tile-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.concentration-game .tile.flipped .tile-inner {
+    transform: rotateY(180deg);
+}
+
+.concentration-game .tile .front, 
+.concentration-game .tile .back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: calc(70% - 10px);
+}
+
+.concentration-game .tile .front {
+    background-color: darkblue;
+    color: lightblue;
+}
+
+.concentration-game .tile .back {
+    background-color: white;
+    transform: rotateY(180deg);
+}
+
+
+/* ===== LETTER REVERSALS GAME STYLES ===== */
+/* Move these to letterreverse/style.css */
+
+.letter-reversals-game .letter-grid { 
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 1rem; 
+}
+
+.letter-reversals-game .letter-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(2rem, 10vw, 4rem);
+    font-weight: bold;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    aspect-ratio: 1 / 1;
+    transition: background-color 0.2s, transform 0.2s;
+    user-select: none;
+}
+
+.letter-reversals-game .letter-cell:hover { 
+    background-color: #f3f4f6; 
+}
+
+.letter-reversals-game .letter-cell:focus-visible {
+    outline: 3px solid #3182ce;
+    outline-offset: 2px;
+}
+
+.letter-reversals-game .letter-cell.correct { 
+    background-color: #d1fae5; 
+    border-color: #10b981; 
+    transform: scale(1.05); 
+}
+
+.letter-reversals-game .letter-cell.incorrect { 
+    background-color: #fee2e2; 
+    border-color: #ef4444; 
+}
+
+/* ===== SHARED GAME ANIMATIONS ===== */
+/* Keep in a shared game-utils.css file */
+
+@keyframes gameShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+.game-shake {
+    animation: gameShake 0.3s ease-in-out;
+}
+
+/* Success animation for correct answers */
+@keyframes gameSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.game-success {
+    animation: gameSuccess 0.5s ease-out;
+}
+
+/* Pulse animation for hints */
+@keyframes gamePulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.game-pulse {
+    animation: gamePulse 1s ease-in-out infinite;
+}
