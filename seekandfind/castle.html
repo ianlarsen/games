@@ -11,7 +11,10 @@
     <!-- Link to shared stylesheet -->
     <link rel="stylesheet" href="../style/style.css">
     <style>
+
         body {
+            height: auto;
+            overflow-y: auto;
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
@@ -80,7 +83,7 @@
         
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Castle Hunt</h1>
 
-        <div id="game-container" class="relative w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden border">
+<div id="game-container" class="relative w-full max-w-full h-[70vh] sm:h-[80vh] bg-gray-200 rounded-lg overflow-hidden border">
             <img id="background-img" src="images/castle.png" alt="Castle Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/d1c4e9/ffffff?text=Castle+Image'">
             <!-- Emoji layer is where the JS will add emojis -->
             <div id="emoji-layer"></div>

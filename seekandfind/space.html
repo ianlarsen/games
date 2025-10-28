@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="../style/style.css">
     <style>
         body {
+	    height: auto;
+  	    overflow-y: auto;
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
@@ -22,6 +24,8 @@
             cursor: pointer;
             transition: transform 0.2s ease-in-out, opacity 0.3s;
             user-select: none;
+            /* Added a subtle drop shadow for visibility on bright areas */
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .emoji-item:hover {
             transform: scale(1.2);
@@ -79,7 +83,7 @@
         
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Space Hunt</h1>
 
-        <div id="game-container" class="relative w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden border">
+<div id="game-container" class="relative w-full max-w-full h-[70vh] sm:h-[80vh] bg-gray-200 rounded-lg overflow-hidden border">
             <img id="background-img" src="images/space.png" alt="Space Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=Space+Image'">
             <div id="emoji-layer"></div>
             <div id="win-overlay" class="win-overlay">

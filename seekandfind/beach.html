@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Park Hunt</title>
+    <title>Emoji Beach Hunt</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -13,17 +13,19 @@
     <style>
         body {
 	    height: auto;
- 	    overflow-y: auto;
+  	    overflow-y: auto;
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
         /* Custom styles from the original HTML */
         .emoji-item {
             position: absolute;
-            font-size: clamp(1rem, 4vw, 2rem); /* Normalized font size */
+            font-size: clamp(1.25rem, 5vw, 2.5rem); /* Normalized font size */
             cursor: pointer;
             transition: transform 0.2s ease-in-out, opacity 0.3s;
             user-select: none;
+            /* Added a subtle drop shadow for visibility on bright areas */
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .emoji-item:hover {
             transform: scale(1.2);
@@ -79,10 +81,11 @@
             <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Seek & Find</a>
         </header>
         
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Park Hunt</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Beach Hunt</h1>
 
 <div id="game-container" class="relative w-full max-w-full h-[70vh] sm:h-[80vh] bg-gray-200 rounded-lg overflow-hidden border">
-            <img id="background-img" src="images/park.png" alt="Park Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/a7d89b/ffffff?text=Park+Image'">
+            <!-- Updated image path and alt text -->
+            <img id="background-img" src="images/beach.png" alt="Beach Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/38bdf8/ffffff?text=Beach+Image'">
             <div id="emoji-layer"></div>
             <div id="win-overlay" class="win-overlay">
                 <div class="win-message">Great Job!</div>
@@ -117,25 +120,29 @@
             const winSound = document.getElementById('win-sound');
             let audioUnlocked = false;
 
-            // --- Game Data (from park.js) ---
+            // --- Game Data (NEW for beach.html) ---
             const allEmojis = [
-                "🐿️","🦋", "⚽","🎈","🏃‍♀️", "🌭","🍦","🥤", "🦆", "💼", "🌸","🌺", "🌳", "🌻", "🌼", "🌷", "🌹", "🐦", "🐕", "🐈", "🐇", "🐝", "🐞", "🍎", "🍪", "🧃",
+                "☀️", "🌴", "⛱️", "📖", "🕊️", "🏄‍♂️", "⛵", "🍦", 
+                "🏐", "🐢", "🤿", "🪙", "🦀", "🐠", "🐙", "⭐"
             ];
 
             const positions = {
-                "🐿️": {top:"11%", left:"8%", size:"24px"}, "🦋": {top:"60%", left:"3%", size:"15px"},
-                "⚽": {top:"45%", left:"15%", size:"20px"}, "🎈": {top:"53%", left:"36%", size:"65px"},
-                "🏃‍♀️": {top:"55%", left:"12%", size:"70px"}, "🌭": {top:"45%", left:"61%", size:"24px"},
-                "🍦": {top:"46%", left:"80%", size:"15px"}, "🥤": {top:"78%", left:"13%", size:"20px"},
-                "🦆": {top:"72%", left:"70%"}, "💼": {top:"80%", left:"89%"},
-                "🌸": {top:"83%", left:"45%", size:"26px"}, "🌺": {top:"80%", left:"50%", size:"24px"},
-                "🌳": {top:"8%", left:"45%", size:"85px"},  "🌻": {top:"86%", left:"51.8%", size:"35px"}, 
-                "🌼": {top:"81%", left:"53.5%", size:"24px"}, "🌷": {top:"55%", left:"50%", size:"24px"},
-                "🌹": {top:"60%", left:"55%", size:"24px"}, "🐦": {top:"12%", left:"81%", size:"15px"}, 
-                "🐕": {top:"45%", left:"35%", size:"33px"},  "🐈": {top:"60%", left:"85%", size:"33px"}, 
-                "🐇": {top:"89%", left:"30%", size:"24px"},  "🐝": {top:"60%", left:"65%", size:"15px"}, 
-                "🐞": {top:"89%", left:"77%", size:"15px"},  "🍎": {top:"5%", left:"20%", size:"15px"}, 
-                "🍪": {top:"48%", left:"75%", size:"10px"},  "🧃": {top:"83%", left:"5%", size:"15px"},
+                "☀️": {top:"8%", left:"10%", size:"45px"},
+                "🌴": {top:"20%", left:"25%", size:"45px"},
+                "⛱️": {top:"30%", left:"11%", size:"35px"},
+                "📖": {top:"53%", left:"7%", size:"25px"},
+                "🕊️": {top:"10%", left:"65%", size:"35px"},
+                "🏄‍♂️": {top:"30%", left:"45%", size:"35px"},
+                "⛵": {top:"30%", left:"75%", size:"35px"},
+                "🍦": {top:"35%", left:"88%", size:"30px"},
+                "🏐": {top:"48%", left:"58%", size:"30px"},
+                "🐢": {top:"65%", left:"15%", size:"40px"},
+                "🤿": {top:"68%", left:"38%", size:"35px"},
+                "🪙": {top:"80%", left:"45%", size:"25px"}, // On treasure
+                "🦀": {top:"82%", left:"25%", size:"30px"},
+                "🐠": {top:"68%", left:"60%", size:"30px"}, // Yellow fish
+                "🐙": {top:"75%", left:"82%", size:"40px"},
+                "⭐": {top:"88%", left:"62%", size:"30px"}, // Starfish
             };
 
             // --- Game State ---
@@ -145,6 +152,7 @@
             // --- Audio & Haptics ---
             function unlockAudio() {
                 if (audioUnlocked) return;
+                // Try playing and pausing sounds to unlock audio on mobile
                 flipSound.play().then(() => {
                     flipSound.pause();
                     winSound.play().then(() => winSound.pause()).catch(() => {});
@@ -194,7 +202,7 @@
                 allEmojis.forEach(e => {
                     const span = document.createElement("span");
                     span.textContent = e;
-                    span.classList.add("emoji-item"); // Use class from HTML
+                    span.classList.add("emoji-item");
                     span.style.top = positions[e].top;
                     span.style.left = positions[e].left;
                     
@@ -210,6 +218,7 @@
                         if (currentTargets.includes(e)) {
                             // --- CORRECT ---
                             const targetEl = targetsContainer.querySelector(`[data-emoji="${e}"]`);
+                            // Check if it hasn't been found already
                             if (targetEl && !targetEl.classList.contains('found')) {
                                 playSound(flipSound);
                                 span.style.transform = 'scale(1.2)';
@@ -218,6 +227,7 @@
                                 targetEl.classList.add('found');
                                 foundCount++;
 
+                                // Check for win
                                 if (foundCount === currentTargets.length) {
                                     playSound(winSound);
                                     setTimeout(() => winOverlay.classList.add('show'), 500);
