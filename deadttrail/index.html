@@ -430,7 +430,16 @@
         });
 
         window.onload = () => {
-            renderScene();
+            console.log("Page loaded! Starting game...");
+            console.log("Current scene:", gameState.currentScene);
+            console.log("Scene data exists:", !!storyData[gameState.currentScene]);
+            try {
+                renderScene();
+                console.log("RenderScene completed successfully");
+            } catch(e) {
+                console.error("ERROR in renderScene:", e);
+                document.body.innerHTML = '<div style="color:red; padding:50px; font-size:20px;">ERROR: ' + e.message + '</div>';
+            }
         };
     </script>
 

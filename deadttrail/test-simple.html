@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Dead Trail</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial;
+            padding: 50px;
+            font-size: 20px;
+        }
+        #test-box {
+            background: green;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dead Trail Test Page</h1>
+    <p>If you see this, HTML is working.</p>
+    <div id="test-box">
+        <p id="js-test">Waiting for JavaScript...</p>
+    </div>
+
+    <script>
+        console.log("JavaScript is running!");
+        document.getElementById('js-test').innerText = 'JavaScript is working!';
+
+        // Now test if we can load an image
+        const img = new Image();
+        img.onload = function() {
+            document.body.innerHTML += '<p style="color: lime;">✓ Image loaded: john.png exists!</p>';
+        };
+        img.onerror = function() {
+            document.body.innerHTML += '<p style="color: red;">✗ Image FAILED to load: john.png is missing or path is wrong!</p>';
+        };
+        img.src = 'images/john.png';
+    </script>
+</body>
+</html>
