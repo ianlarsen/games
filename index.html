@@ -87,21 +87,44 @@
 
   <!-- Audio element for click sound with fallback -->
   <audio id="flip-sound" preload="auto">
-    <source src="sounds/flip.mp3" type="audio/mpeg">
-    <source src="sounds/flip.ogg" type="audio/ogg">
+    <source src="sounds/flip.mp3">
   </audio>
 
   <!-- Audio element for background music -->
   <audio id="background-music" loop preload="auto">
     <source src="sounds/main_theme.mp3" type="audio/mpeg">
-    <source src="sounds/main_theme.ogg" type="audio/ogg">
   </audio>
 
   <!-- Visual feedback for sound errors -->
   <div id="sound-status" class="sound-status" aria-live="polite" aria-atomic="true"></div>
 
   <script>
-    // --- Settings Management ---
+window.addEventListener('load', () => {
+  // Preload the flip sound
+  const flip = document.getElementById('flip-sound');
+  flip.load();
+
+  // Prepare the unlock listener
+  const unlockAudio = () => {
+    flip.play().then(() => {
+      flip.pause();
+      flip.currentTime = 0;
+      settings.audioUnlocked = true;
+      console.log('Audio unlocked');
+    }).catch(err => {
+      console.warn('Autoplay blocked:', err);
+    });
+
+    // Remove listeners after first gesture
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+  };
+
+  // Register unlock on first click/tap
+  document.addEventListener('click', unlockAudio, { once: true });
+  document.addEventListener('touchstart', unlockAudio, { once: true });
+});
+
     const settings = {
       ttsEnabled: true, // Default to true
       audioUnlocked: false,
