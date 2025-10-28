@@ -3,114 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OTGames</title>
-  <meta name="description" content="A collection of fun, kid-friendly learning games." />
+  <title>OTGames - Occupational Therapy Learning Games</title>
+  <meta name="description" content="A collection of fun, kid-friendly occupational therapy learning games." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';">
   <!-- Link to shared CSS -->
-  <link rel="stylesheet" href="style/style.css">
-  <style>
-    /* Specific styles for the main menu can override shared styles */
-    :root {
-      --bg: #f4f7fc; --panel: #ffffff; --card: #ffffff; --ink: #2d3748; --muted: #718096;
-      --focus: #63b3ed; --accent: #3182ce; --radius: 20px; --gap: 1.2rem; --max: 960px;
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      min-height: 100dvh;
-    }
-    header, footer {
-      background: var(--panel);
-      border-bottom: 1px solid #e2e8f0;
-      padding: clamp(12px, 3vw, 18px);
-    }
-    footer {
-      border-top: 1px solid #e2e8f0;
-      text-align: center;
-      opacity: .85;
-    }
-    header .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-inline: auto;
-        width: min(100%, var(--max));
-    }
-    header h1 {
-      margin: 0;
-      font-size: clamp(1.4rem, 4vw, 2rem);
-      display: flex;
-      align-items: center;
-    }
-    .tts-toggle {
-      background: transparent;
-      color: var(--ink);
-      border: 2px solid var(--accent);
-      border-radius: 999px;
-      padding: .45rem .8rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    main {
-      margin-inline: auto;
-      width: min(100%, var(--max));
-      padding: clamp(14px, 4vw, 28px);
-    }
-    .grid {
-      display: grid;
-      gap: var(--gap);
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
-    .tile {
-      background: var(--card);
-      border: 3px solid transparent;
-      border-radius: var(--radius);
-      text-decoration: none;
-      color: inherit;
-      display: grid;
-      place-items: center;
-      gap: .3rem;
-      padding: clamp(16px, 4vw, 28px);
-      min-height: 200px;
-      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, .1);
-    }
-    .tile:hover, .tile:focus-visible {
-      transform: translateY(-3px);
-      border-color: var(--accent);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
-      outline: none;
-    }
-    .tile:focus-visible {
-      box-shadow: 0 0 0 5px var(--focus), 0 10px 24px rgba(0, 0, 0, .15);
-    }
-    .emoji {
-      font-size: clamp(3rem, 10vw, 4.5rem);
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .label {
-      font-size: clamp(1.1rem, 3.6vw, 1.6rem);
-      font-weight: 800;
-      letter-spacing: .5px;
-    }
-    .hint {
-      color: var(--muted);
-      font-size: clamp(.9rem, 2.5vw, 1rem);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .tile { transition: none; }
-    }
-  </style>
+  <link rel="stylesheet" href="style/main-menu.css">
 </head>
 <body>
+  <!-- Skip navigation link for screen readers -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
   <header>
     <div class="header-content">
         <h1>OTGames</h1>
@@ -118,7 +20,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="grid">
       <!-- Left or Right Game -->
       <a class="tile" href="leftright/index.html" data-say="Left or Right. Which way are they facing?" aria-label="Left or Right. Which way are they facing?">
@@ -137,7 +39,8 @@
       <!-- Shape Finder Game -->
       <a class="tile" href="shapes/index.html" data-say="Shape Finder. Find the hidden shapes." aria-label="Shape Finder. Find the hidden shapes.">
         <div class="emoji" aria-hidden="true">
-           <svg width="1em" height="1em" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font-size: 50px; overflow: visible; fill: currentColor;">
+           <svg role="img" aria-labelledby="shapes-title" width="1em" height="1em" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font-size: 50px; overflow: visible; fill: currentColor;">
+            <title id="shapes-title">Various colorful shapes</title>
             <text x="0" y="45">🔺</text>
             <text x="50" y="45">⭐</text>
             <text x="0" y="95">🟥</text>
@@ -182,77 +85,187 @@
     <small>Press TAB to move. ENTER to pick. Big buttons for kids and early readers.</small>
   </footer>
 
-  <!-- Audio element for click sound -->
-  <audio id="flip-sound" src="sounds/flip.mp3" preload="auto"></audio>
+  <!-- Audio element for click sound with fallback -->
+  <audio id="flip-sound" preload="auto">
+    <source src="sounds/flip.mp3" type="audio/mpeg">
+    <source src="sounds/flip.ogg" type="audio/ogg">
+  </audio>
+
+  <!-- Visual feedback for sound errors -->
+  <div id="sound-status" class="sound-status" aria-live="polite" aria-atomic="true"></div>
 
   <script>
-    // --- Audio Playback ---
-    let audioUnlocked = false;
-    const flipSound = document.getElementById('flip-sound');
-
-    function unlockAudio() {
-        if (audioUnlocked) return;
-        flipSound.play().then(() => {
-            flipSound.pause();
-            flipSound.currentTime = 0; // Reset for immediate playback on click
-            audioUnlocked = true;
-        }).catch(() => {});
-        // Remove the listener after the first interaction
-        document.body.removeEventListener('click', unlockAudio, true);
-        document.body.removeEventListener('touchstart', unlockAudio, true);
-    }
-    // Need a user interaction to unlock audio
-    document.body.addEventListener('click', unlockAudio, { once: true, capture: true });
-    document.body.addEventListener('touchstart', unlockAudio, { once: true, capture: true });
-
-
-    function playSound(sound) {
-        if (sound && audioUnlocked) {
-            sound.currentTime = 0;
-            sound.play().catch(e => console.error("Sound play failed:", e));
+    // --- Settings Management ---
+    const settings = {
+      ttsEnabled: false,
+      audioUnlocked: false,
+      init() {
+        // Load saved preferences
+        const saved = localStorage.getItem('otgames-settings');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            this.ttsEnabled = parsed.ttsEnabled || false;
+          } catch(e) {
+            console.error('Failed to load settings:', e);
+          }
         }
-    }
-
-    // --- TTS (Text-to-Speech) Hints ---
-    (function() {
-      const btn = document.getElementById('tts');
-      let enabled = false;
-      const speak = (t) => {
-        if (!enabled || !t) return;
+      },
+      save() {
         try {
-          const u = new SpeechSynthesisUtterance(t);
-          u.rate = .95;
-          u.pitch = 1.05;
-          speechSynthesis.cancel(); // Stop previous speech
-          speechSynthesis.speak(u);
-        } catch (e) { console.error("TTS failed:", e); }
-      };
-      btn.addEventListener('click', () => {
-        enabled = !enabled;
-        btn.setAttribute('aria-pressed', String(enabled));
-        btn.textContent = enabled ? '🔊 Sound On' : '🔇 Sound Off';
-        if (enabled) speak('Sound on. Choose a game.');
-        else speechSynthesis.cancel(); // Stop speech if turned off
-      });
+          localStorage.setItem('otgames-settings', JSON.stringify({
+            ttsEnabled: this.ttsEnabled
+          }));
+        } catch(e) {
+          console.error('Failed to save settings:', e);
+        }
+      }
+    };
+
+    // --- Audio Playback with Error Handling ---
+    const audio = {
+      flipSound: document.getElementById('flip-sound'),
+      statusEl: document.getElementById('sound-status'),
       
-      // --- Tile Interaction (Sound + TTS) ---
+      unlock() {
+        if (settings.audioUnlocked) return;
+        
+        const testPlay = () => {
+          if (!this.flipSound) return;
+          
+          this.flipSound.play()
+            .then(() => {
+              this.flipSound.pause();
+              this.flipSound.currentTime = 0;
+              settings.audioUnlocked = true;
+            })
+            .catch(e => {
+              console.warn('Audio unlock failed:', e);
+              this.showStatus('Sound effects unavailable', 'error');
+            });
+        };
+        
+        testPlay();
+        document.body.removeEventListener('click', this.unlock);
+        document.body.removeEventListener('touchstart', this.unlock);
+      },
+      
+      play(sound) {
+        if (!sound || !settings.audioUnlocked) return;
+        
+        // Check if sound is loaded
+        if (sound.readyState >= 2) {
+          sound.currentTime = 0;
+          sound.play().catch(e => {
+            console.error('Sound play failed:', e);
+            this.showStatus('🔇', 'visual-only');
+          });
+        } else {
+          // Sound not ready, show visual feedback
+          this.showStatus('🔊', 'visual-only');
+        }
+      },
+      
+      showStatus(message, type = 'info') {
+        if (!this.statusEl) return;
+        
+        this.statusEl.textContent = message;
+        this.statusEl.className = `sound-status ${type}`;
+        this.statusEl.style.opacity = '1';
+        
+        setTimeout(() => {
+          this.statusEl.style.opacity = '0';
+        }, 1000);
+      }
+    };
+
+    // --- TTS (Text-to-Speech) with Error Handling ---
+    const tts = {
+      btn: document.getElementById('tts'),
+      
+      init() {
+        if (!this.btn) return;
+        
+        // Apply saved preference
+        if (settings.ttsEnabled) {
+          this.toggle(false); // Don't speak on page load
+        }
+        
+        this.btn.addEventListener('click', () => this.toggle(true));
+      },
+      
+      toggle(announce = true) {
+        settings.ttsEnabled = !settings.ttsEnabled;
+        settings.save();
+        
+        this.btn.setAttribute('aria-pressed', String(settings.ttsEnabled));
+        this.btn.textContent = settings.ttsEnabled ? '🔊 Sound On' : '🔇 Sound Off';
+        
+        if (announce) {
+          if (settings.ttsEnabled) {
+            this.speak('Sound on. Choose a game.');
+          } else {
+            window.speechSynthesis?.cancel();
+          }
+        }
+      },
+      
+      speak(text) {
+        if (!settings.ttsEnabled || !text) return;
+        
+        try {
+          // Check if speech synthesis is available
+          if (!window.speechSynthesis) {
+            console.warn('TTS not available');
+            return;
+          }
+          
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 0.95;
+          utterance.pitch = 1.05;
+          utterance.onerror = (e) => {
+            console.error('TTS error:', e);
+          };
+          
+          speechSynthesis.cancel(); // Stop previous speech
+          speechSynthesis.speak(utterance);
+        } catch (e) {
+          console.error('TTS failed:', e);
+        }
+      }
+    };
+
+    // --- Initialize on DOM Ready ---
+    document.addEventListener('DOMContentLoaded', () => {
+      settings.init();
+      tts.init();
+      
+      // Set up audio unlock listeners
+      document.body.addEventListener('click', () => audio.unlock(), { once: true });
+      document.body.addEventListener('touchstart', () => audio.unlock(), { once: true });
+      
+      // --- Tile Interactions ---
       document.querySelectorAll('.tile').forEach(tile => {
         const textToSay = tile.dataset.say;
         
-        // Play click sound and TTS on click
+        // Play sound and speak on click
         tile.addEventListener('click', (e) => {
-            // e.preventDefault(); // Keep if links should wait for sound/TTS
-            playSound(flipSound);
-            speak('Loading ' + textToSay); 
-            // Optional: Delay navigation slightly
-            // setTimeout(() => { window.location.href = tile.href; }, 300); 
+          audio.play(audio.flipSound);
+          tts.speak('Loading ' + textToSay);
         });
-
+        
         // TTS on hover/focus
-        tile.addEventListener('mouseenter', () => speak(textToSay));
-        tile.addEventListener('focus', () => speak(textToSay));
+        tile.addEventListener('mouseenter', () => tts.speak(textToSay));
+        tile.addEventListener('focus', () => tts.speak(textToSay));
       });
-    })();
+    });
+
+    // --- Handle Page Visibility for Audio ---
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    });
   </script>
 </body>
 </html>
