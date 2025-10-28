@@ -18,6 +18,7 @@ export default {
       'rick':  { type:'dialogue', text:"Rick: Follow the rules and you're welcome. Break them and you're out.", choices:[{ text:"Understood.", target:null }] },
       'carol': { type:'dialogue', text:"Carol: You all look hungry.", choices:[{ text:"We are.", target:null }] },
       'daryl': { type:'dialogue', text:"Daryl keeps cleaning his crossbow.", choices:[{ text:"Best not to bother him.", target:null }] }
+      'john': { type:'dialogue', text:"Let's find the rest of our group.", target: 'prison_yard_clash' }] }
     }
   },
 
