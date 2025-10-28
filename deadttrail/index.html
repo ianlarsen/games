@@ -155,10 +155,10 @@
                 ],
                 onLoad: { type: 'dialogue', text: "The office is thick with the stench of decay. We need to find supplies, fast.", choices: [{ text: "Okay, let's search.", target: null }] },
                 interactions: {
-                    'john': { type: 'dialogue', text: "John: Stay sharp. We don't know what's in here. Check everything.", choices: [ { text: "Right.", target: null } ] },
-                    'jamaal': { type: 'dialogue', text: "Jamaal: Keep your eyes peeled. I'm not trying to become zombie-chow today. Maybe we can find some hand sanitizer to sell.", choices: [{ text: "Stay focused.", target: null }] },
-                    'filing_cabinet': { type: 'dialogue', text: "It's a dusty, old filing cabinet. It looks like it's already been picked clean.", choices: [{ text: "Leave it.", target: null }] },
-                    'microwave_obj': { type: 'dialogue', text: "A grimy microwave. Someone left something in here a long, long time ago. The smell is... memorable. Reminds you of Rob C.'s fish.", choices: [{ text: "Step away. Slowly.", target: null }, { text: "A new beginning!", target: 'zombie_surprise' }] }
+                    'john': { type: 'dialogue', text: "John: Stay sharp. We don't know what's in here. Check everything.", choices: [ { text: "Let's keep moving.", target: 'forest_escape' }, { text: "I'll check that microwave.", target: null } ] },
+                    'jamaal': { type: 'dialogue', text: "Jamaal: Keep your eyes peeled. I'm not trying to become zombie-chow today. Maybe we can find some hand sanitizer to sell.", choices: [{ text: "We should leave now.", target: 'forest_escape' }, { text: "Check the filing cabinet first.", target: null }] },
+                    'filing_cabinet': { type: 'dialogue', text: "It's a dusty, old filing cabinet. Inside you find a crumpled map marking a prison location. Could be useful.", choices: [{ text: "Take the map and go.", target: 'forest_escape' }, { text: "Keep searching the office.", target: null }] },
+                    'microwave_obj': { type: 'dialogue', text: "A grimy microwave. Someone left something in here a long, long time ago. The smell is... memorable. Reminds you of Rob C.'s fish.", choices: [{ text: "Step away. Slowly.", target: null }, { text: "Open it!", target: 'zombie_surprise' }] }
                 }
             },
             'zombie_surprise': {
@@ -169,26 +169,39 @@
                      { id: 'zombie_rob', asset: assets.zombie_rob, bottom: '10%', left: '75%', width: '14%', flipped: true }
                 ],
                 objects: [ { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '32%', width: '18%' } ],
-                 onLoad: { type: 'dialogue', text: "As you reach for the microwave, a decaying corpse that was propped against a desk lurches towards you!", choices: [{ text: "Fight!", target: 'game_over_fight' }, { text: "Run for the service tunnel!", target: 'forest_escape' }] },
-                interactions: { 'zombie_rob': { type: 'dialogue', text: "The zombie groans, its empty eyes fixed on you. It's Rob C... or what's left of him.", choices: [{ text: "Back away.", target: null }] } }
+                 onLoad: { type: 'dialogue', text: "As you open the microwave, a decaying corpse that was propped against a desk lurches towards you!", choices: [{ text: "Fight!", target: 'game_over_fight' }, { text: "Run for the service tunnel!", target: 'forest_escape' }] },
+                interactions: {
+                    'zombie_rob': { type: 'dialogue', text: "The zombie groans, its empty eyes fixed on you. It's Rob C... or what's left of him.", choices: [{ text: "Run!", target: 'forest_escape' }, { text: "Try to fight it.", target: 'game_over_fight' }] },
+                    'john': { type: 'dialogue', text: "John: GO! I'll hold it off!", choices: [{ text: "We go together!", target: 'forest_escape' }] },
+                    'jamaal': { type: 'dialogue', text: "Jamaal: The tunnel! This way!", choices: [{ text: "Follow him!", target: 'forest_escape' }] }
+                }
             },
             'forest_escape': {
                 background: assets.woods,
                 characters: [ { id: 'john', asset: assets.john, bottom: '15%', left: '40%', width: '11%', flipped: true }, { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '11%', flipped: true } ],
                 onLoad: { type: 'dialogue', text: "You make a daring escape through a narrow service tunnel, emerging into a dense forest. Exhausted and low on supplies, you stumble upon a high chain-link fence...", choices: [{ text: "A prison?", target: 'prison_approach' }] },
-                interactions: {}
+                interactions: {
+                    'john': { type: 'dialogue', text: "John: That was too close. We need to find the others and regroup.", choices: [{ text: "Let's approach that prison.", target: 'prison_approach' }] },
+                    'jamaal': { type: 'dialogue', text: "Jamaal: A prison might have supplies. Or it might have more problems. Your call, boss.", choices: [{ text: "Let's check it out.", target: 'prison_approach' }] }
+                }
             },
             'prison_approach': {
                 background: assets.prison_exterior,
                 characters: [ { id: 'john', asset: assets.john, bottom: '5%', left: '25%', width: '11%', flipped: true }, { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '40%', width: '11%', flipped: true } ],
-                onLoad: { type: 'dialogue', text: "A voice shouts from a guard tower: \"Hold it right there! State your business!\"", choices: [ { text: '\"We\'re survivors. Looking for shelter.\"', target: 'prison_standoff' }] },
-                interactions: {}
+                onLoad: { type: 'dialogue', text: "A voice shouts from a guard tower: \"Hold it right there! State your business!\"", choices: [ { text: '\"We\'re survivors. Looking for shelter.\"', target: 'prison_standoff' }, { text: '\"Open up or we\'ll break in!\"', target: 'death_hostile_approach' }] },
+                interactions: {
+                    'john': { type: 'dialogue', text: "John: Stay calm. These people are armed and we need their help.", choices: [{ text: "You're right.", target: null }] },
+                    'jamaal': { type: 'dialogue', text: "Jamaal: I don't know about this place... something feels off.", choices: [{ text: "We don't have a choice.", target: null }] }
+                }
             },
             'prison_standoff': {
                 background: assets.prison_exterior,
                  characters: [ { id: 'john', asset: assets.john, bottom: '5%', left: '45%', width: '11%', flipped: true }, { id: 'jamaal', asset: assets.jamaal, bottom: '5%', left: '60%', width: '11%', flipped: true } ],
                 onLoad: { type: 'dialogue', text: "Another voice scoffs from the tower: \"Peace? Ain't seen much of that lately.\" After a long, tense moment, the first voice returns: \"Alright. Come on in. Slow and steady.\"", choices: [ { text: "Enter the prison.", target: 'prison_interior_welcome' } ]},
-                interactions: {}
+                interactions: {
+                    'john': { type: 'dialogue', text: "John: Play it cool. We need these people.", choices: [{ text: "Got it.", target: 'prison_interior_welcome' }] },
+                    'jamaal': { type: 'dialogue', text: "Jamaal: I count at least three guns on us. Best behavior, everyone.", choices: [{ text: "Understood.", target: 'prison_interior_welcome' }] }
+                }
             },
             'prison_interior_welcome': {
                 background: assets.prison_interior,
@@ -201,9 +214,9 @@
                 ],
                 onLoad: { type: 'dialogue', text: "You step inside. The air is heavy with mistrust. A man with a crossbow gives you a hard stare.", choices: [{ text: "Let's find the rest of our group.", target: 'prison_yard_clash' }] },
                 interactions: {
-                    'rick': { type: 'dialogue', text: "Rick: You can stay for now. We have rules. You follow them, you're welcome. You break them, you're out. Any questions?", choices: [{ text: "Understood.", target: null }] },
-                    'carol': { type: 'dialogue', text: "Carol: Don't mind Rick, he's just cautious. We've all been through a lot. You all look hungry.", choices: [{ text: "We are.", target: null }] },
-                    'daryl': { type: 'dialogue', text: "Daryl just grunts and keeps cleaning his crossbow.", choices: [{ text: "Best not to bother him.", target: null }] }
+                    'rick': { type: 'dialogue', text: "Rick: You can stay for now. We have rules. You follow them, you're welcome. You break them, you're out. Any questions?", choices: [{ text: "Understood.", target: 'prison_yard_clash' }, { text: "We don't take orders from anyone.", target: 'death_insulted_rick' }] },
+                    'carol': { type: 'dialogue', text: "Carol: Don't mind Rick, he's just cautious. We've all been through a lot. You all look hungry.", choices: [{ text: "We are. Thank you.", target: 'prison_yard_clash' }] },
+                    'daryl': { type: 'dialogue', text: "Daryl: You bring any walkers with you?", choices: [{ text: "No, we were careful.", target: 'prison_yard_clash' }, { text: "Maybe. Does it matter?", target: 'death_insulted_rick' }] }
                 }
             },
             'prison_yard_clash': {
@@ -220,10 +233,11 @@
                 ],
                 onLoad: { type: 'dialogue', text: "You find the rest of your team. The tension between the two groups is palpable.", choices: [ { text: "Let's check the other cell block.", target: 'breakroom_discovery' }] },
                 interactions: {
-                    'dave': { type: 'dialogue', text: "Dave: I'm detecting inconsistencies in their stories... discrepancies in their behavior patterns... I think they’re hiding something big.", choices: [{ text: "Stay cool, Dave.", target: null }] },
-                    'mac': { type: 'dialogue', text: "Mac: (observing Carol from afar) She's too soft for this world. How long do you think that'll last?", choices: [{ text: "She's a survivor, like us.", target: null }] },
-                    'ed': { type: 'dialogue', text: "Ed: (to Daryl) I wonder if they had fish sticks in the prison cafeteria! Ha! It’s a shame all this food went to waste!", choices: [{ text: "Ed, maybe not now.", target: null }] },
-                    'daryl': { type: 'dialogue', text: "Daryl: (Glares at Ed) Watch your mouth, Hashbrown.", choices: [{ text: "Yikes.", target: null }] }
+                    'dave': { type: 'dialogue', text: "Dave: I'm detecting inconsistencies in their stories... discrepancies in their behavior patterns... I think they're hiding something big.", choices: [{ text: "Trust your instincts.", target: 'breakroom_discovery' }, { text: "Stop being paranoid.", target: 'breakroom_discovery' }] },
+                    'mac': { type: 'dialogue', text: "Mac: (observing Carol from afar) She's too soft for this world. How long do you think that'll last?", choices: [{ text: "She's a survivor, like us.", target: 'breakroom_discovery' }, { text: "You might be right...", target: 'breakroom_discovery' }] },
+                    'ed': { type: 'dialogue', text: "Ed: (to Daryl) I wonder if they had fish sticks in the prison cafeteria! Ha! It's a shame all this food went to waste!", choices: [{ text: "Ed, shut up NOW.", target: 'breakroom_discovery' }, { text: "Let Ed joke around.", target: 'death_ed_escalation' }] },
+                    'daryl': { type: 'dialogue', text: "Daryl: (Glares at Ed) Watch your mouth, Hashbrown.", choices: [{ text: "Sorry, he doesn't mean anything.", target: 'breakroom_discovery' }] },
+                    'vending': { type: 'dialogue', text: "An old vending machine. Most of the snacks are long expired, but Ed manages to salvage a pack of stale cookies.", choices: [{ text: "Better than nothing.", target: null }] }
                 }
             },
             'breakroom_discovery': {
@@ -237,9 +251,9 @@
                 objects: [ { id: 'concrete_research', asset: assets.self_healing_concrete, bottom: '15%', left: '5%', width: '8%' } ],
                 onLoad: { type: 'dialogue', text: "You find Ian, Justin, and a woman named Maggie in a debris-filled room.", choices: [{ text: "What's going on here?", target: null }] },
                 interactions: {
-                    'ian': { type: 'dialogue', text: "Ian: (Whispering)...they’re not gone… they’re just… different. The walls here remember things... pain, loss...", choices: [{ text: "What are you talking about?", target: null }] },
-                    'justin': { type: 'dialogue', text: "Justin: Forget ghosts, John! I've been working on beetle-armor prototypes! Theoretically, they're walker-proof.", choices: [{ text: "Theoretically?", target: null }] },
-                    'maggie': { type: 'dialogue', text: "Maggie: Your friend Ed made a joke about the old inmates. Glenn didn't appreciate it. None of us did.", choices: [{ text: "I'll talk to him.", target: null }] },
+                    'ian': { type: 'dialogue', text: "Ian: (Whispering)...they're not gone… they're just… different. The walls here remember things... pain, loss... Don't go into the east wing alone.", choices: [{ text: "I'll be careful.", target: 'walker_outbreak' }, { text: "That's ridiculous.", target: 'death_ignored_warning' }] },
+                    'justin': { type: 'dialogue', text: "Justin: Forget ghosts, John! I've been working on beetle-armor prototypes! Theoretically, they're walker-proof. Want to try one?", choices: [{ text: "Maybe later...", target: 'walker_outbreak' }, { text: "Sure, let's test it!", target: 'death_armor_failure' }] },
+                    'maggie': { type: 'dialogue', text: "Maggie: Your friend Ed made a joke about the old inmates. Glenn didn't appreciate it. None of us did.", choices: [{ text: "I'm sorry. I'll talk to him.", target: 'walker_outbreak' }, { text: "You people are too sensitive.", target: 'death_maggie_betrayal' }] },
                     'concrete_research': { type: 'dialogue', text: "Justin: Oh, and check this out! Rob C. was experimenting with self-healing concrete! This could be a game-changer for reinforcing these walls!", choices: [{ text: "This is incredible! We have to tell Rick.", target: 'walker_outbreak' }] }
                 }
             },
@@ -251,9 +265,11 @@
                     { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '65%', width: '20%', flipped: true },
                     { id: 'zombie2', asset: assets.zombie2, bottom: '10%', left: '80%', width: '20%'},
                 ],
-                onLoad: { type: 'dialogue', text: "Suddenly, a loud alarm blares throughout the prison! A cell block door has been breached and walkers are pouring in!", choices: [{ text: "We have to fight together!", target: 'cliffhanger_ending' }] },
+                onLoad: { type: 'dialogue', text: "Suddenly, a loud alarm blares throughout the prison! A cell block door has been breached and walkers are pouring in!", choices: [{ text: "We have to fight together!", target: 'cliffhanger_ending' }, { text: "I'm getting out of here!", target: 'death_ran_from_fight' }] },
                 interactions: {
-                    'rick': { type: 'dialogue', text: "Rick: Everyone, form a line! Don't let them break through!", choices: [{ text: "Right behind you!", target: null }] }
+                    'rick': { type: 'dialogue', text: "Rick: Everyone, form a line! Don't let them break through!", choices: [{ text: "Right behind you!", target: 'cliffhanger_ending' }, { text: "I'll handle this alone!", target: 'death_fought_alone' }] },
+                    'zombie1': { type: 'dialogue', text: "The walker lunges at you, teeth gnashing!", choices: [{ text: "Fight it!", target: 'cliffhanger_ending' }] },
+                    'zombie2': { type: 'dialogue', text: "Another walker shambles toward you, arms outstretched.", choices: [{ text: "Back away!", target: 'cliffhanger_ending' }] }
                 }
             },
             'cliffhanger_ending': {
@@ -263,12 +279,63 @@
                     { id: 'zombie3', asset: assets.zombie3, bottom: '10%', left: '55%', width: '11%' }
                 ],
                 onLoad: { type: 'dialogue', text: "After a brutal fight, you contain the outbreak. But in the distance, you see headlights approaching. The Governor... As the chaos dies down, you see Ian kneel beside a fallen walker. It looks at him and whispers one word: 'Help...'", choices: [{ text: "To be continued...", target: 'office_start' }] },
-                interactions: {}
+                interactions: {
+                    'ian': { type: 'dialogue', text: "Ian: (Trembling) Did you hear that? It... it spoke to me. They're still in there... somewhere.", choices: [{ text: "We'll figure this out. Together.", target: 'office_start' }] },
+                    'zombie3': { type: 'dialogue', text: "The walker's eyes seem almost... aware. A faint whisper escapes its lips: 'Please...'", choices: [{ text: "This can't be real...", target: 'office_start' }] }
+                }
             },
             'game_over_fight': {
                 background: assets.abandoned_office,
                 onLoad: { type: 'dialogue', text: "You tried to fight the zombie with your bare hands. It did not go well. You have died.", choices: [ { text: "Start Over", target: 'office_start' } ] },
                 characters: [], objects: [], interactions: {}
+            },
+            'death_hostile_approach': {
+                background: assets.prison_exterior,
+                characters: [ { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '40%', width: '20%' } ],
+                onLoad: { type: 'dialogue', text: "Your hostile approach was met with gunfire from the tower. In the chaos, walkers were drawn to the noise. You didn't make it.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_insulted_rick': {
+                background: assets.prison_interior,
+                characters: [ { id: 'daryl', asset: assets.daryl, bottom: '10%', left: '40%', width: '15%' } ],
+                onLoad: { type: 'dialogue', text: "Rick's group doesn't tolerate disrespect. Daryl escorts you outside the gates. Alone in the woods, you don't last the night.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_ed_escalation': {
+                background: assets.prison_interior,
+                characters: [ { id: 'daryl', asset: assets.daryl, bottom: '10%', left: '30%', width: '15%' }, { id: 'ed', asset: assets.ed, bottom: '10%', left: '60%', width: '15%' } ],
+                onLoad: { type: 'dialogue', text: "Ed's joke goes too far. Daryl snaps. In the scuffle, a walker breach happens and in the chaos, Ed is bitten. He turns before you can stop him. You have died.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_ignored_warning': {
+                background: assets.prison_interior,
+                characters: [ { id: 'zombie2', asset: assets.zombie2, bottom: '10%', left: '35%', width: '20%' }, { id: 'zombie3', asset: assets.zombie3, bottom: '10%', left: '60%', width: '20%' } ],
+                onLoad: { type: 'dialogue', text: "You ignored Ian's warning and ventured into the east wing alone. Dozens of walkers were trapped there. You never made it out.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_armor_failure': {
+                background: assets.breakroom_bg,
+                characters: [ { id: 'justin', asset: assets.justin, bottom: '10%', left: '30%', width: '11%' }, { id: 'zombie_no_arm', asset: assets.zombie_no_arm, bottom: '10%', left: '60%', width: '15%' } ],
+                onLoad: { type: 'dialogue', text: "Justin's beetle-armor looked impressive, but the experimental chitin plating shattered on first impact. The walker's teeth found their mark. You have died.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_maggie_betrayal': {
+                background: assets.woods,
+                characters: [ { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '30%', width: '20%' }, { id: 'zombie2', asset: assets.zombie2, bottom: '10%', left: '65%', width: '20%' } ],
+                onLoad: { type: 'dialogue', text: "Your disrespect toward Maggie and Glenn turned the whole group against you. They forced you out of the prison. Alone and surrounded, you didn't survive the night.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_ran_from_fight': {
+                background: assets.woods,
+                characters: [ { id: 'zombie3', asset: assets.zombie3, bottom: '10%', left: '45%', width: '20%' } ],
+                onLoad: { type: 'dialogue', text: "You fled the prison during the outbreak. Cowardice has consequences. Rick's group remembers. Alone in the wilderness, you were easy prey.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
+            },
+            'death_fought_alone': {
+                background: assets.prison_interior,
+                characters: [ { id: 'zombie1', asset: assets.zombie1, bottom: '10%', left: '25%', width: '20%' }, { id: 'zombie2', asset: assets.zombie2, bottom: '10%', left: '50%', width: '20%' }, { id: 'zombie3', asset: assets.zombie3, bottom: '10%', left: '70%', width: '20%' } ],
+                onLoad: { type: 'dialogue', text: "You tried to be a hero and fight the walker horde alone. You were overwhelmed within seconds. Survival requires teamwork.", choices: [ { text: "Start Over", target: 'office_start' } ] },
+                interactions: {}
             }
         };
 
