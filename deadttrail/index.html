@@ -354,15 +354,22 @@
         const choicesBoxEl = document.getElementById('choices-box');
 
         function renderScene() {
+            console.log("=== renderScene called ===");
             const sceneData = storyData[gameState.currentScene];
             if (!sceneData) {
                 console.error("Scene not found:", gameState.currentScene);
+                showDebug("ERROR: Scene not found: " + gameState.currentScene, 'red');
                 return;
             }
 
+            console.log("Scene data loaded:", gameState.currentScene);
+            console.log("Background image:", sceneData.background);
+
             sceneEl.innerHTML = '';
             sceneEl.style.backgroundImage = `url('${sceneData.background}')`;
+            console.log("Background set to:", sceneEl.style.backgroundImage);
 
+            console.log("Adding", (sceneData.characters || []).length, "characters");
             (sceneData.characters || []).forEach(char => {
                 const charEl = document.createElement('img');
                 charEl.src = char.asset;
@@ -375,8 +382,10 @@
                 charEl.style.width = char.width;
                 charEl.dataset.interactionId = char.id;
                 sceneEl.appendChild(charEl);
+                console.log("Added character:", char.id, "at", char.src);
             });
 
+            console.log("Adding", (sceneData.objects || []).length, "objects");
             (sceneData.objects || []).forEach(obj => {
                 const objEl = document.createElement('img');
                 objEl.src = obj.asset;
@@ -386,14 +395,23 @@
                 objEl.style.width = obj.width;
                 objEl.dataset.interactionId = obj.id;
                 sceneEl.appendChild(objEl);
+                console.log("Added object:", obj.id);
             });
-            
+
             if (sceneData.onLoad) {
-                 showDialogue(sceneData.onLoad);
+                console.log("Showing onLoad dialogue");
+                showDialogue(sceneData.onLoad);
+            } else {
+                console.log("No onLoad dialogue for this scene");
             }
+            console.log("=== renderScene finished ===");
         }
 
         function showDialogue(dialogueData) {
+            console.log("=== showDialogue called ===");
+            console.log("Dialogue text:", dialogueData.text);
+            console.log("Number of choices:", dialogueData.choices ? dialogueData.choices.length : 0);
+
             dialogueTextEl.innerText = dialogueData.text;
             choicesBoxEl.innerHTML = '';
 
@@ -412,10 +430,13 @@
                         }
                     };
                     choicesBoxEl.appendChild(btn);
+                    console.log("Added button:", choice.text);
                 });
             }
 
             dialogueBoxEl.style.display = 'block';
+            console.log("Dialogue box display set to:", dialogueBoxEl.style.display);
+            console.log("=== showDialogue finished ===");
         }
 
         sceneEl.addEventListener('click', (e) => {
