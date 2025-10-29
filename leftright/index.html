@@ -95,24 +95,24 @@ font-family: 'Inter', sans-serif; touch-action: manipulation; }
             // --- Audio Functions ---
             function unlockAudio() {
                 if (audioUnlocked) return;
-                // Pre-play all sounds on a user gesture
-                Promise.all([
-                    leftSound.play(),
-                    rightSound.play(),
-                    winSound.play() // Added winSound
-                ]).then(() => {
-                    leftSound.pause();
-                    rightSound.pause();
-                    winSound.pause(); // Added winSound
-                    audioUnlocked = true;
-                }).catch(() => {});
+                // Try to unlock audio on first user interaction
+                const sounds = [leftSound, rightSound, winSound];
+                sounds.forEach(sound => {
+                    sound.play().then(() => {
+                        sound.pause();
+                        sound.currentTime = 0;
+                    }).catch(() => {});
+                });
+                audioUnlocked = true;
             }
 
             function playSound(sound) {
-                if (sound && audioUnlocked) {
-                    sound.currentTime = 0;
-                    sound.play().catch(e => console.error("Sound play failed:", e));
-                }
+                if (!sound) return Promise.resolve();
+                sound.currentTime = 0;
+                return sound.play().catch(e => {
+                    console.error("Sound play failed:", e);
+                    return Promise.resolve(); // Return resolved promise even on failure
+                });
             }
 
             // --- Haptic Feedback ---
@@ -140,11 +140,35 @@ font-family: 'Inter', sans-serif; touch-action: manipulation; }
                 animalImage.onerror = () => animalImage.src = `https://placehold.co/400x225/e0e0e0/757575?text=${animal.src.split('/')[1]}`;
             }
 
+            // Helper function to wait for sound with fallback timeout
+            function waitForSound(sound, maxDuration = 2000) {
+                return new Promise((resolve) => {
+                    let resolved = false;
+                    const timeoutId = setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve();
+                        }
+                    }, maxDuration);
+
+                    const onEnded = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timeoutId);
+                            sound.removeEventListener('ended', onEnded);
+                            resolve();
+                        }
+                    };
+
+                    sound.addEventListener('ended', onEnded);
+                });
+            }
+
             // --- UPDATED handleChoice function ---
-            function handleChoice(event) {
+            async function handleChoice(event) {
                 if (processing) return; // Exit if already processing a choice
                 if (!audioUnlocked) unlockAudio();
-                
+
                 const selectedDirection = event.target.value;
                 if (!selectedDirection) return; // Ignore if they re-select the "Select..." option
 
@@ -153,49 +177,35 @@ font-family: 'Inter', sans-serif; touch-action: manipulation; }
 
                 if (selectedDirection === correctDirection) {
                     // --- CORRECT ---
-                    
+
                     // 1. Determine which sound to play first
                     const choiceSound = (selectedDirection === 'left') ? leftSound : rightSound;
 
-                    // 2. Define what happens after the *first* sound finishes
-                    const playWinSound = () => {
-                        choiceSound.removeEventListener('ended', playWinSound); // Clean up listener
-                        
-                        // 3. Play the 'win' sound
-                        playSound(winSound);
+                    // 2. Play the choice sound and wait for it to finish
+                    await playSound(choiceSound);
+                    await waitForSound(choiceSound, 1500);
 
-                        // 4. Define what happens after the 'win' sound finishes
-                        const loadNext = () => {
-                            winSound.removeEventListener('ended', loadNext); // Clean up listener
+                    // 3. Play the win sound (don't wait for it)
+                    playSound(winSound);
 
-                            // 5. Load the next animal and reset state (with a tiny buffer)
-                            setTimeout(() => {
-                                currentAnimalIndex++;
-                                loadAnimal();
-                                directionSelect.value = ""; // Reset dropdown
-                                processing = false; // Allow next choice
-                            }, 150); // Small delay
-                        };
-                        winSound.addEventListener('ended', loadNext);
-                    };
-                    choiceSound.addEventListener('ended', playWinSound);
-
-                    // 1a. Play the first (correct) sound
-                    playSound(choiceSound);
+                    // 4. Load the next animal immediately after win sound starts
+                    setTimeout(() => {
+                        currentAnimalIndex++;
+                        loadAnimal();
+                        directionSelect.value = ""; // Reset dropdown
+                        processing = false; // Allow next choice
+                    }, 200); // Small delay to let win sound start
 
                 } else {
                     // --- INCORRECT ---
-                    
+
                     // 1. Play the (wrong) choice sound
-                    if (selectedDirection === 'left') {
-                        playSound(leftSound);
-                    } else if (selectedDirection === 'right') {
-                        playSound(rightSound);
-                    }
-                    
+                    const wrongSound = (selectedDirection === 'left') ? leftSound : rightSound;
+                    await playSound(wrongSound);
+
                     mainEl.classList.add('game-shake');
                     triggerHapticFeedback();
-                    
+
                     // 3. Reset after animation
                     setTimeout(() => {
                         mainEl.classList.remove('game-shake');
