@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detective Dino's Missing Cookie Case 🦕🍪</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Title Screen -->
+        <div id="title-screen" class="screen active">
+            <div class="title-content">
+                <div class="title-dino-container">
+                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="title-dino">
+                </div>
+                <h1 class="game-title bounce">Detective Dino 🔍</h1>
+                <h2 class="subtitle">The Missing Cookie Case!</h2>
+                <button class="start-btn pulse" onclick="startGame()">Start Investigation!</button>
+            </div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="game-screen" class="screen">
+            <!-- Top Bar -->
+            <div id="top-bar">
+                <div id="detective-name">
+                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="detective-icon">
+                    <span>Detective Dino</span>
+                </div>
+                <button id="notebook-btn" onclick="toggleNotebook()">
+                    <img src="images/objects/notebook.png" alt="Notebook" class="notebook-icon"> Clues (<span id="clue-count">0</span>/4)
+                </button>
+            </div>
+
+            <!-- Scene Container -->
+            <div id="scene-container">
+                <!-- Background will be set dynamically -->
+                <div id="background"></div>
+
+                <!-- Characters will be added here -->
+                <div id="characters-layer"></div>
+
+                <!-- Objects/Clues will be added here -->
+                <div id="objects-layer"></div>
+            </div>
+
+            <!-- Dialogue Box -->
+            <div id="dialogue-box" class="hidden">
+                <div id="speaker-name"></div>
+                <div id="dialogue-text"></div>
+                <div id="dialogue-choices"></div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div id="navigation">
+                <button class="nav-btn" onclick="changeLocation('kitchen')">🏠 Kitchen</button>
+                <button class="nav-btn" onclick="changeLocation('backyard')">🌳 Backyard</button>
+                <button class="nav-btn" onclick="changeLocation('living_room')">🛋️ Living Room</button>
+                <button class="nav-btn" onclick="changeLocation('park')">🎠 Park</button>
+                <button class="nav-btn accuse-btn" onclick="showAccusationScreen()">⚖️ Make Accusation!</button>
+            </div>
+        </div>
+
+        <!-- Clue Notebook Overlay -->
+        <div id="notebook-overlay" class="hidden">
+            <div id="notebook-content">
+                <h2>🔍 Detective's Notebook</h2>
+                <button class="close-btn" onclick="toggleNotebook()">✖</button>
+                <div id="clues-list">
+                    <p class="no-clues">Find clues by investigating each location!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accusation Screen -->
+        <div id="accusation-screen" class="screen hidden">
+            <div class="accusation-content">
+                <h2>Who Stole the Cookies? 🍪</h2>
+                <p>Think carefully, Detective Dino!</p>
+                <div id="suspects-grid">
+                    <div class="suspect-card" onclick="accuseSuspect('bunny')">
+                        <div class="suspect-avatar bunny-avatar">
+                            <img src="images/characters/bunny_happy.png" alt="Bunny">
+                        </div>
+                        <p>Bunny</p>
+                    </div>
+                    <div class="suspect-card" onclick="accuseSuspect('cat')">
+                        <div class="suspect-avatar cat-avatar">
+                            <img src="images/characters/cat_happy.png" alt="Cat">
+                        </div>
+                        <p>Cat</p>
+                    </div>
+                    <div class="suspect-card" onclick="accuseSuspect('dog')">
+                        <div class="suspect-avatar dog-avatar">
+                            <img src="images/characters/dog_happy.png" alt="Dog">
+                        </div>
+                        <p>Dog</p>
+                    </div>
+                    <div class="suspect-card" onclick="accuseSuspect('mouse')">
+                        <div class="suspect-avatar mouse-avatar">
+                            <img src="images/characters/mouse_happy.png" alt="Mouse">
+                        </div>
+                        <p>Mouse</p>
+                    </div>
+                </div>
+                <button class="back-btn" onclick="hideAccusationScreen()">Go Back</button>
+            </div>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="win-screen" class="screen hidden">
+            <div class="win-content">
+                <h1 class="celebrate">🎉 CASE SOLVED! 🎉</h1>
+                <div class="win-message">
+                    <p class="big-text">Great detective work!</p>
+                    <p>You found the cookie thief! 🍪</p>
+                    <div class="culprit">
+                        <img src="images/characters/mouse_sad.png" alt="Mouse" class="culprit-image">
+                        <div>It was Mouse!</div>
+                    </div>
+                </div>
+                <button class="play-again-btn pulse" onclick="location.reload()">Play Again!</button>
+            </div>
+        </div>
+
+        <!-- Try Again Screen -->
+        <div id="try-again-screen" class="screen hidden">
+            <div class="try-again-content">
+                <h1>Not Quite Right... 🤔</h1>
+                <p class="big-text">Keep investigating, Detective!</p>
+                <p>Look for more clues in each location.</p>
+                <button class="back-btn pulse" onclick="hideTryAgainScreen()">Keep Investigating!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="bg-music" src="sounds/background_music.mp3" loop></audio>
+    <audio id="sfx-click" src="sounds/click.mp3"></audio>
+    <audio id="sfx-clue" src="sounds/clue_found.mp3"></audio>
+    <audio id="sfx-correct" src="sounds/correct.mp3"></audio>
+    <audio id="sfx-wrong" src="sounds/wrong.mp3"></audio>
+    <audio id="sfx-win" src="sounds/mystery_solved.mp3"></audio>
+
+    <!-- Game Scripts -->
+    <script src="scenes.js"></script>
+    <script src="audio.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
