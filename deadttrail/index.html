@@ -43,27 +43,30 @@
     }
     #dialogue-box {
       position: absolute;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      background-color: rgba(0, 0, 0, 0.8);
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      max-height: 30%;
+      overflow-y: auto;
+      background-color: rgba(0, 0, 0, 0.85);
       border: 3px solid #4a4a4a;
       border-radius: 8px;
-      padding: 20px;
+      padding: 12px 15px;
       display: none;
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 12px;
+      line-height: 1.4;
     }
     .choice-btn {
       background-color: #333;
       border: 2px solid #555;
       color: #fff;
-      padding: 10px 15px;
-      margin-right: 10px;
-      margin-top: 10px;
+      padding: 8px 12px;
+      margin-right: 8px;
+      margin-top: 8px;
       border-radius: 5px;
       cursor: pointer;
       display: inline-block;
+      font-size: 11px;
     }
     .choice-btn:hover { background-color: #555; border-color: #777; }
   </style>
@@ -73,7 +76,7 @@
   <div id="game-container">
     <div id="scene"></div>
     <div id="dialogue-box">
-      <p id="dialoge-text"></p>
+      <p id="dialogue-text"></p>
       <div id="choices-box"></div>
     </div>
   </div>
@@ -88,13 +91,17 @@
     import prisonScenes from './prison.js';
     import breakroomScenes from './breakroom.js';
     import gameOverScenes from './gameover.js';
+    import governorScenes from './governor.js';
+    import episode3Scenes from './episode3.js';
 
     registerScenes({
       ...officeScenes,
       ...forestScenes,
       ...prisonScenes,
       ...breakroomScenes,
-      ...gameOverScenes
+      ...gameOverScenes,
+      ...governorScenes,
+      ...episode3Scenes
     });
 
     initEngine({ startScene: 'office_start' });

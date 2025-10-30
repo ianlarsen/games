@@ -5,8 +5,8 @@ export default {
   'office_start': {
     background: assets.abandoned_office,
     characters: [
-      { id: 'john',   asset: assets.john,   bottom: '10%', left: '45%', width: '11%' },
-      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '65%', width: '11%' }
+      { id: 'john',   asset: assets.john,   bottom: '10%', left: '40%', width: '11%' },
+      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '11%' }
     ],
     objects: [
       { id: 'filing_cabinet', asset: assets.filing_cabinet, bottom: '10%', left: '10%', width: '18%' },
@@ -14,26 +14,86 @@ export default {
     ],
     onLoad: {
       type: 'dialogue',
-      text: "The office reeks like something died, microwaved, then died again. We need supplies—fast.",
+      text: "John and his team scavenge in a deserted office building. Fluorescent lights flicker. The air reeks of decay.",
       choices: [
-        { text: "Search the microwave",          target: 'office_microwave_open', sfx: 'ding' },
-        { text: "Talk to Jamaal",                target: 'office_talk_jamaal_airz' },
+        { text: "Search the microwave",          target: 'office_microwave_investigate', sfx: 'ding' },
+        { text: "Talk to Jamaal about supplies", target: 'office_talk_jamaal_airz' },
         { text: "Search the filing cabinet",     target: 'office_filing_cabinet_note' },
-        { text: "Check the corner office",       target: 'office_corner_office_entry' },
-        { text: "Listen to the whispers",        target: 'office_listen_whispers' }
+        { text: "Check the basement stairs",     target: 'office_corner_office_entry' }
       ]
     },
     interactions: {
-      'john':   { type:'dialogue', text:"John: Stay sharp. Check everything—but don’t be a hero.", choices:[{ text:"Right.", target:null }] },
-      'jamaal': { type:'dialogue', text:"Jamaal: Hear me out—AirZ: zombie-themed co-working.", choices:[{ text:"Please focus.", target:null }] },
-      'microwave_obj': { type:'dialogue', text:"That smell is… sentient. You sure?", choices:[
-        { text:"Open it", target:'office_microwave_open', sfx: 'ding' },
-        { text:"Back away", target:null }
+      'john':   { type:'dialogue', text:"John: Stay sharp. Check everything—but don't be a hero.", choices:[{ text:"Got it.", target:null }] },
+      'jamaal': { type:'dialogue', text:"Jamaal: This place gives me the creeps. But... there's opportunity here.", choices:[{ text:"Focus on survival first.", target:null }] },
+      'microwave_obj': { type:'dialogue', text:"The microwave. That smell... it's familiar. And rancid.", choices:[
+        { text:"Investigate it", target:'office_microwave_investigate', sfx: 'ding' },
+        { text:"Better not", target:null }
       ]},
-      'filing_cabinet': { type:'dialogue', text:"Dusty cabinet. Something fluttered.", choices:[
+      'filing_cabinet': { type:'dialogue', text:"An old filing cabinet. Papers rustling inside?", choices:[
         { text:"Open it", target:'office_filing_cabinet_note' },
         { text:"Leave it", target:null }
       ] }
+    }
+  },
+
+  'office_microwave_investigate': {
+    background: assets.abandoned_office,
+    characters: [
+      { id: 'john',   asset: assets.john,   bottom: '10%', left: '40%', width: '11%' },
+      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '11%' }
+    ],
+    objects: [
+      { id: 'microwave_obj',  asset: assets.microwave,      bottom: '40%', left: '80%', width: '12%' }
+    ],
+    onLoad: {
+      type: 'dialogue',
+      text: "As you approach the microwave, the smell hits you like a wave. Something moves inside...",
+      choices: [
+        { text: "Open it slowly", target: 'office_microwave_flashback' },
+        { text: "Step back", target: 'office_start' }
+      ]
+    }
+  },
+
+  'office_microwave_flashback': {
+    background: assets.breakroom_bg,
+    characters: [
+      { id: 'rob',  asset: assets.handsome_rob, bottom: '10%', left: '30%', width: '11%' },
+      { id: 'mac',  asset: assets.mac, bottom: '10%', left: '60%', width: '11%' }
+    ],
+    objects: [
+      { id: 'microwave_obj',  asset: assets.microwave,  bottom: '40%', left: '75%', width: '12%' },
+      { id: 'fish_tank',      asset: assets.fish_tank,  bottom: '30%', left: '5%', width: '15%' }
+    ],
+    onLoad: {
+      type: 'dialogue',
+      text: "FLASHBACK: The office breakroom, before the apocalypse. Rob C. is microwaving fish. The smell is rancid.",
+      choices: [
+        { text: "Continue...", target: 'office_microwave_flashback_2' }
+      ]
+    },
+    interactions: {
+      'rob': { type:'dialogue', text:"Rob: \"Just my weekend catch! Fresh from the lake.\"", choices:[{ text:"...", target:null }] },
+      'mac': { type:'dialogue', text:"Mac: \"Rob, that smell is awful!\"", choices:[{ text:"...", target:null }] }
+    }
+  },
+
+  'office_microwave_flashback_2': {
+    background: assets.abandoned_office,
+    characters: [
+      { id: 'john',   asset: assets.john,   bottom: '10%', left: '35%', width: '11%' },
+      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '55%', width: '11%' }
+    ],
+    objects: [
+      { id: 'microwave_obj',  asset: assets.microwave,      bottom: '40%', left: '80%', width: '12%' }
+    ],
+    onLoad: {
+      type: 'dialogue',
+      text: "You snap back to reality. Mac's voice echoes: \"Yeah it is, at least that's just fish!\" The memory fades.",
+      choices: [
+        { text: "Open the microwave", target: 'office_microwave_open' },
+        { text: "Walk away", target: 'office_start' }
+      ]
     }
   },
 
@@ -112,12 +172,12 @@ export default {
       text: "Jamaal: \"AirZ. Zombie co-working. Premium tier: the corner without moans.\"",
       choices: [
         { text:"Please focus", target:'office_start' },
-        { text:"…Amenities?",  target:null }
+        { text:"…Amenities?",  target:'office_jamaal_amenities' }
       ]
     },
     interactions: {
       'jamaal': { type:'dialogue', text:"Hot desk, cold fear, hazardous microwave.", choices:[{ text:"Back to work", target:'office_start' }] },
-      'john':   { type:'dialogue', text:"Pitch it after we’re not on the menu.", choices:[{ text:"Yeah, okay", target:'office_start' }] },
+      'john':   { type:'dialogue', text:"Pitch it after we're not on the menu.", choices:[{ text:"Yeah, okay", target:'office_start' }] },
       'microwave_obj': { type:'dialogue', text:"It hums like it remembers lunch.", choices:[
         { text:"Open it", target:'office_microwave_open', sfx: 'ding' },
         { text:"Leave it", target:'office_start' }
@@ -126,6 +186,22 @@ export default {
         { text:"Open it", target:'office_filing_cabinet_note' },
         { text:"Leave it", target:'office_start' }
       ]}
+    }
+  },
+
+  'office_jamaal_amenities': {
+    background: assets.abandoned_office,
+    characters: [
+      { id: 'john',   asset: assets.john,   bottom: '10%', left: '35%', width: '11%' },
+      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '11%', flipped: true }
+    ],
+    onLoad: {
+      type:'dialogue',
+      text: "Jamaal: \"Free coffee—if you can find it. Hot desk, cold fear, complimentary hazardous microwave.\"",
+      choices: [
+        { text:"You're impossible.", target:'office_start' },
+        { text:"Maybe after we survive...", target:'office_start' }
+      ]
     }
   },
 

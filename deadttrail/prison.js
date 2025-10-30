@@ -4,21 +4,33 @@ export default {
   'prison_interior_welcome': {
     background: assets.prison_interior,
     characters: [
-      { id: 'rick', asset: assets.rick, bottom: '10%', left: '20%', width: '15%', flipped: true },
-      { id: 'carol', asset: assets.carol, bottom: '10%', left: '35%', width: '11%', flipped: true },
-      { id: 'daryl', asset: assets.daryl, bottom: '10%', left: '5%', width: '15%', flipped: true },
-      { id: 'john', asset: assets.john, bottom: '10%', left: '60%', width: '11%', flipped: true },
-      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '75%', width: '11%', flipped: true },
+      { id: 'rick', asset: assets.rick, bottom: '10%', left: '15%', width: '14%', flipped: true },
+      { id: 'carol', asset: assets.carol, bottom: '10%', left: '30%', width: '11%', flipped: true },
+      { id: 'daryl', asset: assets.daryl, bottom: '10%', left: '45%', width: '14%', flipped: true },
+      { id: 'john', asset: assets.john, bottom: '10%', left: '65%', width: '11%', flipped: true },
+      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '80%', width: '11%', flipped: true },
     ],
     onLoad: { type:'dialogue',
-      text: "You step inside. The air is heavy with mistrust. A man with a crossbow gives you a hard stare.",
-      choices: [{ text: "Let's find the rest of our group.", target: 'prison_yard_clash' }]
+      text: "Inside the prison. The air is heavy with mistrust. Daryl's crossbow gleams in the dim light.",
+      choices: [{ text: "Talk to Rick", target: 'prison_rick_rules' }]
     },
     interactions: {
-      'rick':  { type:'dialogue', text:"Rick: Follow the rules and you're welcome. Break them and you're out.", choices:[{ text:"Understood.", target:null }] },
-      'carol': { type:'dialogue', text:"Carol: You all look hungry.", choices:[{ text:"We are.", target:null }] },
-      'daryl': { type:'dialogue', text:"Daryl keeps cleaning his crossbow.", choices:[{ text:"Best not to bother him.", target:null }] }
-      'john': { type:'dialogue', text:"Let's find the rest of our group.", target: 'prison_yard_clash' }] }
+      'rick':  { type:'dialogue', text:"Rick: You look like you've been through hell. We all have.", choices:[{ text:"Tell me about it.", target:'prison_rick_rules' }] },
+      'carol': { type:'dialogue', text:"Carol: You all look hungry. I can get you something.", choices:[{ text:"We'd appreciate that.", target:null }] },
+      'daryl': { type:'dialogue', text:"Daryl: (cleaning crossbow, not looking up)", choices:[{ text:"Best not to bother him.", target:null }] },
+      'john':  { type:'dialogue', text:"John: We need to find the rest of our team.", choices:[{ text:"Let's look around.", target:'prison_yard_clash' }] }
+    }
+  },
+
+  'prison_rick_rules': {
+    background: assets.prison_interior,
+    characters: [
+      { id: 'rick', asset: assets.rick, bottom: '10%', left: '35%', width: '15%' },
+      { id: 'john', asset: assets.john, bottom: '10%', left: '60%', width: '11%', flipped: true }
+    ],
+    onLoad: { type:'dialogue',
+      text: "Rick: \"Follow the rules and you're welcome. Break them and you're out. We've lost too many to take chances.\"",
+      choices: [{ text: "Understood. What do you need from us?", target: 'prison_yard_clash' }]
     }
   },
 
