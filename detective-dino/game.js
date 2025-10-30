@@ -50,10 +50,54 @@ const Game = {
     this.elements.winScreen = document.getElementById('win-screen');
     this.elements.tryAgainScreen = document.getElementById('try-again-screen');
 
+    // Mobile optimizations
+    this.initMobileOptimizations();
+
     // Randomly select guilty suspect
     const suspects = ['bunny', 'cat', 'dog', 'mouse'];
     this.guiltySuspect = suspects[Math.floor(Math.random() * suspects.length)];
     console.log('Detective Dino initialized! Guilty suspect:', this.guiltySuspect);
+  },
+
+  // Initialize mobile optimizations
+  initMobileOptimizations() {
+    // Prevent double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+
+    // Prevent pinch zoom
+    document.addEventListener('gesturestart', (e) => {
+      e.preventDefault();
+    });
+
+    // Handle orientation changes
+    window.addEventListener('orientationchange', () => {
+      // Force re-render after orientation change
+      setTimeout(() => {
+        this.renderLocation();
+      }, 100);
+    });
+
+    // Prevent pull-to-refresh on mobile browsers
+    document.body.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Fix viewport height on mobile browsers (accounting for address bar)
+    const setViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
   },
 
   // Start game
@@ -130,10 +174,14 @@ const Game = {
     img.style.objectFit = 'contain';
     charEl.appendChild(img);
 
-    charEl.addEventListener('click', () => {
+    const handleInteraction = (e) => {
+      e.preventDefault();
       AudioManager.playClick();
       this.interactWithCharacter(char);
-    });
+    };
+
+    charEl.addEventListener('click', handleInteraction);
+    charEl.addEventListener('touchend', handleInteraction, { passive: false });
 
     this.elements.charactersLayer.appendChild(charEl);
   },
@@ -169,10 +217,14 @@ const Game = {
       objEl.appendChild(emojiSpan);
     }
 
-    objEl.addEventListener('click', () => {
+    const handleInteraction = (e) => {
+      e.preventDefault();
       AudioManager.playClick();
       this.interactWithObject(obj);
-    });
+    };
+
+    objEl.addEventListener('click', handleInteraction);
+    objEl.addEventListener('touchend', handleInteraction, { passive: false });
 
     this.elements.objectsLayer.appendChild(objEl);
   },
@@ -202,11 +254,15 @@ const Game = {
     img.style.objectFit = 'contain';
     clueEl.appendChild(img);
 
-    clueEl.addEventListener('click', () => {
+    const handleClueInteraction = (e) => {
+      e.preventDefault();
       AudioManager.playClue();
       AudioManager.playClueBeep(); // Backup sound
       this.collectClue(clue);
-    });
+    };
+
+    clueEl.addEventListener('click', handleClueInteraction);
+    clueEl.addEventListener('touchend', handleClueInteraction, { passive: false });
 
     this.elements.objectsLayer.appendChild(clueEl);
   },
@@ -255,14 +311,18 @@ const Game = {
       btn.className = 'choice-btn';
       btn.textContent = choice.text;
 
-      btn.addEventListener('click', () => {
+      const handleChoice = (e) => {
+        e.preventDefault();
         AudioManager.playClick();
         if (choice.action === 'close') {
           this.hideDialogue();
         } else if (choice.action === 'start') {
           this.hideDialogue();
         }
-      });
+      };
+
+      btn.addEventListener('click', handleChoice);
+      btn.addEventListener('touchend', handleChoice, { passive: false });
 
       this.elements.dialogueChoices.appendChild(btn);
     });

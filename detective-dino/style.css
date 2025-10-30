@@ -1,5 +1,9 @@
 /* Detective Dino - Kid-Friendly Detective Game Styles */
 
+:root {
+    --vh: 1vh;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -10,10 +14,15 @@ body {
     font-family: 'Comic Sans MS', 'Arial', cursive, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #game-container {
@@ -26,6 +35,16 @@ body {
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     overflow: hidden;
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    #game-container {
+        height: 100vh;
+        height: calc(var(--vh, 1vh) * 100);
+        max-height: none;
+        border-radius: 0;
+    }
 }
 
 /* Screens */
@@ -90,11 +109,17 @@ body {
     font-weight: bold;
     box-shadow: 0 8px 15px rgba(0,0,0,0.2);
     transition: transform 0.2s;
+    touch-action: manipulation;
+    min-height: 60px;
 }
 
 .start-btn:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+}
+
+.start-btn:active {
+    transform: scale(0.95);
 }
 
 /* Animations */
@@ -178,10 +203,16 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: transform 0.2s;
+    touch-action: manipulation;
+    min-height: 44px;
 }
 
 #notebook-btn:hover {
     transform: scale(1.1);
+}
+
+#notebook-btn:active {
+    transform: scale(0.95);
 }
 
 /* Scene Container */
@@ -235,10 +266,15 @@ body {
     cursor: pointer;
     transition: transform 0.2s;
     pointer-events: all;
+    touch-action: manipulation;
 }
 
 .character:hover, .object:hover {
     transform: scale(1.1);
+}
+
+.character:active, .object:active {
+    transform: scale(1.05);
 }
 
 /* Character styles - larger and more prominent */
@@ -331,11 +367,17 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
+    touch-action: manipulation;
+    min-height: 44px;
 }
 
 .choice-btn:hover {
     background: #764ba2;
     transform: translateY(-2px);
+}
+
+.choice-btn:active {
+    transform: scale(0.95);
 }
 
 /* Navigation */
@@ -365,11 +407,17 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    touch-action: manipulation;
+    min-height: 44px;
 }
 
 .nav-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.nav-btn:active {
+    transform: scale(0.95);
 }
 
 .accuse-btn {
@@ -380,6 +428,10 @@ body {
 
 .accuse-btn:hover {
     background: #ee5a52;
+}
+
+.accuse-btn:active {
+    transform: scale(0.95);
 }
 
 /* Notebook Overlay */
@@ -431,10 +483,17 @@ body {
     font-size: 1.5rem;
     cursor: pointer;
     transition: transform 0.2s;
+    touch-action: manipulation;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .close-btn:hover {
     transform: rotate(90deg);
+}
+
+.close-btn:active {
+    transform: scale(0.9);
 }
 
 #clues-list {
@@ -492,11 +551,16 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    touch-action: manipulation;
 }
 
 .suspect-card:hover {
     transform: translateY(-10px) scale(1.05);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.suspect-card:active {
+    transform: scale(0.95);
 }
 
 .suspect-avatar {
@@ -529,10 +593,16 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: transform 0.2s;
+    touch-action: manipulation;
+    min-height: 44px;
 }
 
 .back-btn:hover {
     transform: scale(1.1);
+}
+
+.back-btn:active {
+    transform: scale(0.95);
 }
 
 /* Win Screen */
@@ -587,10 +657,16 @@ body {
     cursor: pointer;
     margin-top: 30px;
     box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    touch-action: manipulation;
+    min-height: 60px;
 }
 
 .play-again-btn:hover {
     background: #5f4dd4;
+}
+
+.play-again-btn:active {
+    transform: scale(0.95);
 }
 
 /* Try Again Screen */
@@ -613,6 +689,10 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    body {
+        align-items: stretch;
+    }
+
     .game-title {
         font-size: 2.5rem;
     }
@@ -624,6 +704,7 @@ body {
     .start-btn {
         font-size: 1.3rem;
         padding: 1rem 2rem;
+        min-height: 56px;
     }
 
     #suspects-grid {
@@ -631,11 +712,257 @@ body {
     }
 
     #navigation {
-        height: 120px;
+        height: auto;
+        min-height: 80px;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .nav-btn {
+        font-size: 0.9rem;
+        padding: 12px 16px;
+        min-height: 44px;
+        flex: 1 1 auto;
+        white-space: nowrap;
+    }
+
+    .accuse-btn {
+        font-size: 1rem;
+        padding: 12px 20px;
+        flex-basis: 100%;
+    }
+
+    #scene-container {
+        bottom: 100px;
+    }
+
+    #dialogue-box {
+        bottom: 90px;
+        left: 10px;
+        right: 10px;
+        padding: 15px;
+    }
+
+    #speaker-name {
+        font-size: 1.1rem;
+    }
+
+    #dialogue-text {
+        font-size: 1rem;
+    }
+
+    .choice-btn {
+        font-size: 0.9rem;
+        padding: 10px 15px;
+        min-height: 44px;
+    }
+
+    #top-bar {
+        height: 50px;
+        padding: 0 10px;
+        font-size: 1rem;
+    }
+
+    .detective-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    #notebook-btn {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+        min-height: 44px;
+    }
+
+    .character {
+        width: 100px;
+        height: 100px;
+    }
+
+    .object {
+        width: 60px;
+        height: 60px;
+    }
+
+    .clue {
+        width: 50px;
+        height: 50px;
+    }
+
+    #notebook-content {
+        width: 95%;
+        max-height: 85%;
+        padding: 20px;
+    }
+
+    #notebook-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .close-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1.2rem;
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .accusation-content {
+        padding: 20px;
+    }
+
+    .accusation-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .accusation-content p {
+        font-size: 1.2rem;
+    }
+
+    .suspect-card {
+        padding: 20px;
+        min-height: 44px;
+    }
+
+    .suspect-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .back-btn {
+        min-height: 44px;
+    }
+
+    .celebrate {
+        font-size: 2.5rem;
+    }
+
+    .big-text {
+        font-size: 1.5rem;
+    }
+
+    .culprit {
+        font-size: 2rem;
+        padding: 15px 25px;
+    }
+
+    .culprit-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .play-again-btn {
+        min-height: 56px;
+    }
+}
+
+/* Extra small devices (portrait phones) */
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+    }
+
+    .title-dino-container {
+        width: 150px;
+        height: 150px;
+    }
+
+    .start-btn {
+        font-size: 1.1rem;
+        padding: 0.8rem 1.5rem;
+    }
+
+    #navigation {
+        flex-wrap: wrap;
+    }
+
+    .nav-btn {
+        font-size: 0.75rem;
+        padding: 10px 12px;
+        min-width: calc(50% - 4px);
+    }
+
+    .accuse-btn {
+        font-size: 0.9rem;
+        padding: 10px 15px;
+    }
+
+    #dialogue-text {
+        font-size: 0.9rem;
+    }
+
+    .character {
+        width: 80px;
+        height: 80px;
+    }
+
+    .object {
+        width: 50px;
+        height: 50px;
+    }
+
+    .clue {
+        width: 40px;
+        height: 40px;
+    }
+
+    .celebrate {
+        font-size: 2rem;
+    }
+
+    .big-text {
+        font-size: 1.2rem;
+    }
+
+    .culprit {
+        font-size: 1.5rem;
+        padding: 10px 20px;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Landscape orientation optimization */
+@media (max-height: 600px) and (orientation: landscape) {
+    #scene-container {
+        bottom: 80px;
+    }
+
+    #navigation {
+        height: 70px;
+        min-height: 70px;
     }
 
     .nav-btn {
         font-size: 0.8rem;
         padding: 8px 12px;
+    }
+
+    .accuse-btn {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+
+    #dialogue-box {
+        bottom: 70px;
+        padding: 10px;
+    }
+
+    #top-bar {
+        height: 45px;
+    }
+
+    .character {
+        width: 70px;
+        height: 70px;
+    }
+
+    .object, .clue {
+        width: 40px;
+        height: 40px;
     }
 }
