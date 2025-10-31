@@ -13,23 +13,44 @@ function debounce(func, wait) {
   };
 }
 
-// Lazy load images
+// Lazy load images with timeout
 function lazyLoadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
+    const timeout = setTimeout(() => {
+      console.warn(`Image load timeout: ${src}`);
+      reject(new Error(`Timeout loading ${src}`));
+    }, 5000); // 5 second timeout
+
+    img.onload = () => {
+      clearTimeout(timeout);
+      resolve(img);
+    };
+    img.onerror = (err) => {
+      clearTimeout(timeout);
+      console.error(`Failed to load image: ${src}`, err);
+      reject(err);
+    };
     img.src = src;
   });
 }
 
 export function initEngine({ startScene }) {
+  console.log('🎮 Initializing game engine with start scene:', startScene);
+
   const sceneEl = document.getElementById('scene');
   const dialogueBoxEl = document.getElementById('dialogue-box');
   const dialogueTextEl = document.getElementById('dialogue-text');
   const choicesBoxEl = document.getElementById('choices-box');
   const loadingScreen = document.getElementById('loading-screen');
   const loadingProgress = document.getElementById('loading-progress');
+
+  console.log('📦 DOM elements loaded:', {
+    sceneEl: !!sceneEl,
+    dialogueBoxEl: !!dialogueBoxEl,
+    loadingScreen: !!loadingScreen,
+    loadingProgress: !!loadingProgress
+  });
 
   const gameState = {
     currentScene: startScene,
@@ -153,9 +174,10 @@ export function initEngine({ startScene }) {
   }
 
   async function renderScene() {
+    console.log('🎬 Rendering scene:', gameState.currentScene);
     const data = getScene(gameState.currentScene);
     if (!data) {
-      console.error('Scene not found:', gameState.currentScene);
+      console.error('❌ Scene not found:', gameState.currentScene);
       if (loadingScreen) loadingScreen.style.display = 'none';
       return;
     }
@@ -174,9 +196,15 @@ export function initEngine({ startScene }) {
 
       // Preload background image
       if (data.background) {
-        await lazyLoadImage(data.background);
-        loadedAssets++;
-        updateLoadingProgress((loadedAssets / totalAssets) * 100);
+        try {
+          await lazyLoadImage(data.background);
+          loadedAssets++;
+          updateLoadingProgress((loadedAssets / totalAssets) * 100);
+        } catch (err) {
+          console.warn(`Failed to load background: ${data.background}`, err);
+          loadedAssets++;
+          updateLoadingProgress((loadedAssets / totalAssets) * 100);
+        }
       }
 
       // Preload all character and object images with progress tracking
@@ -188,6 +216,11 @@ export function initEngine({ startScene }) {
               loadedAssets++;
               updateLoadingProgress((loadedAssets / totalAssets) * 100);
               return img;
+            }).catch(err => {
+              console.warn(`Skipping failed character asset: ${c.asset}`, err);
+              loadedAssets++;
+              updateLoadingProgress((loadedAssets / totalAssets) * 100);
+              return null;
             })
           );
         }
@@ -199,6 +232,11 @@ export function initEngine({ startScene }) {
               loadedAssets++;
               updateLoadingProgress((loadedAssets / totalAssets) * 100);
               return img;
+            }).catch(err => {
+              console.warn(`Skipping failed object asset: ${o.asset}`, err);
+              loadedAssets++;
+              updateLoadingProgress((loadedAssets / totalAssets) * 100);
+              return null;
             })
           );
         }
@@ -357,5 +395,6 @@ export function initEngine({ startScene }) {
   const vh = window.innerHeight;
   document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`);
 
+  console.log('✅ Engine initialization complete, starting first render...');
   renderScene();
 }
