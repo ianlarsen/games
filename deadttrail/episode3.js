@@ -166,7 +166,7 @@ export default {
       { id: 'rick', asset: assets.rick, bottom: '10%', left: '30%', width: '14%' },
       { id: 'dave', asset: assets.dave, bottom: '10%', left: '55%', width: '11%' },
       { id: 'ian', asset: assets.ian, bottom: '10%', left: '75%', width: '11%' }
-    },
+    ],
     onLoad: { type:'dialogue',
       text: "Rick outlines the plan. Dave calculates probabilities. Ian prepares his powers. Everything is ready.",
       choices: [
