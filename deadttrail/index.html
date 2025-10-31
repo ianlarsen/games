@@ -8,6 +8,8 @@
   <meta name="theme-color" content="#1a1a1a" />
   <meta name="mobile-web-app-capable" content="yes" />
   <title>J.A.M.A.A.L. - An Interactive Story</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./images/icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
@@ -110,10 +112,61 @@
       height: 100%;
       background: #1a1a1a;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 9999;
       font-size: clamp(10px, 2.5vw, 16px);
+      gap: 20px;
+    }
+    .loading-bar {
+      width: 60%;
+      max-width: 400px;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .loading-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #4a9eff, #7dc9ff);
+      width: 0%;
+      transition: width 0.3s ease;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    #fullscreen-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #555;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: clamp(8px, 1.5vw, 12px);
+      font-family: 'Press Start 2P', cursive;
+      z-index: 100;
+      touch-action: manipulation;
+      transition: all 0.2s ease;
+    }
+    #fullscreen-btn:hover, #fullscreen-btn:active {
+      background: rgba(0, 0, 0, 0.9);
+      border-color: #777;
+      transform: scale(0.98);
+    }
+    .keyboard-hint {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      font-size: 8px;
+      color: #666;
+      font-family: monospace;
     }
     @media (max-width: 768px) {
       #game-container {
@@ -126,6 +179,14 @@
         left: 5px;
         right: 5px;
       }
+      .keyboard-hint {
+        display: none;
+      }
+      #fullscreen-btn {
+        top: 5px;
+        right: 5px;
+        padding: 6px 10px;
+      }
     }
     @media (orientation: portrait) {
       #game-container {
@@ -137,12 +198,19 @@
 </head>
 
 <body>
-  <div id="loading-screen">Loading J.A.M.A.A.L...</div>
+  <div id="loading-screen">
+    <div>Loading J.A.M.A.A.L...</div>
+    <div class="loading-bar">
+      <div class="loading-progress" id="loading-progress"></div>
+    </div>
+  </div>
   <div id="game-container">
+    <button id="fullscreen-btn" title="Toggle Fullscreen (F)">[ ]</button>
     <div id="scene"></div>
     <div id="dialogue-box">
       <p id="dialogue-text"></p>
       <div id="choices-box"></div>
+      <div class="keyboard-hint">Arrow keys/Enter to navigate</div>
     </div>
   </div>
 
@@ -167,6 +235,48 @@
       ...gameOverScenes,
       ...governorScenes,
       ...episode3Scenes
+    });
+
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registered:', reg))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+
+    // Fullscreen functionality
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const gameContainer = document.getElementById('game-container');
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        gameContainer.requestFullscreen?.() ||
+        gameContainer.webkitRequestFullscreen?.() ||
+        gameContainer.mozRequestFullScreen?.();
+        fullscreenBtn.textContent = '[X]';
+      } else {
+        document.exitFullscreen?.() ||
+        document.webkitExitFullscreen?.() ||
+        document.mozCancelFullScreen?.();
+        fullscreenBtn.textContent = '[ ]';
+      }
+    }
+
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    // Keyboard shortcut for fullscreen (F key)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    // Update button state on fullscreen change
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenBtn.textContent = document.fullscreenElement ? '[X]' : '[ ]';
     });
 
     initEngine({ startScene: 'office_start' });

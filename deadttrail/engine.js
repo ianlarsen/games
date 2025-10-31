@@ -29,12 +29,35 @@ export function initEngine({ startScene }) {
   const dialogueTextEl = document.getElementById('dialogue-text');
   const choicesBoxEl = document.getElementById('choices-box');
   const loadingScreen = document.getElementById('loading-screen');
+  const loadingProgress = document.getElementById('loading-progress');
 
   const gameState = {
     currentScene: startScene,
-    flags: {}
+    flags: {},
+    selectedChoiceIndex: 0
   };
   window.gameState = gameState; // handy for console debugging
+
+  // Haptic feedback for mobile devices
+  function vibrate(pattern = 10) {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(pattern);
+    }
+  }
+
+  // Update loading progress
+  function updateLoadingProgress(percent) {
+    if (loadingProgress) {
+      loadingProgress.style.width = `${percent}%`;
+    }
+  }
+
+  // Memory optimization: Clear old scene assets
+  function clearSceneAssets() {
+    sceneEl.innerHTML = '';
+    // Force garbage collection hint
+    if (window.gc) window.gc();
+  }
 
   function showDialogue(dialogueData) {
     if (dialogueData.sfx && window.playSfx) window.playSfx(dialogueData.sfx, dialogueData.sfxVol ?? 0.7);
@@ -42,33 +65,91 @@ export function initEngine({ startScene }) {
     dialogueTextEl.innerText = dialogueData.text || '';
     choicesBoxEl.innerHTML = '';
 
-    (dialogueData.choices || []).forEach(choice => {
+    const choices = dialogueData.choices || [];
+    gameState.selectedChoiceIndex = 0;
+
+    function selectChoice(index) {
+      // Vibrate on selection change
+      vibrate(5);
+
+      const buttons = choicesBoxEl.querySelectorAll('.choice-btn');
+      buttons.forEach((btn, i) => {
+        if (i === index) {
+          btn.style.background = '#555';
+          btn.style.borderColor = '#777';
+          btn.focus();
+        } else {
+          btn.style.background = '#333';
+          btn.style.borderColor = '#555';
+        }
+      });
+      gameState.selectedChoiceIndex = index;
+    }
+
+    function executeChoice(choice) {
+      // Vibrate on selection
+      vibrate(20);
+
+      // Always play flip sound when making a choice
+      if (window.playSfx) window.playSfx('flip', 0.6);
+
+      // Play additional sfx if specified
+      if (choice.sfx && window.playSfx && choice.sfx !== 'flip') {
+        window.playSfx(choice.sfx, choice.sfxVol ?? 0.7);
+      }
+
+      if (choice.setFlag) gameState.flags[choice.setFlag] = true;
+
+      if (choice.target) {
+        gameState.currentScene = choice.target;
+        dialogueBoxEl.style.display = 'none';
+        renderScene();
+      } else {
+        dialogueBoxEl.style.display = 'none';
+      }
+    }
+
+    choices.forEach((choice, index) => {
       const btn = document.createElement('button');
       btn.innerText = choice.text;
       btn.className = 'choice-btn';
-      btn.onclick = () => {
-        // Always play flip sound when making a choice
-        if (window.playSfx) window.playSfx('flip', 0.6);
-
-        // Play additional sfx if specified
-        if (choice.sfx && window.playSfx && choice.sfx !== 'flip') {
-          window.playSfx(choice.sfx, choice.sfxVol ?? 0.7);
-        }
-
-        if (choice.setFlag) gameState.flags[choice.setFlag] = true;
-
-        if (choice.target) {
-          gameState.currentScene = choice.target;
-          dialogueBoxEl.style.display = 'none';
-          renderScene();
-        } else {
-          dialogueBoxEl.style.display = 'none';
-        }
-      };
+      btn.onclick = () => executeChoice(choice);
+      btn.dataset.choiceIndex = index;
       choicesBoxEl.appendChild(btn);
     });
 
     dialogueBoxEl.style.display = 'block';
+
+    // Auto-select first choice
+    if (choices.length > 0) {
+      setTimeout(() => selectChoice(0), 100);
+    }
+
+    // Keyboard navigation for choices
+    const keyHandler = (e) => {
+      if (dialogueBoxEl.style.display !== 'block') return;
+
+      const buttons = choicesBoxEl.querySelectorAll('.choice-btn');
+      if (buttons.length === 0) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextIndex = (gameState.selectedChoiceIndex + 1) % buttons.length;
+        selectChoice(nextIndex);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prevIndex = (gameState.selectedChoiceIndex - 1 + buttons.length) % buttons.length;
+        selectChoice(prevIndex);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        executeChoice(choices[gameState.selectedChoiceIndex]);
+      }
+    };
+
+    // Remove old listener if it exists
+    document.removeEventListener('keydown', gameState.keyHandler);
+    gameState.keyHandler = keyHandler;
+    document.addEventListener('keydown', keyHandler);
   }
 
   async function renderScene() {
@@ -79,30 +160,59 @@ export function initEngine({ startScene }) {
       return;
     }
 
+    // Clear previous scene to free memory
+    clearSceneAssets();
+
     // Show loading screen while assets load
     if (loadingScreen) loadingScreen.style.display = 'flex';
+    updateLoadingProgress(10);
 
     try {
+      // Calculate total assets to load
+      const totalAssets = 1 + (data.characters?.length || 0) + (data.objects?.length || 0);
+      let loadedAssets = 0;
+
       // Preload background image
       if (data.background) {
         await lazyLoadImage(data.background);
+        loadedAssets++;
+        updateLoadingProgress((loadedAssets / totalAssets) * 100);
       }
 
-      // Preload all character and object images
+      // Preload all character and object images with progress tracking
       const imagePromises = [];
       (data.characters || []).forEach(c => {
-        if (c.asset) imagePromises.push(lazyLoadImage(c.asset));
+        if (c.asset) {
+          imagePromises.push(
+            lazyLoadImage(c.asset).then(img => {
+              loadedAssets++;
+              updateLoadingProgress((loadedAssets / totalAssets) * 100);
+              return img;
+            })
+          );
+        }
       });
       (data.objects || []).forEach(o => {
-        if (o.asset) imagePromises.push(lazyLoadImage(o.asset));
+        if (o.asset) {
+          imagePromises.push(
+            lazyLoadImage(o.asset).then(img => {
+              loadedAssets++;
+              updateLoadingProgress((loadedAssets / totalAssets) * 100);
+              return img;
+            })
+          );
+        }
       });
 
       await Promise.all(imagePromises);
+      updateLoadingProgress(100);
+
+      // Small delay to show 100% progress
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       // Hide loading screen
       if (loadingScreen) loadingScreen.style.display = 'none';
 
-      sceneEl.innerHTML = '';
       sceneEl.style.backgroundImage = `url('${data.background}')`;
 
       // Handle ambient sounds based on background
@@ -201,6 +311,51 @@ export function initEngine({ startScene }) {
     }
     lastTouchEnd = now;
   }, { passive: false });
+
+  // Handle orientation changes gracefully
+  let orientationChangeTimeout;
+  function handleOrientationChange() {
+    // Clear existing timeout
+    if (orientationChangeTimeout) {
+      clearTimeout(orientationChangeTimeout);
+    }
+
+    // Show loading briefly during orientation change
+    if (loadingScreen) loadingScreen.style.display = 'flex';
+    updateLoadingProgress(50);
+
+    // Debounce orientation changes (some devices fire multiple events)
+    orientationChangeTimeout = setTimeout(() => {
+      // Force layout recalculation
+      window.dispatchEvent(new Event('resize'));
+
+      // Hide loading screen
+      if (loadingScreen) {
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 300);
+      }
+
+      // Provide haptic feedback
+      vibrate(10);
+    }, 300);
+  }
+
+  window.addEventListener('orientationchange', handleOrientationChange);
+  // Also listen to resize for better support
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      // Adjust dialogue box height if needed
+      const vh = window.innerHeight;
+      document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`);
+    }, 150);
+  });
+
+  // Set initial viewport height
+  const vh = window.innerHeight;
+  document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`);
 
   renderScene();
 }
