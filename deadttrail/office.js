@@ -23,8 +23,8 @@ export default {
       ]
     },
     interactions: {
-      'john':   { type:'dialogue', text:"John: Stay sharp. Check everything—but don't be a hero.", choices:[{ text:"Got it.", target:null }] },
-      'jamaal': { type:'dialogue', text:"Jamaal: This place gives me the creeps. But... there's opportunity here.", choices:[{ text:"Focus on survival first.", target:null }] },
+      'john':   { type:'dialogue', text:"John: Stay sharp. Check everything—but don't be a hero.", choices:[{ text:"What's our priority?", target:'office_talk_jamaal_airz' }, { text:"Got it.", target:null }] },
+      'jamaal': { type:'dialogue', text:"Jamaal: This place gives me the creeps. But... there's opportunity here.", choices:[{ text:"Tell me about this opportunity", target:'office_jamaal_amenities' }, { text:"Focus on survival first.", target:null }] },
       'microwave_obj': { type:'dialogue', text:"The microwave. That smell... it's familiar. And rancid.", choices:[
         { text:"Investigate it", target:'office_microwave_investigate', sfx: 'ding' },
         { text:"Better not", target:null }
@@ -73,8 +73,10 @@ export default {
       ]
     },
     interactions: {
-      'rob': { type:'dialogue', text:"Rob: \"Just my weekend catch! Fresh from the lake.\"", choices:[{ text:"...", target:null }] },
-      'mac': { type:'dialogue', text:"Mac: \"Rob, that smell is awful!\"", choices:[{ text:"...", target:null }] }
+      'rob': { type:'dialogue', text:"Rob: \"Just my weekend catch! Fresh from the lake.\"", choices:[{ text:"Snap out of it", target:'office_microwave_flashback_2' }, { text:"...", target:null }] },
+      'mac': { type:'dialogue', text:"Mac: \"Rob, that smell is awful!\"", choices:[{ text:"This memory is too vivid...", target:'office_microwave_flashback_2' }, { text:"...", target:null }] },
+      'microwave_obj': { type:'dialogue', text:"The smell takes you back...", choices:[{ text:"Continue", target:'office_microwave_flashback_2' }] },
+      'fish_tank': { type:'dialogue', text:"The fish tank bubbles peacefully. Simpler times.", choices:[{ text:"Return to present", target:'office_microwave_flashback_2' }] }
     }
   },
 
@@ -200,7 +202,28 @@ export default {
       text: "Jamaal: \"Free coffee—if you can find it. Hot desk, cold fear, complimentary hazardous microwave.\"",
       choices: [
         { text:"You're impossible.", target:'office_start' },
-        { text:"Maybe after we survive...", target:'office_start' }
+        { text:"Maybe after we survive...", target:'office_start' },
+        { text:"Actually, tell me more about your business idea", target:'office_jamaal_business_pitch' }
+      ]
+    },
+    interactions: {
+      'john': { type:'dialogue', text:"John: Focus, Jamaal. Priorities.", choices:[{ text:"Back to work", target:'office_start' }] },
+      'jamaal': { type:'dialogue', text:"Jamaal grins despite everything. His optimism is infectious.", choices:[{ text:"Let's keep moving", target:'office_start' }] }
+    }
+  },
+
+  'office_jamaal_business_pitch': {
+    background: assets.abandoned_office,
+    characters: [
+      { id: 'john',   asset: assets.john,   bottom: '10%', left: '35%', width: '11%' },
+      { id: 'jamaal', asset: assets.jamaal, bottom: '10%', left: '60%', width: '11%', flipped: true }
+    ],
+    onLoad: {
+      type:'dialogue',
+      text: "Jamaal: \"Listen, post-apocalypse real estate is hot right now. Premium zombie-free zones, fortified perimeters... We could franchise this!\"",
+      choices: [
+        { text:"That's actually brilliant", target:'office_start' },
+        { text:"Let's survive first, then talk business", target:'office_start' }
       ]
     }
   },
@@ -258,10 +281,14 @@ export default {
       text: "Rust stains crawl up the walls. Something metallic drags across the floor.",
       choices: [
         { text:"Search the morgue drawers", target:'game_over_morgue' },
-        { text:"Check the nurse’s desk",    target:'hospital_desk_badge' },
+        { text:"Check the nurse's desk",    target:'hospital_desk_badge' },
         { text:"Climb to the roof",         target:'hospital_roof' },
         { text:"Retreat to the office",     target:'office_start' }
       ]
+    },
+    interactions: {
+      'john': { type:'dialogue', text:"John: This place gives me bad vibes. Let's be quick.", choices:[{ text:"Check the desk", target:'hospital_desk_badge' }, { text:"Go to roof", target:'hospital_roof' }] },
+      'jamaal': { type:'dialogue', text:"Jamaal: Premium location though. Great bones for a clinic.", choices:[{ text:"Not the time!", target:null }] }
     }
   },
 
@@ -317,6 +344,10 @@ export default {
         { text:"Head toward the tree line", target:'forest_escape' },
         { text:"Second thoughts—go back",   target:'hospital_basement' }
       ]
+    },
+    interactions: {
+      'john': { type:'dialogue', text:"John: I see structures in the distance. Maybe a prison?", choices:[{ text:"Let's head that way", target:'forest_escape' }, { text:"Too risky", target:'hospital_basement' }] },
+      'jamaal': { type:'dialogue', text:"Jamaal: Fresh air. First time in days.", choices:[{ text:"Enjoy it while it lasts", target:null }] }
     }
   },
 
@@ -354,7 +385,10 @@ export default {
       ]
     },
     interactions: {
-      'zombie_rob': { type: 'dialogue', text: "It's Rob C... or what's left of him.", choices: [{ text: "Back away.", target: null }] }
+      'zombie_rob': { type: 'dialogue', text: "It's Rob C... or what's left of him. He groans and reaches for you!", choices: [{ text: "Fight it!", target: 'game_over_fight' }, { text: "Run!", target: 'forest_escape' }] },
+      'john': { type:'dialogue', text:"John: We need to get out of here NOW!", choices:[{ text:"Run for the tunnel!", target:'forest_escape' }] },
+      'jamaal': { type:'dialogue', text:"Jamaal: I'm not dying in an office!", choices:[{ text:"Let's go!", target:'forest_escape' }] },
+      'filing_cabinet': { type:'dialogue', text:"Now's not the time for filing!", choices:[{ text:"Focus on escaping", target:null }] }
     }
   },
 };

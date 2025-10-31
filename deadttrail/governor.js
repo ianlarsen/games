@@ -11,7 +11,31 @@ export default {
     ],
     onLoad: { type:'dialogue',
       text: "The Governor's caravan approaches. Dust billows behind them. Rick steps forward to meet him.",
-      choices: [{ text: "Stay alert", target: 'governor_meeting' }]
+      choices: [
+        { text: "Stay alert and watch", target: 'governor_meeting' },
+        { text: "Join Rick at the gate", target: 'governor_meeting_join' }
+      ]
+    },
+    interactions: {
+      'rick': { type:'dialogue', text:"Rick: Stay back. Let me handle this.", choices:[{ text:"Be careful", target:'governor_meeting' }] },
+      'john': { type:'dialogue', text:"John: I don't trust this.", choices:[{ text:"Me neither", target:null }] },
+      'jamaal': { type:'dialogue', text:"Jamaal: Could be a business opportunity... or a threat.", choices:[{ text:"Always the entrepreneur", target:null }] }
+    }
+  },
+
+  'governor_meeting_join': {
+    background: assets.prison_exterior,
+    characters: [
+      { id: 'john', asset: assets.john, bottom: '10%', left: '25%', width: '11%' },
+      { id: 'rick', asset: assets.rick, bottom: '10%', left: '45%', width: '14%' },
+      { id: 'tyler', asset: assets.tyler, bottom: '10%', left: '70%', width: '13%', flipped: true }
+    ],
+    onLoad: { type:'dialogue',
+      text: "You stand beside Rick. The Governor sizes you up with a cold smile. \"More friends? How... quaint.\"",
+      choices: [
+        { text: "We're just trying to survive", target: 'governor_meeting' },
+        { text: "Say nothing", target: 'governor_meeting' }
+      ]
     }
   },
 
@@ -23,7 +47,30 @@ export default {
     ],
     onLoad: { type:'dialogue',
       text: "Rick: \"We have a home and are building it.\" The Governor smiles darkly: \"A home is what you make it. This prison seems well equipped.\"",
-      choices: [{ text: "This won't end well...", target: 'governor_inspection' }]
+      choices: [
+        { text: "This won't end well...", target: 'governor_inspection' },
+        { text: "Try to defuse tension", target: 'governor_inspection_peaceful' }
+      ]
+    },
+    interactions: {
+      'rick': { type:'dialogue', text:"Rick's hand hovers near his weapon.", choices:[{ text:"Stay ready", target:'governor_inspection' }] },
+      'tyler': { type:'dialogue', text:"The Governor: \"We could help each other. Or not.\"", choices:[{ text:"Ominous", target:null }] }
+    }
+  },
+
+  'governor_inspection_peaceful': {
+    background: assets.prison_interior,
+    characters: [
+      { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '11%' },
+      { id: 'rick', asset: assets.rick, bottom: '10%', left: '50%', width: '14%' },
+      { id: 'tyler', asset: assets.tyler, bottom: '10%', left: '70%', width: '13%', flipped: true }
+    ],
+    onLoad: { type:'dialogue',
+      text: "You suggest sharing supplies and knowledge. The Governor's smile doesn't reach his eyes. \"How... charitable.\"",
+      choices: [
+        { text: "It's how we survive", target: 'governor_inspection' },
+        { text: "Never mind", target: 'governor_inspection' }
+      ]
     }
   },
 
@@ -36,11 +83,30 @@ export default {
     ],
     onLoad: { type:'dialogue',
       text: "The Governor's men inspect the prison. Dave whispers: \"I'm detecting heightened adrenaline... they're concealing something...\"",
-      choices: [{ text: "Keep watching", target: 'governor_jamaal_scheme' }]
+      choices: [
+        { text: "Keep watching", target: 'governor_jamaal_scheme' },
+        { text: "Confront them", target: 'governor_confrontation' }
+      ]
     },
     interactions: {
-      'dave': { type:'dialogue', text:"Dave: They're hiding weapons. Or worse. The data doesn't lie.", choices:[{ text:"Stay calm.", target:null }] },
-      'mac': { type:'dialogue', text:"Mac: I don't trust them. At all.", choices:[{ text:"Neither do I.", target:null }] }
+      'dave': { type:'dialogue', text:"Dave: They're hiding weapons. Or worse. The data doesn't lie.", choices:[{ text:"Stay calm", target:null }, { text:"We should say something", target:'governor_confrontation' }] },
+      'mac': { type:'dialogue', text:"Mac: I don't trust them. At all.", choices:[{ text:"Neither do I", target:null }] },
+      'tyler': { type:'dialogue', text:"The Governor watches everything with calculating eyes.", choices:[{ text:"Unsettling", target:null }] }
+    }
+  },
+
+  'governor_confrontation': {
+    background: assets.prison_interior,
+    characters: [
+      { id: 'john', asset: assets.john, bottom: '10%', left: '30%', width: '11%' },
+      { id: 'tyler', asset: assets.tyler, bottom: '10%', left: '60%', width: '13%', flipped: true }
+    ],
+    onLoad: { type:'dialogue',
+      text: "You question the Governor's intentions. He laughs: \"Paranoia doesn't suit you. But maybe it should.\" The tension escalates.",
+      choices: [
+        { text: "Back down", target: 'governor_jamaal_scheme' },
+        { text: "Stand your ground", target: 'governor_jamaal_scheme' }
+      ]
     }
   },
 
@@ -82,10 +148,14 @@ export default {
     ],
     onLoad: { type:'dialogue',
       text: "Jason bursts in: \"Is anyone getting the most out of this lease? Why is it so darn hard!\" Dave: \"What a specimen.\"",
-      choices: [{ text: "Who are you?", target: 'jason_introduction' }]
+      choices: [
+        { text: "Who are you?", target: 'jason_introduction' },
+        { text: "Now's not the time", target: 'ian_necromancy_growing' }
+      ]
     },
     interactions: {
-      'jason': { type:'dialogue', text:"Jason: Semi-professional Latin dancer, but most know me as the printer guy!", choices:[{ text:"Okay then...", target:null }] }
+      'jason': { type:'dialogue', text:"Jason: Semi-professional Latin dancer, but most know me as the printer guy!", choices:[{ text:"Okay then...", target:null }, { text:"Tell me more", target:'jason_introduction' }] },
+      'dave': { type:'dialogue', text:"Dave: This individual exhibits fascinating behavioral patterns.", choices:[{ text:"Focus, Dave", target:null }] }
     }
   },
 
@@ -176,7 +246,32 @@ export default {
     onLoad: { type:'dialogue',
       text: "The Governor's voice pierces the chaos: \"It is over!\" An explosion rocks the prison. The groups scatter.",
       sfx: 'horde',
-      choices: [{ text: "Run for the woods!", target: 'episode3_scattered' }]
+      choices: [
+        { text: "Run for the woods!", target: 'episode3_scattered' },
+        { text: "Try to fight back!", target: 'governor_final_stand' }
+      ]
+    },
+    interactions: {
+      'rick': { type:'dialogue', text:"Rick: We can't win this! Fall back!", choices:[{ text:"Run!", target:'episode3_scattered' }] },
+      'john': { type:'dialogue', text:"John: We need to get everyone out!", choices:[{ text:"Agreed", target:'episode3_scattered' }] },
+      'tyler': { type:'dialogue', text:"The Governor: \"This prison is mine!\"", choices:[{ text:"Never!", target:'governor_final_stand' }] },
+      'zombie_horde': { type:'dialogue', text:"Walkers pour through the breached walls.", choices:[{ text:"Get out of here!", target:'episode3_scattered' }] }
+    }
+  },
+
+  'governor_final_stand': {
+    background: assets.prison_exterior,
+    characters: [
+      { id: 'rick', asset: assets.rick, bottom: '10%', left: '30%', width: '14%' },
+      { id: 'john', asset: assets.john, bottom: '10%', left: '50%', width: '11%' },
+      { id: 'tyler', asset: assets.tyler, bottom: '10%', left: '70%', width: '13%', flipped: true }
+    ],
+    onLoad: { type:'dialogue',
+      text: "You attempt to mount a defense, but you're outgunned and outnumbered. The prison is lost. Rick shouts: \"Retreat! Now!\"",
+      sfx: 'horde',
+      choices: [
+        { text: "Fall back to the woods", target: 'episode3_scattered' }
+      ]
     }
   },
 };
