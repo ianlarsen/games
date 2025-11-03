@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request Services – Doggy Shangri‑La</title>
+  <meta name="description" content="Send us a general question or request services for boarding, training, or daycare at Doggy Shangri‑La.">
+  <link rel="canonical" href="https://doggyshangri-la.com/request-services.html" />
+  <!-- Add Favicon links here -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a href="index.html"><img src="images/logo-clean.png" class="logo" alt="Doggy Shangri‑La logo"></a>
+      <div class="brand"><h1>Doggy Shangri‑La</h1><p class="tag">with Nicole Acquavella</p></div>
+    </div>
+    <nav class="topnav">
+      <div class="wrap">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="services.html">Services</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="testimonials.html">Testimonials</a>
+        <a href="faq.html">FAQ</a>
+        <a class="cta active" href="request-services.html">Request Services</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <h2>Request Services</h2>
+    <div class="photo-row">
+      <img src="images/strummer.png" alt="Friendly dog sitting on a patio chair">
+      <div>
+        <p>
+          Ready to get started or have a question? Please use
+          this form to send us a note. We’ll review your message and
+          reach out with next steps.
+        </p>
+      </div>
+    </div>
+
+    <form action="inquiry_submit.php" method="POST" novalidate class="card-form">
+      <fieldset>
+        <legend>Your Details</legend>
+        <div class="row">
+          <label>Name <input type="text" name="name" required></label>
+          <label>Email <input type="email" name="email" required></label>
+        </div>
+        <label>Phone <input type="tel" name="phone"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Message</legend>
+        <label>Service You're Interested In
+          <select name="service_interest">
+            <option value="Not Sure">Not Sure</option>
+            <option value="Board & Train">Board &amp; Train</option>
+            <option value="Boarding">Boarding</option>
+            <option value="Daycare">Daycare</option>
+          </select>
+        </label>
+        <label>Your Question
+          <textarea name="message" rows="5" required placeholder="Tell us about your dog and what you're looking for..."></textarea>
+        </label>
+      </fieldset>
+      <input type="text" name="_gotcha" style="display:none">
+      <button type="submit" class="btn">Send Request</button>
+    </form>
+  </main>
+
+  <footer class="site-footer"><div class="wrap"><small>© <span id="year"></span>2025 Doggy Shangri-La</small></div></footer>
+  <script src="js/script.js"></script>
+</body>
+</html>
+
