@@ -1,0 +1,15 @@
+Photo Needed: Nicole Acquavella
+
+The home page (index.php) references:
+images/nicole-placeholder.jpg
+
+Please add a professional photo of Nicole with dogs to this folder.
+
+Recommended:
+- Size: At least 800x800px
+- Format: JPG or PNG
+- Content: Nicole with a dog or multiple dogs
+- Style: Warm, approachable, professional
+- File name: nicole-placeholder.jpg (or update the path in index.php line 59)
+
+This photo appears in the "Meet Nicole" section on the home page in a photo-row layout.
