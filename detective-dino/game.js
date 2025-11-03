@@ -7,6 +7,8 @@ const Game = {
   currentDialogue: null,
   gameStarted: false,
   guiltySuspect: null, // Will be randomly selected
+  currentMystery: null, // Current mystery scenario
+  currentMysteryData: null, // Mystery data from mysteriesData
 
   // DOM elements
   elements: {
@@ -53,10 +55,26 @@ const Game = {
     // Mobile optimizations
     this.initMobileOptimizations();
 
-    // Randomly select guilty suspect
-    const suspects = ['bunny', 'cat', 'dog', 'mouse'];
-    this.guiltySuspect = suspects[Math.floor(Math.random() * suspects.length)];
-    console.log('Detective Dino initialized! Guilty suspect:', this.guiltySuspect);
+    // Select random mystery
+    this.selectRandomMystery();
+    console.log('Detective Dino initialized!');
+    console.log('Mystery:', this.currentMystery);
+    console.log('Guilty suspect:', this.guiltySuspect);
+  },
+
+  // Select random mystery and culprit
+  selectRandomMystery() {
+    // Pick random mystery from mysteriesData
+    const mysteryKeys = Object.keys(mysteriesData);
+    this.currentMystery = mysteryKeys[Math.floor(Math.random() * mysteryKeys.length)];
+    this.currentMysteryData = mysteriesData[this.currentMystery];
+
+    // Pick random culprit for this mystery
+    const suspectKeys = Object.keys(this.currentMysteryData.suspects);
+    this.guiltySuspect = suspectKeys[Math.floor(Math.random() * suspectKeys.length)];
+
+    // Set initial location to first location of this mystery
+    this.currentLocation = this.currentMysteryData.locations[0];
   },
 
   // Initialize mobile optimizations
@@ -109,11 +127,52 @@ const Game = {
     this.elements.titleScreen.classList.remove('active');
     this.elements.gameScreen.classList.add('active');
 
+    // Render navigation buttons for this mystery
+    this.renderNavigation();
+
     // Start background music
     AudioManager.playMusic();
 
-    // Show intro dialogue
-    this.showDialogue(gameData.intro.speaker, gameData.intro.text, gameData.intro.choices);
+    // Show intro dialogue from current mystery
+    const intro = this.currentMysteryData.intro;
+    this.showDialogue(intro.speaker, intro.text, intro.choices);
+  },
+
+  // Render navigation buttons based on current mystery locations
+  renderNavigation() {
+    const nav = this.elements.navigation;
+    nav.innerHTML = ''; // Clear existing buttons
+
+    // Location name mapping (can expand this)
+    const locationNames = {
+      kitchen: { name: '🏠 Kitchen', emoji: '🏠' },
+      backyard: { name: '🌳 Backyard', emoji: '🌳' },
+      living_room: { name: '🛋️ Living Room', emoji: '🛋️' },
+      park: { name: '🎠 Park', emoji: '🎠' },
+      playroom: { name: '🎮 Playroom', emoji: '🎮' },
+      garden: { name: '🌷 Garden', emoji: '🌷' },
+      bedroom: { name: '🛏️ Bedroom', emoji: '🛏️' },
+      garage: { name: '🚗 Garage', emoji: '🚗' },
+      beach: { name: '🏖️ Beach', emoji: '🏖️' },
+      sports_field: { name: '⚽ Sports Field', emoji: '⚽' }
+    };
+
+    // Create button for each location in this mystery
+    this.currentMysteryData.locations.forEach(locationId => {
+      const locationInfo = locationNames[locationId] || { name: locationId, emoji: '📍' };
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn';
+      btn.textContent = locationInfo.name;
+      btn.onclick = () => changeLocation(locationId);
+      nav.appendChild(btn);
+    });
+
+    // Add accusation button
+    const accuseBtn = document.createElement('button');
+    accuseBtn.className = 'nav-btn accuse-btn';
+    accuseBtn.textContent = '⚖️ Make Accusation!';
+    accuseBtn.onclick = () => showAccusationScreen();
+    nav.appendChild(accuseBtn);
   },
 
   // Change location
@@ -126,35 +185,51 @@ const Game = {
 
   // Render current location
   renderLocation() {
-    const location = gameData.locations[this.currentLocation];
-    if (!location) {
-      console.error('Location not found:', this.currentLocation);
-      return;
-    }
-
     // Clear layers
     this.elements.charactersLayer.innerHTML = '';
     this.elements.objectsLayer.innerHTML = '';
 
-    // Set background
-    this.elements.background.className = location.background;
+    // Set background from mystery data
+    const background = this.currentMysteryData.backgrounds[this.currentLocation];
+    this.elements.background.className = background;
 
-    // Render characters
-    location.characters.forEach(char => {
-      this.renderCharacter(char);
+    // Render all suspects as characters (they appear in all locations for now)
+    const suspects = Object.keys(this.currentMysteryData.suspects);
+    suspects.forEach((suspectId, index) => {
+      const suspect = this.currentMysteryData.suspects[suspectId];
+      const charData = {
+        id: suspectId,
+        name: suspect.name,
+        emoji: suspect.emoji,
+        position: this.getCharacterPosition(index, suspects.length)
+      };
+      this.renderCharacter(charData);
     });
 
-    // Render objects
-    location.objects.forEach(obj => {
+    // Render objects for this location (if any)
+    const objects = this.currentMysteryData.objects[this.currentLocation] || [];
+    objects.forEach(obj => {
       this.renderObject(obj);
     });
 
-    // Render clues (if not found yet)
-    location.clues.forEach(clue => {
-      if (!this.cluesFound.includes(clue.id)) {
-        this.renderClue(clue);
-      }
-    });
+    // Render clue for this location (based on guilty suspect)
+    const culpritClues = this.currentMysteryData.suspects[this.guiltySuspect].clues;
+    const clueForLocation = culpritClues[this.currentLocation];
+
+    if (clueForLocation && !this.cluesFound.includes(clueForLocation.id)) {
+      this.renderClue(clueForLocation);
+    }
+  },
+
+  // Get character position based on index (spread them out)
+  getCharacterPosition(index, total) {
+    const positions = [
+      { bottom: "8%", left: "20%" },
+      { bottom: "8%", left: "40%" },
+      { bottom: "8%", left: "60%" },
+      { bottom: "8%", left: "75%" }
+    ];
+    return positions[index] || { bottom: "8%", left: "50%" };
   },
 
   // Render character
@@ -237,17 +312,10 @@ const Game = {
     clueEl.style.left = clue.position.left;
     clueEl.title = clue.name;
 
-    // Clue image mapping
-    const clueImages = {
-      'tiny_paw_print': 'paw_print.png',
-      'small_footprints': 'small_footprints.png',
-      'cookie_crumbs': 'cookie_crumbs.png',
-      'hidden_cookies': 'hidden_cookies.png'
-    };
-
-    // Use actual clue image
+    // Use clue image (with fallback if image not available yet)
     const img = document.createElement('img');
-    img.src = `images/clues/${clueImages[clue.id]}`;
+    const imageName = clue.imageFallback || clue.image;
+    img.src = `images/clues/${imageName}`;
     img.alt = clue.name;
     img.style.width = '100%';
     img.style.height = '100%';
@@ -269,11 +337,28 @@ const Game = {
 
   // Interact with character
   interactWithCharacter(char) {
-    let dialogue = char.dialogue.initial;
+    const suspectId = char.id;
+    let dialogue;
 
-    // Check if we should show different dialogue after finding clues
-    if (this.cluesFound.length >= 2 && char.dialogue.afterClue) {
-      dialogue = char.dialogue.afterClue;
+    // Check if this is the guilty suspect or innocent
+    if (suspectId === this.guiltySuspect) {
+      // Guilty suspect - use their special dialogue
+      const guiltyData = this.currentMysteryData.suspects[suspectId].dialogue;
+
+      if (this.cluesFound.length >= 2 && guiltyData.afterClue) {
+        dialogue = guiltyData.afterClue;
+      } else {
+        dialogue = guiltyData.initial;
+      }
+    } else {
+      // Innocent suspect - use innocent dialogue
+      const innocentData = this.currentMysteryData.innocentDialogue[suspectId];
+
+      if (this.cluesFound.length >= 2 && innocentData.afterClue) {
+        dialogue = innocentData.afterClue;
+      } else {
+        dialogue = innocentData.initial;
+      }
     }
 
     this.showDialogue(char.name, dialogue.text, dialogue.choices);
@@ -337,7 +422,8 @@ const Game = {
 
   // Update clue count
   updateClueCount() {
-    const totalClues = Object.keys(gameData.clueDescriptions).length;
+    // Count total clues for current mystery (one per location)
+    const totalClues = this.currentMysteryData.locations.length;
     this.elements.clueCount.textContent = `${this.cluesFound.length}/${totalClues}`;
   },
 
@@ -360,13 +446,18 @@ const Game = {
     if (this.cluesFound.length === 0) {
       this.elements.cluesList.innerHTML = '<p class="no-clues">Find clues by investigating each location!</p>';
     } else {
+      // Get all clues from the guilty suspect's clue set
+      const culpritClues = this.currentMysteryData.suspects[this.guiltySuspect].clues;
+
       this.cluesFound.forEach(clueId => {
-        const clueInfo = gameData.clueDescriptions[clueId];
+        // Find the clue in the culprit's clues
+        const clueInfo = Object.values(culpritClues).find(c => c.id === clueId);
+
         if (clueInfo) {
           const clueItem = document.createElement('div');
           clueItem.className = 'clue-item';
           clueItem.innerHTML = `
-            <strong>${clueInfo.title}</strong>
+            <strong>🔍 ${clueInfo.name}</strong>
             <p>${clueInfo.description}</p>
           `;
           this.elements.cluesList.appendChild(clueItem);
@@ -408,7 +499,6 @@ const Game = {
   // Accuse suspect
   accuseSuspect(suspectId) {
     AudioManager.playClick();
-    const suspect = gameData.suspects[suspectId];
 
     if (suspectId === this.guiltySuspect) {
       // CORRECT! Show win screen
@@ -418,10 +508,11 @@ const Game = {
       AudioManager.playWinBeep();
       this.showWinScreen(suspectId);
     } else {
-      // WRONG! Show try again
+      // WRONG! Show try again with innocent suspect's wrong response
       AudioManager.playWrong();
       AudioManager.playWrongBeep();
-      this.showTryAgainScreen(suspect.wrongResponse);
+      const wrongResponse = this.currentMysteryData.innocentDialogue[suspectId].wrongResponse;
+      this.showTryAgainScreen(wrongResponse);
     }
   },
 
@@ -431,7 +522,7 @@ const Game = {
     this.elements.winScreen.classList.add('active');
 
     // Update win screen with correct suspect
-    const suspect = gameData.suspects[suspectId];
+    const suspect = this.currentMysteryData.suspects[suspectId];
     const culpritImg = this.elements.winScreen.querySelector('.culprit-image');
     const culpritText = this.elements.winScreen.querySelector('.culprit div');
 
@@ -440,7 +531,7 @@ const Game = {
       culpritImg.alt = suspect.name;
     }
     if (culpritText) {
-      culpritText.textContent = `It was ${suspect.name}!`;
+      culpritText.textContent = `It was ${suspect.name}! ${suspect.confession}`;
     }
   },
 
