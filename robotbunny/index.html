@@ -25,6 +25,15 @@
   }
   .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: .8; font-size: 14px; color: #9fb1cc; }
   .badge { position: fixed; top: 10px; right: 14px; font-size: 12px; color: #9fb1cc; opacity: .8; }
+  .mobile-controls { position: fixed; bottom: 0; left: 0; right: 0; height: 140px; display: none; pointer-events: none; z-index: 1000; }
+  .mobile-controls.active { display: block; }
+  .mobile-btn { position: absolute; background: rgba(123, 226, 255, 0.15); border: 2px solid rgba(123, 226, 255, 0.4); border-radius: 50%; pointer-events: auto; user-select: none; touch-action: none; display: flex; align-items: center; justify-content: center; font-size: 24px; color: rgba(123, 226, 255, 0.8); font-weight: bold; transition: background 0.1s; }
+  .mobile-btn.pressed { background: rgba(123, 226, 255, 0.4); border-color: rgba(123, 226, 255, 0.8); }
+  .mobile-btn.rect { border-radius: 12px; }
+  #btn-left { bottom: 20px; left: 20px; width: 70px; height: 70px; }
+  #btn-right { bottom: 20px; left: 110px; width: 70px; height: 70px; }
+  #btn-jump { bottom: 20px; right: 120px; width: 80px; height: 80px; }
+  #btn-shoot { bottom: 20px; right: 20px; width: 70px; height: 70px; }
 </style>
 </head>
 <body>
@@ -37,17 +46,30 @@
   <div id="score">Score: 0</div>
   <div id="coins">Coins: 0</div>
 </div>
-<div class="hint">Move: ←→ • Jump: Space/↑ • Shoot: X/Z • Pause: ESC</div>
+<div class="hint" id="hint-text">Move: ←→ • Jump: Space/↑ • Shoot: X/Z • Pause: ESC</div>
 <div class="badge">Platformer Edition</div>
+<div class="mobile-controls" id="mobile-controls">
+  <div class="mobile-btn" id="btn-left">←</div>
+  <div class="mobile-btn" id="btn-right">→</div>
+  <div class="mobile-btn" id="btn-jump">↑</div>
+  <div class="mobile-btn" id="btn-shoot">⚡</div>
+</div>
 
 <script>
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
+  // Mobile detection (must be first)
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   ('ontouchstart' in window) ||
+                   (navigator.maxTouchPoints > 0);
+
   function fit() {
     const maxW = Math.min(window.innerWidth, 960);
-    const maxH = Math.min(window.innerHeight * 0.62, 560);
+    // On mobile, reserve space for controls at bottom
+    const availableHeight = isMobile ? window.innerHeight - 160 : window.innerHeight * 0.62;
+    const maxH = Math.min(availableHeight, 560);
     const ar = canvas.width / canvas.height;
     let w = maxW, h = w / ar;
     if (h > maxH) { h = maxH; w = h * ar; }
@@ -89,6 +111,16 @@
 
   const keys = {};
   let wantShoot = false;
+
+  // Touch control state
+  const touchButtons = {
+    left: false,
+    right: false,
+    jump: false,
+    shoot: false
+  };
+
+  const activeTouches = new Map(); // Track active touch IDs
 
   const lasers = [];
   const enemies = [];
@@ -394,6 +426,136 @@
   window.addEventListener('keyup', (e) => {
     keys[e.code] = false;
   });
+
+  // Initialize mobile controls
+  if (isMobile) {
+    const mobileControls = document.getElementById('mobile-controls');
+    const hintText = document.getElementById('hint-text');
+    mobileControls.classList.add('active');
+    hintText.textContent = 'Tap buttons to play • Tap top area to pause';
+
+    // Touch event handlers for mobile buttons
+    function handleTouchButton(buttonId, action, element) {
+      const handleStart = (e) => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        activeTouches.set(touch.identifier, action);
+        touchButtons[action] = true;
+        element.classList.add('pressed');
+
+        if (action === 'shoot') {
+          wantShoot = true;
+        }
+      };
+
+      const handleEnd = (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (activeTouches.get(touch.identifier) === action) {
+            activeTouches.delete(touch.identifier);
+            touchButtons[action] = false;
+            element.classList.remove('pressed');
+          }
+        }
+      };
+
+      element.addEventListener('touchstart', handleStart, { passive: false });
+      element.addEventListener('touchend', handleEnd, { passive: false });
+      element.addEventListener('touchcancel', handleEnd, { passive: false });
+    }
+
+    handleTouchButton('btn-left', 'left', document.getElementById('btn-left'));
+    handleTouchButton('btn-right', 'right', document.getElementById('btn-right'));
+    handleTouchButton('btn-jump', 'jump', document.getElementById('btn-jump'));
+    handleTouchButton('btn-shoot', 'shoot', document.getElementById('btn-shoot'));
+
+    // Touch handler for pause (tap on canvas when not on buttons)
+    let lastTapTime = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const y = touch.clientY - rect.top;
+
+      // If tapping in top 20% of canvas, toggle pause
+      if (y < rect.height * 0.2 && !gameOver && !levelComplete) {
+        const now = Date.now();
+        if (now - lastTapTime < 300) { // Double tap
+          paused = !paused;
+          if (!paused) pauseTab = 'info';
+          if (paused) stopMusic();
+          else startMusic(currentLevel);
+          lastTapTime = 0;
+        } else {
+          lastTapTime = now;
+        }
+      }
+    }, { passive: true });
+
+    // Touch handler for menus
+    canvas.addEventListener('touchend', (e) => {
+      if (!paused && !gameOver && !levelComplete) return;
+
+      e.preventDefault();
+      const touch = e.changedTouches[0];
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (touch.clientX - rect.left) * scaleX;
+      const y = (touch.clientY - rect.top) * scaleY;
+
+      if (paused) {
+        // Check tab touches
+        const tabY = canvas.height / 2 - 240 + 85;
+        const tabW = 150;
+        const infoTabX = canvas.width / 2 - 310 + 90;
+        const shopTabX = infoTabX + tabW + 20;
+
+        if (y >= tabY && y <= tabY + 40) {
+          if (x >= infoTabX && x <= infoTabX + tabW) {
+            pauseTab = 'info';
+          } else if (x >= shopTabX && x <= shopTabX + tabW) {
+            pauseTab = 'shop';
+          }
+        }
+
+        // Check shop skin touches
+        if (pauseTab === 'shop') {
+          const contentY = canvas.height / 2 - 240 + 140;
+          const skinsPerRow = 3;
+          const skinBoxW = 150;
+          const skinBoxH = 80;
+          const startX = canvas.width / 2 - 310 + 60;
+          const startY = contentY + 40;
+
+          for (let i = 0; i < skins.length; i++) {
+            const row = Math.floor(i / skinsPerRow);
+            const col = i % skinsPerRow;
+            const bx = startX + col * (skinBoxW + 20);
+            const by = startY + row * (skinBoxH + 15);
+
+            if (x >= bx && x <= bx + skinBoxW && y >= by && y <= by + skinBoxH) {
+              const skin = skins[i];
+              if (unlockedSkins.includes(skin.id)) {
+                currentSkin = skin.id;
+                localStorage.setItem('rb_moon_skin', currentSkin);
+                playSound('coin');
+              } else {
+                buySkin(skin.id);
+              }
+              break;
+            }
+          }
+        }
+      } else if (gameOver) {
+        // Tap anywhere to restart
+        reset();
+      } else if (levelComplete) {
+        // Tap anywhere for next level
+        nextLevel();
+      }
+    }, { passive: false });
+  }
 
   function rand(a, b) { return a + Math.random() * (b - a); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -1058,11 +1220,18 @@
 
       ctx.fillText('Controls:', controlsX, controlsY);
       ctx.fillStyle = '#9fb1cc';
-      ctx.fillText('• ← →          - Move left/right', controlsX, controlsY + lineHeight);
-      ctx.fillText('• Space / ↑    - Jump', controlsX, controlsY + lineHeight * 2);
-      ctx.fillText('• X / Z        - Shoot laser', controlsX, controlsY + lineHeight * 3);
-      ctx.fillText('• ESC / P      - Pause/Resume', controlsX, controlsY + lineHeight * 4);
-      ctx.fillText('• M            - Toggle sound', controlsX, controlsY + lineHeight * 5);
+      if (isMobile) {
+        ctx.fillText('• Use on-screen buttons to move & jump', controlsX, controlsY + lineHeight);
+        ctx.fillText('• Tap ⚡ button to shoot laser', controlsX, controlsY + lineHeight * 2);
+        ctx.fillText('• Double-tap top of screen to pause', controlsX, controlsY + lineHeight * 3);
+        ctx.fillText('• Tap skins below to buy/equip', controlsX, controlsY + lineHeight * 4);
+      } else {
+        ctx.fillText('• ← →          - Move left/right', controlsX, controlsY + lineHeight);
+        ctx.fillText('• Space / ↑    - Jump', controlsX, controlsY + lineHeight * 2);
+        ctx.fillText('• X / Z        - Shoot laser', controlsX, controlsY + lineHeight * 3);
+        ctx.fillText('• ESC / P      - Pause/Resume', controlsX, controlsY + lineHeight * 4);
+        ctx.fillText('• M            - Toggle sound', controlsX, controlsY + lineHeight * 5);
+      }
 
       ctx.fillStyle = '#7be2ff';
       ctx.fillText('Tips:', controlsX, controlsY + lineHeight * 6.5);
@@ -1135,12 +1304,16 @@
           ctx.fillStyle = '#9fb1cc';
           ctx.font = '10px system-ui, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`Press ${i + 1} to equip`, bx + skinBoxW / 2, by + 68);
+          ctx.fillText(isMobile ? 'Tap to equip' : `Press ${i + 1} to equip`, bx + skinBoxW / 2, by + 68);
         } else if (!isUnlocked) {
           ctx.fillStyle = coins >= skin.cost ? '#8affc1' : '#ff5555';
           ctx.font = '10px system-ui, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(coins >= skin.cost ? `Press ${i + 1} to buy` : 'Not enough coins', bx + skinBoxW / 2, by + 68);
+          if (isMobile) {
+            ctx.fillText(coins >= skin.cost ? 'Tap to buy' : 'Not enough coins', bx + skinBoxW / 2, by + 68);
+          } else {
+            ctx.fillText(coins >= skin.cost ? `Press ${i + 1} to buy` : 'Not enough coins', bx + skinBoxW / 2, by + 68);
+          }
         }
       }
     }
@@ -1148,7 +1321,7 @@
     ctx.textAlign = 'center';
     ctx.font = 'bold 18px system-ui, sans-serif';
     ctx.fillStyle = '#FFD700';
-    ctx.fillText('Press ESC or P to Resume', canvas.width / 2, cy + cardH - 30);
+    ctx.fillText(isMobile ? 'Double-tap top of screen to Resume' : 'Press ESC or P to Resume', canvas.width / 2, cy + cardH - 30);
   }
 
   function drawGameOver() {
@@ -1176,7 +1349,7 @@
 
     ctx.font = '600 18px system-ui, sans-serif';
     ctx.fillStyle = '#FFD700';
-    ctx.fillText('Press Enter to Restart', canvas.width / 2, cy + 130);
+    ctx.fillText(isMobile ? 'Tap to Restart' : 'Press Enter to Restart', canvas.width / 2, cy + 130);
   }
 
   function drawLevelComplete() {
@@ -1204,7 +1377,7 @@
 
     ctx.font = '600 18px system-ui, sans-serif';
     ctx.fillStyle = '#8affc1';
-    ctx.fillText('Press Enter for Next Level', canvas.width / 2, cy + 130);
+    ctx.fillText(isMobile ? 'Tap for Next Level' : 'Press Enter for Next Level', canvas.width / 2, cy + 130);
   }
 
   function update(dt) {
@@ -1233,23 +1406,27 @@
 
     if (player.shootCooldown > 0) player.shootCooldown -= dt;
 
-    // Movement
-    if (keys.ArrowLeft) {
+    // Movement (keyboard + touch)
+    const moveLeft = keys.ArrowLeft || touchButtons.left;
+    const moveRight = keys.ArrowRight || touchButtons.right;
+    const wantJump = keys.Space || keys.ArrowUp || touchButtons.jump;
+
+    if (moveLeft) {
       player.vx -= moveSpeed * dt * 8;
       player.facing = -1;
     }
-    if (keys.ArrowRight) {
+    if (moveRight) {
       player.vx += moveSpeed * dt * 8;
       player.facing = 1;
     }
 
-    if (!keys.ArrowLeft && !keys.ArrowRight) {
+    if (!moveLeft && !moveRight) {
       player.vx *= 0.85;
     }
 
     player.vx = clamp(player.vx, -maxVelX, maxVelX);
 
-    if ((keys.Space || keys.ArrowUp) && player.onGround) {
+    if (wantJump && player.onGround) {
       player.vy = jumpVel;
       player.onGround = false;
       playSound('jump');
