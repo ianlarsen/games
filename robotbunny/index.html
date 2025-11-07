@@ -1623,7 +1623,8 @@
 
       ctx.fillStyle = '#7be2ff';
       ctx.font = 'bold 24px sans-serif';
-      ctx.fillText('Press ENTER for Next Level', canvas.width / 2, canvas.height / 2 + 80);
+      const isMobile = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      ctx.fillText(isMobile ? 'TAP to Continue' : 'Press ENTER for Next Level', canvas.width / 2, canvas.height / 2 + 80);
 
       ctx.fillStyle = '#FFD700';
       ctx.font = '16px sans-serif';
@@ -1645,7 +1646,8 @@
 
       ctx.fillStyle = '#FFD700';
       ctx.font = 'bold 24px sans-serif';
-      ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 100);
+      const isMobileGameOver = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      ctx.fillText(isMobileGameOver ? 'TAP to Restart' : 'Press R to Restart', canvas.width / 2, canvas.height / 2 + 100);
     } else if (paused) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1657,7 +1659,8 @@
 
       ctx.fillStyle = '#9fb1cc';
       ctx.font = '18px sans-serif';
-      ctx.fillText('Press ESC to Resume', canvas.width / 2, canvas.height / 2 + 40);
+      const isMobilePaused = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+      ctx.fillText(isMobilePaused ? 'TAP to Resume' : 'Press ESC to Resume', canvas.width / 2, canvas.height / 2 + 40);
     }
   }
 
@@ -1751,6 +1754,43 @@
   mobileButtons.shoot.addEventListener('touchend', handleTouchEnd(mobileButtons.shoot, 'KeyX'));
   mobileButtons.shoot.addEventListener('touchcancel', handleTouchEnd(mobileButtons.shoot, 'KeyX'));
 
+  // Double-tap to pause on mobile
+  let lastTap = 0;
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+
+    const currentTime = new Date().getTime();
+    const tapGap = currentTime - lastTap;
+
+    if (gameState === 'levelComplete') {
+      startNextLevel();
+    } else if (gameState === 'gameOver') {
+      location.reload();
+    } else if (paused && (gameState === 'playing' || gameState === 'bossIntro')) {
+      paused = false;
+      resumeMusic();
+    } else if ((gameState === 'playing' || gameState === 'bossIntro') && tapGap < 300 && tapGap > 0) {
+      // Double-tap detected - toggle pause
+      paused = !paused;
+      if (paused) pauseMusic();
+      else resumeMusic();
+    }
+
+    lastTap = currentTime;
+  });
+
+  // Canvas click handler for desktop
+  canvas.addEventListener('click', (e) => {
+    if (gameState === 'levelComplete') {
+      startNextLevel();
+    } else if (gameState === 'gameOver') {
+      location.reload();
+    } else if (paused && (gameState === 'playing' || gameState === 'bossIntro')) {
+      paused = false;
+      resumeMusic();
+    }
+  });
+
   // Prevent scrolling/zooming on mobile
   document.body.addEventListener('touchmove', (e) => {
     if (gameStarted && e.target === canvas) {
@@ -1796,6 +1836,12 @@
   });
 
   // ============ INITIALIZATION ============
+  // Update hint text for mobile
+  const isMobileDevice = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+  if (isMobileDevice) {
+    document.getElementById('hint-text').textContent = 'Use on-screen buttons • Double-tap to Pause';
+  }
+
   initBackground();
   for (let i = 0; i < 3; i++) {
     loadNextSegment();
