@@ -1,0 +1,129 @@
+{
+  "stems": {
+    "bass": {
+      "type": "triangle",
+      "filterType": "lowpass",
+      "filterFreqRange": [180, 400],
+      "envelope": { "attack": 0.005, "decay": 0.1, "sustain": 0.7, "release": 0.1 },
+      "octave": -2
+    },
+    "chords": {
+      "type": "sawtooth",
+      "filterType": "lowpass",
+      "filterFreqRange": [800, 1200],
+      "envelope": { "attack": 0.02, "decay": 0.1, "sustain": 0.6, "release": 0.3 },
+      "octave": 0,
+      "voices": 3
+    },
+    "melody": {
+      "type": "square",
+      "detune": 5,
+      "filterType": "lowpass",
+      "filterFreqRange": [1000, 2500],
+      "envelope": { "attack": 0.01, "decay": 0.05, "sustain": 0.8, "release": 0.15 },
+      "octave": 1
+    },
+    "arp": {
+      "type": "sine",
+      "filterType": "bandpass",
+      "filterFreqRange": [1500, 3500],
+      "envelope": { "attack": 0.005, "decay": 0.1, "sustain": 0.2, "release": 0.05 },
+      "octave": 2,
+      "pattern": "up"
+    },
+    "perc_k": {
+      "type": "kick",
+      "frequencies": [150, 50],
+      "envelope": { "attack": 0.001, "decay": 0.3, "release": 0.1 }
+    },
+    "perc_h": {
+      "type": "hihat",
+      "frequencies": [8000, 12000],
+      "envelope": { "attack": 0.001, "decay": 0.05, "release": 0.02 }
+    },
+    "perc_s": {
+      "type": "snare",
+      "frequencies": [200, 180],
+      "noiseAmount": 0.7,
+      "envelope": { "attack": 0.001, "decay": 0.15, "release": 0.05 }
+    },
+    "fx": {
+      "type": "pad",
+      "filterType": "highpass",
+      "filterFreqRange": [2000, 5000],
+      "envelope": { "attack": 0.5, "decay": 0.2, "sustain": 0.7, "release": 1.0 },
+      "octave": 3
+    }
+  },
+  "patterns": {
+    "bass": {
+      "beats": [0, 2, 2.5, 3],
+      "scale_degrees": [0, 0, 4, 0],
+      "durations": [0.4, 0.3, 0.2, 0.4]
+    },
+    "chords": {
+      "beats": [0, 1, 2, 3],
+      "chord_degrees": [[0, 2, 4], [3, 5, 7], [1, 3, 5], [4, 6, 8]],
+      "durations": [0.9, 0.9, 0.9, 0.9]
+    },
+    "melody": {
+      "beats": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5],
+      "scale_degrees": [0, 2, 4, 5, 4, 2, 1, 0],
+      "durations": [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.8]
+    },
+    "arp": {
+      "beats": [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75],
+      "scale_degrees": [0, 2, 4, 7, 4, 2, 0, 4],
+      "durations": [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+    },
+    "kick": {
+      "beats": [0, 1, 2, 3]
+    },
+    "hihat": {
+      "beats": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+    },
+    "snare": {
+      "beats": [1, 3]
+    }
+  },
+  "intensityLayers": {
+    "low": ["bass", "chords"],
+    "mid": ["bass", "chords", "melody", "perc_h"],
+    "high": ["bass", "chords", "melody", "perc_h", "perc_s", "arp", "perc_k", "fx"]
+  },
+  "stingers": {
+    "hit": {
+      "notes": [200, 150],
+      "durations": [0.1, 0.2],
+      "type": "sawtooth"
+    },
+    "bossPhase": {
+      "notes": [523, 659, 784, 1047],
+      "durations": [0.15, 0.15, 0.15, 0.3],
+      "type": "square"
+    },
+    "comboMilestone": {
+      "notes": [880, 1047, 1318],
+      "durations": [0.1, 0.1, 0.2],
+      "type": "sine"
+    }
+  },
+  "fx_bus": {
+    "reverb": {
+      "mix": 0.1,
+      "decay": 2.0
+    },
+    "compression": {
+      "threshold": -14,
+      "ratio": 3,
+      "attack": 0.003,
+      "release": 0.25
+    },
+    "sidechain": {
+      "source": "perc_k",
+      "amount": 0.3,
+      "attack": 0.01,
+      "release": 0.2
+    }
+  }
+}

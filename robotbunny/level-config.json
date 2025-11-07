@@ -1,0 +1,207 @@
+{
+  "segment": {
+    "widthRange": [1600, 2200],
+    "baseGapMax": 200,
+    "gapScaling": 0.6,
+    "baseDyMax": 40,
+    "dyScaling": 2,
+    "dyClampMax": 180,
+    "baseEnemyBudget": 6,
+    "enemyBudgetScaling": 0.8
+  },
+  "chunkTypes": {
+    "safe": {
+      "id": "safe",
+      "platformDensity": 0.8,
+      "enemyMultiplier": 0.3,
+      "coinMultiplier": 0.5,
+      "gapDifficulty": 0.5,
+      "nextChunks": ["traversal", "treasure", "challenge"]
+    },
+    "traversal": {
+      "id": "traversal",
+      "platformDensity": 0.6,
+      "enemyMultiplier": 0.6,
+      "coinMultiplier": 0.7,
+      "gapDifficulty": 0.8,
+      "nextChunks": ["safe", "challenge", "treasure", "hazard"]
+    },
+    "challenge": {
+      "id": "challenge",
+      "platformDensity": 0.5,
+      "enemyMultiplier": 1.2,
+      "coinMultiplier": 0.9,
+      "gapDifficulty": 1.0,
+      "nextChunks": ["safe", "traversal"]
+    },
+    "treasure": {
+      "id": "treasure",
+      "platformDensity": 0.7,
+      "enemyMultiplier": 0.5,
+      "coinMultiplier": 2.0,
+      "gapDifficulty": 0.6,
+      "nextChunks": ["safe", "traversal", "challenge"]
+    },
+    "hazard": {
+      "id": "hazard",
+      "platformDensity": 0.4,
+      "enemyMultiplier": 1.5,
+      "coinMultiplier": 1.2,
+      "gapDifficulty": 1.2,
+      "nextChunks": ["safe", "treasure"]
+    }
+  },
+  "enemyTypes": {
+    "hopper": {
+      "id": "hopper",
+      "baseHealth": 1,
+      "healthScaling": 6,
+      "baseSpeed": 50,
+      "speedScaling": 0.03,
+      "size": { "w": 40, "h": 30 },
+      "weight": 1.0,
+      "minThreatLevel": 0
+    },
+    "walker": {
+      "id": "walker",
+      "baseHealth": 1,
+      "healthScaling": 6,
+      "baseSpeed": 80,
+      "speedScaling": 0.03,
+      "size": { "w": 35, "h": 35 },
+      "weight": 1.0,
+      "minThreatLevel": 0
+    },
+    "flyer": {
+      "id": "flyer",
+      "baseHealth": 1,
+      "healthScaling": 6,
+      "baseSpeed": 100,
+      "speedScaling": 0.03,
+      "size": { "w": 45, "h": 25 },
+      "weight": 0.7,
+      "minThreatLevel": 3
+    },
+    "tank": {
+      "id": "tank",
+      "baseHealth": 3,
+      "healthScaling": 4,
+      "baseSpeed": 60,
+      "speedScaling": 0.02,
+      "size": { "w": 55, "h": 45 },
+      "weight": 0.5,
+      "minThreatLevel": 8
+    },
+    "sniper": {
+      "id": "sniper",
+      "baseHealth": 2,
+      "healthScaling": 5,
+      "baseSpeed": 40,
+      "speedScaling": 0.02,
+      "size": { "w": 38, "h": 38 },
+      "weight": 0.6,
+      "minThreatLevel": 12,
+      "shootInterval": 3.0,
+      "projectileSpeed": 400
+    }
+  },
+  "powerups": {
+    "types": [
+      {
+        "id": "health",
+        "dropChance": 0.15,
+        "icon": "❤️",
+        "color": "#ff5555"
+      },
+      {
+        "id": "coin_magnet",
+        "dropChance": 0.1,
+        "duration": 10,
+        "icon": "🧲",
+        "color": "#FFD700"
+      },
+      {
+        "id": "invincibility",
+        "dropChance": 0.08,
+        "duration": 8,
+        "icon": "✨",
+        "color": "#7be2ff"
+      },
+      {
+        "id": "speed_boost",
+        "dropChance": 0.12,
+        "duration": 12,
+        "multiplier": 1.5,
+        "icon": "⚡",
+        "color": "#ffff55"
+      }
+    ]
+  },
+  "boss": {
+    "spawnInterval": { "min": 6, "max": 8 },
+    "phaseThreshold": 10,
+    "baseHealth": 20,
+    "healthScaling": 1.5,
+    "baseSpeed": 120,
+    "speedScaling": 0.05,
+    "size": { "w": 120, "h": 100 },
+    "attacks": [
+      {
+        "id": "charge",
+        "cooldown": 4.0,
+        "telegraphTime": 1.0
+      },
+      {
+        "id": "projectile_spread",
+        "cooldown": 6.0,
+        "count": 5,
+        "minThreatLevel": 5
+      },
+      {
+        "id": "ground_pound",
+        "cooldown": 8.0,
+        "minThreatLevel": 10
+      }
+    ]
+  },
+  "abilities": {
+    "dash": {
+      "id": "dash",
+      "unlockLevel": 3,
+      "cost": 50,
+      "cooldown": 2.0,
+      "distance": 200,
+      "duration": 0.3
+    },
+    "double_jump": {
+      "id": "double_jump",
+      "unlockLevel": 5,
+      "cost": 75,
+      "maxJumps": 2
+    },
+    "shield": {
+      "id": "shield",
+      "unlockLevel": 7,
+      "cost": 100,
+      "cooldown": 15.0,
+      "duration": 5.0,
+      "maxHits": 3
+    },
+    "magnet": {
+      "id": "magnet",
+      "unlockLevel": 10,
+      "cost": 150,
+      "radius": 200,
+      "passive": true
+    }
+  },
+  "progression": {
+    "xpPerCoin": 10,
+    "xpPerEnemyKill": 50,
+    "xpPerBossKill": 500,
+    "xpPerSegmentComplete": 100,
+    "levelUpFormula": "baseXP * (level ^ exponent)",
+    "baseXP": 100,
+    "exponent": 1.5
+  }
+}

@@ -1,0 +1,113 @@
+# Prompt: Design upgrade for "Robot Bunny Platformer — Moon Edition"
+
+# Objective:
+# Transform current single-file game into an infinite, self-scaling platformer with dynamic music and procedural generation.
+
+# Core Requirements:
+game.design:
+  mode: endless
+  systems:
+    - segment_generator
+    - threat_level_scaler
+    - biome_variation
+    - boss_insertion
+    - meta_progression
+    - dynamic_music_engine
+
+# 1. Endless Progression
+progression:
+  threat_level: "drives difficulty, music intensity, enemy stats"
+  segment:
+    width_range: [1600, 2200]
+    chunk_types: ["safe", "traversal", "challenge", "treasure", "hazard"]
+    transition_rules:
+      safe: ["traversal", "treasure", "challenge"]
+      challenge: ["safe", "traversal"]
+  scaling_rules:
+    gaps: "gapMax = base + TL*0.6"
+    vertical_delta: "dyMax = clamp(40 + TL*2, 40, 180)"
+    enemy_budget: "budget = 6 + round(TL*0.8)"
+    enemy_stats: "vx *= (1 + TL*0.03); health += floor(TL/6)"
+  boss_interval: "every 6–8 segments"
+  boss_scaling: "new phase each +10 TL"
+
+# 2. Meta Progression
+player.growth:
+  xp: "gainXP(amount)"
+  levelup: "checkLevelUp()"
+  abilities: ["dash", "double_jump", "shield", "magnet"]
+  upgrades: "logarithmic scaling on stats"
+  currency: ["coins", "moon_fragments"]
+
+# 3. Music Engine
+music.engine:
+  scheduler: "lookahead = 25ms; scheduleAhead = 0.15s; use audioCtx.currentTime"
+  stems: ["melody", "bass", "chords", "arp", "perc_k", "perc_h", "perc_s", "fx"]
+  scales:
+    crater: "D Dorian"
+    lowG: "A Lydian"
+    ruins: "E Phrygian Dominant"
+    caverns: "C Aeolian"
+    boss: "G Harmonic Minor"
+  intensity: "0–1; maps to layer count, filter cutoff, and BPM"
+  bpm_curve: [92, 132]
+  progression:
+    low: "pad + bass"
+    mid: "+ melody, hats"
+    high: "+ snare, arp, toms, FX"
+  transitions:
+    - "Combo x10 → add counter melody"
+    - "Boss phase → key +3 semitones, BPM +4"
+    - "Player hit → stinger + volume duck"
+  synth_defaults:
+    bass: "triangle→LPF 180–400Hz"
+    chords: "saw→LPF 1.2kHz"
+    melody: "square detune±5"
+    arp: "sine short env"
+  fx_bus:
+    reverb_mix: 0.1
+    compression: "threshold -14dB, ratio 3:1"
+    sidechain: "duck 2–3dB on kick"
+
+# 4. Function Map
+functions:
+  generation:
+    - generateSegment(seed, threatLevel)
+    - pickNextChunk(prevTag, tl)
+    - spawnEnemies(segment, budget, tl)
+  scaling:
+    - scaleEnemyStats(enemy, tl)
+    - scalePlatformParams(params, tl)
+  boss:
+    - spawnBoss(tl)
+    - updateBossAI(boss, dt, tl)
+  powerups:
+    - rollPowerupDrops(context, tl)
+    - applyAugment(augmentId)
+  music:
+    - initMusic(audioCtx)
+    - setMusicBiome(biomeId)
+    - startMusic(bpm)
+    - stopMusic()
+    - setMusicIntensity(value)
+    - queueStinger(type)
+    - scheduleKeyModulation(semitones, barsFromNow)
+  game_loop:
+    - updateThreat(dt)
+    - updateHeat(combatActivity)
+    - setWorldAttributes(worldId)
+
+# 5. Integration Hooks
+hooks:
+  - "On segment end → generateSegment(threatLevel+Δ)"
+  - "On combo 10+ → setStemActive('counterMelody', true)"
+  - "On boss phase change → queueStinger('bossPhase')"
+  - "On damage → queueStinger('hit')"
+  - "On milestone 8 segments → rotateChordProgression()"
+
+# 6. Output Format
+output:
+  - modular_js
+  - level_data_json
+  - music_patterns_json
+  - biome_config_json

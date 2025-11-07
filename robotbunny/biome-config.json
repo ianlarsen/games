@@ -1,0 +1,72 @@
+{
+  "biomes": {
+    "crater": {
+      "id": "crater",
+      "name": "Lunar Crater",
+      "colors": {
+        "bg": "#000000",
+        "bgHalo": "#0a0f18",
+        "ground": "#2a313c",
+        "groundDark": "#1b1f26",
+        "platform": "#3a5570",
+        "platformStroke": "#2a4050",
+        "stars": ["#0a0f18", "#1a2530", "#2a3540"]
+      },
+      "musicScale": "D Dorian",
+      "musicRoot": 293.66,
+      "scaleIntervals": [0, 2, 3, 5, 7, 9, 10],
+      "bpmRange": [92, 110]
+    },
+    "lowG": {
+      "id": "lowG",
+      "name": "Low Gravity Zone",
+      "colors": {
+        "bg": "#000508",
+        "bgHalo": "#0a1820",
+        "ground": "#1a3540",
+        "groundDark": "#0f1f26",
+        "platform": "#2a6580",
+        "platformStroke": "#1a4555",
+        "stars": ["#0a1820", "#1a3540", "#2a5060"]
+      },
+      "musicScale": "A Lydian",
+      "musicRoot": 440.00,
+      "scaleIntervals": [0, 2, 4, 6, 7, 9, 11],
+      "bpmRange": [100, 118]
+    },
+    "ruins": {
+      "id": "ruins",
+      "name": "Ancient Ruins",
+      "colors": {
+        "bg": "#080400",
+        "bgHalo": "#181008",
+        "ground": "#403020",
+        "groundDark": "#261a10",
+        "platform": "#705030",
+        "platformStroke": "#503820",
+        "stars": ["#181008", "#302818", "#484038"]
+      },
+      "musicScale": "E Phrygian Dominant",
+      "musicRoot": 329.63,
+      "scaleIntervals": [0, 1, 4, 5, 7, 8, 10],
+      "bpmRange": [105, 125]
+    },
+    "caverns": {
+      "id": "caverns",
+      "name": "Deep Caverns",
+      "colors": {
+        "bg": "#000408",
+        "bgHalo": "#080814",
+        "ground": "#202035",
+        "groundDark": "#10101a",
+        "platform": "#3a3a60",
+        "platformStroke": "#252545",
+        "stars": ["#080814", "#181828", "#282838"]
+      },
+      "musicScale": "C Aeolian",
+      "musicRoot": 261.63,
+      "scaleIntervals": [0, 2, 3, 5, 7, 8, 10],
+      "bpmRange": [96, 115]
+    }
+  }
+}
