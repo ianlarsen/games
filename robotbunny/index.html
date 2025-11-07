@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Robot Bunny Platformer — Endless Moon Edition</title>
 <style>
   :root {
@@ -17,6 +17,14 @@
     height: min(62vh, 560px);
     border-radius: 12px;
     box-shadow: 0 12px 36px rgba(0,0,0,.45), inset 0 0 80px rgba(123,226,255,0.03);
+  }
+  @media (max-width: 768px), (pointer: coarse) {
+    canvas {
+      width: 100vw;
+      height: calc(100vh - 200px);
+      border-radius: 0;
+      max-height: 600px;
+    }
   }
   .hud {
     position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
@@ -33,12 +41,23 @@
     display: none;
   }
   .combo-display.active { display: block; }
+  @media (max-width: 768px), (pointer: coarse) {
+    .combo-display {
+      top: 60px;
+      right: 10px;
+      font-size: 24px;
+    }
+  }
   @keyframes pulse {
     from { transform: scale(1); }
     to { transform: scale(1.1); }
   }
   .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: .8; font-size: 12px; color: #9fb1cc; text-align: center; max-width: 90vw; }
   .badge { position: fixed; top: 10px; right: 14px; font-size: 11px; color: #9fb1cc; opacity: .8; }
+  @media (max-width: 768px), (pointer: coarse) {
+    .hint { bottom: 200px; font-size: 11px; }
+    .badge { display: none; }
+  }
   .start-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center;
@@ -72,6 +91,76 @@
       min-width: 200px;
     }
   }
+
+  /* Mobile Controls */
+  .mobile-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 180px;
+    display: none;
+    pointer-events: none;
+    z-index: 100;
+  }
+  @media (max-width: 768px), (pointer: coarse) {
+    .mobile-controls { display: block; }
+    .hud { top: 5px; font-size: 11px; gap: 5px; }
+    .hud-item { padding: 2px 6px; }
+  }
+  .mobile-btn {
+    position: absolute;
+    background: rgba(123, 226, 255, 0.2);
+    border: 3px solid rgba(123, 226, 255, 0.5);
+    border-radius: 50%;
+    color: #7be2ff;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 0 15px rgba(123, 226, 255, 0.3);
+  }
+  .mobile-btn:active {
+    background: rgba(123, 226, 255, 0.3);
+    border-color: rgba(123, 226, 255, 0.6);
+    transform: scale(0.95);
+  }
+  .mobile-btn.pressed {
+    background: rgba(123, 226, 255, 0.4);
+    border-color: rgba(123, 226, 255, 0.8);
+  }
+  #mobile-left {
+    left: 15px;
+    bottom: 15px;
+    width: 80px;
+    height: 80px;
+  }
+  #mobile-right {
+    left: 110px;
+    bottom: 15px;
+    width: 80px;
+    height: 80px;
+  }
+  #mobile-jump {
+    right: 110px;
+    bottom: 15px;
+    width: 90px;
+    height: 90px;
+    font-size: 16px;
+  }
+  #mobile-shoot {
+    right: 15px;
+    bottom: 15px;
+    width: 80px;
+    height: 80px;
+    font-size: 28px;
+  }
 </style>
 </head>
 <body>
@@ -89,7 +178,15 @@
 <div class="hint" id="hint-text">Move: ←→ • Jump: Space • Shoot: X • Pause: ESC</div>
 <div class="badge">Endless Edition</div>
 <div class="start-screen" id="start-screen">
-  <div class="start-button">Click to Start</div>
+  <div class="start-title">🐰 ROBOT BUNNY 🌙</div>
+  <div class="start-button">TAP TO START</div>
+</div>
+
+<div class="mobile-controls">
+  <div class="mobile-btn" id="mobile-left">←</div>
+  <div class="mobile-btn" id="mobile-right">→</div>
+  <div class="mobile-btn" id="mobile-jump">JUMP</div>
+  <div class="mobile-btn" id="mobile-shoot">✦</div>
 </div>
 
 <script>
@@ -144,6 +241,7 @@
   let paused = false;
   let camera = { x: 0, y: 0 };
   let shake = { x: 0, y: 0, intensity: 0 };
+  let bossIntroTimer = 0;
 
   // ============ PERSISTENT DATA ============
   let totalCoins = parseInt(localStorage.getItem('rb_endless_coins') || '0');
@@ -290,6 +388,13 @@
           });
         }
       }
+    }
+  }
+
+  // Haptic feedback for mobile
+  function vibrate(pattern) {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(pattern);
     }
   }
 
@@ -575,6 +680,7 @@
     if (difficulty >= 3) boss.attacks.push('projectiles');
 
     gameState = 'bossIntro';
+    bossIntroTimer = 0; // Reset intro timer
     playMusic('boss');
   }
 
@@ -675,8 +781,9 @@
         break;
     }
 
-    // Check collision with player
-    if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h)) {
+    // Check collision with player (full hitbox including tentacles)
+    const bossHitboxHeight = boss.h + 75; // Include tentacles
+    if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, bossHitboxHeight)) {
       loseLife();
     }
   }
@@ -690,6 +797,7 @@
       gameState = 'gameOver';
       stopMusic();
       playSound('hit');
+      vibrate([100, 50, 100]); // Haptic feedback for game over
       shake.intensity = 25;
       createParticle(player.x + player.w / 2, player.y + player.h / 2, '#ff5555', 30);
     } else {
@@ -700,6 +808,7 @@
       player.invincible = true;
       player.invincibleTimer = 2.5;
       playSound('hit');
+      vibrate(50); // Haptic feedback for losing life
       shake.intensity = 18;
     }
   }
@@ -785,9 +894,17 @@
     if (gameState === 'playing') {
       updatePlaying(dt);
     } else if (gameState === 'bossIntro') {
-      camera.x += 100 * dt; // Pan to boss
-      if (camera.x >= boss.x - 300) {
+      bossIntroTimer += dt;
+
+      // Pan camera to boss over 1.5 seconds
+      const targetCameraX = boss.x - 300;
+      const distance = targetCameraX - camera.x;
+      camera.x += distance * (dt / (1.5 - bossIntroTimer + 0.01));
+
+      // Transition to playing after 1.5 seconds
+      if (bossIntroTimer >= 1.5) {
         gameState = 'playing';
+        camera.x = targetCameraX; // Snap to final position
         // Ensure boss music is still playing
         if (!currentMusic || currentMusic.paused) {
           resumeMusic();
@@ -968,6 +1085,7 @@
             createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ff5555', 10);
             createDamageNumber(enemy.x + enemy.w / 2, enemy.y - 10, damage);
             playSound('hit', 0.1);
+            vibrate(20); // Haptic feedback for hitting enemy
             score += 10 * damage;
             addCombo();
 
@@ -976,32 +1094,41 @@
               score += 50 + player.combo * 5;
               createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#FFD700', 20);
               playSound('stomp');
+              vibrate(40); // Haptic feedback for defeating enemy
             }
             break;
           }
         }
       }
 
-      // Player lasers hit boss
-      if (boss && rectsOverlap(laser.x, laser.y, laser.w, laser.h, boss.x, boss.y, boss.w, boss.h)) {
-        const damage = laser.damage || 1;
-        boss.health -= damage;
-        boss.hitFlash = 1.0;
-        lasers.splice(i, 1);
-        createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#ff5555', 15);
-        createDamageNumber(boss.x + boss.w / 2, boss.y - 20, damage, '#ff5555');
-        playSound('hit', 0.12);
-        score += 20 * damage;
-        shake.intensity = 8;
-        addCombo();
+      // Player lasers hit boss (full hitbox including tentacles)
+      if (boss) {
+        // Boss hitbox includes entire body and tentacles
+        const bossHitboxY = boss.y;
+        const bossHitboxHeight = boss.h + 75; // Include tentacles (3 segments * 25px each)
 
-        if (boss.health <= 0) {
-          score += 500 + currentLevel * 100;
-          player.sessionCoins += 50 + currentLevel * 10;
-          createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#FFD700', 50, 12);
-          shake.intensity = 30;
-          boss = null;
-          completeLevel();
+        if (rectsOverlap(laser.x, laser.y, laser.w, laser.h, boss.x, bossHitboxY, boss.w, bossHitboxHeight)) {
+          const damage = laser.damage || 1;
+          boss.health -= damage;
+          boss.hitFlash = 1.0;
+          lasers.splice(i, 1);
+          createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#ff5555', 15);
+          createDamageNumber(boss.x + boss.w / 2, boss.y - 20, damage, '#ff5555');
+          playSound('hit', 0.12);
+          vibrate(30); // Haptic feedback on boss hit
+          score += 20 * damage;
+          shake.intensity = 8;
+          addCombo();
+
+          if (boss.health <= 0) {
+            score += 500 + currentLevel * 100;
+            player.sessionCoins += 50 + currentLevel * 10;
+            createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#FFD700', 50, 12);
+            shake.intensity = 30;
+            vibrate([50, 50, 50]); // Haptic feedback on boss defeat
+            boss = null;
+            completeLevel();
+          }
         }
       }
     }
@@ -1578,6 +1705,59 @@
     keys[e.code] = false;
   });
 
+  // ============ MOBILE CONTROLS ============
+  const mobileButtons = {
+    left: document.getElementById('mobile-left'),
+    right: document.getElementById('mobile-right'),
+    jump: document.getElementById('mobile-jump'),
+    shoot: document.getElementById('mobile-shoot')
+  };
+
+  function handleTouchStart(btn, keyCode) {
+    return (e) => {
+      e.preventDefault();
+      btn.classList.add('pressed');
+      if (gameState === 'playing' && !paused && gameStarted) {
+        keys[keyCode] = true;
+        if (keyCode === 'KeyX') {
+          wantShoot = true;
+        }
+      }
+    };
+  }
+
+  function handleTouchEnd(btn, keyCode) {
+    return (e) => {
+      e.preventDefault();
+      btn.classList.remove('pressed');
+      keys[keyCode] = false;
+    };
+  }
+
+  // Set up mobile button listeners
+  mobileButtons.left.addEventListener('touchstart', handleTouchStart(mobileButtons.left, 'ArrowLeft'));
+  mobileButtons.left.addEventListener('touchend', handleTouchEnd(mobileButtons.left, 'ArrowLeft'));
+  mobileButtons.left.addEventListener('touchcancel', handleTouchEnd(mobileButtons.left, 'ArrowLeft'));
+
+  mobileButtons.right.addEventListener('touchstart', handleTouchStart(mobileButtons.right, 'ArrowRight'));
+  mobileButtons.right.addEventListener('touchend', handleTouchEnd(mobileButtons.right, 'ArrowRight'));
+  mobileButtons.right.addEventListener('touchcancel', handleTouchEnd(mobileButtons.right, 'ArrowRight'));
+
+  mobileButtons.jump.addEventListener('touchstart', handleTouchStart(mobileButtons.jump, 'Space'));
+  mobileButtons.jump.addEventListener('touchend', handleTouchEnd(mobileButtons.jump, 'Space'));
+  mobileButtons.jump.addEventListener('touchcancel', handleTouchEnd(mobileButtons.jump, 'Space'));
+
+  mobileButtons.shoot.addEventListener('touchstart', handleTouchStart(mobileButtons.shoot, 'KeyX'));
+  mobileButtons.shoot.addEventListener('touchend', handleTouchEnd(mobileButtons.shoot, 'KeyX'));
+  mobileButtons.shoot.addEventListener('touchcancel', handleTouchEnd(mobileButtons.shoot, 'KeyX'));
+
+  // Prevent scrolling/zooming on mobile
+  document.body.addEventListener('touchmove', (e) => {
+    if (gameStarted && e.target === canvas) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
   // ============ GAME LOOP ============
   let last = performance.now();
   function loop(now) {
@@ -1594,7 +1774,7 @@
   // ============ START SCREEN ============
   const startScreen = document.getElementById('start-screen');
 
-  startScreen.addEventListener('click', () => {
+  function startGame() {
     if (!gameStarted) {
       gameStarted = true;
       startScreen.classList.add('hidden');
@@ -1607,6 +1787,12 @@
       // Start music with proper user interaction
       playMusic('level');
     }
+  }
+
+  startScreen.addEventListener('click', startGame);
+  startScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startGame();
   });
 
   // ============ INITIALIZATION ============
