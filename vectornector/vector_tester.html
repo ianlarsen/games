@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Tester</title>
+  <style>
+    body {
+      background: #222;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+      padding: 0 20px 20px 20px; /* Removed top padding, added to nav */
+      margin: 0;
+    }
+    /* STYLES FOR THE NEW HEADER LINK */
+    .header-nav {
+      width: 100%;
+      text-align: center;
+      padding: 10px 0 10px 0; /* Add some spacing */
+      background-color: #222;
+      border-bottom: 1px solid #444;
+      margin-bottom: 15px;
+    }
+    .link-button {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #4a69bd; /* A nice blue */
+      color: white !important; /* Ensure text is white */
+      text-decoration: none;
+      border-radius: 5px;
+      border: 1px solid #3c5aa6;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      transition: background-color 0.2s;
+    }
+    .link-button:hover {
+      background-color: #3c5aa6;
+    }
+    /* END OF NEW STYLES */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 600px; /* Match canvas width */
+      max-width: 90vw;
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #111;
+      color: #0f0;
+      border: 1px solid #444;
+      font-family: monospace;
+      resize: vertical;
+      box-sizing: border-box; /* Ensure padding is included */
+    }
+    .buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 15px;
+      background: #4a4;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover { background: #5b5; }
+    canvas {
+      background: #fff;
+      border: 2px solid #444;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    pre {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      width: 600px; /* Match canvas width */
+      max-width: 90vw;
+      max-height: 240px;
+      overflow: auto;
+      font-family: monospace;
+      margin-top: 15px;
+      box-sizing: border-box; /* Ensure padding is included */
+    }
+    .error {
+      color: #ff6;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
+    .hint {
+      font-size: 13px;
+      color: #bbb;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Return to vector menu -->
+  <div class="header-nav">
+    <a href="./index.html" class="link-button">
+      Vector Nector Main Menu
+    </a>
+  </div>
+
+  <div class="controls">
+    <h2>Paste Vector JSON (actions array or SVG JSON) below:</h2>
+    <textarea id="jsonInput" placeholder='Example actions:
+[
+  {"type":"rect","x":50,"y":50,"w":120,"h":80,"color":"#f00","fill":true},
+  {"type":"circle","cx":260,"cy":90,"rx":40,"ry":40,"color":"#00f","fill":false},
+  {"type":"freehand","points":[{"x":120,"y":180},{"x":140,"y":200},{"x":160,"y":190}],"color":"#333"}
+]
+
+Example SVG JSON:
+{
+  "type":"svg","viewBox":[0,0,300,200],
+  "children":[
+    {"type":"rect","x":10,"y":10,"width":120,"height":80,"fill":"#f00"},
+    {"type":"circle","cx":200,"cy":60,"r":40,"stroke":"#00f","strokeWidth":3},
+    {"type":"path","d":"M10 150 L80 150 L45 110 Z","fill":"#999"}
+  ]
+}'>
+    </textarea>
+    <div class="buttons">
+      <button onclick="loadAndDraw()">Render</button>
+      <button onclick="copyJson()">Copy JSON</button>
+      <button onclick="clearAll()">Clear</button>
+    </div>
+    <div id="error" class="error"></div>
+    <div class="hint">JSON must use double quotes, no trailing commas, and no comments.</div>
+  </div>
+
+  <canvas id="canvas" width="600" height="600"></canvas> <!-- Canvas is now square -->
+  <pre id="jsonOutput">// Parsed JSON will be displayed here</pre>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const jsonInput = document.getElementById('jsonInput');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const errorBox = document.getElementById('error');
+
+    function clearAll() {
+      jsonInput.value = '';
+      jsonOutput.textContent = '// Parsed JSON will be displayed here';
+      errorBox.textContent = '';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function copyJson() {
+      // Use document.execCommand for iframe compatibility
+      const text = jsonOutput.textContent.trim();
+      if (!text || text.startsWith('//')) { alert('No JSON to copy yet.'); return; }
+      
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        alert('JSON copied to clipboard!');
+      } catch (err) {
+        console.error('Copy failed', err);
+        alert('Copy failed. Check browser permissions.');
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    function loadAndDraw() {
+      errorBox.textContent = '';
+      const jsonText = jsonInput.value.trim();
+      if (!jsonText) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        errorBox.textContent = 'Paste JSON into the text area and click Render.';
+        return;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(jsonText);
+      } catch (e) {
+        errorBox.textContent =
+          'Error: Invalid JSON.\n- Use double quotes for keys and strings.\n- Remove trailing commas.\n- Remove comments.\n\nDetails: ' + e.message;
+        console.error('JSON Parsing Error:', e);
+        return;
+      }
+
+      // Display parsed JSON
+      jsonOutput.textContent = JSON.stringify(data, null, 2);
+
+      // Auto-detect format and render
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save(); // Save context state before any transforms
+
+      try {
+        if (Array.isArray(data)) {
+          // --- Actions array format ---
+          const bounds = calculateBounds(data);
+          
+          if (bounds.minX === Infinity) {
+            // No shapes or points, just draw normally
+            drawVectorActions(data, ctx);
+          } else {
+            // --- NEW: Apply scaling and translation ---
+            const dataWidth = bounds.maxX - bounds.minX;
+            const dataHeight = bounds.maxY - bounds.minY;
+
+            const padding = 20; // 20px padding on each side
+            const canvasWidth = canvas.width - padding * 2;
+            const canvasHeight = canvas.height - padding * 2;
+
+            // Handle division by zero if width/height is 0
+            const scaleX = dataWidth > 0 ? canvasWidth / dataWidth : 1;
+            const scaleY = dataHeight > 0 ? canvasHeight / dataHeight : 1;
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Center the drawing
+            const translateX = (canvas.width - dataWidth * scale) / 2 - bounds.minX * scale;
+            const translateY = (canvas.height - dataHeight * scale) / 2 - bounds.minY * scale;
+
+            ctx.translate(translateX, translateY);
+            ctx.scale(scale, scale);
+            
+            drawVectorActions(data, ctx);
+          }
+
+        } else if (data && typeof data === 'object' && data.type === 'svg') {
+          // --- SVG JSON format ---
+          // This format already has a viewBox, which drawSvgJson uses for scaling
+          drawSvgJson(data, ctx);
+
+        } else {
+          errorBox.textContent = 'Unsupported format.\nProvide either:\n- An array of action objects (freehand, rect, circle, triangle, rhombus, floodfill)\n- An object with "type":"svg" and a "children" array of SVG shapes';
+        }
+
+      } catch (drawError) {
+        errorBox.textContent = 'Error during drawing: ' + drawError.message;
+        console.error("Drawing Error:", drawError);
+      } finally {
+        ctx.restore(); // Restore context state
+      }
+    }
+    
+    // -------- NEW: Calculate Bounding Box for Actions Array --------
+    function calculateBounds(actions) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      function updateBounds(x, y) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+
+      for (const act of actions) {
+        if (act.type === 'freehand' && act.points) {
+          act.points.forEach(p => updateBounds(p.x, p.y));
+        } else if (act.type === 'rect') {
+          updateBounds(act.x, act.y);
+          updateBounds(act.x + act.w, act.y + act.h);
+        } else if (act.type === 'circle') {
+          updateBounds(act.cx - act.rx, act.cy - act.ry);
+          updateBounds(act.cx + act.rx, act.cy + act.ry);
+        } else if (act.type === 'triangle') {
+          updateBounds(act.x, act.y + act.h);
+          updateBounds(act.x + act.w, act.y + act.h);
+          updateBounds(act.x + act.w / 2, act.y);
+        } else if (act.type === 'rhombus') {
+          updateBounds(act.x, act.y + act.h / 2);
+          updateBounds(act.x + act.w, act.y + act.h / 2);
+          updateBounds(act.x + act.w / 2, act.y);
+          updateBounds(act.x + act.w / 2, act.y + act.h);
+        }
+        // 'floodfill' doesn't affect bounds
+      }
+      return { minX, minY, maxX, maxY };
+    }
+
+    // -------- NEW: Calculate Bounding Box for SVG JSON --------
+    function calculateSvgBounds(children) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      function updateBounds(x, y) {
+        if (x === null || y === null || !isFinite(x) || !isFinite(y)) return;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      function updateRectBounds(x, y, w, h) {
+        updateBounds(x, y);
+        updateBounds(x + w, y + h);
+      }
+      
+      for (const item of children) {
+        // This calculation ignores transforms for simplicity
+        switch (item.type) {
+          case 'rect':
+            updateRectBounds(item.x || 0, item.y || 0, item.width || 0, item.height || 0);
+            break;
+          case 'circle': {
+            const cx = item.cx || 0, cy = item.cy || 0, r = item.r || 0;
+            updateBounds(cx - r, cy - r);
+            updateBounds(cx + r, cy + r);
+            break;
+          }
+          case 'ellipse': {
+            const cx = item.cx || 0, cy = item.cy || 0, rx = item.rx || 0, ry = item.ry || 0;
+            updateBounds(cx - rx, cy - ry);
+            updateBounds(cx + rx, cy + ry);
+            break;
+          }
+          case 'line':
+            updateBounds(item.x1 || 0, item.y1 || 0);
+            updateBounds(item.x2 || 0, item.y2 || 0);
+            break;
+          case 'polyline':
+          case 'polygon':
+            if (item.points) item.points.forEach(p => updateBounds(p.x, p.y));
+            break;
+          // --- NEW FIX ---
+          // Add naive bounds checking for paths
+          case 'path': {
+            const d = item.d || '';
+            // Naive path bounds: find all coordinate pairs.
+            // This assumes all numeric values after a command are pairs,
+            // which is wrong for H, V, A, etc. But it's better than nothing.
+            const nums = d.match(/-?[\d\.]+/g);
+            if (nums) {
+              for (let i = 0; i < nums.length - 1; i += 2) {
+                const x = parseFloat(nums[i]);
+                const y = parseFloat(nums[i+1]);
+                if (!isNaN(x) && !isNaN(y)) {
+                  updateBounds(x, y);
+                }
+              }
+            }
+            break;
+          }
+          // --- END NEW FIX ---
+          case 'group':
+            if (item.children) {
+              const childBounds = calculateSvgBounds(item.children);
+              updateBounds(childBounds.minX, childBounds.minY);
+              updateBounds(childBounds.maxX, childBounds.maxY);
+            }
+            break;
+        }
+      }
+      return { minX, minY, maxX, maxY };
+    }
+
+
+    // -------- Renderer for actions array (freehand/rect/circle/triangle/rhombus/floodfill) --------
+    function drawVectorActions(actions, ctx) {
+      for (let act of actions) {
+        const strokeColor = act.color || act.stroke || '#000000';
+        const fillColor = act.fillColor || act.color || act.fill || null;
+        ctx.strokeStyle = strokeColor || '#000000';
+        ctx.lineWidth = act.lineWidth || 1;
+        ctx.fillStyle = fillColor || 'transparent';
+
+        if (act.type === 'freehand') {
+          if (act.points && act.points.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(act.points[0].x, act.points[0].y);
+            for (let i = 1; i < act.points.length; i++) {
+              ctx.lineTo(act.points[i].x, act.points[i].y);
+            }
+            if (act.fill === true || (typeof act.fill === 'string' && act.fill !== 'transparent')) {
+              ctx.closePath();
+              ctx.fill();
+            } else {
+              ctx.stroke();
+            }
+          }
+        } else if (act.type === 'floodfill') {
+          // NOTE: Flood fill is NOT affected by scaling, it fills the whole canvas.
+          ctx.save();
+          ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform for flood fill
+          ctx.fillStyle = fillColor || strokeColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+        } else if (act.type === 'comment') {
+          continue;
+        } else {
+          ctx.beginPath();
+          const x = act.x || 0, y = act.y || 0, w = act.w || 0, h = act.h || 0;
+
+          if (act.type === 'rect') {
+            ctx.rect(x, y, w, h);
+          } else if (act.type === 'circle') {
+            const cx = act.cx ?? (x + w / 2);
+            const cy = act.cy ?? (y + h / 2);
+            const rx = act.rx ?? Math.abs(w / 2);
+            const ry = act.ry ?? Math.abs(h / 2);
+            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+          } else if (act.type === 'triangle') {
+            const peakX = x + w / 2;
+            const peakY = y;
+            const baseY = y + h;
+            ctx.moveTo(peakX, peakY);
+            ctx.lineTo(x, baseY);
+            ctx.lineTo(x + w, baseY);
+            ctx.closePath();
+          } else if (act.type === 'rhombus') {
+            ctx.moveTo(x + w / 2, y);
+            ctx.lineTo(x + w, y + h / 2);
+            ctx.lineTo(x + w / 2, y + h);
+            ctx.lineTo(x, y + h / 2);
+            ctx.closePath();
+          }
+
+          // Fill or stroke based on flags/colors
+          if (act.fill === true || (typeof act.fill === 'string' && act.fill !== 'transparent') || (fillColor && fillColor !== 'transparent')) {
+            if (typeof act.fill === 'string') ctx.fillStyle = act.fill;
+            ctx.fill();
+          } else {
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    // -------- Renderer for SVG JSON (type:"svg" with children) --------
+    function drawSvgJson(svgJson, ctx) {
+      // Fit using viewBox if present
+      let viewBox = svgJson.viewBox;
+      if (!viewBox || !Array.isArray(viewBox) || viewBox.length !== 4) {
+          // If no viewBox, calculate one
+          const bounds = calculateSvgBounds(svgJson.children || []); 
+          if (bounds.minX !== Infinity) {
+              const dataWidth = bounds.maxX - bounds.minX;
+              const dataHeight = bounds.maxY - bounds.minY;
+              viewBox = [bounds.minX, bounds.minY, dataWidth > 0 ? dataWidth : 1, dataHeight > 0 ? dataHeight : 1];
+          } else {
+              viewBox = [0, 0, canvas.width, canvas.height]; // Default
+          }
+      }
+      
+      const [vx, vy, vw, vh] = viewBox.map(Number);
+      
+      const padding = 20; // 20px padding
+      const canvasWidth = canvas.width - padding * 2;
+      const canvasHeight = canvas.height - padding * 2;
+      
+      const scaleX = vw > 0 ? canvasWidth / vw : 1;
+      const scaleY = vh > 0 ? canvasHeight / vh : 1;
+      const scale = Math.min(scaleX, scaleY);
+      
+      const translateX = (canvas.width - vw * scale) / 2 - vx * scale;
+      const translateY = (canvas.height - vh * scale) / 2 - vy * scale;
+
+      ctx.translate(translateX, translateY);
+      ctx.scale(scale, scale);
+
+      if (Array.isArray(svgJson.children)) {
+        for (const item of svgJson.children) drawSvgItem(item, ctx);
+      }
+    }
+
+    function drawSvgItem(item, ctx) {
+      // Apply basic styles
+      const fill = item.fill ?? null;
+      const stroke = item.stroke ?? null;
+      const lineWidth = item.strokeWidth ?? 1;
+      ctx.fillStyle = fill || 'transparent';
+      ctx.strokeStyle = stroke || 'transparent';
+      ctx.lineWidth = lineWidth;
+
+      // Transform support (basic)
+      if (item.transform) {
+        ctx.save();
+        for (const t of item.transform) {
+          const v = t.values;
+          switch (t.type) {
+            case 'matrix': ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]); break;
+            case 'translate': ctx.translate(v[0] || 0, v[1] || 0); break;
+            case 'scale': ctx.scale(v[0] || 1, v[1] == null ? (v[0] || 1) : v[1]); break;
+            case 'rotate': {
+              const angle = (v[0] || 0) * Math.PI / 180;
+              if (v.length >= 3) { ctx.translate(v[1], v[2]); ctx.rotate(angle); ctx.translate(-v[1], -v[2]); }
+              else ctx.rotate(angle);
+              break;
+            }
+            case 'skewX': ctx.transform(1, 0, Math.tan((v[0]||0) * Math.PI/180), 1, 0, 0); break;
+            case 'skewY': ctx.transform(1, Math.tan((v[0]||0) * Math.PI/180), 0, 1, 0, 0); break;
+          }
+        }
+      }
+
+      // Draw by type
+      switch (item.type) {
+        case 'rect': {
+          ctx.beginPath();
+          const x = item.x || 0, y = item.y || 0, w = item.width || 0, h = item.height || 0;
+          const rx = item.rx || 0, ry = item.ry || rx;
+          if (rx || ry) roundedRectPath(ctx, x, y, w, h, rx, ry);
+          else ctx.rect(x, y, w, h);
+          if (fill) ctx.fill();
+          if (stroke) ctx.stroke();
+          break;
+        }
+        case 'circle': {
+          ctx.beginPath();
+          ctx.arc(item.cx || 0, item.cy || 0, item.r || 0, 0, Math.PI * 2);
+          if (fill) ctx.fill();
+          if (stroke) ctx.stroke();
+          break;
+        }
+        case 'ellipse': {
+          ctx.beginPath();
+          ctx.ellipse(item.cx || 0, item.cy || 0, item.rx || 0, item.ry || 0, 0, 0, Math.PI * 2);
+          if (fill) ctx.fill();
+          if (stroke) ctx.stroke();
+          break;
+        }
+        case 'line': {
+          ctx.beginPath();
+          ctx.moveTo(item.x1 || 0, item.y1 || 0);
+          ctx.lineTo(item.x2 || 0, item.y2 || 0);
+          if (stroke) ctx.stroke();
+          break;
+        }
+        case 'polyline':
+        case 'polygon': {
+          if (item.points && item.points.length) {
+            ctx.beginPath();
+            ctx.moveTo(item.points[0].x, item.points[0].y);
+            for (let i = 1; i < item.points.length; i++) {
+              ctx.lineTo(item.points[i].x, item.points[i].y);
+            }
+            if (item.type === 'polygon') ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+          }
+          break;
+        }
+        case 'path': {
+          const d = item.d || '';
+          try {
+            const p = new Path2D(d);
+            if (fill) ctx.fill(p);
+            if (stroke) ctx.stroke(p);
+          } catch (e) {
+            console.warn('Path2D parse failed for d:', d, e);
+          }
+          break;
+        }
+        case 'group': {
+          if (item.children) {
+            // Children inherit transform, so we don't save/restore here
+            for (const child of item.children) drawSvgItem(child, ctx);
+          }
+          break;
+        }
+      }
+
+      if (item.transform) ctx.restore();
+    }
+
+    // Helpers
+    function roundedRectPath(ctx, x, y, w, h, rx, ry) {
+      const rxi = Math.min(rx || 0, Math.abs(w) / 2);
+      const ryi = Math.min(ry || rxi, Math.abs(h) / 2);
+      ctx.moveTo(x + rxi, y);
+      ctx.lineTo(x + w - rxi, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + ryi);
+      ctx.lineTo(x + w, y + h - ryi);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rxi, y + h);
+      ctx.lineTo(x + rxi, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - ryi);
+      ctx.lineTo(x, y + ryi);
+      ctx.quadraticCurveTo(x, y, x + rxi, y);
+    }
+  </script>
+</body>
+</html>

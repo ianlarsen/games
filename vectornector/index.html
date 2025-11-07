@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Nector Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-8">
+  <div class="w-full max-w-md bg-gray-800 shadow-2xl rounded-lg p-8">
+    <h1 class="text-3xl font-bold text-center text-white mb-8">Vector Nector Hub</h1>
+    <div class="space-y-4">
+      
+      <!-- Link to the main drawing app -->
+      <a href="./vector_drawing_touch.html" 
+         class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold p-4 rounded-lg text-center transition-colors duration-200 shadow-lg">
+        Vector Drawer (Touch Enabled)
+      </a>
+      
+      <!-- Link to the XML converter -->
+      <a href="./convert_XML_to_JSON.html" 
+         class="block w-full bg-green-600 hover:bg-green-500 text-white font-semibold p-4 rounded-lg text-center transition-colors duration-200 shadow-lg">
+        SVG XML → JSON Converter
+      </a>
+      
+      <!-- Link to the tester app -->
+      <a href="./vector_tester.html" 
+         class="block w-full bg-yellow-600 hover:bg-yellow-500 text-gray-900 font-semibold p-4 rounded-lg text-center transition-colors duration-200 shadow-lg">
+        Vector JSON Tester
+      </a>
+           
+    </div>
+  </div>
+</body>
+</html>

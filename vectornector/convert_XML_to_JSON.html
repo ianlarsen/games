@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG XML → JSON Vector Converter</title>
+  <style>
+    body { 
+      font-family: system-ui, sans-serif; 
+      background:#222; 
+      color:#eee; 
+      margin:0; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 40px; /* Add space at the bottom */
+    }
+    /* STYLES FOR THE NEW HEADER LINK */
+    .header-nav {
+      width: 100%;
+      text-align: center;
+      padding: 10px 0 10px 0; /* Add some spacing */
+      background-color: #222;
+      border-bottom: 1px solid #444;
+      margin-bottom: 15px;
+    }
+    .link-button {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #4a69bd; /* A nice blue */
+      color: white !important; /* Ensure text is white */
+      text-decoration: none;
+      border-radius: 5px;
+      border: 1px solid #3c5aa6;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      transition: background-color 0.2s;
+    }
+    .link-button:hover {
+      background-color: #3c5aa6;
+    }
+    /* END OF NEW STYLES */
+    .row { 
+      display:flex; 
+      gap:16px; 
+      align-items:flex-start; 
+      flex-wrap: wrap; /* Allow wrapping on smaller screens */
+      justify-content: center;
+    }
+    textarea { 
+      width: 600px; 
+      height: 300px; 
+      max-width: 90vw;
+      box-sizing: border-box;
+      background: #111;
+      color: #eee;
+      border: 1px solid #444;
+      font-family: monospace;
+    }
+    pre { 
+      background:#111; 
+      color:#0f0; 
+      padding:10px; 
+      height: 300px; /* Match textarea height */
+      overflow:auto; 
+      width: 600px; 
+      max-width: 90vw;
+      box-sizing: border-box;
+      font-family: monospace;
+    }
+    canvas { 
+      background:#fff; 
+      border:2px solid #444; 
+      border-radius: 8px;
+    }
+    .controls { 
+      display:flex; 
+      gap:8px; 
+      margin-bottom:15px; 
+      align-items:center; 
+      flex-wrap: wrap; /* Allow wrapping */
+      justify-content: center;
+    }
+    label { display:inline-flex; align-items:center; gap:6px; }
+    button { 
+      padding:8px 12px; 
+      background-color: #4a4a4a;
+      color: #eee;
+      border: 1px solid #555;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #5a5a5a;
+    }
+
+    /* Custom Modal for alerts/confirms */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background-color: #333;
+      color: #eee;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .modal-button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Return to vector menu -->
+  <div class="header-nav">
+    <a href="./index.html" class="link-button">
+      Vector Nector Main Menu
+    </a>
+  </div>
+
+  <h2>SVG XML → JSON Vector Converter</h2>
+
+  <div class="controls">
+    <button id="loadBtn">Load SVG</button>
+    <input type="file" id="fileInput" accept=".svg, image/svg+xml" style="display:none" />
+    <button id="convertBtn">Convert to JSON</button>
+    <button id="copyBtn">Copy JSON</button>
+    <button id="downloadBtn">Download JSON</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+
+  <div class="row">
+    <div>
+      <h3>SVG XML input</h3>
+      <textarea id="svgInput" placeholder="Paste SVG XML here"></textarea>
+    </div>
+    <div>
+      <h3>JSON output</h3>
+      <pre id="jsonOutput">// JSON appears here</pre>
+    </div>
+  </div>
+
+  <h3>Quick preview (canvas)</h3>
+  <canvas id="preview" width="600" height="600"></canvas> <!-- Canvas is now square -->
+
+  <!-- Custom Modal HTML -->
+  <div id="alertModal" class="modal">
+    <div class="modal-content">
+      <p id="alertMessage"></p>
+      <div id="modalButtonContainer">
+        <button id="alertOkButton" class="modal-button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loadBtn = document.getElementById('loadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const convertBtn = document.getElementById('convertBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const svgInput = document.getElementById('svgInput');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const preview = document.getElementById('preview');
+    const ctx = preview.getContext('2d');
+
+    // Modal elements
+    const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    const alertOkButton = document.getElementById('alertOkButton');
+    const modalButtonContainer = document.getElementById('modalButtonContainer');
+
+    // --- Custom Alert Function ---
+    function customAlert(msg) {
+      alertMessage.textContent = msg;
+      // Ensure only OK button is visible
+      modalButtonContainer.innerHTML = '<button id="alertOkButton" class="modal-button">OK</button>';
+      document.getElementById('alertOkButton').onclick = () => {
+        alertModal.style.display = "none";
+      }
+      alertModal.style.display = "flex";
+    }
+
+    // Trigger file picker
+    loadBtn.addEventListener('click', () => fileInput.click());
+
+    // Load file and auto-populate textarea
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        svgInput.value = text;   // auto-populate XML
+        // Automatically convert on load
+        convertAndDraw();
+      } catch (err) {
+        customAlert("Failed to read file: " + err.message);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      svgInput.value = '';
+      jsonOutput.textContent = '// JSON appears here';
+      ctx.clearRect(0, 0, preview.width, preview.height);
+      fileInput.value = ''; // Reset file input
+    });
+
+    convertBtn.addEventListener('click', convertAndDraw);
+
+    function convertAndDraw() {
+      const xml = svgInput.value.trim();
+      if (!xml) {
+        customAlert('Please paste SVG XML or upload a file.');
+        return;
+      }
+      try {
+        const json = convertSvgXmlToJson(xml);
+        jsonOutput.textContent = JSON.stringify(json, null, 2);
+        drawPreview(json);
+      } catch (err) {
+        customAlert("Error converting SVG:\n" + err.message);
+        console.error(err);
+      }
+    }
+
+    copyBtn.addEventListener('click', () => {
+      const text = jsonOutput.textContent.trim();
+      if (!text || text.startsWith('//')) {
+        customAlert('No JSON to copy yet.');
+        return;
+      }
+      
+      // Use document.execCommand for iframe compatibility
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          customAlert("JSON copied to clipboard!");
+        } else {
+          customAlert("Failed to copy JSON.");
+        }
+      } catch (err) {
+        console.error('Copy failed', err);
+        customAlert('Copy failed. Check console for error.');
+      }
+      
+      document.body.removeChild(textArea);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const text = jsonOutput.textContent.trim();
+      if (!text || text.startsWith('//')) {
+        customAlert('No JSON to download yet.');
+        return;
+      }
+      const blob = new Blob([text], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'vector.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // ---- Converter ----
+    function convertSvgXmlToJson(xmlString) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlString, 'image/svg+xml');
+      const root = doc.documentElement; // <svg>
+
+      // Basic error check
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error('Invalid SVG XML: ' + parseError.textContent);
+      }
+
+      const viewBox = root.getAttribute('viewBox');
+      const width = root.getAttribute('width');
+      const height = root.getAttribute('height');
+
+      const result = {
+        type: 'svg',
+        width: width ? parseFloat(width) : null,
+        height: height ? parseFloat(height) : null,
+        viewBox: viewBox ? viewBox.split(/\s+/).map(Number) : null,
+        children: []
+      };
+
+      const supported = ['path','rect','circle','ellipse','line','polyline','polygon','g'];
+      traverse(root, result.children, supported);
+      return result;
+    }
+
+    function traverse(node, outArray, supported) {
+      for (const child of node.children) {
+        const tag = child.tagName.toLowerCase();
+
+        // Groups
+        if (tag === 'g') {
+          const group = extractCommon(child);
+          group.type = 'group';
+          group.children = [];
+          outArray.push(group);
+          traverse(child, group.children, supported);
+          continue;
+        }
+
+        // Skip unsupported tags
+        if (!supported.includes(tag)) continue;
+
+        const common = extractCommon(child);
+        let shape = { ...common, type: tag };
+
+        switch (tag) {
+          case 'path':
+            shape.d = child.getAttribute('d') || '';
+            break;
+          case 'rect':
+            shape.x = num(child.getAttribute('x'));
+            shape.y = num(child.getAttribute('y'));
+            shape.width = num(child.getAttribute('width'));
+            shape.height = num(child.getAttribute('height'));
+            shape.rx = num(child.getAttribute('rx'));
+            shape.ry = num(child.getAttribute('ry'));
+            break;
+          case 'circle':
+            shape.cx = num(child.getAttribute('cx'));
+            shape.cy = num(child.getAttribute('cy'));
+            shape.r  = num(child.getAttribute('r'));
+            break;
+          case 'ellipse':
+            shape.cx = num(child.getAttribute('cx'));
+            shape.cy = num(child.getAttribute('cy'));
+            shape.rx = num(child.getAttribute('rx'));
+            shape.ry = num(child.getAttribute('ry'));
+            break;
+          case 'line':
+            shape.x1 = num(child.getAttribute('x1'));
+            shape.y1 = num(child.getAttribute('y1'));
+            shape.x2 = num(child.getAttribute('x2'));
+            shape.y2 = num(child.getAttribute('y2'));
+            break;
+          case 'polyline':
+          case 'polygon':
+            shape.points = parsePoints(child.getAttribute('points'));
+            break;
+        }
+
+        outArray.push(shape);
+      }
+    }
+
+    // Extract common style/transform attributes
+    function extractCommon(el) {
+      const fill = readStyle(el, 'fill');
+      const stroke = readStyle(el, 'stroke');
+      const strokeWidth = readStyle(el, 'stroke-width');
+      const opacity = readStyle(el, 'opacity');
+      const fillOpacity = readStyle(el, 'fill-opacity');
+      const strokeOpacity = readStyle(el, 'stroke-opacity');
+
+      const transform = parseTransform(el.getAttribute('transform'));
+
+      return {
+        id: el.getAttribute('id') || null,
+        class: el.getAttribute('class') || null,
+        fill: normalizeColor(fill),
+        stroke: normalizeColor(stroke),
+        strokeWidth: strokeWidth ? parseFloat(strokeWidth) : null,
+        opacity: opacity ? parseFloat(opacity) : null,
+        fillOpacity: fillOpacity ? parseFloat(fillOpacity) : null,
+        strokeOpacity: strokeOpacity ? parseFloat(strokeOpacity) : null,
+        transform
+      };
+    }
+
+    // Read inline style or attribute
+    function readStyle(el, name) {
+      const attr = el.getAttribute(name);
+      if (attr) return attr;
+      const style = el.getAttribute('style');
+      if (!style) return null;
+      const rule = style.split(';').map(s=>s.trim()).find(s=>s.startsWith(name + ':'));
+      if (!rule) return null;
+      return rule.split(':')[1].trim();
+    }
+
+    function normalizeColor(c) {
+      if (!c || c === 'none') return null;
+      return c; // leave as-is (#hex, rgb(), named)
+    }
+
+    function num(v) { return v == null ? null : parseFloat(v); }
+
+    function parsePoints(pointsStr) {
+      if (!pointsStr) return [];
+      return pointsStr
+        .trim()
+        .split(/[\s,]+/)
+        .reduce((acc, val, i, arr) => {
+          if (i % 2 === 0 && arr[i+1] != null) {
+            acc.push({ x: parseFloat(arr[i]), y: parseFloat(arr[i+1]) });
+          }
+          return acc;
+        }, []);
+    }
+
+    function parseTransform(tf) {
+      if (!tf) return null;
+      const items = [];
+      const regex = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/g;
+      let m;
+      while ((m = regex.exec(tf)) !== null) {
+        const type = m[1];
+        const nums = m[2].split(/[\s,]+/).map(parseFloat);
+        items.push({ type, values: nums });
+      }
+      return items.length ? items : null;
+    }
+
+    // ---- NEW: Calculate Bounding Box for SVG JSON ----
+    function calculateSvgBounds(children) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      function updateBounds(x, y) {
+        if (x === null || y === null || !isFinite(x) || !isFinite(y)) return;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      function updateRectBounds(x, y, w, h) {
+        updateBounds(x, y);
+        updateBounds(x + w, y + h);
+      }
+      
+      for (const item of children) {
+        // This calculation ignores transforms for simplicity
+        switch (item.type) {
+          case 'rect':
+            updateRectBounds(item.x || 0, item.y || 0, item.width || 0, item.height || 0);
+            break;
+          case 'circle': {
+            const cx = item.cx || 0, cy = item.cy || 0, r = item.r || 0;
+            updateBounds(cx - r, cy - r);
+            updateBounds(cx + r, cy + r);
+            break;
+          }
+          case 'ellipse': {
+            const cx = item.cx || 0, cy = item.cy || 0, rx = item.rx || 0, ry = item.ry || 0;
+            updateBounds(cx - rx, cy - ry);
+            updateBounds(cx + rx, cy + ry);
+            break;
+          }
+          case 'line':
+            updateBounds(item.x1 || 0, item.y1 || 0);
+            updateBounds(item.x2 || 0, item.y2 || 0);
+            break;
+          case 'polyline':
+          case 'polygon':
+            if (item.points) item.points.forEach(p => updateBounds(p.x, p.y));
+            break;
+          case 'group':
+            if (item.children) {
+              const childBounds = calculateSvgBounds(item.children);
+              updateBounds(childBounds.minX, childBounds.minY);
+              updateBounds(childBounds.maxX, childBounds.maxY);
+            }
+            break;
+          // 'path' bounds calculation is very complex, so we'll skip it
+          // for this preview. It will still render, just might not be
+          // included in the auto-scaling bounds calculation.
+        }
+      }
+      return { minX, minY, maxX, maxY };
+    }
+
+    // ---- Canvas Preview (UPDATED) ----
+    function drawPreview(json) {
+      ctx.clearRect(0,0,preview.width,preview.height);
+      if (!json || !json.children) return;
+
+      ctx.save();
+      
+      // --- NEW: Scaling and Centering Logic ---
+      let viewBox = json.viewBox;
+      
+      // If no viewBox, calculate one from the shapes
+      if (!viewBox || !Array.isArray(viewBox) || viewBox.length !== 4) {
+          const bounds = calculateSvgBounds(json.children || []);
+          if (bounds.minX !== Infinity) {
+              viewBox = [
+                bounds.minX, 
+                bounds.minY, 
+                bounds.maxX - bounds.minX, 
+                bounds.maxY - bounds.minY
+              ];
+          } else {
+              viewBox = [0, 0, preview.width, preview.height]; // Default
+          }
+      }
+      
+      const [vx, vy, vw, vh] = viewBox.map(Number);
+      
+      const padding = 20; // 20px padding
+      const canvasWidth = preview.width - padding * 2;
+      const canvasHeight = preview.height - padding * 2;
+      
+      const scaleX = vw > 0 ? canvasWidth / vw : 1;
+      const scaleY = vh > 0 ? canvasHeight / vh : 1;
+      const scale = Math.min(scaleX, scaleY);
+      
+      // Center the drawing
+      const translateX = (preview.width - vw * scale) / 2 - vx * scale;
+      const translateY = (preview.height - vh * scale) / 2 - vy * scale;
+
+      ctx.translate(translateX, translateY);
+      ctx.scale(scale, scale);
+      // --- END: New Logic ---
+
+      for (const item of json.children) {
+        drawItem(item, ctx);
+      }
+      ctx.restore();
+    }
+
+    function applyCommon(item, ctx) {
+      ctx.fillStyle = item.fill ?? 'transparent';
+      ctx.strokeStyle = item.stroke ?? 'transparent';
+      ctx.lineWidth = item.strokeWidth ?? 1;
+      ctx.globalAlpha = item.opacity ?? 1;
+      
+      // Apply fill/stroke opacity if present
+      if (item.fillOpacity !== null) {
+        // This is tricky as canvas doesn't have separate fill/stroke opacity
+        // We can fake it if only one is set
+      }
+      if (item.strokeOpacity !== null) {
+        // Ditto
+      }
+
+      if (item.transform) {
+        ctx.save();
+        for (const t of item.transform) {
+          const v = t.values;
+          switch (t.type) {
+            case 'matrix': ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]); break;
+            case 'translate': ctx.translate(v[0] || 0, v[1] || 0); break;
+            case 'scale': ctx.scale(v[0] || 1, v[1] == null ? v[0] || 1 : v[1]); break;
+            case 'rotate': {
+              const angle = (v[0] || 0) * Math.PI / 180;
+              if (v.length >= 3) { ctx.translate(v[1], v[2]); ctx.rotate(angle); ctx.translate(-v[1], v[2]); }
+              else ctx.rotate(angle);
+              break;
+            }
+            case 'skewX': ctx.transform(1, 0, Math.tan((v[0]||0) * Math.PI/180), 1, 0, 0); break;
+            case 'skewY': ctx.transform(1, Math.tan((v[0]||0) * Math.PI/180), 0, 1, 0, 0); break;
+          }
+        }
+      }
+    }
+
+    function restoreCommon(item, ctx) {
+      if (item.transform) ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    function fillStroke(ctx, item) {
+      if (item.fill) {
+        if (item.fillOpacity !== null) ctx.globalAlpha = item.fillOpacity;
+        ctx.fill();
+        ctx.globalAlpha = item.opacity ?? 1; // Reset alpha
+      }
+      if (item.stroke) {
+        if (item.strokeOpacity !== null) ctx.globalAlpha = item.strokeOpacity;
+        ctx.stroke();
+        ctx.globalAlpha = item.opacity ?? 1; // Reset alpha
+      }
+    }
+
+    function strokeOnly(ctx, item) { 
+      if (item.stroke) {
+        if (item.strokeOpacity !== null) ctx.globalAlpha = item.strokeOpacity;
+        ctx.stroke();
+        ctx.globalAlpha = item.opacity ?? 1; // Reset alpha
+      }
+    }
+
+    function roundedRectPath(ctx, x, y, w, h, rx, ry) {
+      const rxi = Math.min(rx || 0, Math.abs(w)/2);
+      const ryi = Math.min(ry || rxi, Math.abs(h)/2);
+      ctx.moveTo(x + rxi, y);
+      ctx.lineTo(x + w - rxi, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + ryi);
+      ctx.lineTo(x + w, y + h - ryi);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rxi, y + h);
+      ctx.lineTo(x + rxi, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - ryi);
+      ctx.lineTo(x, y + ryi);
+      ctx.quadraticCurveTo(x, y, x + rxi, y);
+    }
+
+    function drawItem(item, ctx) {
+      // Handle overall opacity
+      const baseAlpha = item.opacity ?? 1;
+      ctx.globalAlpha = baseAlpha;
+
+      if (item.type === 'group' && item.children) {
+        ctx.save();
+        applyCommon(item, ctx); // Apply group transform
+        for (const child of item.children) {
+            drawItem(child, ctx); // Children will inherit transform
+        }
+        restoreCommon(item, ctx); // Restore from group transform
+        ctx.restore();
+        ctx.globalAlpha = 1; // Reset global alpha after group
+        return;
+      }
+
+      applyCommon(item, ctx); // Apply item's own transform and styles
+
+      switch (item.type) {
+        case 'rect': {
+          ctx.beginPath();
+          const x=item.x||0, y=item.y||0, w=item.width||0, h=item.height||0;
+          const rx=item.rx||0, ry=item.ry||rx;
+          if (rx || ry) roundedRectPath(ctx, x, y, w, h, rx, ry);
+          else ctx.rect(x, y, w, h);
+          fillStroke(ctx, item);
+          break;
+        }
+        case 'circle': {
+          ctx.beginPath();
+          ctx.arc(item.cx||0, item.cy||0, item.r||0, 0, Math.PI*2);
+          fillStroke(ctx, item);
+          break;
+        }
+        case 'ellipse': {
+          ctx.beginPath();
+          ctx.ellipse(item.cx||0, item.cy||0, item.rx||0, item.ry||0, 0, 0, Math.PI*2);
+          fillStroke(ctx, item);
+          break;
+        }
+        case 'line': {
+          ctx.beginPath();
+          ctx.moveTo(item.x1||0, item.y1||0);
+          ctx.lineTo(item.x2||0, item.y2||0);
+          strokeOnly(ctx, item);
+          break;
+        }
+        case 'polyline':
+        case 'polygon': {
+          if (item.points && item.points.length) {
+            ctx.beginPath();
+            ctx.moveTo(item.points[0].x, item.points[0].y);
+            for (let i=1;i<item.points.length;i++){
+              ctx.lineTo(item.points[i].x, item.points[i].y);
+            }
+            if (item.type === 'polygon') ctx.closePath();
+            fillStroke(ctx, item);
+          }
+          break;
+        }
+        case 'path': {
+          const d = item.d || '';
+          try {
+            const p = new Path2D(d);
+            
+            // Handle fill/stroke opacity for paths
+            if (item.fill) {
+              if (item.fillOpacity !== null) ctx.globalAlpha = item.fillOpacity;
+              ctx.fill(p);
+              ctx.globalAlpha = baseAlpha; // Reset alpha
+            }
+            if (item.stroke) {
+              if (item.strokeOpacity !== null) ctx.globalAlpha = item.strokeOpacity;
+              ctx.stroke(p);
+              ctx.globalAlpha = baseAlpha; // Reset alpha
+            }
+
+          } catch (e) {
+            // Path2D may fail on some complex syntax; ignore preview errors
+            console.warn("Path2D render failed:", e.message, "d:", d);
+          }
+          break;
+        }
+      }
+
+      restoreCommon(item, ctx);
+      ctx.globalAlpha = 1; // Reset global alpha
+    }
+  </script>
+</body>
+</html>
