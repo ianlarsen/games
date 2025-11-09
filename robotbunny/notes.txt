@@ -1,0 +1,207 @@
+ROBOT BUNNY - DEVELOPMENT NOTES
+================================
+
+CURRENT STATUS (Working Features):
+-----------------------------------
+
+✅ 10-Level Boss Progression System
+   - Levels 1-3: Plain bosses (Octopus, Mantis, Salamander)
+   - Levels 4-6: Same bosses with space armor (+20% difficulty)
+   - Levels 7-9: Same bosses with armor + spikes (+40% difficulty)
+   - Level 10: Hybrid boss (combines all three) (+60% difficulty, 3x HP)
+
+✅ Boss Features
+   - All bosses fire lasers at player
+   - 20% difficulty increase per appearance (health, size, speed)
+   - Phase system (3 phases based on health: 100-66%, 66-33%, 33-0%)
+   - Visual variations: plain → armor → spikes
+   - Boss names update dynamically (e.g., "ARMORED MANTIS", "SPIKED SALAMANDER")
+
+✅ Level Completion Flow
+   1. Play through 4 segments
+   2. "BOSS APPROACHING" message
+   3. Camera pans to boss
+   4. Fight boss
+   5. Boss defeated → Golden flag with star appears
+   6. Collect flag → Level complete screen
+   7. Next level
+
+✅ Player Features
+   - Starting lives: 5 (changed from 3)
+   - Extra life powerups (red hearts) spawn randomly (8% chance per platform)
+   - Hearts properly update lives count
+   - Maximum lives: 10
+
+✅ Boss Rendering
+   - Currently using optimized geometric shapes (procedural drawing)
+   - Octopus: Tentacles, 3 eyes, pulsing body
+   - Mantis: Segmented abdomen, raptorial forelegs, compound eyes, walking legs
+   - Salamander: Wavy tail, reptilian head/body, spots, golden eyes
+
+KNOWN ISSUES (Fixed):
+---------------------
+✅ Tap to start works
+✅ Boss freezing fixed (removed large JSON file loading)
+✅ Level flow correct (no duplicate bosses, no premature flags)
+
+---
+
+NEXT SESSION - SPRITE CONVERSION:
+==================================
+
+GOAL: Replace procedural drawing with sprite graphics for better performance
+
+SPRITE FILES NEEDED:
+--------------------
+
+📁 BUNNY SPRITES (48×64 pixels, facing RIGHT):
+   bunny_idle1.png        - Standing still, frame 1
+   bunny_idle2.png        - Standing still, frame 2
+   bunny_run1.png         - Running, frame 1
+   bunny_run2.png         - Running, frame 2
+   bunny_run3.png         - Running, frame 3
+   bunny_run4.png         - Running, frame 4
+   bunny_jump.png         - In the air
+   bunny_shoot.png        - Shooting pose (optional)
+
+   MINIMUM TO START: bunny_idle1.png
+
+📁 BOSS SPRITES (~100×90 pixels base size):
+
+   OCTOPUS/SQUID:
+   - squid1.png, squid2.png, squid3.png, squid4.png (normal state)
+   - squidweak1.png, squidweak2.png, squidweak3.png, squidweak4.png (damaged state)
+
+   PRAYING MANTIS:
+   - mantis1.png, mantis2.png, mantis3.png, mantis4.png (normal state)
+   - mantisweak1.png, mantisweak2.png, mantisweak3.png, mantisweak4.png (damaged state)
+
+   SALAMANDER:
+   - sal1.png, sal2.png, sal3.png, sal4.png (normal state)
+   - salweak1.png, salweak2.png, salweak3.png, salweak4.png (damaged state)
+
+   HYBRID BOSS (Level 10):
+   - hybrid1.png, hybrid2.png, hybrid3.png, hybrid4.png (normal state)
+   - hybridweak1.png, hybridweak2.png, hybridweak3.png, hybridweak4.png (damaged state)
+
+   ANIMATION PATTERN: 1→2→3→4→3→2→(repeat) for smooth movement
+
+   MINIMUM TO START: squid1.png, squidweak1.png, mantis1.png, sal1.png
+
+📁 ARMOR/SPIKES (Optional):
+   - armor_overlay.png (transparent overlay for armor variation)
+   - spikes_overlay.png (transparent overlay for spikes variation)
+
+   OR create separate full sprites:
+   - squidarmor1.png, squidspikes1.png, etc. (same for mantis and sal)
+
+CODE CHANGES NEEDED:
+--------------------
+
+1. CREATE IMAGE LOADING SYSTEM
+   - Load all sprite images on game startup
+   - Store in sprite cache/dictionary
+   - Handle missing images gracefully (fallback to current procedural drawing)
+
+2. UPDATE PLAYER RENDERING (drawPlayer function)
+   - Replace current procedural bunny drawing
+   - Determine current animation state (idle/run/jump)
+   - Calculate animation frame based on animTimer
+   - Draw appropriate sprite
+   - Flip horizontally when facing left
+
+3. UPDATE BOSS RENDERING (drawOctopusBoss, drawMantisBoss, drawSalamanderBoss)
+   - Replace geometric shapes with sprite drawing
+   - Determine animation frame: 1→2→3→4→3→2→repeat based on boss.animTimer
+   - Switch between normal/weak sprites based on health:
+     * 100-33% health: Use normal sprites (squid1-4.png)
+     * 33-0% health: Use weak sprites (squidweak1-4.png)
+   - Apply effects:
+     * White flash when hit (boss.hitFlash)
+     * Colored glow based on phase
+     * Scale sprite based on difficulty multiplier
+   - Hybrid boss: Use hybrid sprites
+
+4. KEEP EXISTING EFFECTS
+   - Blink/flash when hit (already coded)
+   - Glow effects (ctx.shadowColor, ctx.shadowBlur)
+   - Phase-based glow colors
+   - Health bar rendering
+   - Boss name display
+   - Armor/spike overlays (if using overlay approach)
+
+ANIMATION FRAME CALCULATION:
+-----------------------------
+```javascript
+// For 1→2→3→4→3→2 pattern (6 frames total cycle)
+const cycleSpeed = 0.2; // Adjust for animation speed
+const cyclePosition = (boss.animTimer * cycleSpeed) % 6;
+let frameIndex;
+
+if (cyclePosition < 1) frameIndex = 1;
+else if (cyclePosition < 2) frameIndex = 2;
+else if (cyclePosition < 3) frameIndex = 3;
+else if (cyclePosition < 4) frameIndex = 4;
+else if (cyclePosition < 5) frameIndex = 3;
+else frameIndex = 2;
+
+// Then load: sprites[`squid${frameIndex}.png`]
+```
+
+HEALTH-BASED SPRITE SELECTION:
+-------------------------------
+```javascript
+const healthPercent = boss.health / boss.maxHealth;
+const spritePrefix = healthPercent > 0.33 ? 'squid' : 'squidweak';
+const frameName = `${spritePrefix}${frameIndex}.png`;
+```
+
+FILE STRUCTURE:
+---------------
+C:\Users\ianla\Documents\games\robotbunny\
+├── index.html (main game file)
+├── notes.txt (this file)
+├── mantis.txt (large JSON - not used, causes freezing)
+├── salamandar.txt (large JSON - not used, causes freezing)
+└── sprites\ (create this folder)
+    ├── bunny_idle1.png
+    ├── bunny_run1.png
+    ├── squid1.png
+    ├── squidweak1.png
+    ├── mantis1.png
+    ├── sal1.png
+    └── ... (add more as created)
+
+TESTING CHECKLIST FOR NEXT SESSION:
+------------------------------------
+□ Create sprites folder
+□ Add minimum sprite set (6 files to start)
+□ Implement image loading system
+□ Update player rendering to use bunny sprite
+□ Update boss rendering to use boss sprites
+□ Test animation cycles (1→2→3→4→3→2)
+□ Test health-based sprite switching (normal→weak)
+□ Test hit flash effect on sprites
+□ Test glow effects on sprites
+□ Test armor/spike overlays (if implemented)
+□ Verify performance improvement
+□ Test all 10 levels with sprite rendering
+
+FUTURE ENHANCEMENTS (After Sprites):
+-------------------------------------
+- Enemy sprites (walkers, hoppers, flyers)
+- Particle effects sprites
+- Background layer sprites
+- Coin/powerup sprites
+- Laser/projectile sprites
+- UI element sprites
+
+PERFORMANCE NOTES:
+------------------
+- Procedural drawing works but could be optimized
+- Sprite rendering will be much faster
+- Each boss currently draws ~50-200 shapes per frame
+- Sprites reduce to 1 drawImage() call per boss
+- Expected 10-20x performance improvement for boss rendering
+
+END OF NOTES

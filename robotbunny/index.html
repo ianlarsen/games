@@ -61,15 +61,46 @@
   .start-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 20px;
+    flex-direction: column; gap: 30px;
     z-index: 1000; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
   .start-screen.hidden { display: none; }
+  #start-bunny-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
   .start-title {
-    font-size: 32px; font-weight: bold; color: #FFD700;
-    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    font-size: 48px; font-weight: 900;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    letter-spacing: 4px;
     text-align: center; padding: 0 20px;
+    color: #b0b8c0;
+    background: linear-gradient(180deg, #e8eef4 0%, #8090a0 50%, #4a5560 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .start-title::before,
+  .start-title::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    right: 0;
+  }
+  .start-title::before {
+    top: -2px;
+    color: #fff;
+    opacity: 0.3;
+    z-index: -1;
+  }
+  .start-title::after {
+    top: 2px;
+    color: #000;
+    opacity: 0.5;
+    z-index: -2;
   }
   .start-button {
     padding: 20px 60px; font-size: 28px; font-weight: bold; color: #7be2ff;
@@ -84,7 +115,7 @@
     transform: scale(1.05);
   }
   @media (max-width: 768px) {
-    .start-title { font-size: 24px; }
+    .start-title { font-size: 32px; }
     .start-button {
       padding: 25px 50px;
       font-size: 24px;
@@ -178,7 +209,8 @@
 <div class="hint" id="hint-text">Move: ←→ • Jump: Space • Shoot: X • Pause: ESC</div>
 <div class="badge">Endless Edition</div>
 <div class="start-screen" id="start-screen">
-  <div class="start-title">🐰 ROBOT BUNNY 🌙</div>
+  <canvas id="start-bunny-canvas" width="48" height="64"></canvas>
+  <div class="start-title" data-text="ROBOT BUNNY">ROBOT BUNNY</div>
   <div class="start-button">TAP TO START</div>
 </div>
 
@@ -223,12 +255,335 @@
     if (stroke) ctx.stroke();
   }
 
+  // Render shapes from JSON definition
+  function renderShapes(shapes, scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0) {
+    for (const shape of shapes) {
+      ctx.save();
+
+      if (shape.type === 'rhombus') {
+        // Draw rhombus (diamond shape)
+        const x = shape.x * scaleX + offsetX;
+        const y = shape.y * scaleY + offsetY;
+        const w = shape.w * scaleX;
+        const h = shape.h * scaleY;
+
+        ctx.fillStyle = shape.color;
+        ctx.strokeStyle = shape.color;
+        ctx.lineWidth = shape.lineWidth || 1;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + w / 2, y + h / 2);
+        ctx.lineTo(x, y + h);
+        ctx.lineTo(x - w / 2, y + h / 2);
+        ctx.closePath();
+
+        if (shape.fill) ctx.fill();
+        else ctx.stroke();
+      } else if (shape.type === 'circle') {
+        // Draw ellipse
+        const cx = shape.cx * scaleX + offsetX;
+        const cy = shape.cy * scaleY + offsetY;
+        const rx = shape.rx * Math.abs(scaleX);
+        const ry = shape.ry * Math.abs(scaleY);
+
+        ctx.fillStyle = shape.color;
+        ctx.strokeStyle = shape.color;
+        ctx.lineWidth = shape.lineWidth || 1;
+
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+
+        if (shape.fill) ctx.fill();
+        else ctx.stroke();
+      } else if (shape.type === 'triangle') {
+        // Draw triangle (x, y is base left, w is width, h is height to tip)
+        const x = shape.x * scaleX + offsetX;
+        const y = shape.y * scaleY + offsetY;
+        const w = shape.w * scaleX;
+        const h = shape.h * scaleY;
+
+        ctx.fillStyle = shape.color;
+        ctx.strokeStyle = shape.color;
+        ctx.lineWidth = shape.lineWidth || 1;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y); // Base left
+        ctx.lineTo(x + w, y); // Base right
+        ctx.lineTo(x + w / 2, y + h); // Tip
+        ctx.closePath();
+
+        if (shape.fill) ctx.fill();
+        else ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
+
   // ============ CONSTANTS ============
   const GROUND_Y = canvas.height - 80;
   const gravity = 2200;
   const jumpVel = -950;
   const moveSpeed = 250;
   const maxVelX = 350;
+
+  // ============ CHARACTER DESIGNS ============
+  const hopperShape = [
+    {
+      "type": "rhombus",
+      "x": 159.19998168945312,
+      "y": 313,
+      "w": 109.60003662109375,
+      "h": -68,
+      "color": "#ada4a4",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 262.3999938964844,
+      "cy": 304.6000061035156,
+      "rx": 39.20001220703125,
+      "ry": 5.199981689453125,
+      "color": "#ada4a4",
+      "fill": true,
+      "lineWidth": 10
+    },
+    {
+      "type": "circle",
+      "cx": 175.20001220703125,
+      "cy": 309.0000305175781,
+      "rx": 41.600006103515625,
+      "ry": 5.600006103515625,
+      "color": "#ada4a4",
+      "fill": true,
+      "lineWidth": 10
+    },
+    {
+      "type": "circle",
+      "cx": 194,
+      "cy": 260.6000061035156,
+      "rx": 17.199981689453125,
+      "ry": 18,
+      "color": "#fd2408",
+      "fill": true,
+      "lineWidth": 10
+    },
+    {
+      "type": "circle",
+      "cx": 233.20001220703125,
+      "cy": 258.6000061035156,
+      "rx": 15.600006103515625,
+      "ry": 16,
+      "color": "#fd2408",
+      "fill": true,
+      "lineWidth": 10
+    },
+    {
+      "type": "circle",
+      "cx": 196,
+      "cy": 262.1999969482422,
+      "rx": 5.600006103515625,
+      "ry": 4.4000091552734375,
+      "color": "#0f0f0f",
+      "fill": true,
+      "lineWidth": 10
+    },
+    {
+      "type": "circle",
+      "cx": 236.79998779296875,
+      "cy": 262.6000061035156,
+      "rx": 4.800018310546875,
+      "ry": 4,
+      "color": "#0f0f0f",
+      "fill": true,
+      "lineWidth": 10
+    },
+    {
+      "type": "circle",
+      "cx": 172.80001831054688,
+      "cy": 309.8000183105469,
+      "rx": 40,
+      "ry": 4.79998779296875,
+      "color": "#0f0f0f",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 262.79998779296875,
+      "cy": 302.6000061035156,
+      "rx": 37.199981689453125,
+      "ry": 4.79998779296875,
+      "color": "#0f0f0f",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 214,
+      "cy": 281,
+      "rx": 44.399993896484375,
+      "ry": 0.800018310546875,
+      "color": "#0f0f0f",
+      "fill": false,
+      "lineWidth": 3
+    }
+  ];
+
+  const flyerShape = [
+    {
+      "type": "circle",
+      "cx": 226,
+      "cy": 242.59999084472656,
+      "rx": 118.80001831054688,
+      "ry": 23.199996948242188,
+      "color": "#b0c4ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 226.39999389648438,
+      "cy": 242.1999969482422,
+      "rx": 120,
+      "ry": 20.400009155273438,
+      "color": "#404040",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "triangle",
+      "x": 204.80001831054688,
+      "y": 230.60000610351562,
+      "w": 0,
+      "h": 0,
+      "color": "#b0c4ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "triangle",
+      "x": 214.39999389648438,
+      "y": 229.00006103515625,
+      "w": 0,
+      "h": 0,
+      "color": "#b0c4ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "triangle",
+      "x": 221.60000610351562,
+      "y": 238.60000610351562,
+      "w": 27.20001220703125,
+      "h": -103.20001220703125,
+      "color": "#b0c4ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "triangle",
+      "x": 223.99996948242188,
+      "y": 225.00006103515625,
+      "w": -28,
+      "h": -87.2000732421875,
+      "color": "#b0c4ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "triangle",
+      "x": 197.60000610351562,
+      "y": 221.00006103515625,
+      "w": 24,
+      "h": -80.800048828125,
+      "color": "#404040",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "triangle",
+      "x": 225.60000610351562,
+      "y": 221.79998779296875,
+      "w": 22.39996337890625,
+      "h": -86.39999389648438,
+      "color": "#404040",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 120.80001831054688,
+      "cy": 241.00006103515625,
+      "rx": 0,
+      "ry": 0,
+      "color": "#b0c4ff",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 207.20001220703125,
+      "cy": 229,
+      "rx": 14.399993896484375,
+      "ry": 7.20001220703125,
+      "color": "#b0c4ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 140,
+      "cy": 230.20001220703125,
+      "rx": 12.800018310546875,
+      "ry": 10,
+      "color": "#f0b0ff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 139.19998168945312,
+      "cy": 230.2000274658203,
+      "rx": 12.79998779296875,
+      "ry": 10.800033569335938,
+      "color": "#404040",
+      "fill": false,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 136,
+      "cy": 232.59999084472656,
+      "rx": 7.199981689453125,
+      "ry": 5.1999969482421875,
+      "color": "#404040",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 210.39999389648438,
+      "cy": 62.600006103515625,
+      "rx": 0,
+      "ry": 0,
+      "color": "#ffffff",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 135.19998168945312,
+      "cy": 232.59999084472656,
+      "rx": 4,
+      "ry": 1.1999969482421875,
+      "color": "#ffffff",
+      "fill": true,
+      "lineWidth": 3
+    }
+  ];
 
   // ============ GAME STATE ============
   let gameState = 'playing'; // playing, levelComplete, shop, gameOver, bossIntro
@@ -249,7 +604,7 @@
 
   // Permanent upgrades (persist across runs)
   const permanentUpgrades = {
-    maxHealth: parseInt(localStorage.getItem('rb_upg_health') || '3'),
+    maxHealth: parseInt(localStorage.getItem('rb_upg_health') || '5'),
     moveSpeed: parseInt(localStorage.getItem('rb_upg_speed') || '0'),
     jumpPower: parseInt(localStorage.getItem('rb_upg_jump') || '0'),
     damage: parseInt(localStorage.getItem('rb_upg_damage') || '0'),
@@ -298,6 +653,9 @@
   let nextSegmentX = 0;
   let boss = null;
   let levelGoal = null;
+  let levelFlag = null; // Flag appears after boss defeat
+
+  // JSON files are too large and cause freezing - using optimized geometric shapes instead
 
   // ============ BACKGROUND ============
   const bgLayers = [
@@ -317,10 +675,24 @@
 
   // Music tracks - loaded from 'sounds' folder
   const musicTracks = {
-    level: new Audio('sounds/level.mp3'),
+    level1: new Audio('sounds/level1.mp3'),
+    level2: new Audio('sounds/level2.mp3'),
+    level3: new Audio('sounds/level3.mp3'),
+    level4: new Audio('sounds/level4.mp3'),
+    level5: new Audio('sounds/level5.mp3'),
+    level6: new Audio('sounds/level6.mp3'),
+    level7: new Audio('sounds/level7.mp3'),
+    level8: new Audio('sounds/level8.mp3'),
+    level9: new Audio('sounds/level9.mp3'),
+    level10: new Audio('sounds/level10.mp3'),
     boss: new Audio('sounds/boss.mp3'),
     shop: new Audio('sounds/shop.mp3'),
     victory: new Audio('sounds/victory.mp3')
+  };
+
+  // Sound effects
+  const soundEffects = {
+    bossHit: new Audio('sounds/boss-hit.mp3')
   };
 
   // Set all tracks to loop and preload
@@ -328,6 +700,31 @@
     musicTracks[track].loop = true;
     musicTracks[track].volume = 0.4; // Adjust volume (0.0 to 1.0)
     musicTracks[track].preload = 'auto';
+  }
+
+  // Set sound effects volume
+  for (const sfx in soundEffects) {
+    soundEffects[sfx].volume = 0.6;
+    soundEffects[sfx].preload = 'auto';
+  }
+
+  function playSoundEffect(effectName) {
+    if (!soundEnabled) return;
+    const sfx = soundEffects[effectName];
+    if (sfx) {
+      sfx.currentTime = 0; // Reset to start
+      const playPromise = sfx.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => console.log('Sound effect play prevented:', e));
+      }
+    }
+  }
+
+  function getLevelMusicTrack() {
+    // Get the appropriate level music track based on current level
+    // Levels 1-10 have specific tracks, after that cycle back
+    const levelNum = ((currentLevel - 1) % 10) + 1;
+    return `level${levelNum}`;
   }
 
   function playMusic(trackName) {
@@ -518,7 +915,7 @@
   function initBackground() {
     for (const layer of bgLayers) {
       layer.elements = [];
-      const count = layer.speed < 0.3 ? 80 : (layer.speed < 0.5 ? 50 : 30);
+      const count = layer.speed < 0.3 ? 120 : (layer.speed < 0.5 ? 75 : 45);
       for (let i = 0; i < count; i++) {
         layer.elements.push({
           x: rand(0, 4000),
@@ -540,7 +937,8 @@
       width: width,
       platforms: [],
       enemies: [],
-      coins: []
+      coins: [],
+      powerups: []
     };
 
     // Ground platform
@@ -628,18 +1026,22 @@
         }
       }
 
+      // Add powerups (rare chance for extra life)
+      if (Math.random() < 0.08) {
+        segment.powerups.push({
+          type: 'extraLife',
+          x: currentX + rand(20, platformW - 40),
+          y: currentY - rand(60, 100),
+          w: 32,
+          h: 32,
+          bobT: rand(0, Math.PI * 2)
+        });
+      }
+
       currentX += platformW;
     }
 
-    // Level goal at end of last segment (before boss)
-    if (isLast) {
-      levelGoal = {
-        x: currentX + 100,
-        y: GROUND_Y - 120,
-        w: 60,
-        h: 100
-      };
-    }
+    // No level goal needed - we use the flag system after boss defeat
 
     return segment;
   }
@@ -653,34 +1055,83 @@
     currentSegmentIndex++;
   }
 
+  // Boss progression system
+  function getBossConfig(level) {
+    // New progression:
+    // 1: Squid (1.0)
+    // 2: Mantis (1.05 - 5% harder than squid)
+    // 3: Salamander (1.155 - 10% harder than mantis)
+    // 4: Armor Squid (1.2 - 20% harder than squid)
+    // 5: Armor Mantis (1.26 - 5% harder than armor squid)
+    // 6: Armor Salamander (1.386 - 10% harder than armor mantis)
+    // 7: Armor Squid with spikes (1.44 - 20% harder than armor squid)
+    // 8: Armor Mantis with spikes (1.512 - 5% harder than armor squid with spikes)
+    // 9: Armor Salamander with spikes (1.6632 - 10% harder than armor mantis with spikes)
+    // 10: Ultimate Chimera
+
+    const bossProgression = [
+      { type: 'octopus', variation: 'plain', name: 'ALIEN SQUID', multiplier: 1.0 },
+      { type: 'mantis', variation: 'plain', name: 'SPACE MANTIS', multiplier: 1.05 },
+      { type: 'salamander', variation: 'plain', name: 'LUNAR SALAMANDER', multiplier: 1.155 },
+      { type: 'octopus', variation: 'armor', name: 'ARMORED SQUID', multiplier: 1.2 },
+      { type: 'mantis', variation: 'armor', name: 'ARMORED MANTIS', multiplier: 1.26 },
+      { type: 'salamander', variation: 'armor', name: 'ARMORED SALAMANDER', multiplier: 1.386 },
+      { type: 'octopus', variation: 'spikes', name: 'ARMORED SPIKED SQUID', multiplier: 1.44 },
+      { type: 'mantis', variation: 'spikes', name: 'ARMORED SPIKED MANTIS', multiplier: 1.512 },
+      { type: 'salamander', variation: 'spikes', name: 'ARMORED SPIKED SALAMANDER', multiplier: 1.6632 },
+      { type: 'hybrid', variation: 'ultimate', name: 'ULTIMATE CHIMERA', multiplier: 2.0 }
+    ];
+
+    // Get boss for current level (loop after level 10)
+    const bossIndex = ((level - 1) % 10);
+    const boss = bossProgression[bossIndex];
+
+    return {
+      type: boss.type,
+      variation: boss.variation,
+      appearance: Math.floor((level - 1) / 10) + 1,
+      difficultyMultiplier: boss.multiplier,
+      name: boss.name
+    };
+  }
+
   function spawnBoss() {
     const bossX = nextSegmentX + 200;
-    const difficulty = currentLevel;
+    const config = getBossConfig(currentLevel);
+
+    // Base stats scaled by difficulty
+    const baseHealth = 15;
+    const baseSize = 100;
 
     boss = {
       x: bossX,
       y: GROUND_Y - 120,
-      w: 100 + difficulty * 5,
-      h: 90 + difficulty * 5,
+      w: baseSize * config.difficultyMultiplier,
+      h: (baseSize * 0.9) * config.difficultyMultiplier,
       vx: 0,
       vy: 0,
-      health: 10 + difficulty * 5,
-      maxHealth: 10 + difficulty * 5,
+      health: Math.floor(baseHealth * config.difficultyMultiplier * (config.type === 'hybrid' ? 3 : 1)),
+      maxHealth: Math.floor(baseHealth * config.difficultyMultiplier * (config.type === 'hybrid' ? 3 : 1)),
       state: 'idle', // idle, charging, attacking
       stateTimer: 0,
       attackCooldown: 0,
+      laserCooldown: 0,
       phase: 0,
       dir: -1,
       animTimer: 0,
       hitFlash: 0,
-      attacks: ['charge', 'jump'],
-      currentAttack: null
+      attacks: ['charge', 'jump', 'lasers'],
+      currentAttack: null,
+      // Boss type and appearance
+      bossType: config.type,
+      variation: config.variation,
+      appearance: config.appearance,
+      name: config.name,
+      difficultyMultiplier: config.difficultyMultiplier
     };
 
-    if (difficulty >= 3) boss.attacks.push('projectiles');
-
     gameState = 'bossIntro';
-    bossIntroTimer = 0; // Reset intro timer
+    bossIntroTimer = 0;
     playMusic('boss');
   }
 
@@ -697,6 +1148,7 @@
     boss.animTimer += dt;
     boss.stateTimer += dt;
     boss.attackCooldown -= dt;
+    boss.laserCooldown -= dt;
 
     if (boss.hitFlash > 0) boss.hitFlash -= dt * 5;
 
@@ -705,20 +1157,43 @@
     if (healthPercent < 0.33) boss.phase = 2;
     else if (healthPercent < 0.66) boss.phase = 1;
 
+    // All bosses fire lasers periodically
+    if (boss.laserCooldown <= 0 && boss.state !== 'attacking') {
+      const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+      const spreadCount = boss.phase + 1; // More lasers in higher phases
+
+      for (let i = 0; i < spreadCount; i++) {
+        const spread = spreadCount > 1 ? (i - (spreadCount - 1) / 2) * 0.2 : 0;
+        lasers.push({
+          x: boss.x + boss.w / 2,
+          y: boss.y + boss.h / 2,
+          w: 16, h: 16,
+          vx: Math.cos(angle + spread) * 300,
+          vy: Math.sin(angle + spread) * 300,
+          dir: 0,
+          isBossProjectile: true
+        });
+      }
+      boss.laserCooldown = 3.0 - boss.phase * 0.5; // Faster in higher phases
+      playSound('shoot', 0.1);
+    }
+
     switch (boss.state) {
       case 'idle':
         // Move towards player
+        const moveSpeed = 60 * boss.difficultyMultiplier;
         if (boss.x > player.x + 200) {
-          boss.x -= 60 * dt;
+          boss.x -= moveSpeed * dt;
           boss.dir = -1;
         } else if (boss.x < player.x - 200) {
-          boss.x += 60 * dt;
+          boss.x += moveSpeed * dt;
           boss.dir = 1;
         }
 
         // Pick attack
         if (boss.attackCooldown <= 0 && boss.stateTimer > 1.0) {
-          boss.currentAttack = boss.attacks[randInt(0, boss.attacks.length - 1)];
+          const availableAttacks = boss.attacks.filter(a => a !== 'lasers');
+          boss.currentAttack = availableAttacks[randInt(0, availableAttacks.length - 1)];
           boss.state = 'charging';
           boss.stateTimer = 0;
         }
@@ -733,7 +1208,7 @@
 
       case 'attacking':
         if (boss.currentAttack === 'charge') {
-          boss.x += boss.dir * 300 * dt;
+          boss.x += boss.dir * 300 * boss.difficultyMultiplier * dt;
 
           if (boss.stateTimer > 1.5) {
             boss.state = 'idle';
@@ -749,7 +1224,7 @@
 
             if (boss.y >= GROUND_Y - boss.h) {
               boss.y = GROUND_Y - boss.h;
-              shake.intensity = 20;
+              shake.intensity = 20 * boss.difficultyMultiplier;
               createParticle(boss.x + boss.w / 2, boss.y + boss.h, '#ff5555', 30, 10);
             }
           } else {
@@ -758,32 +1233,16 @@
             boss.attackCooldown = 2.5;
             boss.stateTimer = 0;
           }
-        } else if (boss.currentAttack === 'projectiles') {
-          if (boss.stateTimer === 0 || (Math.floor(boss.stateTimer * 5) > Math.floor((boss.stateTimer - dt) * 5) && boss.stateTimer < 1.0)) {
-            const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
-            lasers.push({
-              x: boss.x + boss.w / 2,
-              y: boss.y + boss.h / 2,
-              w: 16, h: 16,
-              vx: Math.cos(angle) * 300,
-              vy: Math.sin(angle) * 300,
-              dir: 0,
-              isBossProjectile: true
-            });
-          }
-
-          if (boss.stateTimer > 1.5) {
-            boss.state = 'idle';
-            boss.attackCooldown = 4.0;
-            boss.stateTimer = 0;
-          }
         }
         break;
     }
 
-    // Check collision with player (full hitbox including tentacles)
-    const bossHitboxHeight = boss.h + 75; // Include tentacles
-    if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, bossHitboxHeight)) {
+    // Check collision with player (boss-specific hitbox)
+    let hitboxH = boss.h;
+    if (boss.bossType === 'octopus' || boss.bossType === 'hybrid') {
+      hitboxH += 75; // Include tentacles
+    }
+    if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, hitboxH)) {
       loseLife();
     }
   }
@@ -813,10 +1272,21 @@
     }
   }
 
+  function spawnFlag(bossX, bossW) {
+    // Spawn flag at boss location
+    levelFlag = {
+      x: bossX + bossW / 2 - 30,
+      y: GROUND_Y - 120,
+      w: 60,
+      h: 100,
+      bobTimer: 0
+    };
+  }
+
   function completeLevel() {
     gameState = 'levelComplete';
     stopMusic();
-    playMusic('victory'); // Play victory music
+    playMusic('victory');
     playSound('levelup');
 
     // Award coins
@@ -832,6 +1302,7 @@
     segmentsInLevel = 0;
     boss = null;
     levelGoal = null;
+    levelFlag = null; // Reset flag
     segments.length = 0;
     lasers.length = 0;
     particles.length = 0;
@@ -854,7 +1325,7 @@
     }
 
     gameState = 'playing';
-    playMusic('level');
+    playMusic(getLevelMusicTrack());
   }
 
   function updateHUD() {
@@ -863,7 +1334,7 @@
     document.getElementById('score').textContent = Math.floor(score);
     document.getElementById('coins').textContent = player.sessionCoins + totalCoins;
 
-    const upgradeCount = permanentUpgrades.maxHealth - 3 +
+    const upgradeCount = permanentUpgrades.maxHealth - 5 +
                         permanentUpgrades.moveSpeed +
                         permanentUpgrades.jumpPower +
                         permanentUpgrades.damage +
@@ -1037,8 +1508,8 @@
     camera.x = player.x - canvas.width / 3;
     camera.x = Math.max(0, camera.x);
 
-    // Load new segments
-    if (player.x > nextSegmentX - canvas.width * 2 && !boss) {
+    // Load new segments (only if not in boss phase)
+    if (player.x > nextSegmentX - canvas.width * 2 && !boss && !levelFlag && gameState === 'playing') {
       if (segmentsInLevel >= segmentsPerLevel) {
         spawnBoss();
       } else {
@@ -1048,10 +1519,13 @@
 
     unloadOldSegments();
 
-    // Check level goal
-    if (levelGoal && rectsOverlap(player.x, player.y, player.w, player.h, levelGoal.x, levelGoal.y, levelGoal.w, levelGoal.h)) {
-      levelGoal = null; // Prevent re-trigger
-      // Goal just triggers boss intro
+    // Check flag collection (completes level after boss defeat)
+    if (levelFlag) {
+      levelFlag.bobTimer += dt * 3;
+      if (rectsOverlap(player.x, player.y, player.w, player.h, levelFlag.x, levelFlag.y, levelFlag.w, levelFlag.h)) {
+        levelFlag = null;
+        completeLevel();
+      }
     }
 
     // Update lasers
@@ -1115,6 +1589,7 @@
           createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#ff5555', 15);
           createDamageNumber(boss.x + boss.w / 2, boss.y - 20, damage, '#ff5555');
           playSound('hit', 0.12);
+          playSoundEffect('bossHit'); // Play boss scream sound
           vibrate(30); // Haptic feedback on boss hit
           score += 20 * damage;
           shake.intensity = 8;
@@ -1126,8 +1601,8 @@
             createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#FFD700', 50, 12);
             shake.intensity = 30;
             vibrate([50, 50, 50]); // Haptic feedback on boss defeat
+            spawnFlag(boss.x, boss.w); // Spawn flag at boss location
             boss = null;
-            completeLevel();
           }
         }
       }
@@ -1209,6 +1684,30 @@
           createParticle(coin.x, coin.y, '#FFD700', 8);
           createDamageNumber(coin.x, coin.y - 20, `+${Math.floor(coinValue)}`, '#FFD700');
           playSound('coin', 0.08);
+        }
+      }
+    }
+
+    // Update powerups
+    for (const segment of segments) {
+      for (let i = segment.powerups.length - 1; i >= 0; i--) {
+        const powerup = segment.powerups[i];
+        powerup.bobT += dt * 3;
+
+        if (rectsOverlap(player.x, player.y, player.w, player.h, powerup.x - powerup.w / 2, powerup.y - powerup.h / 2, powerup.w, powerup.h)) {
+          segment.powerups.splice(i, 1);
+
+          if (powerup.type === 'extraLife') {
+            // Allow gaining extra lives beyond the starting max (up to 10)
+            const absoluteMaxLives = 10;
+            if (player.lives < absoluteMaxLives) {
+              player.lives++;
+              createParticle(powerup.x, powerup.y, '#ff5555', 20);
+              createDamageNumber(powerup.x, powerup.y - 20, '+1 LIFE', '#ff5555');
+              playSound('levelup', 0.15);
+              vibrate(100);
+            }
+          }
         }
       }
     }
@@ -1303,25 +1802,85 @@
       }
     }
 
-    // Draw level goal
-    if (levelGoal) {
+    // Draw powerups
+    for (const segment of segments) {
+      for (const powerup of segment.powerups) {
+        ctx.save();
+        const bob = Math.sin(powerup.bobT) * 8;
+        ctx.translate(powerup.x, powerup.y + bob);
+
+        if (powerup.type === 'extraLife') {
+          // Heart shape for extra life
+          ctx.fillStyle = '#ff5555';
+          ctx.strokeStyle = '#cc0000';
+          ctx.lineWidth = 3;
+
+          // Glow effect
+          ctx.shadowColor = '#ff5555';
+          ctx.shadowBlur = 15;
+
+          // Draw heart
+          const scale = 1 + Math.sin(powerup.bobT * 2) * 0.1;
+          ctx.scale(scale, scale);
+
+          ctx.beginPath();
+          ctx.moveTo(0, -8);
+          ctx.bezierCurveTo(-12, -18, -18, -8, -18, 0);
+          ctx.bezierCurveTo(-18, 8, 0, 18, 0, 18);
+          ctx.bezierCurveTo(0, 18, 18, 8, 18, 0);
+          ctx.bezierCurveTo(18, -8, 12, -18, 0, -8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // Draw completion flag (appears after boss defeat)
+    if (levelFlag) {
       ctx.save();
-      ctx.translate(levelGoal.x, levelGoal.y);
+      const bob = Math.sin(levelFlag.bobTimer) * 8;
+      ctx.translate(levelFlag.x, levelFlag.y + bob);
 
+      // Flagpole
       ctx.fillStyle = '#9fb1cc';
-      ctx.fillRect(5, 0, 8, levelGoal.h);
+      ctx.fillRect(5, 0, 8, levelFlag.h);
 
-      const wave = Math.sin(time * 4);
-      ctx.fillStyle = '#7be2ff';
-      ctx.strokeStyle = '#5bc0de';
-      ctx.lineWidth = 2;
+      // Flag with gradient
+      const wave = Math.sin(levelFlag.bobTimer * 2);
+      const gradient = ctx.createLinearGradient(0, 0, 60, 0);
+      gradient.addColorStop(0, '#FFD700');
+      gradient.addColorStop(0.5, '#FFA500');
+      gradient.addColorStop(1, '#FF8C00');
+
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = '#FF6347';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(13, 10);
-      ctx.quadraticCurveTo(35 + wave * 5, 25, 50, 30);
-      ctx.lineTo(13, 40);
+      ctx.moveTo(13, 15);
+      ctx.quadraticCurveTo(35 + wave * 8, 25, 55, 30);
+      ctx.quadraticCurveTo(35 + wave * 8, 35, 13, 45);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
+
+      // Victory star on flag
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('★', 30 + wave * 4, 30);
+
+      // Glow effect
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 20;
+      ctx.globalAlpha = 0.5 + Math.sin(levelFlag.bobTimer * 3) * 0.3;
+      ctx.fillText('★', 30 + wave * 4, 30);
+      ctx.shadowBlur = 0;
 
       ctx.restore();
     }
@@ -1333,14 +1892,57 @@
         ctx.translate(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2);
 
         if (enemy.type === 'hopper') {
-          const squish = enemy.vy !== 0 ? (enemy.vy > 0 ? 0.9 : 1.1) : (1 + Math.sin(enemy.animTimer) * 0.05);
-          ctx.scale(1, squish);
-          ctx.fillStyle = '#c9d0da';
-          ctx.strokeStyle = '#8ea0b5';
-          ctx.lineWidth = 2;
-          roundRect(-enemy.w / 2, -enemy.h / 2, enemy.w, enemy.h, 8, true, true);
+          // Calculate squish animation for jumping
+          const squish = enemy.vy !== 0 ? (enemy.vy > 0 ? 0.85 : 1.15) : (1 + Math.sin(enemy.animTimer * 3) * 0.08);
+          const stretch = 1 / squish; // Inverse for width to maintain volume
+
+          // Scale to fit enemy dimensions (original design is ~110x68)
+          let scaleX = (enemy.w / 110) * stretch;
+          const scaleY = (enemy.h / 68) * squish;
+
+          // Flip horizontally based on movement direction
+          scaleX *= enemy.dir;
+
+          // Animated feet rotation when jumping (point toes down)
+          const feetRotation = enemy.vy !== 0 ? Math.PI / 6 : 0; // 30 degrees when airborne
+
+          ctx.save();
+          // Draw body first
+          const bodyShapes = hopperShape.filter((s, i) => i === 0); // Just the rhombus
+          const offsetX = -214 * scaleX;
+          const offsetY = -279 * scaleY;
+          renderShapes(bodyShapes, scaleX, scaleY, offsetX, offsetY);
+
+          // Draw feet with rotation
+          if (feetRotation !== 0) {
+            ctx.save();
+            // Rotate feet around their centers
+            const leftFootCenterX = (175.20001220703125 - 214) * scaleX;
+            const leftFootCenterY = (309.0000305175781 - 279) * scaleY;
+            const rightFootCenterX = (262.3999938964844 - 214) * scaleX;
+            const rightFootCenterY = (304.6000061035156 - 279) * scaleY;
+
+            ctx.translate(leftFootCenterX, leftFootCenterY);
+            ctx.rotate(feetRotation * enemy.dir);
+            ctx.translate(-leftFootCenterX, -leftFootCenterY);
+          }
+
+          const feetShapes = hopperShape.filter((s, i) => i === 1 || i === 2 || i === 7 || i === 8); // Feet and outlines
+          renderShapes(feetShapes, scaleX, scaleY, offsetX, offsetY);
+
+          if (feetRotation !== 0) {
+            ctx.restore();
+          }
+
+          // Draw eyes and mouth (always on top)
+          const faceShapes = hopperShape.filter((s, i) => i >= 3 && i <= 6 || i === 9); // Eyes, pupils, mouth
+          renderShapes(faceShapes, scaleX, scaleY, offsetX, offsetY);
+
+          ctx.restore();
         } else if (enemy.type === 'walker') {
           ctx.rotate(enemy.rotateAngle);
+
+          // Draw filled circle background
           ctx.fillStyle = '#a890d0';
           ctx.strokeStyle = '#7860a0';
           ctx.lineWidth = 2;
@@ -1348,16 +1950,65 @@
           ctx.arc(0, 0, enemy.w / 2, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
+
+          // Draw spiral that rotates with the walker
+          ctx.strokeStyle = '#5a4080';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          const radius = enemy.w / 2;
+          const spiralTurns = 2.5;
+          const points = 50;
+          for (let i = 0; i < points; i++) {
+            const t = i / points;
+            const angle = t * spiralTurns * Math.PI * 2;
+            const r = t * radius * 0.85; // Spiral goes from center to 85% of radius
+            const x = Math.cos(angle) * r;
+            const y = Math.sin(angle) * r;
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
         } else if (enemy.type === 'flyer') {
           const wobble = Math.sin(enemy.bobT) * 3;
           ctx.translate(0, wobble);
-          ctx.fillStyle = '#7895b8';
-          ctx.strokeStyle = '#4a5f7a';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, enemy.w / 2, enemy.h / 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
+
+          // Calculate wing flapping animation
+          const wingFlap = Math.sin(enemy.flapTimer) * 0.3 + 0.7; // Oscillates between 0.4 and 1.0
+
+          // Scale to fit enemy dimensions (original design is ~240x46)
+          let scaleX = (enemy.w / 240);
+          const scaleY = (enemy.h / 46);
+
+          // Flip horizontally based on movement direction (reverse because design faces left)
+          scaleX *= -enemy.dir;
+
+          const offsetX = -226 * scaleX;
+          const offsetY = -242 * scaleY;
+
+          ctx.save();
+
+          // Draw body first (indices 0-1)
+          const bodyShapes = flyerShape.filter((s, i) => i === 0 || i === 1);
+          renderShapes(bodyShapes, scaleX, scaleY, offsetX, offsetY);
+
+          // Draw wings with flapping animation (indices 4-7: the triangular wings)
+          const wingShapes = flyerShape.filter((s, i) => i >= 4 && i <= 7).map(shape => {
+            if (shape.type === 'triangle' && Math.abs(shape.h) > 10) {
+              // Apply wing flap to height
+              return { ...shape, h: shape.h * wingFlap };
+            }
+            return shape;
+          });
+          renderShapes(wingShapes, scaleX, scaleY, offsetX, offsetY);
+
+          // Draw eye - it faces direction of travel due to horizontal flip (indices 10-14)
+          const eyeShapes = flyerShape.filter((s, i) => i >= 10 && i <= 14);
+          renderShapes(eyeShapes, scaleX, scaleY, offsetX, offsetY);
+
+          ctx.restore();
         }
 
         // Health bar
@@ -1381,7 +2032,7 @@
       }
     }
 
-    // Draw boss - ALIEN SQUID
+    // Draw boss
     if (boss) {
       ctx.save();
 
@@ -1391,101 +2042,22 @@
 
       // Boss glow based on phase
       const glowColors = ['#8a2be2', '#ff1493', '#00ff00'];
-      const bodyColors = ['#6a1fb2', '#9932cc', '#8b008b'];
-      ctx.shadowColor = glowColors[boss.phase];
-      ctx.shadowBlur = 25 + Math.sin(boss.animTimer * 3) * 8;
 
-      // Tentacles (8 animated tentacles)
-      const tentacleCount = 8;
-      for (let i = 0; i < tentacleCount; i++) {
-        const angle = (Math.PI * 2 * i) / tentacleCount;
-        const tentacleWave = Math.sin(boss.animTimer * 4 + i) * 15;
-
-        ctx.strokeStyle = bodyColors[boss.phase];
-        ctx.lineWidth = 6;
-        ctx.lineCap = 'round';
-
-        ctx.beginPath();
-        const startX = boss.x + boss.w / 2 + Math.cos(angle) * (boss.w * 0.3);
-        const startY = boss.y + boss.h * 0.7 + Math.sin(angle) * (boss.h * 0.2);
-        ctx.moveTo(startX, startY);
-
-        // Wavy tentacle
-        for (let j = 1; j <= 3; j++) {
-          const segmentX = startX + Math.cos(angle) * j * 20 + Math.sin(boss.animTimer * 3 + i + j) * tentacleWave;
-          const segmentY = startY + j * 25 + Math.cos(boss.animTimer * 3 + i + j) * 10;
-          ctx.lineTo(segmentX, segmentY);
-        }
-        ctx.stroke();
-
-        // Tentacle suckers
-        ctx.fillStyle = glowColors[boss.phase];
-        for (let j = 1; j <= 3; j++) {
-          const segmentX = startX + Math.cos(angle) * j * 20 + Math.sin(boss.animTimer * 3 + i + j) * tentacleWave;
-          const segmentY = startY + j * 25 + Math.cos(boss.animTimer * 3 + i + j) * 10;
-          ctx.beginPath();
-          ctx.arc(segmentX, segmentY, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      // Draw boss based on type
+      if (boss.bossType === 'octopus' || boss.bossType === 'hybrid') {
+        drawOctopusBoss(boss, glowColors);
+      }
+      if (boss.bossType === 'mantis' || boss.bossType === 'hybrid') {
+        drawMantisBoss(boss, glowColors);
+      }
+      if (boss.bossType === 'salamander' || boss.bossType === 'hybrid') {
+        drawSalamanderBoss(boss, glowColors);
       }
 
-      // Main body (squid head/mantle)
-      const bodyPulse = 1 + Math.sin(boss.animTimer * 2) * 0.08;
-      ctx.fillStyle = bodyColors[boss.phase];
-      ctx.strokeStyle = glowColors[boss.phase];
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.ellipse(boss.x + boss.w / 2, boss.y + boss.h * 0.35, boss.w * 0.45 * bodyPulse, boss.h * 0.4 * bodyPulse, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Alien markings on body
-      ctx.fillStyle = glowColors[boss.phase];
-      ctx.globalAlpha = 0.5;
-      for (let i = 0; i < 5; i++) {
-        const markX = boss.x + boss.w * (0.3 + i * 0.1);
-        const markY = boss.y + boss.h * 0.35 + Math.sin(boss.animTimer * 3 + i) * 5;
-        ctx.beginPath();
-        ctx.arc(markX, markY, 4, 0, Math.PI * 2);
-        ctx.fill();
+      // Draw armor/spikes overlay
+      if (boss.variation === 'armor' || boss.variation === 'spikes' || boss.variation === 'ultimate') {
+        drawBossArmor(boss, boss.variation === 'spikes' || boss.variation === 'ultimate');
       }
-      ctx.globalAlpha = boss.hitFlash > 0 ? (0.5 + Math.sin(time * 50) * 0.5) : 1;
-
-      // Eyes (three alien eyes)
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = glowColors[boss.phase];
-
-      const eyeY = boss.y + boss.h * 0.25;
-      const eyePositions = [
-        { x: boss.x + boss.w * 0.35, size: 10 },
-        { x: boss.x + boss.w * 0.5, size: 12 },
-        { x: boss.x + boss.w * 0.65, size: 10 }
-      ];
-
-      for (const eye of eyePositions) {
-        // Eye white
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(eye.x, eyeY, eye.size, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Pupil (follows player if charging)
-        const pupilColor = boss.state === 'charging' ? '#ff0000' : glowColors[boss.phase];
-        ctx.fillStyle = pupilColor;
-        const pupilSize = eye.size * 0.6;
-        ctx.beginPath();
-        ctx.arc(eye.x, eyeY, pupilSize, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Pupil highlight
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(eye.x - pupilSize * 0.3, eyeY - pupilSize * 0.3, pupilSize * 0.3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.shadowBlur = 0;
 
       // Health bar
       const barW = boss.w;
@@ -1506,10 +2078,417 @@
       ctx.textAlign = 'center';
       ctx.shadowColor = '#000';
       ctx.shadowBlur = 4;
-      ctx.fillText(`ALIEN SQUID - Phase ${boss.phase + 1}`, boss.x + boss.w / 2, barY - 8);
+      ctx.fillText(`${boss.name} - Phase ${boss.phase + 1}`, boss.x + boss.w / 2, barY - 8);
 
       ctx.globalAlpha = 1;
       ctx.restore();
+    }
+
+    // Boss drawing functions
+    function drawOctopusBoss(boss, glowColors) {
+      const bodyColors = ['#6a1fb2', '#9932cc', '#8b008b'];
+      ctx.shadowColor = glowColors[boss.phase];
+      ctx.shadowBlur = 25 + Math.sin(boss.animTimer * 3) * 8;
+
+      const scale = boss.bossType === 'hybrid' ? 0.6 : 1;
+      const offsetY = boss.bossType === 'hybrid' ? boss.h * 0.3 : 0;
+
+      // Tentacles (8 animated tentacles)
+      const tentacleCount = 8;
+      for (let i = 0; i < tentacleCount; i++) {
+        const angle = (Math.PI * 2 * i) / tentacleCount;
+        const tentacleWave = Math.sin(boss.animTimer * 4 + i) * 15 * scale;
+
+        ctx.strokeStyle = bodyColors[boss.phase];
+        ctx.lineWidth = 6 * scale;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        const startX = boss.x + boss.w / 2 + Math.cos(angle) * (boss.w * 0.3 * scale);
+        const startY = boss.y + offsetY + boss.h * 0.7 * scale + Math.sin(angle) * (boss.h * 0.2 * scale);
+        ctx.moveTo(startX, startY);
+
+        // Wavy tentacle
+        for (let j = 1; j <= 3; j++) {
+          const segmentX = startX + Math.cos(angle) * j * 20 * scale + Math.sin(boss.animTimer * 3 + i + j) * tentacleWave;
+          const segmentY = startY + j * 25 * scale + Math.cos(boss.animTimer * 3 + i + j) * 10 * scale;
+          ctx.lineTo(segmentX, segmentY);
+        }
+        ctx.stroke();
+
+        // Tentacle suckers
+        ctx.fillStyle = glowColors[boss.phase];
+        for (let j = 1; j <= 3; j++) {
+          const segmentX = startX + Math.cos(angle) * j * 20 * scale + Math.sin(boss.animTimer * 3 + i + j) * tentacleWave;
+          const segmentY = startY + j * 25 * scale + Math.cos(boss.animTimer * 3 + i + j) * 10 * scale;
+          ctx.beginPath();
+          ctx.arc(segmentX, segmentY, 3 * scale, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Main body (squid head/mantle)
+      const bodyPulse = 1 + Math.sin(boss.animTimer * 2) * 0.08;
+      ctx.fillStyle = bodyColors[boss.phase];
+      ctx.strokeStyle = glowColors[boss.phase];
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.ellipse(boss.x + boss.w / 2, boss.y + offsetY + boss.h * 0.35 * scale, boss.w * 0.45 * bodyPulse * scale, boss.h * 0.4 * bodyPulse * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Eyes (three alien eyes)
+      const eyeY = boss.y + offsetY + boss.h * 0.25 * scale;
+      const eyePositions = [
+        { x: boss.x + boss.w * 0.35, size: 10 * scale },
+        { x: boss.x + boss.w * 0.5, size: 12 * scale },
+        { x: boss.x + boss.w * 0.65, size: 10 * scale }
+      ];
+
+      for (const eye of eyePositions) {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(eye.x, eyeY, eye.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        const pupilColor = boss.state === 'charging' ? '#ff0000' : glowColors[boss.phase];
+        ctx.fillStyle = pupilColor;
+        ctx.beginPath();
+        ctx.arc(eye.x, eyeY, eye.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawMantisBoss(boss, glowColors) {
+      const bodyColors = ['#228B22', '#32CD32', '#00FF00'];
+      const scale = boss.bossType === 'hybrid' ? 0.5 : 1;
+      const offsetX = boss.bossType === 'hybrid' ? boss.w * 0.25 : 0;
+      const offsetY = boss.bossType === 'hybrid' ? 0 : 0;
+
+      ctx.shadowColor = glowColors[boss.phase];
+      ctx.shadowBlur = 20 + Math.sin(boss.animTimer * 3) * 8;
+
+      ctx.fillStyle = bodyColors[boss.phase];
+      ctx.strokeStyle = glowColors[boss.phase];
+      ctx.lineWidth = 3;
+
+      // Segmented abdomen (long and tapered like real mantis)
+      const abdomenSegments = 7;
+      for (let i = 0; i < abdomenSegments; i++) {
+        const segmentProgress = i / abdomenSegments;
+        const abdomenY = boss.y + offsetY + boss.h * (0.45 + segmentProgress * 0.45) * scale;
+        const segmentWidth = boss.w * (0.25 - segmentProgress * 0.1) * scale;
+        const segmentHeight = boss.h * 0.08 * scale;
+
+        ctx.fillStyle = i % 2 === 0 ? bodyColors[boss.phase] : '#1a6b1a';
+        ctx.beginPath();
+        ctx.ellipse(boss.x + boss.w / 2 + offsetX, abdomenY, segmentWidth, segmentHeight, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Prothorax (elongated front segment - distinctive of mantis)
+      ctx.fillStyle = bodyColors[boss.phase];
+      ctx.beginPath();
+      ctx.ellipse(boss.x + boss.w / 2 + offsetX, boss.y + offsetY + boss.h * 0.35 * scale, boss.w * 0.15 * scale, boss.h * 0.25 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Mesothorax and Metathorax (middle body segments)
+      ctx.beginPath();
+      ctx.ellipse(boss.x + boss.w / 2 + offsetX, boss.y + offsetY + boss.h * 0.42 * scale, boss.w * 0.2 * scale, boss.h * 0.12 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Triangular head (characteristic mantis head)
+      ctx.save();
+      ctx.translate(boss.x + boss.w / 2 + offsetX, boss.y + offsetY + boss.h * 0.2 * scale);
+
+      ctx.fillStyle = bodyColors[boss.phase];
+      ctx.beginPath();
+      ctx.moveTo(0, -boss.h * 0.15 * scale);
+      ctx.lineTo(-boss.w * 0.18 * scale, boss.h * 0.05 * scale);
+      ctx.lineTo(boss.w * 0.18 * scale, boss.h * 0.05 * scale);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // Antennae (thin and wispy)
+      ctx.strokeStyle = glowColors[boss.phase];
+      ctx.lineWidth = 2;
+      const antennaWave = Math.sin(boss.animTimer * 2);
+      for (let side = -1; side <= 1; side += 2) {
+        ctx.beginPath();
+        ctx.moveTo(boss.x + boss.w / 2 + offsetX + side * boss.w * 0.1 * scale, boss.y + offsetY + boss.h * 0.15 * scale);
+        ctx.quadraticCurveTo(
+          boss.x + boss.w / 2 + offsetX + side * boss.w * 0.25 * scale,
+          boss.y + offsetY + boss.h * 0.05 * scale + antennaWave * 5,
+          boss.x + boss.w / 2 + offsetX + side * boss.w * 0.3 * scale,
+          boss.y + offsetY - boss.h * 0.05 * scale
+        );
+        ctx.stroke();
+      }
+
+      // Raptorial forelegs (iconic praying position with spined grasping arms)
+      const armAngle = Math.sin(boss.animTimer * 3) * 0.15;
+      for (let side = -1; side <= 1; side += 2) {
+        ctx.save();
+        ctx.translate(boss.x + boss.w / 2 + offsetX + side * boss.w * 0.12 * scale, boss.y + offsetY + boss.h * 0.3 * scale);
+        ctx.rotate(side * (Math.PI / 6 + armAngle));
+
+        // Coxa (base segment)
+        ctx.fillStyle = bodyColors[boss.phase];
+        ctx.strokeStyle = glowColors[boss.phase];
+        ctx.lineWidth = 2;
+        ctx.fillRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.15 * scale);
+        ctx.strokeRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.15 * scale);
+
+        // Femur (upper arm - thick and muscular)
+        ctx.translate(0, boss.h * 0.15 * scale);
+        ctx.fillRect(-boss.w * 0.05 * scale, 0, boss.w * 0.1 * scale, boss.h * 0.3 * scale);
+        ctx.strokeRect(-boss.w * 0.05 * scale, 0, boss.w * 0.1 * scale, boss.h * 0.3 * scale);
+
+        // Spines along the femur
+        ctx.fillStyle = '#000';
+        for (let i = 0; i < 4; i++) {
+          const spineY = i * boss.h * 0.075 * scale;
+          ctx.beginPath();
+          ctx.moveTo(0, spineY);
+          ctx.lineTo(side * boss.w * 0.06 * scale, spineY + boss.h * 0.03 * scale);
+          ctx.lineTo(0, spineY + boss.h * 0.05 * scale);
+          ctx.fill();
+        }
+
+        // Tibia (forearm - with grasping spines)
+        ctx.fillStyle = bodyColors[boss.phase];
+        ctx.translate(0, boss.h * 0.3 * scale);
+        ctx.rotate(side * -Math.PI / 2.5);
+        ctx.fillRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.25 * scale);
+        ctx.strokeRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.25 * scale);
+
+        // Spines on tibia (for grasping prey)
+        ctx.fillStyle = glowColors[boss.phase];
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, i * boss.h * 0.05 * scale);
+          ctx.lineTo(side * boss.w * 0.07 * scale, i * boss.h * 0.05 * scale + boss.h * 0.025 * scale);
+          ctx.lineTo(0, i * boss.h * 0.05 * scale + boss.h * 0.04 * scale);
+          ctx.fill();
+        }
+
+        // Tarsus (claw/foot)
+        ctx.fillStyle = '#000';
+        ctx.translate(0, boss.h * 0.25 * scale);
+        ctx.rotate(side * -Math.PI / 6);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(side * boss.w * 0.05 * scale, boss.h * 0.08 * scale);
+        ctx.lineTo(0, boss.h * 0.1 * scale);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // Walking legs (4 legs - thinner than raptorial forelegs)
+      for (let legPair = 0; legPair < 2; legPair++) {
+        const legY = boss.y + offsetY + boss.h * (0.42 + legPair * 0.08) * scale;
+        for (let side = -1; side <= 1; side += 2) {
+          ctx.save();
+          ctx.translate(boss.x + boss.w / 2 + offsetX + side * boss.w * 0.15 * scale, legY);
+
+          const walkCycle = Math.sin(boss.animTimer * 3 + legPair);
+          ctx.rotate(side * (Math.PI / 3 + walkCycle * 0.2));
+
+          ctx.strokeStyle = bodyColors[boss.phase];
+          ctx.lineWidth = 3 * scale;
+          ctx.lineCap = 'round';
+
+          // Upper leg segment
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(side * boss.w * 0.2 * scale, boss.h * 0.15 * scale);
+          ctx.stroke();
+
+          // Lower leg segment
+          ctx.beginPath();
+          ctx.moveTo(side * boss.w * 0.2 * scale, boss.h * 0.15 * scale);
+          ctx.lineTo(side * boss.w * 0.35 * scale, boss.h * 0.25 * scale);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      }
+
+      // Large compound eyes (distinctive bulging eyes)
+      ctx.fillStyle = '#FF4500';
+      ctx.strokeStyle = '#8B0000';
+      ctx.lineWidth = 2;
+      const eyeSize = boss.w * 0.14 * scale;
+
+      for (let side = -1; side <= 1; side += 2) {
+        const eyeX = boss.x + boss.w / 2 + offsetX + side * boss.w * 0.13 * scale;
+        const eyeY = boss.y + offsetY + boss.h * 0.18 * scale;
+
+        ctx.beginPath();
+        ctx.arc(eyeX, eyeY, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Hexagonal pattern (compound eye detail)
+        ctx.fillStyle = '#000';
+        ctx.globalAlpha = 0.3;
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            const hexX = eyeX + (col - 1) * eyeSize * 0.3;
+            const hexY = eyeY + (row - 1) * eyeSize * 0.3;
+            ctx.beginPath();
+            ctx.arc(hexX, hexY, eyeSize * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 1;
+
+        // Pupil/highlight
+        ctx.fillStyle = boss.state === 'charging' ? '#ff0000' : '#FFD700';
+        ctx.beginPath();
+        ctx.arc(eyeX - eyeSize * 0.2, eyeY - eyeSize * 0.2, eyeSize * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.shadowBlur = 0;
+    }
+
+    function drawSalamanderBoss(boss, glowColors) {
+      const bodyColors = ['#FF4500', '#FF6347', '#FF8C00'];
+      const scale = boss.bossType === 'hybrid' ? 0.6 : 1;
+      const offsetY = boss.bossType === 'hybrid' ? boss.h * 0.4 : 0;
+
+      ctx.shadowColor = glowColors[boss.phase];
+      ctx.shadowBlur = 20 + Math.sin(boss.animTimer * 3) * 8;
+
+      // Tail (wavy animated)
+      const tailSegments = 8;
+      ctx.strokeStyle = bodyColors[boss.phase];
+      ctx.lineWidth = boss.h * 0.2 * scale;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+
+      for (let i = 0; i < tailSegments; i++) {
+        const t = i / tailSegments;
+        const wave = Math.sin(boss.animTimer * 3 - i * 0.5) * 20 * scale;
+        const x = boss.x + boss.w / 2 + (1 - t) * boss.w * 0.6 * scale;
+        const y = boss.y + offsetY + boss.h * 0.6 * scale + wave;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Main body
+      ctx.fillStyle = bodyColors[boss.phase];
+      ctx.strokeStyle = glowColors[boss.phase];
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.ellipse(boss.x + boss.w / 2, boss.y + offsetY + boss.h * 0.45 * scale, boss.w * 0.4 * scale, boss.h * 0.35 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Head (reptilian)
+      ctx.beginPath();
+      ctx.ellipse(boss.x + boss.w / 2, boss.y + offsetY + boss.h * 0.2 * scale, boss.w * 0.3 * scale, boss.h * 0.25 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Salamander spots
+      ctx.fillStyle = '#000';
+      ctx.globalAlpha = 0.4;
+      for (let i = 0; i < 6; i++) {
+        const spotX = boss.x + boss.w * (0.3 + Math.random() * 0.4);
+        const spotY = boss.y + offsetY + boss.h * (0.3 + Math.random() * 0.4) * scale;
+        ctx.beginPath();
+        ctx.arc(spotX, spotY, boss.w * 0.08 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // Eyes (golden)
+      ctx.fillStyle = '#FFD700';
+      const eyeSize = boss.w * 0.08 * scale;
+      ctx.beginPath();
+      ctx.arc(boss.x + boss.w * 0.4, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(boss.x + boss.w * 0.6, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pupils
+      ctx.fillStyle = boss.state === 'charging' ? '#ff0000' : '#000';
+      ctx.beginPath();
+      ctx.arc(boss.x + boss.w * 0.4, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(boss.x + boss.w * 0.6, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+    }
+
+    function drawBossArmor(boss, withSpikes) {
+      // Armor plating
+      ctx.strokeStyle = '#4A4A4A';
+      ctx.fillStyle = '#2A2A2A';
+      ctx.lineWidth = 3;
+
+      const armorPieces = [
+        { x: 0.3, y: 0.3, w: 0.4, h: 0.25 },
+        { x: 0.25, y: 0.5, w: 0.5, h: 0.2 },
+        { x: 0.35, y: 0.65, w: 0.3, h: 0.15 }
+      ];
+
+      for (const piece of armorPieces) {
+        const px = boss.x + boss.w * piece.x;
+        const py = boss.y + boss.h * piece.y;
+        const pw = boss.w * piece.w;
+        const ph = boss.h * piece.h;
+
+        roundRect(px, py, pw, ph, 5, true, true);
+
+        // Armor rivets
+        ctx.fillStyle = '#5A5A5A';
+        ctx.beginPath();
+        ctx.arc(px + 5, py + 5, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(px + pw - 5, py + 5, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Spikes if variation is 'spikes'
+      if (withSpikes) {
+        ctx.fillStyle = '#8B0000';
+        ctx.strokeStyle = '#FF0000';
+        ctx.lineWidth = 2;
+
+        const spikeCount = 6;
+        for (let i = 0; i < spikeCount; i++) {
+          const angle = (Math.PI * 2 * i) / spikeCount;
+          const baseX = boss.x + boss.w / 2 + Math.cos(angle) * boss.w * 0.35;
+          const baseY = boss.y + boss.h / 2 + Math.sin(angle) * boss.h * 0.35;
+          const tipX = baseX + Math.cos(angle) * boss.w * 0.15;
+          const tipY = baseY + Math.sin(angle) * boss.h * 0.15;
+
+          ctx.beginPath();
+          ctx.moveTo(baseX - Math.cos(angle + Math.PI / 2) * 5, baseY - Math.sin(angle + Math.PI / 2) * 5);
+          ctx.lineTo(tipX, tipY);
+          ctx.lineTo(baseX + Math.cos(angle + Math.PI / 2) * 5, baseY + Math.sin(angle + Math.PI / 2) * 5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
     }
 
     // Draw lasers
@@ -1825,7 +2804,7 @@
       }
 
       // Start music with proper user interaction
-      playMusic('level');
+      playMusic(getLevelMusicTrack());
     }
   }
 
@@ -1835,6 +2814,69 @@
     startGame();
   });
 
+  // Draw robot bunny on start screen
+  function drawStartScreenBunny() {
+    const startCanvas = document.getElementById('start-bunny-canvas');
+    if (!startCanvas) return;
+
+    const sctx = startCanvas.getContext('2d');
+    const scale = 1.0;
+    const w = 48 * scale;
+    const h = 64 * scale;
+
+    sctx.clearRect(0, 0, startCanvas.width, startCanvas.height);
+    sctx.save();
+    sctx.translate(startCanvas.width / 2, startCanvas.height / 2);
+    sctx.translate(-w / 2, -h / 2);
+
+    // Draw body
+    sctx.fillStyle = '#aeb7c4';
+    sctx.strokeStyle = '#738096';
+    sctx.lineWidth = 2 * scale;
+    sctx.beginPath();
+    sctx.roundRect(4 * scale, 6 * scale, w - 8 * scale, h - 14 * scale, 10 * scale);
+    sctx.fill();
+    sctx.stroke();
+
+    // Draw feet
+    sctx.fillStyle = '#8c97a7';
+    sctx.beginPath();
+    sctx.roundRect(2 * scale, h - 12 * scale, w * 0.42, 12 * scale, 6 * scale);
+    sctx.fill();
+    sctx.beginPath();
+    sctx.roundRect(w - w * 0.42 - 2 * scale, h - 12 * scale, w * 0.42, 12 * scale, 6 * scale);
+    sctx.fill();
+
+    // Draw ears
+    const earW = w * 0.2, earH = h * 0.7;
+    sctx.fillStyle = '#aeb7c4';
+    sctx.strokeStyle = '#738096';
+    sctx.beginPath();
+    sctx.roundRect(w * 0.2, -earH * 0.4, earW, earH, 8 * scale);
+    sctx.fill();
+    sctx.stroke();
+    sctx.beginPath();
+    sctx.roundRect(w * 0.6, -earH * 0.3, earW, earH, 8 * scale);
+    sctx.fill();
+    sctx.stroke();
+
+    // Draw visor
+    sctx.fillStyle = '#0d131a';
+    sctx.beginPath();
+    sctx.roundRect(w * 0.25, h * 0.35, w * 0.5, h * 0.18, 8 * scale);
+    sctx.fill();
+
+    // Draw visor glow
+    sctx.globalCompositeOperation = 'lighter';
+    sctx.fillStyle = '#7be2ff';
+    sctx.beginPath();
+    sctx.roundRect(w * 0.3, h * 0.4, w * 0.4, h * 0.08, 5 * scale);
+    sctx.fill();
+    sctx.globalCompositeOperation = 'source-over';
+
+    sctx.restore();
+  }
+
   // ============ INITIALIZATION ============
   // Update hint text for mobile
   const isMobileDevice = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
@@ -1843,6 +2885,8 @@
   }
 
   initBackground();
+  drawStartScreenBunny();
+
   for (let i = 0; i < 3; i++) {
     loadNextSegment();
   }
