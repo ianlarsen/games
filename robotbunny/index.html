@@ -256,9 +256,11 @@
   }
 
   // Render shapes from JSON definition
-  function renderShapes(shapes, scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0) {
+  function renderShapes(shapes, scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0, colorOverride = null) {
     for (const shape of shapes) {
       ctx.save();
+
+      const shapeColor = colorOverride || shape.color;
 
       if (shape.type === 'rhombus') {
         // Draw rhombus (diamond shape)
@@ -267,8 +269,8 @@
         const w = shape.w * scaleX;
         const h = shape.h * scaleY;
 
-        ctx.fillStyle = shape.color;
-        ctx.strokeStyle = shape.color;
+        ctx.fillStyle = shapeColor;
+        ctx.strokeStyle = shapeColor;
         ctx.lineWidth = shape.lineWidth || 1;
 
         ctx.beginPath();
@@ -287,8 +289,8 @@
         const rx = shape.rx * Math.abs(scaleX);
         const ry = shape.ry * Math.abs(scaleY);
 
-        ctx.fillStyle = shape.color;
-        ctx.strokeStyle = shape.color;
+        ctx.fillStyle = shapeColor;
+        ctx.strokeStyle = shapeColor;
         ctx.lineWidth = shape.lineWidth || 1;
 
         ctx.beginPath();
@@ -303,8 +305,8 @@
         const w = shape.w * scaleX;
         const h = shape.h * scaleY;
 
-        ctx.fillStyle = shape.color;
-        ctx.strokeStyle = shape.color;
+        ctx.fillStyle = shapeColor;
+        ctx.strokeStyle = shapeColor;
         ctx.lineWidth = shape.lineWidth || 1;
 
         ctx.beginPath();
@@ -312,6 +314,22 @@
         ctx.lineTo(x + w, y); // Base right
         ctx.lineTo(x + w / 2, y + h); // Tip
         ctx.closePath();
+
+        if (shape.fill) ctx.fill();
+        else ctx.stroke();
+      } else if (shape.type === 'rect') {
+        // Draw rectangle
+        const x = shape.x * scaleX + offsetX;
+        const y = shape.y * scaleY + offsetY;
+        const w = shape.w * scaleX;
+        const h = shape.h * scaleY;
+
+        ctx.fillStyle = shapeColor;
+        ctx.strokeStyle = shapeColor;
+        ctx.lineWidth = shape.lineWidth || 1;
+
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
 
         if (shape.fill) ctx.fill();
         else ctx.stroke();
@@ -585,6 +603,82 @@
     }
   ];
 
+  const tankShape = [
+    {
+      "type": "rect",
+      "x": 86.39999389648438,
+      "y": 116.2000732421875,
+      "w": 324,
+      "h": 62.399932861328125,
+      "color": "#25d471",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 253.19998168945312,
+      "cy": 181.00003051757812,
+      "rx": 122,
+      "ry": 47.20001220703125,
+      "color": "#25d471",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "rect",
+      "x": 206.39999389648438,
+      "y": 224.20004272460938,
+      "w": 92.79998779296875,
+      "h": 15.199951171875,
+      "color": "#0d0d0d",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "rect",
+      "x": 222.39999389648438,
+      "y": 239.39999389648438,
+      "w": 60.79998779296875,
+      "h": 17.60003662109375,
+      "color": "#25d471",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "rect",
+      "x": 247.19998168945312,
+      "y": 257.0000305175781,
+      "w": 12,
+      "h": 116.79998779296875,
+      "color": "#0d0d0d",
+      "fill": true,
+      "lineWidth": 3
+    }
+  ];
+
+  const tankProjectileShape = [
+    {
+      "type": "circle",
+      "cx": 253.60000610351562,
+      "cy": 425.8000030517578,
+      "rx": 12.79998779296875,
+      "ry": 36,
+      "color": "#f51919",
+      "fill": true,
+      "lineWidth": 3
+    },
+    {
+      "type": "circle",
+      "cx": 253.19998168945312,
+      "cy": 427.80001068115234,
+      "rx": 6,
+      "ry": 23.599990844726562,
+      "color": "#ec823c",
+      "fill": true,
+      "lineWidth": 3
+    }
+  ];
+
   // ============ GAME STATE ============
   let gameState = 'playing'; // playing, levelComplete, shop, gameOver, bossIntro
   let gameStarted = false;
@@ -601,6 +695,44 @@
   // ============ PERSISTENT DATA ============
   let totalCoins = parseInt(localStorage.getItem('rb_endless_coins') || '0');
   let highestLevel = parseInt(localStorage.getItem('rb_endless_highest') || '1');
+  let highScore = parseInt(localStorage.getItem('rb_high_score') || '0');
+  let loopNumber = 0; // Current loop (0 = first playthrough, 1 = first loop, etc.)
+
+  // Color palettes for each loop (enemies, platforms, accents)
+  const colorPalettes = [
+    { // Loop 0 (original)
+      hopper: '#9b59b6', walker: '#a890d0', flyer: '#b0c4ff', tank: '#4a9e4a', projectile: '#ff3333',
+      platform: '#666', accent: '#8844ff', stars: ['#ffffff', '#ffeecc', '#eeffff']
+    },
+    { // Loop 1 - Red/Orange theme
+      hopper: '#e74c3c', walker: '#d98c7f', flyer: '#ffb0a0', tank: '#c23636', projectile: '#ff6b35',
+      platform: '#8b4513', accent: '#ff4500', stars: ['#ffe4b5', '#ffd700', '#ffcccb']
+    },
+    { // Loop 2 - Green/Cyan theme
+      hopper: '#2ecc71', walker: '#7fccb0', flyer: '#a0ffcc', tank: '#1e8449', projectile: '#00ffcc',
+      platform: '#2c5f4f', accent: '#00ff88', stars: ['#e0ffe0', '#ccffee', '#aaffdd']
+    },
+    { // Loop 3 - Yellow/Gold theme
+      hopper: '#f39c12', walker: '#f0c57f', flyer: '#ffe0a0', tank: '#d68910', projectile: '#ffd700',
+      platform: '#8b6914', accent: '#ffaa00', stars: ['#ffffcc', '#fff8dc', '#ffeaa7']
+    },
+    { // Loop 4 - Pink/Magenta theme
+      hopper: '#e91e63', walker: '#d98cb0', flyer: '#ffb0d0', tank: '#ad1457', projectile: '#ff1493',
+      platform: '#6b2c4f', accent: '#ff69b4', stars: ['#ffe0f0', '#ffc0e0', '#ffb0d8']
+    },
+    { // Loop 5 - Blue/Teal theme
+      hopper: '#3498db', walker: '#7fb0d9', flyer: '#a0d0ff', tank: '#2471a3', projectile: '#00bfff',
+      platform: '#2c4f6b', accent: '#1e90ff', stars: ['#e0f0ff', '#cce5ff', '#b0d8ff']
+    },
+    { // Loop 6 - Purple/Violet theme
+      hopper: '#8e44ad', walker: '#b98cc0', flyer: '#d0b0ff', tank: '#6c3483', projectile: '#9370db',
+      platform: '#4a2c5f', accent: '#ba55d3', stars: ['#f0e0ff', '#e5ccff', '#d8b0ff']
+    },
+    { // Loop 7 - Orange/Brown theme
+      hopper: '#e67e22', walker: '#d9a87f', flyer: '#ffc8a0', tank: '#ca6f1e', projectile: '#ff8c00',
+      platform: '#6b4a2c', accent: '#ff7f00', stars: ['#ffe8d5', '#ffd8b5', '#ffc895']
+    }
+  ];
 
   // Permanent upgrades (persist across runs)
   const permanentUpgrades = {
@@ -614,11 +746,57 @@
   function saveProgress() {
     localStorage.setItem('rb_endless_coins', totalCoins);
     localStorage.setItem('rb_endless_highest', highestLevel);
+    localStorage.setItem('rb_high_score', highScore);
     localStorage.setItem('rb_upg_health', permanentUpgrades.maxHealth);
     localStorage.setItem('rb_upg_speed', permanentUpgrades.moveSpeed);
     localStorage.setItem('rb_upg_jump', permanentUpgrades.jumpPower);
     localStorage.setItem('rb_upg_damage', permanentUpgrades.damage);
     localStorage.setItem('rb_upg_coins', permanentUpgrades.coinMultiplier);
+  }
+
+  function getCurrentPalette() {
+    // Cycle through palettes, wrapping around
+    return colorPalettes[loopNumber % colorPalettes.length];
+  }
+
+  // Map original colors to palette colors for shaped enemies
+  function getPaletteColorMap(enemyType) {
+    const palette = getCurrentPalette();
+    const colorMaps = {
+      hopper: {
+        '#9b59b6': palette.hopper, // Main body
+        '#7b3996': palette.hopper, // Keep same for outlines (will be handled by shape)
+        '#000000': '#000000', // Keep black for eyes
+        '#ffffff': '#ffffff'  // Keep white for pupils
+      },
+      flyer: {
+        '#b0c4ff': palette.flyer, // Main body
+        '#8ca4df': palette.flyer, // Outlines/details
+        '#000000': '#000000'  // Eyes
+      },
+      tank: {
+        '#4a9e4a': palette.tank, // Main body
+        '#3a7e3a': palette.tank, // Darker parts
+        '#2a6e2a': palette.tank  // Darkest parts
+      }
+    };
+    return colorMaps[enemyType] || {};
+  }
+
+  function applyPaletteToShape(shape, colorMap) {
+    if (colorMap[shape.color]) {
+      return { ...shape, color: colorMap[shape.color] };
+    }
+    return shape;
+  }
+
+  function getLoopMultiplier() {
+    // Each loop increases speed by 10% and enemy health by 15%
+    return {
+      speed: 1 + (loopNumber * 0.1),
+      health: 1 + (loopNumber * 0.15),
+      enemySpeed: 1 + (loopNumber * 0.12)
+    };
   }
 
   // ============ PLAYER ============
@@ -725,6 +903,62 @@
     // Levels 1-10 have specific tracks, after that cycle back
     const levelNum = ((currentLevel - 1) % 10) + 1;
     return `level${levelNum}`;
+  }
+
+  // Unlock audio on mobile devices - must be called during user interaction
+  async function unlockAudio() {
+    if (musicReady) return; // Already unlocked
+
+    console.log('Unlocking audio for mobile...');
+
+    const unlockPromises = [];
+
+    // Unlock all music tracks
+    for (const trackName in musicTracks) {
+      const track = musicTracks[trackName];
+      const originalVolume = track.volume;
+      track.volume = 0;
+
+      const promise = track.play()
+        .then(() => {
+          track.pause();
+          track.currentTime = 0;
+          track.volume = 0.4;
+          console.log(`Unlocked music: ${trackName}`);
+        })
+        .catch(e => {
+          console.log(`Failed to unlock ${trackName}:`, e.message);
+          track.volume = 0.4; // Restore volume anyway
+        });
+
+      unlockPromises.push(promise);
+    }
+
+    // Unlock all sound effects
+    for (const sfxName in soundEffects) {
+      const sfx = soundEffects[sfxName];
+      sfx.volume = 0;
+
+      const promise = sfx.play()
+        .then(() => {
+          sfx.pause();
+          sfx.currentTime = 0;
+          sfx.volume = 0.6;
+          console.log(`Unlocked SFX: ${sfxName}`);
+        })
+        .catch(e => {
+          console.log(`Failed to unlock ${sfxName}:`, e.message);
+          sfx.volume = 0.6; // Restore volume anyway
+        });
+
+      unlockPromises.push(promise);
+    }
+
+    // Wait for all unlock attempts to complete
+    await Promise.allSettled(unlockPromises);
+
+    musicReady = true;
+    console.log('Audio unlock complete!');
   }
 
   function playMusic(trackName) {
@@ -990,24 +1224,33 @@
       if (Math.random() < 0.35 + (2 - currentPath) * 0.1) {
         const enemyTypes = ['hopper', 'walker'];
         if (difficulty >= 3) enemyTypes.push('flyer');
+        if (difficulty >= 8) enemyTypes.push('tank');
         const type = enemyTypes[randInt(0, enemyTypes.length - 1)];
+        const loopMult = getLoopMultiplier();
+
+        const baseHealth = type === 'tank' ? (3 + Math.floor(difficulty / 4)) : (1 + Math.floor(difficulty / 4));
+        const scaledHealth = Math.floor(baseHealth * loopMult.health);
+        const baseSpeed = type === 'tank' ? 0 : ((type === 'walker' ? 80 : (type === 'flyer' ? 100 : 50)) * (1 + difficulty * 0.04));
+        const scaledSpeed = baseSpeed * loopMult.enemySpeed;
 
         const enemy = {
           type: type,
           x: currentX + rand(10, platformW - 50),
-          y: currentY - (type === 'flyer' ? 80 : 30),
-          w: type === 'flyer' ? 45 : (type === 'walker' ? 35 : 40),
-          h: type === 'flyer' ? 25 : 30,
-          vx: (type === 'walker' ? 80 : (type === 'flyer' ? 100 : 50)) * (1 + difficulty * 0.04),
+          y: type === 'tank' ? currentY - 200 : (currentY - (type === 'flyer' ? 80 : 30)),
+          w: type === 'tank' ? 80 : (type === 'flyer' ? 45 : (type === 'walker' ? 35 : 40)),
+          h: type === 'tank' ? 70 : (type === 'flyer' ? 25 : 30),
+          vx: scaledSpeed,
           vy: 0,
-          health: 1 + Math.floor(difficulty / 4),
-          maxHealth: 1 + Math.floor(difficulty / 4),
+          health: scaledHealth,
+          maxHealth: scaledHealth,
           dir: Math.random() > 0.5 ? 1 : -1,
           animTimer: 0,
           rotateAngle: 0,
           bobT: rand(0, Math.PI * 2),
           flapTimer: 0,
-          jumpTimer: type === 'hopper' ? rand(1, 3) : 0
+          jumpTimer: type === 'hopper' ? rand(1, 3) : 0,
+          shootTimer: type === 'tank' ? rand(2, 4) : 0,
+          shootCooldown: type === 'tank' ? 3 : 0
         };
         segment.enemies.push(enemy);
       }
@@ -1098,6 +1341,9 @@
   function spawnBoss() {
     const bossX = nextSegmentX + 200;
     const config = getBossConfig(currentLevel);
+
+    // Clear all enemies when boss spawns
+    enemies.length = 0;
 
     // Base stats scaled by difficulty
     const baseHealth = 15;
@@ -1254,6 +1500,11 @@
 
     if (player.lives <= 0) {
       gameState = 'gameOver';
+      // Update high score on game over
+      if (score > highScore) {
+        highScore = score;
+      }
+      saveProgress();
       stopMusic();
       playSound('hit');
       vibrate([100, 50, 100]); // Haptic feedback for game over
@@ -1294,11 +1545,22 @@
     if (currentLevel > highestLevel) {
       highestLevel = currentLevel;
     }
+    // Update high score
+    if (score > highScore) {
+      highScore = score;
+    }
     saveProgress();
   }
 
   function startNextLevel() {
     currentLevel++;
+
+    // After level 10, loop back to level 1 with increased difficulty
+    if (currentLevel > 10) {
+      currentLevel = 1;
+      loopNumber++;
+    }
+
     segmentsInLevel = 0;
     boss = null;
     levelGoal = null;
@@ -1329,7 +1591,8 @@
   }
 
   function updateHUD() {
-    document.getElementById('level').textContent = `Level ${currentLevel}`;
+    const loopText = loopNumber > 0 ? ` (Loop ${loopNumber})` : '';
+    document.getElementById('level').textContent = `Level ${currentLevel}${loopText}`;
     document.getElementById('lives').textContent = `×${player.lives}`;
     document.getElementById('score').textContent = Math.floor(score);
     document.getElementById('coins').textContent = player.sessionCoins + totalCoins;
@@ -1437,9 +1700,10 @@
       player.animState = 'jump';
     }
 
-    // Movement with upgrades
-    const speedBonus = 1 + permanentUpgrades.moveSpeed * 0.15;
-    const jumpBonus = 1 + permanentUpgrades.jumpPower * 0.12;
+    // Movement with upgrades and loop multiplier
+    const loopMult = getLoopMultiplier();
+    const speedBonus = (1 + permanentUpgrades.moveSpeed * 0.15) * loopMult.speed;
+    const jumpBonus = (1 + permanentUpgrades.jumpPower * 0.12) * loopMult.speed;
 
     const moveLeft = keys.ArrowLeft;
     const moveRight = keys.ArrowRight;
@@ -1647,6 +1911,30 @@
           if (enemy.x < camera.x - 50 || enemy.x > camera.x + canvas.width + 50) {
             enemy.dir *= -1;
           }
+        } else if (enemy.type === 'tank') {
+          // Tanks are stationary but shoot at the player
+          enemy.shootTimer -= dt;
+
+          if (enemy.shootTimer <= 0) {
+            // Shoot a projectile at the player
+            const tankCenterX = enemy.x + enemy.w / 2;
+            const tankCenterY = enemy.y + enemy.h;
+
+            lasers.push({
+              x: tankCenterX,
+              y: tankCenterY,
+              w: 12,
+              h: 24,
+              vx: 0,
+              vy: 400, // Projectile falls downward
+              damage: 0,
+              isBossProjectile: true, // Treat as enemy projectile
+              isTankProjectile: true
+            });
+
+            playSound('shoot', 0.08);
+            enemy.shootTimer = enemy.shootCooldown;
+          }
         }
 
         if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
@@ -1747,6 +2035,7 @@
     ctx.translate(-camera.x, -camera.y);
 
     // Draw platforms with path indicators
+    const palette = getCurrentPalette();
     for (const segment of segments) {
       for (const plat of segment.platforms) {
         if (plat.type === 'ground') {
@@ -1755,9 +2044,8 @@
           ctx.fillStyle = '#1b1f26';
           ctx.fillRect(plat.x, plat.y + 20, plat.w, plat.h - 20);
         } else {
-          // Color platforms by path
-          const pathColors = ['#3a5570', '#5a6580', '#7a8590'];
-          ctx.fillStyle = pathColors[plat.path] || '#3a5570';
+          // Color platforms by path using palette
+          ctx.fillStyle = palette.platform;
           ctx.strokeStyle = '#2a4050';
           ctx.lineWidth = 2;
           roundRect(plat.x, plat.y, plat.w, plat.h, 4, true, true);
@@ -1906,9 +2194,13 @@
           // Animated feet rotation when jumping (point toes down)
           const feetRotation = enemy.vy !== 0 ? Math.PI / 6 : 0; // 30 degrees when airborne
 
+          // Apply palette colors
+          const colorMap = getPaletteColorMap('hopper');
+          const palettedHopperShape = hopperShape.map(s => applyPaletteToShape(s, colorMap));
+
           ctx.save();
           // Draw body first
-          const bodyShapes = hopperShape.filter((s, i) => i === 0); // Just the rhombus
+          const bodyShapes = palettedHopperShape.filter((s, i) => i === 0); // Just the rhombus
           const offsetX = -214 * scaleX;
           const offsetY = -279 * scaleY;
           renderShapes(bodyShapes, scaleX, scaleY, offsetX, offsetY);
@@ -1927,7 +2219,7 @@
             ctx.translate(-leftFootCenterX, -leftFootCenterY);
           }
 
-          const feetShapes = hopperShape.filter((s, i) => i === 1 || i === 2 || i === 7 || i === 8); // Feet and outlines
+          const feetShapes = palettedHopperShape.filter((s, i) => i === 1 || i === 2 || i === 7 || i === 8); // Feet and outlines
           renderShapes(feetShapes, scaleX, scaleY, offsetX, offsetY);
 
           if (feetRotation !== 0) {
@@ -1935,24 +2227,38 @@
           }
 
           // Draw eyes and mouth (always on top)
-          const faceShapes = hopperShape.filter((s, i) => i >= 3 && i <= 6 || i === 9); // Eyes, pupils, mouth
+          const faceShapes = palettedHopperShape.filter((s, i) => i >= 3 && i <= 6 || i === 9); // Eyes, pupils, mouth
           renderShapes(faceShapes, scaleX, scaleY, offsetX, offsetY);
 
           ctx.restore();
         } else if (enemy.type === 'walker') {
           ctx.rotate(enemy.rotateAngle);
 
-          // Draw filled circle background
-          ctx.fillStyle = '#a890d0';
-          ctx.strokeStyle = '#7860a0';
+          // Draw filled circle background with current palette
+          const palette = getCurrentPalette();
+          ctx.fillStyle = palette.walker;
+          // Darken stroke by 20%
+          const darker = palette.walker.replace(/[0-9a-f]{6}/i, m => {
+            const r = Math.max(0, parseInt(m.substr(0, 2), 16) - 30).toString(16).padStart(2, '0');
+            const g = Math.max(0, parseInt(m.substr(2, 2), 16) - 30).toString(16).padStart(2, '0');
+            const b = Math.max(0, parseInt(m.substr(4, 2), 16) - 30).toString(16).padStart(2, '0');
+            return r + g + b;
+          });
+          ctx.strokeStyle = '#' + darker;
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(0, 0, enemy.w / 2, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
 
-          // Draw spiral that rotates with the walker
-          ctx.strokeStyle = '#5a4080';
+          // Draw spiral that rotates with the walker (even darker)
+          const darkest = darker.replace(/[0-9a-f]{6}/i, m => {
+            const r = Math.max(0, parseInt(m.substr(0, 2), 16) - 20).toString(16).padStart(2, '0');
+            const g = Math.max(0, parseInt(m.substr(2, 2), 16) - 20).toString(16).padStart(2, '0');
+            const b = Math.max(0, parseInt(m.substr(4, 2), 16) - 20).toString(16).padStart(2, '0');
+            return r + g + b;
+          });
+          ctx.strokeStyle = '#' + darkest;
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           const radius = enemy.w / 2;
@@ -1975,8 +2281,9 @@
           const wobble = Math.sin(enemy.bobT) * 3;
           ctx.translate(0, wobble);
 
-          // Calculate wing flapping animation
-          const wingFlap = Math.sin(enemy.flapTimer) * 0.3 + 0.7; // Oscillates between 0.4 and 1.0
+          // Calculate wing flapping animation - flaps down crossing body, then back up
+          // Oscillates from 1.0 (up) to -0.8 (down crossing body) and back
+          const wingFlap = Math.sin(enemy.flapTimer) * 0.9; // Oscillates between -0.9 and 0.9
 
           // Scale to fit enemy dimensions (original design is ~240x46)
           let scaleX = (enemy.w / 240);
@@ -1988,16 +2295,20 @@
           const offsetX = -226 * scaleX;
           const offsetY = -242 * scaleY;
 
+          // Apply palette colors
+          const colorMap = getPaletteColorMap('flyer');
+          const palettedFlyerShape = flyerShape.map(s => applyPaletteToShape(s, colorMap));
+
           ctx.save();
 
           // Draw body first (indices 0-1)
-          const bodyShapes = flyerShape.filter((s, i) => i === 0 || i === 1);
+          const bodyShapes = palettedFlyerShape.filter((s, i) => i === 0 || i === 1);
           renderShapes(bodyShapes, scaleX, scaleY, offsetX, offsetY);
 
           // Draw wings with flapping animation (indices 4-7: the triangular wings)
-          const wingShapes = flyerShape.filter((s, i) => i >= 4 && i <= 7).map(shape => {
+          const wingShapes = palettedFlyerShape.filter((s, i) => i >= 4 && i <= 7).map(shape => {
             if (shape.type === 'triangle' && Math.abs(shape.h) > 10) {
-              // Apply wing flap to height
+              // Apply wing flap - negative values make wings cross the body
               return { ...shape, h: shape.h * wingFlap };
             }
             return shape;
@@ -2005,10 +2316,24 @@
           renderShapes(wingShapes, scaleX, scaleY, offsetX, offsetY);
 
           // Draw eye - it faces direction of travel due to horizontal flip (indices 10-14)
-          const eyeShapes = flyerShape.filter((s, i) => i >= 10 && i <= 14);
+          const eyeShapes = palettedFlyerShape.filter((s, i) => i >= 10 && i <= 14);
           renderShapes(eyeShapes, scaleX, scaleY, offsetX, offsetY);
 
           ctx.restore();
+        } else if (enemy.type === 'tank') {
+          // Scale to fit enemy dimensions (original design is ~324x258)
+          const scaleX = enemy.w / 324;
+          const scaleY = enemy.h / 258;
+
+          // Center the design (original center is around x:253, y:187)
+          const offsetX = -253 * scaleX;
+          const offsetY = -187 * scaleY;
+
+          // Apply palette colors
+          const colorMap = getPaletteColorMap('tank');
+          const palettedTankShape = tankShape.map(s => applyPaletteToShape(s, colorMap));
+
+          renderShapes(palettedTankShape, scaleX, scaleY, offsetX, offsetY);
         }
 
         // Health bar
@@ -2493,7 +2818,16 @@
 
     // Draw lasers
     for (const laser of lasers) {
-      if (laser.isBossProjectile) {
+      if (laser.isTankProjectile) {
+        ctx.save();
+        ctx.translate(laser.x + laser.w / 2, laser.y + laser.h / 2);
+        const scaleX = laser.w / 12.8;
+        const scaleY = laser.h / 36;
+        const offsetX = -253.6 * scaleX;
+        const offsetY = -425.8 * scaleY;
+        renderShapes(tankProjectileShape, scaleX, scaleY, offsetX, offsetY);
+        ctx.restore();
+      } else if (laser.isBossProjectile) {
         ctx.fillStyle = '#ff5555';
         ctx.shadowColor = '#ff0000';
         ctx.shadowBlur = 10;
@@ -2599,6 +2933,7 @@
       ctx.font = '20px sans-serif';
       ctx.fillText(`Coins Earned: ${player.sessionCoins}`, canvas.width / 2, canvas.height / 2 - 20);
       ctx.fillText(`Score: ${Math.floor(score)}`, canvas.width / 2, canvas.height / 2 + 10);
+      ctx.fillText(`High Score: ${Math.floor(highScore)}`, canvas.width / 2, canvas.height / 2 + 40);
 
       ctx.fillStyle = '#7be2ff';
       ctx.font = 'bold 24px sans-serif';
@@ -2619,9 +2954,11 @@
 
       ctx.fillStyle = '#9fb1cc';
       ctx.font = '20px sans-serif';
-      ctx.fillText(`Level Reached: ${currentLevel}`, canvas.width / 2, canvas.height / 2 - 10);
+      const loopText = loopNumber > 0 ? ` (Loop ${loopNumber})` : '';
+      ctx.fillText(`Level Reached: ${currentLevel}${loopText}`, canvas.width / 2, canvas.height / 2 - 10);
       ctx.fillText(`Score: ${Math.floor(score)}`, canvas.width / 2, canvas.height / 2 + 20);
-      ctx.fillText(`Total Coins: ${totalCoins}`, canvas.width / 2, canvas.height / 2 + 50);
+      ctx.fillText(`High Score: ${Math.floor(highScore)}`, canvas.width / 2, canvas.height / 2 + 50);
+      ctx.fillText(`Total Coins: ${totalCoins}`, canvas.width / 2, canvas.height / 2 + 80);
 
       ctx.fillStyle = '#FFD700';
       ctx.font = 'bold 24px sans-serif';
@@ -2793,15 +3130,18 @@
   // ============ START SCREEN ============
   const startScreen = document.getElementById('start-screen');
 
-  function startGame() {
+  async function startGame() {
     if (!gameStarted) {
       gameStarted = true;
       startScreen.classList.add('hidden');
 
       // Resume audio context (required by some browsers)
       if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        await audioCtx.resume();
       }
+
+      // Unlock all audio for mobile devices
+      await unlockAudio();
 
       // Start music with proper user interaction
       playMusic(getLevelMusicTrack());
