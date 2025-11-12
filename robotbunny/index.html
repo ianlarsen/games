@@ -3,20 +3,23 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Robot Bunny Platformer — Endless Moon Edition</title>
+<title>Robot Bunny On The Moon</title>
 <style>
   :root {
     --bg-deep: #000000;
-    --bg-halo: #0a0f18;
   }
   html, body { height: 100%; margin: 0; background: var(--bg-deep); color: #e6edf3; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; overflow: hidden; }
   #wrap { display: grid; place-items: center; height: 100%; }
   canvas {
-    background: radial-gradient(1000px 600px at 50% -200px, var(--bg-halo), var(--bg-deep) 55%);
+    background: #000;
     width: min(100vw, 960px);
     height: min(62vh, 560px);
     border-radius: 12px;
-    box-shadow: 0 12px 36px rgba(0,0,0,.45), inset 0 0 80px rgba(123,226,255,0.03);
+    box-shadow: 0 12px 36px rgba(0,0,0,.45);
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
   }
   @media (max-width: 768px), (pointer: coarse) {
     canvas {
@@ -42,16 +45,9 @@
   }
   .combo-display.active { display: block; }
   @media (max-width: 768px), (pointer: coarse) {
-    .combo-display {
-      top: 60px;
-      right: 10px;
-      font-size: 24px;
-    }
+    .combo-display { top: 60px; right: 10px; font-size: 24px; }
   }
-  @keyframes pulse {
-    from { transform: scale(1); }
-    to { transform: scale(1.1); }
-  }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
   .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: .8; font-size: 12px; color: #9fb1cc; text-align: center; max-width: 90vw; }
   .badge { position: fixed; top: 10px; right: 14px; font-size: 11px; color: #9fb1cc; opacity: .8; }
   @media (max-width: 768px), (pointer: coarse) {
@@ -66,10 +62,6 @@
     -webkit-tap-highlight-color: transparent;
   }
   .start-screen.hidden { display: none; }
-  #start-bunny-canvas {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-  }
   .start-title {
     font-size: 48px; font-weight: 900;
     font-family: 'Impact', 'Arial Black', sans-serif;
@@ -81,26 +73,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    position: relative;
-  }
-  .start-title::before,
-  .start-title::after {
-    content: attr(data-text);
-    position: absolute;
-    left: 0;
-    right: 0;
-  }
-  .start-title::before {
-    top: -2px;
-    color: #fff;
-    opacity: 0.3;
-    z-index: -1;
-  }
-  .start-title::after {
-    top: 2px;
-    color: #000;
-    opacity: 0.5;
-    z-index: -2;
   }
   .start-button {
     padding: 20px 60px; font-size: 28px; font-weight: bold; color: #7be2ff;
@@ -114,25 +86,12 @@
     background: rgba(123,226,255,0.2); box-shadow: 0 0 20px rgba(123,226,255,0.5);
     transform: scale(1.05);
   }
-  @media (max-width: 768px) {
-    .start-title { font-size: 32px; }
-    .start-button {
-      padding: 25px 50px;
-      font-size: 24px;
-      min-width: 200px;
-    }
-  }
+  #loading-text { color: #7be2ff; font-family: sans-serif; font-weight: bold; }
 
   /* Mobile Controls */
   .mobile-controls {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 180px;
-    display: none;
-    pointer-events: none;
-    z-index: 100;
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 180px;
+    display: none; pointer-events: none; z-index: 100;
   }
   @media (max-width: 768px), (pointer: coarse) {
     .mobile-controls { display: block; }
@@ -140,58 +99,18 @@
     .hud-item { padding: 2px 6px; }
   }
   .mobile-btn {
-    position: absolute;
-    background: rgba(123, 226, 255, 0.2);
-    border: 3px solid rgba(123, 226, 255, 0.5);
-    border-radius: 50%;
-    color: #7be2ff;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none;
-    pointer-events: auto;
-    -webkit-tap-highlight-color: transparent;
+    position: absolute; background: rgba(123, 226, 255, 0.2);
+    border: 3px solid rgba(123, 226, 255, 0.5); border-radius: 50%;
+    color: #7be2ff; font-size: 24px; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; user-select: none; -webkit-user-select: none; touch-action: none;
+    pointer-events: auto; -webkit-tap-highlight-color: transparent;
     box-shadow: 0 0 15px rgba(123, 226, 255, 0.3);
   }
-  .mobile-btn:active {
-    background: rgba(123, 226, 255, 0.3);
-    border-color: rgba(123, 226, 255, 0.6);
-    transform: scale(0.95);
-  }
-  .mobile-btn.pressed {
-    background: rgba(123, 226, 255, 0.4);
-    border-color: rgba(123, 226, 255, 0.8);
-  }
-  #mobile-left {
-    left: 15px;
-    bottom: 15px;
-    width: 80px;
-    height: 80px;
-  }
-  #mobile-right {
-    left: 110px;
-    bottom: 15px;
-    width: 80px;
-    height: 80px;
-  }
-  #mobile-jump {
-    right: 110px;
-    bottom: 15px;
-    width: 90px;
-    height: 90px;
-    font-size: 16px;
-  }
-  #mobile-shoot {
-    right: 15px;
-    bottom: 15px;
-    width: 80px;
-    height: 80px;
-    font-size: 28px;
-  }
+  .mobile-btn:active { background: rgba(123, 226, 255, 0.3); transform: scale(0.95); }
+  #mobile-left { left: 15px; bottom: 15px; width: 80px; height: 80px; }
+  #mobile-right { left: 110px; bottom: 15px; width: 80px; height: 80px; }
+  #mobile-jump { right: 110px; bottom: 15px; width: 90px; height: 90px; font-size: 16px; }
+  #mobile-shoot { right: 15px; bottom: 15px; width: 80px; height: 80px; font-size: 28px; }
 </style>
 </head>
 <body>
@@ -205,13 +124,16 @@
   <div class="hud-item"><span>🪙</span><span id="coins">0</span></div>
   <div class="hud-item"><span>⭐</span><span id="upgrades">Upgrades: 0</span></div>
 </div>
-<div class="combo-display" id="combo-display">COMBO x0</div>
+<div class="combo-display" id="combo-display">COMBO ×0</div>
 <div class="hint" id="hint-text">Move: ←→ • Jump: Space • Shoot: X • Pause: ESC</div>
-<div class="badge">Endless Edition</div>
+<div class="badge">Image Edition</div>
+
+<!-- Start Screen -->
 <div class="start-screen" id="start-screen">
-  <canvas id="start-bunny-canvas" width="48" height="64"></canvas>
-  <div class="start-title" data-text="ROBOT BUNNY">ROBOT BUNNY</div>
-  <div class="start-button">TAP TO START</div>
+  <canvas id="start-bunny-canvas" width="100" height="100"></canvas>
+  <div class="start-title" id="start-title">ROBOT BUNNY</div>
+  <div class="start-button" id="start-btn" style="display:none;">TAP TO START</div>
+  <div id="loading-text">LOADING ASSETS... 0%</div>
 </div>
 
 <div class="mobile-controls">
@@ -224,7 +146,89 @@
 <script>
 (() => {
   const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  let audioCtx; // created on first user gesture
+  let currentMusic = null;
+
+  // ============ ASSET LOADING ============
+  const assets = {};
+  const imageSources = {
+    player: 'images/robotbunny.png',
+    bg: 'images/moon-background.png',
+    ground: 'images/ground.png',
+    platform: 'images/platform.png',
+    hopper: 'images/hopper.png',
+    flyer: 'images/flyer.png',
+    heart: 'images/heart.png',
+    coin: 'images/coin.png',
+    // Bosses
+    squid: 'images/squid.png',
+    squid_armor: 'images/squid_armor.png',
+    squid_armor_spike: 'images/squid_armor_spike.png',
+    mantis: 'images/mantis.png',
+    mantis_armor: 'images/mantis_armor.png',
+    mantis_armor_spike: 'images/mantis_armor_spike.png',
+    sal: 'images/sal.png',
+    sal_armor: 'images/sal_armor.png',
+    sal_armor_spike: 'images/sal_armor_spike.png',
+    chimiera: 'images/chimiera.png'
+  };
+
+  const soundSources = {
+    level1: 'sounds/level1.mp3',
+    level2: 'sounds/level2.mp3',
+    level3: 'sounds/level3.mp3',
+    level4: 'sounds/level4.mp3',
+    level5: 'sounds/level5.mp3',
+    level6: 'sounds/level6.mp3',
+    level7: 'sounds/level7.mp3',
+    level8: 'sounds/level8.mp3',
+    level9: 'sounds/level9.mp3',
+    level10: 'sounds/level10.mp3',
+    boss: 'sounds/boss.mp3',
+    victory: 'sounds/victory.mp3'
+  };
+
+  let assetsToLoad = Object.keys(imageSources).length + Object.keys(soundSources).length;
+  let assetsLoaded = 0;
+  let gameReady = false;
+
+  function assetLoaded() {
+    assetsLoaded++;
+    const percent = Math.floor((assetsLoaded / assetsToLoad) * 100);
+    const loadingText = document.getElementById('loading-text');
+    if (loadingText) loadingText.textContent = `LOADING ASSETS... ${percent}%`;
+
+    if (assetsLoaded >= assetsToLoad) {
+      gameReady = true;
+      if (loadingText) loadingText.style.display = 'none';
+      const startBtn = document.getElementById('start-btn');
+      if (startBtn) startBtn.style.display = 'block';
+      drawStartScreenBunny();
+    }
+  }
+
+  function loadAssets() {
+    // Images
+    for (const [key, src] of Object.entries(imageSources)) {
+      const img = new Image();
+      img.onload = assetLoaded;
+      img.onerror = () => { console.error('Failed to load image:', src); assetLoaded(); };
+      assets[key] = img;
+      img.src = src;
+    }
+    // Sounds
+    for (const [key, src] of Object.entries(soundSources)) {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.addEventListener('canplaythrough', assetLoaded, { once: true });
+      audio.addEventListener('error', () => { console.error('Failed to load sound:', src); assetLoaded(); }, { once: true });
+      assets[key] = audio;
+      audio.src = src;
+      // Some browsers require explicit load() for non-DOM-attached Audio
+      try { audio.load(); } catch(e) {}
+    }
+  }
 
   function fit() {
     const maxW = Math.min(window.innerWidth, 960);
@@ -244,100 +248,6 @@
   function rectsOverlap(x1, y1, w1, h1, x2, y2, w2, h2) {
     return !(x1 + w1 < x2 || x1 > x2 + w2 || y1 + h1 < y2 || y1 > y2 + h2);
   }
-  function roundRect(x, y, w, h, r, fill, stroke) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    if (fill) ctx.fill();
-    if (stroke) ctx.stroke();
-  }
-
-  // Render shapes from JSON definition
-  function renderShapes(shapes, scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0, colorOverride = null) {
-    for (const shape of shapes) {
-      ctx.save();
-
-      const shapeColor = colorOverride || shape.color;
-
-      if (shape.type === 'rhombus') {
-        // Draw rhombus (diamond shape)
-        const x = shape.x * scaleX + offsetX;
-        const y = shape.y * scaleY + offsetY;
-        const w = shape.w * scaleX;
-        const h = shape.h * scaleY;
-
-        ctx.fillStyle = shapeColor;
-        ctx.strokeStyle = shapeColor;
-        ctx.lineWidth = shape.lineWidth || 1;
-
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + w / 2, y + h / 2);
-        ctx.lineTo(x, y + h);
-        ctx.lineTo(x - w / 2, y + h / 2);
-        ctx.closePath();
-
-        if (shape.fill) ctx.fill();
-        else ctx.stroke();
-      } else if (shape.type === 'circle') {
-        // Draw ellipse
-        const cx = shape.cx * scaleX + offsetX;
-        const cy = shape.cy * scaleY + offsetY;
-        const rx = shape.rx * Math.abs(scaleX);
-        const ry = shape.ry * Math.abs(scaleY);
-
-        ctx.fillStyle = shapeColor;
-        ctx.strokeStyle = shapeColor;
-        ctx.lineWidth = shape.lineWidth || 1;
-
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-
-        if (shape.fill) ctx.fill();
-        else ctx.stroke();
-      } else if (shape.type === 'triangle') {
-        // Draw triangle (x, y is base left, w is width, h is height to tip)
-        const x = shape.x * scaleX + offsetX;
-        const y = shape.y * scaleY + offsetY;
-        const w = shape.w * scaleX;
-        const h = shape.h * scaleY;
-
-        ctx.fillStyle = shapeColor;
-        ctx.strokeStyle = shapeColor;
-        ctx.lineWidth = shape.lineWidth || 1;
-
-        ctx.beginPath();
-        ctx.moveTo(x, y); // Base left
-        ctx.lineTo(x + w, y); // Base right
-        ctx.lineTo(x + w / 2, y + h); // Tip
-        ctx.closePath();
-
-        if (shape.fill) ctx.fill();
-        else ctx.stroke();
-      } else if (shape.type === 'rect') {
-        // Draw rectangle
-        const x = shape.x * scaleX + offsetX;
-        const y = shape.y * scaleY + offsetY;
-        const w = shape.w * scaleX;
-        const h = shape.h * scaleY;
-
-        ctx.fillStyle = shapeColor;
-        ctx.strokeStyle = shapeColor;
-        ctx.lineWidth = shape.lineWidth || 1;
-
-        ctx.beginPath();
-        ctx.rect(x, y, w, h);
-
-        if (shape.fill) ctx.fill();
-        else ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-  }
 
   // ============ CONSTANTS ============
   const GROUND_Y = canvas.height - 80;
@@ -346,457 +256,33 @@
   const moveSpeed = 250;
   const maxVelX = 350;
 
-  // ============ CHARACTER DESIGNS ============
-  const hopperShape = [
-    {
-      "type": "rhombus",
-      "x": 159.19998168945312,
-      "y": 313,
-      "w": 109.60003662109375,
-      "h": -68,
-      "color": "#ada4a4",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 262.3999938964844,
-      "cy": 304.6000061035156,
-      "rx": 39.20001220703125,
-      "ry": 5.199981689453125,
-      "color": "#ada4a4",
-      "fill": true,
-      "lineWidth": 10
-    },
-    {
-      "type": "circle",
-      "cx": 175.20001220703125,
-      "cy": 309.0000305175781,
-      "rx": 41.600006103515625,
-      "ry": 5.600006103515625,
-      "color": "#ada4a4",
-      "fill": true,
-      "lineWidth": 10
-    },
-    {
-      "type": "circle",
-      "cx": 194,
-      "cy": 260.6000061035156,
-      "rx": 17.199981689453125,
-      "ry": 18,
-      "color": "#fd2408",
-      "fill": true,
-      "lineWidth": 10
-    },
-    {
-      "type": "circle",
-      "cx": 233.20001220703125,
-      "cy": 258.6000061035156,
-      "rx": 15.600006103515625,
-      "ry": 16,
-      "color": "#fd2408",
-      "fill": true,
-      "lineWidth": 10
-    },
-    {
-      "type": "circle",
-      "cx": 196,
-      "cy": 262.1999969482422,
-      "rx": 5.600006103515625,
-      "ry": 4.4000091552734375,
-      "color": "#0f0f0f",
-      "fill": true,
-      "lineWidth": 10
-    },
-    {
-      "type": "circle",
-      "cx": 236.79998779296875,
-      "cy": 262.6000061035156,
-      "rx": 4.800018310546875,
-      "ry": 4,
-      "color": "#0f0f0f",
-      "fill": true,
-      "lineWidth": 10
-    },
-    {
-      "type": "circle",
-      "cx": 172.80001831054688,
-      "cy": 309.8000183105469,
-      "rx": 40,
-      "ry": 4.79998779296875,
-      "color": "#0f0f0f",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 262.79998779296875,
-      "cy": 302.6000061035156,
-      "rx": 37.199981689453125,
-      "ry": 4.79998779296875,
-      "color": "#0f0f0f",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 214,
-      "cy": 281,
-      "rx": 44.399993896484375,
-      "ry": 0.800018310546875,
-      "color": "#0f0f0f",
-      "fill": false,
-      "lineWidth": 3
-    }
-  ];
-
-  const flyerShape = [
-    {
-      "type": "circle",
-      "cx": 226,
-      "cy": 242.59999084472656,
-      "rx": 118.80001831054688,
-      "ry": 23.199996948242188,
-      "color": "#b0c4ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 226.39999389648438,
-      "cy": 242.1999969482422,
-      "rx": 120,
-      "ry": 20.400009155273438,
-      "color": "#404040",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "triangle",
-      "x": 204.80001831054688,
-      "y": 230.60000610351562,
-      "w": 0,
-      "h": 0,
-      "color": "#b0c4ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "triangle",
-      "x": 214.39999389648438,
-      "y": 229.00006103515625,
-      "w": 0,
-      "h": 0,
-      "color": "#b0c4ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "triangle",
-      "x": 221.60000610351562,
-      "y": 238.60000610351562,
-      "w": 27.20001220703125,
-      "h": -103.20001220703125,
-      "color": "#b0c4ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "triangle",
-      "x": 223.99996948242188,
-      "y": 225.00006103515625,
-      "w": -28,
-      "h": -87.2000732421875,
-      "color": "#b0c4ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "triangle",
-      "x": 197.60000610351562,
-      "y": 221.00006103515625,
-      "w": 24,
-      "h": -80.800048828125,
-      "color": "#404040",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "triangle",
-      "x": 225.60000610351562,
-      "y": 221.79998779296875,
-      "w": 22.39996337890625,
-      "h": -86.39999389648438,
-      "color": "#404040",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 120.80001831054688,
-      "cy": 241.00006103515625,
-      "rx": 0,
-      "ry": 0,
-      "color": "#b0c4ff",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 207.20001220703125,
-      "cy": 229,
-      "rx": 14.399993896484375,
-      "ry": 7.20001220703125,
-      "color": "#b0c4ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 140,
-      "cy": 230.20001220703125,
-      "rx": 12.800018310546875,
-      "ry": 10,
-      "color": "#f0b0ff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 139.19998168945312,
-      "cy": 230.2000274658203,
-      "rx": 12.79998779296875,
-      "ry": 10.800033569335938,
-      "color": "#404040",
-      "fill": false,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 136,
-      "cy": 232.59999084472656,
-      "rx": 7.199981689453125,
-      "ry": 5.1999969482421875,
-      "color": "#404040",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 210.39999389648438,
-      "cy": 62.600006103515625,
-      "rx": 0,
-      "ry": 0,
-      "color": "#ffffff",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 135.19998168945312,
-      "cy": 232.59999084472656,
-      "rx": 4,
-      "ry": 1.1999969482421875,
-      "color": "#ffffff",
-      "fill": true,
-      "lineWidth": 3
-    }
-  ];
-
-  const tankShape = [
-    {
-      "type": "rect",
-      "x": 86.39999389648438,
-      "y": 116.2000732421875,
-      "w": 324,
-      "h": 62.399932861328125,
-      "color": "#25d471",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 253.19998168945312,
-      "cy": 181.00003051757812,
-      "rx": 122,
-      "ry": 47.20001220703125,
-      "color": "#25d471",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "rect",
-      "x": 206.39999389648438,
-      "y": 224.20004272460938,
-      "w": 92.79998779296875,
-      "h": 15.199951171875,
-      "color": "#0d0d0d",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "rect",
-      "x": 222.39999389648438,
-      "y": 239.39999389648438,
-      "w": 60.79998779296875,
-      "h": 17.60003662109375,
-      "color": "#25d471",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "rect",
-      "x": 247.19998168945312,
-      "y": 257.0000305175781,
-      "w": 12,
-      "h": 116.79998779296875,
-      "color": "#0d0d0d",
-      "fill": true,
-      "lineWidth": 3
-    }
-  ];
-
-  const tankProjectileShape = [
-    {
-      "type": "circle",
-      "cx": 253.60000610351562,
-      "cy": 425.8000030517578,
-      "rx": 12.79998779296875,
-      "ry": 36,
-      "color": "#f51919",
-      "fill": true,
-      "lineWidth": 3
-    },
-    {
-      "type": "circle",
-      "cx": 253.19998168945312,
-      "cy": 427.80001068115234,
-      "rx": 6,
-      "ry": 23.599990844726562,
-      "color": "#ec823c",
-      "fill": true,
-      "lineWidth": 3
-    }
-  ];
-
   // ============ GAME STATE ============
-  let gameState = 'playing'; // playing, levelComplete, shop, gameOver, bossIntro
+  let gameState = 'start'; // start, playing, bossIntro, levelComplete, gameOver
   let gameStarted = false;
   let time = 0;
   let score = 0;
   let currentLevel = 1;
   let segmentsInLevel = 0;
-  const segmentsPerLevel = 4; // 4 segments + boss
+  const segmentsPerLevel = 4;
   let paused = false;
   let camera = { x: 0, y: 0 };
   let shake = { x: 0, y: 0, intensity: 0 };
   let bossIntroTimer = 0;
 
   // ============ PERSISTENT DATA ============
-  let totalCoins = parseInt(localStorage.getItem('rb_endless_coins') || '0');
-  let highestLevel = parseInt(localStorage.getItem('rb_endless_highest') || '1');
-  let highScore = parseInt(localStorage.getItem('rb_high_score') || '0');
-  let loopNumber = 0; // Current loop (0 = first playthrough, 1 = first loop, etc.)
+  let totalCoins = parseInt(localStorage.getItem('rb_endless_coins') || '0', 10);
+  let highestLevel = parseInt(localStorage.getItem('rb_endless_highest') || '1', 10);
+  let highScore = parseInt(localStorage.getItem('rb_high_score') || '0', 10);
+  let loopNumber = 0;
 
-  // Color palettes for each loop (enemies, platforms, accents)
-  const colorPalettes = [
-    { // Loop 0 (original)
-      hopper: '#9b59b6', walker: '#a890d0', flyer: '#b0c4ff', tank: '#4a9e4a', projectile: '#ff3333',
-      platform: '#666', accent: '#8844ff', stars: ['#ffffff', '#ffeecc', '#eeffff']
-    },
-    { // Loop 1 - Red/Orange theme
-      hopper: '#e74c3c', walker: '#d98c7f', flyer: '#ffb0a0', tank: '#c23636', projectile: '#ff6b35',
-      platform: '#8b4513', accent: '#ff4500', stars: ['#ffe4b5', '#ffd700', '#ffcccb']
-    },
-    { // Loop 2 - Green/Cyan theme
-      hopper: '#2ecc71', walker: '#7fccb0', flyer: '#a0ffcc', tank: '#1e8449', projectile: '#00ffcc',
-      platform: '#2c5f4f', accent: '#00ff88', stars: ['#e0ffe0', '#ccffee', '#aaffdd']
-    },
-    { // Loop 3 - Yellow/Gold theme
-      hopper: '#f39c12', walker: '#f0c57f', flyer: '#ffe0a0', tank: '#d68910', projectile: '#ffd700',
-      platform: '#8b6914', accent: '#ffaa00', stars: ['#ffffcc', '#fff8dc', '#ffeaa7']
-    },
-    { // Loop 4 - Pink/Magenta theme
-      hopper: '#e91e63', walker: '#d98cb0', flyer: '#ffb0d0', tank: '#ad1457', projectile: '#ff1493',
-      platform: '#6b2c4f', accent: '#ff69b4', stars: ['#ffe0f0', '#ffc0e0', '#ffb0d8']
-    },
-    { // Loop 5 - Blue/Teal theme
-      hopper: '#3498db', walker: '#7fb0d9', flyer: '#a0d0ff', tank: '#2471a3', projectile: '#00bfff',
-      platform: '#2c4f6b', accent: '#1e90ff', stars: ['#e0f0ff', '#cce5ff', '#b0d8ff']
-    },
-    { // Loop 6 - Purple/Violet theme
-      hopper: '#8e44ad', walker: '#b98cc0', flyer: '#d0b0ff', tank: '#6c3483', projectile: '#9370db',
-      platform: '#4a2c5f', accent: '#ba55d3', stars: ['#f0e0ff', '#e5ccff', '#d8b0ff']
-    },
-    { // Loop 7 - Orange/Brown theme
-      hopper: '#e67e22', walker: '#d9a87f', flyer: '#ffc8a0', tank: '#ca6f1e', projectile: '#ff8c00',
-      platform: '#6b4a2c', accent: '#ff7f00', stars: ['#ffe8d5', '#ffd8b5', '#ffc895']
-    }
-  ];
-
-  // Permanent upgrades (persist across runs)
   const permanentUpgrades = {
-    maxHealth: parseInt(localStorage.getItem('rb_upg_health') || '5'),
-    moveSpeed: parseInt(localStorage.getItem('rb_upg_speed') || '0'),
-    jumpPower: parseInt(localStorage.getItem('rb_upg_jump') || '0'),
-    damage: parseInt(localStorage.getItem('rb_upg_damage') || '0'),
-    coinMultiplier: parseInt(localStorage.getItem('rb_upg_coins') || '0')
+    maxHealth: parseInt(localStorage.getItem('rb_upg_health') || '5', 10),
   };
 
   function saveProgress() {
     localStorage.setItem('rb_endless_coins', totalCoins);
     localStorage.setItem('rb_endless_highest', highestLevel);
     localStorage.setItem('rb_high_score', highScore);
-    localStorage.setItem('rb_upg_health', permanentUpgrades.maxHealth);
-    localStorage.setItem('rb_upg_speed', permanentUpgrades.moveSpeed);
-    localStorage.setItem('rb_upg_jump', permanentUpgrades.jumpPower);
-    localStorage.setItem('rb_upg_damage', permanentUpgrades.damage);
-    localStorage.setItem('rb_upg_coins', permanentUpgrades.coinMultiplier);
-  }
-
-  function getCurrentPalette() {
-    // Cycle through palettes, wrapping around
-    return colorPalettes[loopNumber % colorPalettes.length];
-  }
-
-  // Map original colors to palette colors for shaped enemies
-  function getPaletteColorMap(enemyType) {
-    const palette = getCurrentPalette();
-    const colorMaps = {
-      hopper: {
-        '#9b59b6': palette.hopper, // Main body
-        '#7b3996': palette.hopper, // Keep same for outlines (will be handled by shape)
-        '#000000': '#000000', // Keep black for eyes
-        '#ffffff': '#ffffff'  // Keep white for pupils
-      },
-      flyer: {
-        '#b0c4ff': palette.flyer, // Main body
-        '#8ca4df': palette.flyer, // Outlines/details
-        '#000000': '#000000'  // Eyes
-      },
-      tank: {
-        '#4a9e4a': palette.tank, // Main body
-        '#3a7e3a': palette.tank, // Darker parts
-        '#2a6e2a': palette.tank  // Darkest parts
-      }
-    };
-    return colorMaps[enemyType] || {};
-  }
-
-  function applyPaletteToShape(shape, colorMap) {
-    if (colorMap[shape.color]) {
-      return { ...shape, color: colorMap[shape.color] };
-    }
-    return shape;
-  }
-
-  function getLoopMultiplier() {
-    // Each loop increases speed by 10% and enemy health by 15%
-    return {
-      speed: 1 + (loopNumber * 0.1),
-      health: 1 + (loopNumber * 0.15),
-      enemySpeed: 1 + (loopNumber * 0.12)
-    };
   }
 
   // ============ PLAYER ============
@@ -810,9 +296,6 @@
     invincibleTimer: 0,
     lives: permanentUpgrades.maxHealth,
     maxLives: permanentUpgrades.maxHealth,
-    animState: 'idle',
-    animFrame: 0,
-    animTimer: 0,
     combo: 0,
     comboTimer: 0,
     sessionCoins: 0
@@ -830,340 +313,72 @@
   let currentSegmentIndex = 0;
   let nextSegmentX = 0;
   let boss = null;
-  let levelGoal = null;
-  let levelFlag = null; // Flag appears after boss defeat
+  let levelFlag = null;
 
-  // JSON files are too large and cause freezing - using optimized geometric shapes instead
-
-  // ============ BACKGROUND ============
-  const bgLayers = [
-    { elements: [], speed: 0.1, color: '#0a0f18' },
-    { elements: [], speed: 0.3, color: '#1a2530' },
-    { elements: [], speed: 0.5, color: '#2a3540' }
-  ];
-
-  // ============ AUDIO SYSTEM ============
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  const audioCtx = new AudioContext();
-  let soundEnabled = true;
-  let currentMusic = null;
-  let currentMusicTrack = null; // Track which music should be playing
-  let musicGain = null;
-  let musicReady = false; // Track if user has interacted
-
-  // Music tracks - loaded from 'sounds' folder
-  const musicTracks = {
-    level1: new Audio('sounds/level1.mp3'),
-    level2: new Audio('sounds/level2.mp3'),
-    level3: new Audio('sounds/level3.mp3'),
-    level4: new Audio('sounds/level4.mp3'),
-    level5: new Audio('sounds/level5.mp3'),
-    level6: new Audio('sounds/level6.mp3'),
-    level7: new Audio('sounds/level7.mp3'),
-    level8: new Audio('sounds/level8.mp3'),
-    level9: new Audio('sounds/level9.mp3'),
-    level10: new Audio('sounds/level10.mp3'),
-    boss: new Audio('sounds/boss.mp3'),
-    shop: new Audio('sounds/shop.mp3'),
-    victory: new Audio('sounds/victory.mp3')
-  };
-
-  // Sound effects
-  const soundEffects = {
-    bossHit: new Audio('sounds/boss-hit.mp3')
-  };
-
-  // Set all tracks to loop and preload
-  for (const track in musicTracks) {
-    musicTracks[track].loop = true;
-    musicTracks[track].volume = 0.4; // Adjust volume (0.0 to 1.0)
-    musicTracks[track].preload = 'auto';
-  }
-
-  // Set sound effects volume
-  for (const sfx in soundEffects) {
-    soundEffects[sfx].volume = 0.6;
-    soundEffects[sfx].preload = 'auto';
-  }
-
-  function playSoundEffect(effectName) {
-    if (!soundEnabled) return;
-    const sfx = soundEffects[effectName];
-    if (sfx) {
-      sfx.currentTime = 0; // Reset to start
-      const playPromise = sfx.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(e => console.log('Sound effect play prevented:', e));
-      }
+  // ============ MUSIC FUNCTIONS (FIXED) ============
+  function stopMusic() {
+    if (currentMusic) {
+      try { currentMusic.pause(); } catch(e) {}
+      try { currentMusic.currentTime = 0; } catch(e) {}
+      currentMusic = null;
     }
-  }
-
-  function getLevelMusicTrack() {
-    // Get the appropriate level music track based on current level
-    // Levels 1-10 have specific tracks, after that cycle back
-    const levelNum = ((currentLevel - 1) % 10) + 1;
-    return `level${levelNum}`;
-  }
-
-  // Unlock audio on mobile devices - must be called during user interaction
-  async function unlockAudio() {
-    if (musicReady) return; // Already unlocked
-
-    console.log('Unlocking audio for mobile...');
-
-    const unlockPromises = [];
-
-    // Unlock all music tracks
-    for (const trackName in musicTracks) {
-      const track = musicTracks[trackName];
-      const originalVolume = track.volume;
-      track.volume = 0;
-
-      const promise = track.play()
-        .then(() => {
-          track.pause();
-          track.currentTime = 0;
-          track.volume = 0.4;
-          console.log(`Unlocked music: ${trackName}`);
-        })
-        .catch(e => {
-          console.log(`Failed to unlock ${trackName}:`, e.message);
-          track.volume = 0.4; // Restore volume anyway
-        });
-
-      unlockPromises.push(promise);
-    }
-
-    // Unlock all sound effects
-    for (const sfxName in soundEffects) {
-      const sfx = soundEffects[sfxName];
-      sfx.volume = 0;
-
-      const promise = sfx.play()
-        .then(() => {
-          sfx.pause();
-          sfx.currentTime = 0;
-          sfx.volume = 0.6;
-          console.log(`Unlocked SFX: ${sfxName}`);
-        })
-        .catch(e => {
-          console.log(`Failed to unlock ${sfxName}:`, e.message);
-          sfx.volume = 0.6; // Restore volume anyway
-        });
-
-      unlockPromises.push(promise);
-    }
-
-    // Wait for all unlock attempts to complete
-    await Promise.allSettled(unlockPromises);
-
-    musicReady = true;
-    console.log('Audio unlock complete!');
   }
 
   function playMusic(trackName) {
-    currentMusicTrack = trackName; // Remember what should be playing
-
-    if (!soundEnabled) return;
-
+    // Start only after a user gesture; do not require audioCtx for HTMLAudio playback,
+    // but create one if available to satisfy policies on some browsers.
+    if (!audioCtx) {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e) { /* ignore */ }
+    }
     stopMusic();
-
-    currentMusic = musicTracks[trackName];
-    if (currentMusic) {
-      currentMusic.currentTime = 0; // Start from beginning
-      const playPromise = currentMusic.play();
-
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          musicReady = true;
-          console.log(`Music playing: ${trackName}`);
-        }).catch(err => {
-          console.log(`Music play failed for ${trackName}:`, err.message);
-          // Retry on next user interaction
-          document.addEventListener('click', () => resumeMusic(), { once: true });
-          document.addEventListener('keydown', () => resumeMusic(), { once: true });
-        });
-      }
+    const track = assets[trackName];
+    if (track && typeof track.play === 'function') {
+      track.loop = (trackName !== 'victory');
+      track.currentTime = 0;
+      // Ensure not muted by page visibility
+      track.muted = false;
+      track.play().catch(err => console.warn('Audio play was blocked:', err));
+      currentMusic = track;
+    } else {
+      console.warn('Music track not found:', trackName);
     }
   }
 
-  function stopMusic() {
-    if (currentMusic) {
-      currentMusic.pause();
-      currentMusic.currentTime = 0;
-    }
-    currentMusic = null;
-    currentMusicTrack = null; // Clear the track so health check doesn't restart it
-  }
-
-  function pauseMusic() {
-    if (currentMusic && !currentMusic.paused) {
-      currentMusic.pause();
-    }
-  }
-
-  function resumeMusic() {
-    if (!soundEnabled) return;
-
-    // If we have a track that should be playing but isn't, restart it
-    if (currentMusicTrack && (!currentMusic || currentMusic.paused)) {
-      currentMusic = musicTracks[currentMusicTrack];
-      if (currentMusic) {
-        const playPromise = currentMusic.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            musicReady = true;
-            console.log(`Music resumed: ${currentMusicTrack}`);
-          }).catch(err => {
-            console.log(`Music resume failed:`, err.message);
-          });
-        }
-      }
-    }
-  }
-
-  // Haptic feedback for mobile
-  function vibrate(pattern) {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(pattern);
-    }
-  }
-
-  function playSound(type, volume = 0.15) {
-    if (!soundEnabled) return;
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    switch(type) {
-      case 'jump':
-        osc.frequency.setValueAtTime(400, now);
-        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-        break;
-      case 'shoot':
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-        osc.start(now); osc.stop(now + 0.08);
-        break;
-      case 'coin':
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-        osc.start(now); osc.stop(now + 0.15);
-        break;
-      case 'hit':
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, now);
-        osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
-        gain.gain.setValueAtTime(volume * 1.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now); osc.stop(now + 0.3);
-        break;
-      case 'stomp':
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-        break;
-      case 'levelup':
-        osc.frequency.setValueAtTime(523, now);
-        osc.frequency.setValueAtTime(659, now + 0.1);
-        osc.frequency.setValueAtTime(784, now + 0.2);
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-        osc.start(now); osc.stop(now + 0.4);
-        break;
-      case 'combo':
-        osc.frequency.setValueAtTime(1000 + player.combo * 50, now);
-        gain.gain.setValueAtTime(volume * 0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-        osc.start(now); osc.stop(now + 0.05);
-        break;
-    }
-  }
-
-  // ============ PARTICLES & EFFECTS ============
+  // ============ PARTICLES ============
   function createParticle(x, y, color, count = 8, size = 5) {
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + rand(-0.3, 0.3);
       const speed = rand(100, 250);
       particles.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - rand(50, 150),
-        life: 1.0,
-        decay: rand(1.5, 2.5),
-        size: rand(3, size),
-        color
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - rand(50, 150),
+        life: 1.0, decay: rand(1.5, 2.5), size: rand(3, size), color
       });
     }
   }
-
   function createDamageNumber(x, y, value, color = '#FFD700') {
-    damageNumbers.push({
-      x, y: y - 10,
-      value: value,
-      life: 1.0,
-      color: color,
-      vy: -100
-    });
+    damageNumbers.push({ x, y: y - 10, value: value, life: 1.0, color: color, vy: -100 });
   }
-
   function addCombo() {
     player.combo++;
     player.comboTimer = 2.0;
-
-    if (player.combo % 5 === 0) {
-      playSound('combo');
-    }
-
-    updateComboDisplay();
-  }
-
-  function resetCombo() {
-    player.combo = 0;
-    updateComboDisplay();
-  }
-
-  function updateComboDisplay() {
     const display = document.getElementById('combo-display');
-    if (player.combo >= 3) {
+    if (display && player.combo >= 3) {
       display.textContent = `COMBO ×${player.combo}`;
       display.classList.add('active');
-    } else {
+    } else if (display) {
       display.classList.remove('active');
     }
   }
-
-  // ============ LEVEL GENERATION ============
-  function initBackground() {
-    for (const layer of bgLayers) {
-      layer.elements = [];
-      const count = layer.speed < 0.3 ? 120 : (layer.speed < 0.5 ? 75 : 45);
-      for (let i = 0; i < count; i++) {
-        layer.elements.push({
-          x: rand(0, 4000),
-          y: rand(0, GROUND_Y - 50),
-          size: layer.speed < 0.3 ? rand(1, 2) : (layer.speed < 0.5 ? rand(2, 3) : rand(3, 4)),
-          twinkle: rand(0, Math.PI * 2),
-          twinkleSpeed: rand(1, 3)
-        });
-      }
-    }
+  function resetCombo() {
+    player.combo = 0;
+    const display = document.getElementById('combo-display');
+    if (display) display.classList.remove('active');
   }
 
+  // ============ LEVEL GENERATION ============
   function generateSegment(isLast = false) {
-    const difficulty = currentLevel;
     const width = randInt(1400, 1800);
     const segment = {
       id: currentSegmentIndex,
@@ -1174,118 +389,65 @@
       coins: [],
       powerups: []
     };
+    // Ground
+    segment.platforms.push({ x: segment.startX, y: GROUND_Y, w: width, h: 200, type: 'ground' });
 
-    // Ground platform
-    segment.platforms.push({
-      x: segment.startX,
-      y: GROUND_Y + 40,
-      w: width,
-      h: 200,
-      type: 'ground'
-    });
-
-    const gapMax = 180 + difficulty * 8;
+    const gapMax = 180;
     const platformCount = Math.floor(width / 200);
-
     let currentX = segment.startX + 150;
     let currentY = GROUND_Y - 100;
 
-    // Create branching paths
-    const pathHeight = [GROUND_Y - 100, GROUND_Y - 220, GROUND_Y - 340];
-    let currentPath = 0;
-
     for (let i = 0; i < platformCount; i++) {
       const gap = rand(100, gapMax);
-      const platformW = randInt(80, 140);
-
-      // Occasionally switch paths
-      if (Math.random() < 0.3 && i > 1) {
-        const newPath = randInt(0, 2);
-        currentPath = newPath;
-      }
-
+      const platformW = randInt(120, 140);
       currentX += gap;
-      currentY = pathHeight[currentPath] + rand(-30, 30);
-      currentY = clamp(currentY, GROUND_Y - 380, GROUND_Y - 60);
+      currentY = clamp(currentY + rand(-50, 50), GROUND_Y - 300, GROUND_Y - 60);
 
-      segment.platforms.push({
-        x: currentX,
-        y: currentY,
-        w: platformW,
-        h: 20,
-        type: 'platform',
-        path: currentPath // 0=low, 1=mid, 2=high
-      });
+      segment.platforms.push({ x: currentX, y: currentY, w: platformW, h: 40, type: 'platform' });
 
-      // More rewards on high path
-      const coinMultiplier = currentPath === 2 ? 2 : (currentPath === 1 ? 1.5 : 1);
-
-      // Spawn enemies (more on low path)
-      if (Math.random() < 0.35 + (2 - currentPath) * 0.1) {
+      // Enemies
+      if (Math.random() < 0.4) {
         const enemyTypes = ['hopper', 'walker'];
-        if (difficulty >= 3) enemyTypes.push('flyer');
-        if (difficulty >= 8) enemyTypes.push('tank');
+        if (currentLevel >= 3) enemyTypes.push('flyer');
         const type = enemyTypes[randInt(0, enemyTypes.length - 1)];
-        const loopMult = getLoopMultiplier();
-
-        const baseHealth = type === 'tank' ? (3 + Math.floor(difficulty / 4)) : (1 + Math.floor(difficulty / 4));
-        const scaledHealth = Math.floor(baseHealth * loopMult.health);
-        const baseSpeed = type === 'tank' ? 0 : ((type === 'walker' ? 80 : (type === 'flyer' ? 100 : 50)) * (1 + difficulty * 0.04));
-        const scaledSpeed = baseSpeed * loopMult.enemySpeed;
-
         const enemy = {
-          type: type,
+          type,
           x: currentX + rand(10, platformW - 50),
-          y: type === 'tank' ? currentY - 200 : (currentY - (type === 'flyer' ? 80 : 30)),
-          w: type === 'tank' ? 80 : (type === 'flyer' ? 45 : (type === 'walker' ? 35 : 40)),
-          h: type === 'tank' ? 70 : (type === 'flyer' ? 25 : 30),
-          vx: scaledSpeed,
+          y: currentY - (type === 'flyer' ? 80 : 32),
+          w: type === 'flyer' ? 60 : (type === 'walker' ? 35 : 40),
+          h: type === 'flyer' ? 40 : 32,
+          vx: type === 'walker' ? 80 : 100,
           vy: 0,
-          health: scaledHealth,
-          maxHealth: scaledHealth,
+          health: 1 + Math.floor(currentLevel / 4),
+          maxHealth: 1 + Math.floor(currentLevel / 4),
           dir: Math.random() > 0.5 ? 1 : -1,
           animTimer: 0,
           rotateAngle: 0,
           bobT: rand(0, Math.PI * 2),
-          flapTimer: 0,
-          jumpTimer: type === 'hopper' ? rand(1, 3) : 0,
-          shootTimer: type === 'tank' ? rand(2, 4) : 0,
-          shootCooldown: type === 'tank' ? 3 : 0
+          jumpTimer: type === 'hopper' ? rand(1, 3) : 0
         };
         segment.enemies.push(enemy);
       }
 
-      // Add coins
-      if (Math.random() < 0.6 * coinMultiplier) {
-        const coinCount = randInt(1, Math.floor(2 * coinMultiplier));
+      // Coins
+      if (Math.random() < 0.6) {
+        const coinCount = randInt(1, 3);
         for (let c = 0; c < coinCount; c++) {
           segment.coins.push({
-            x: currentX + rand(20, platformW - 40) + c * 25,
+            x: currentX + rand(20, platformW - 40) + c * 35,
             y: currentY - rand(40, 90),
-            size: 14,
+            size: 16,
             sparkleT: rand(0, Math.PI * 2),
-            value: currentPath === 2 ? 2 : 1 // High path = 2x coins
+            value: 1
           });
         }
       }
-
-      // Add powerups (rare chance for extra life)
+      // Powerups
       if (Math.random() < 0.08) {
-        segment.powerups.push({
-          type: 'extraLife',
-          x: currentX + rand(20, platformW - 40),
-          y: currentY - rand(60, 100),
-          w: 32,
-          h: 32,
-          bobT: rand(0, Math.PI * 2)
-        });
+        segment.powerups.push({ type: 'extraLife', x: currentX + rand(20, platformW - 40), y: currentY - rand(60, 100), w: 32, h: 32 });
       }
-
       currentX += platformW;
     }
-
-    // No level goal needed - we use the flag system after boss defeat
-
     return segment;
   }
 
@@ -1298,84 +460,43 @@
     currentSegmentIndex++;
   }
 
-  // Boss progression system
+  // Boss Configuration
   function getBossConfig(level) {
-    // New progression:
-    // 1: Squid (1.0)
-    // 2: Mantis (1.05 - 5% harder than squid)
-    // 3: Salamander (1.155 - 10% harder than mantis)
-    // 4: Armor Squid (1.2 - 20% harder than squid)
-    // 5: Armor Mantis (1.26 - 5% harder than armor squid)
-    // 6: Armor Salamander (1.386 - 10% harder than armor mantis)
-    // 7: Armor Squid with spikes (1.44 - 20% harder than armor squid)
-    // 8: Armor Mantis with spikes (1.512 - 5% harder than armor squid with spikes)
-    // 9: Armor Salamander with spikes (1.6632 - 10% harder than armor mantis with spikes)
-    // 10: Ultimate Chimera
-
-    const bossProgression = [
-      { type: 'octopus', variation: 'plain', name: 'ALIEN SQUID', multiplier: 1.0 },
-      { type: 'mantis', variation: 'plain', name: 'SPACE MANTIS', multiplier: 1.05 },
-      { type: 'salamander', variation: 'plain', name: 'LUNAR SALAMANDER', multiplier: 1.155 },
-      { type: 'octopus', variation: 'armor', name: 'ARMORED SQUID', multiplier: 1.2 },
-      { type: 'mantis', variation: 'armor', name: 'ARMORED MANTIS', multiplier: 1.26 },
-      { type: 'salamander', variation: 'armor', name: 'ARMORED SALAMANDER', multiplier: 1.386 },
-      { type: 'octopus', variation: 'spikes', name: 'ARMORED SPIKED SQUID', multiplier: 1.44 },
-      { type: 'mantis', variation: 'spikes', name: 'ARMORED SPIKED MANTIS', multiplier: 1.512 },
-      { type: 'salamander', variation: 'spikes', name: 'ARMORED SPIKED SALAMANDER', multiplier: 1.6632 },
-      { type: 'hybrid', variation: 'ultimate', name: 'ULTIMATE CHIMERA', multiplier: 2.0 }
-    ];
-
-    // Get boss for current level (loop after level 10)
     const bossIndex = ((level - 1) % 10);
-    const boss = bossProgression[bossIndex];
+    let type = 'squid';
+    let variation = 'plain';
+    let name = 'ALIEN SQUID';
+    let hpMult = 1.0;
 
-    return {
-      type: boss.type,
-      variation: boss.variation,
-      appearance: Math.floor((level - 1) / 10) + 1,
-      difficultyMultiplier: boss.multiplier,
-      name: boss.name
-    };
+    if (level % 10 === 0 || bossIndex === 9) {
+      type = 'chimiera';
+      name = 'ULTIMATE CHIMERA';
+      hpMult = 2.0;
+    } else {
+      if (bossIndex === 1 || bossIndex === 4 || bossIndex === 7) { type = 'mantis'; name = 'SPACE MANTIS'; }
+      if (bossIndex === 2 || bossIndex === 5 || bossIndex === 8) { type = 'sal'; name = 'LUNAR SALAMANDER'; }
+      if (bossIndex >= 3 && bossIndex <= 5) { variation = 'armor'; name = 'ARMORED ' + name.split(' ')[1]; hpMult = 1.2; }
+      if (bossIndex >= 6 && bossIndex <= 8) { variation = 'spike'; name = 'ARMORED SPIKED ' + name.split(' ')[1]; hpMult = 1.4; }
+    }
+    return { type, variation, name, hpMult };
   }
 
   function spawnBoss() {
-    const bossX = nextSegmentX + 200;
     const config = getBossConfig(currentLevel);
-
-    // Clear all enemies when boss spawns
-    enemies.length = 0;
-
-    // Base stats scaled by difficulty
-    const baseHealth = 15;
-    const baseSize = 100;
-
+    for (const seg of segments) seg.enemies = [];
     boss = {
-      x: bossX,
-      y: GROUND_Y - 120,
-      w: baseSize * config.difficultyMultiplier,
-      h: (baseSize * 0.9) * config.difficultyMultiplier,
-      vx: 0,
-      vy: 0,
-      health: Math.floor(baseHealth * config.difficultyMultiplier * (config.type === 'hybrid' ? 3 : 1)),
-      maxHealth: Math.floor(baseHealth * config.difficultyMultiplier * (config.type === 'hybrid' ? 3 : 1)),
-      state: 'idle', // idle, charging, attacking
-      stateTimer: 0,
-      attackCooldown: 0,
-      laserCooldown: 0,
-      phase: 0,
-      dir: -1,
-      animTimer: 0,
-      hitFlash: 0,
-      attacks: ['charge', 'jump', 'lasers'],
-      currentAttack: null,
-      // Boss type and appearance
+      x: nextSegmentX + 400,
+      y: GROUND_Y - 200,
+      w: 180, h: 180,
+      vx: 0, vy: 0,
+      health: Math.floor(15 * config.hpMult),
+      maxHealth: Math.floor(15 * config.hpMult),
+      state: 'idle', stateTimer: 0,
       bossType: config.type,
       variation: config.variation,
-      appearance: config.appearance,
       name: config.name,
-      difficultyMultiplier: config.difficultyMultiplier
+      dir: -1, hitFlash: 0, animTimer: 0
     };
-
     gameState = 'bossIntro';
     bossIntroTimer = 0;
     playMusic('boss');
@@ -1387,362 +508,131 @@
     }
   }
 
-  // ============ BOSS AI ============
-  function updateBoss(dt) {
-    if (!boss || boss.health <= 0) return;
-
-    boss.animTimer += dt;
-    boss.stateTimer += dt;
-    boss.attackCooldown -= dt;
-    boss.laserCooldown -= dt;
-
-    if (boss.hitFlash > 0) boss.hitFlash -= dt * 5;
-
-    // Update phase based on health
-    const healthPercent = boss.health / boss.maxHealth;
-    if (healthPercent < 0.33) boss.phase = 2;
-    else if (healthPercent < 0.66) boss.phase = 1;
-
-    // All bosses fire lasers periodically
-    if (boss.laserCooldown <= 0 && boss.state !== 'attacking') {
-      const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
-      const spreadCount = boss.phase + 1; // More lasers in higher phases
-
-      for (let i = 0; i < spreadCount; i++) {
-        const spread = spreadCount > 1 ? (i - (spreadCount - 1) / 2) * 0.2 : 0;
-        lasers.push({
-          x: boss.x + boss.w / 2,
-          y: boss.y + boss.h / 2,
-          w: 16, h: 16,
-          vx: Math.cos(angle + spread) * 300,
-          vy: Math.sin(angle + spread) * 300,
-          dir: 0,
-          isBossProjectile: true
-        });
-      }
-      boss.laserCooldown = 3.0 - boss.phase * 0.5; // Faster in higher phases
-      playSound('shoot', 0.1);
-    }
-
-    switch (boss.state) {
-      case 'idle':
-        // Move towards player
-        const moveSpeed = 60 * boss.difficultyMultiplier;
-        if (boss.x > player.x + 200) {
-          boss.x -= moveSpeed * dt;
-          boss.dir = -1;
-        } else if (boss.x < player.x - 200) {
-          boss.x += moveSpeed * dt;
-          boss.dir = 1;
-        }
-
-        // Pick attack
-        if (boss.attackCooldown <= 0 && boss.stateTimer > 1.0) {
-          const availableAttacks = boss.attacks.filter(a => a !== 'lasers');
-          boss.currentAttack = availableAttacks[randInt(0, availableAttacks.length - 1)];
-          boss.state = 'charging';
-          boss.stateTimer = 0;
-        }
-        break;
-
-      case 'charging':
-        if (boss.stateTimer > 0.8) {
-          boss.state = 'attacking';
-          boss.stateTimer = 0;
-        }
-        break;
-
-      case 'attacking':
-        if (boss.currentAttack === 'charge') {
-          boss.x += boss.dir * 300 * boss.difficultyMultiplier * dt;
-
-          if (boss.stateTimer > 1.5) {
-            boss.state = 'idle';
-            boss.attackCooldown = 3.0;
-            boss.stateTimer = 0;
-          }
-        } else if (boss.currentAttack === 'jump') {
-          if (boss.stateTimer < 0.4) {
-            boss.vy = -800;
-          } else if (boss.stateTimer < 1.2) {
-            boss.vy += gravity * dt;
-            boss.y += boss.vy * dt;
-
-            if (boss.y >= GROUND_Y - boss.h) {
-              boss.y = GROUND_Y - boss.h;
-              shake.intensity = 20 * boss.difficultyMultiplier;
-              createParticle(boss.x + boss.w / 2, boss.y + boss.h, '#ff5555', 30, 10);
-            }
-          } else {
-            boss.vy = 0;
-            boss.state = 'idle';
-            boss.attackCooldown = 2.5;
-            boss.stateTimer = 0;
-          }
-        }
-        break;
-    }
-
-    // Check collision with player (boss-specific hitbox)
-    let hitboxH = boss.h;
-    if (boss.bossType === 'octopus' || boss.bossType === 'hybrid') {
-      hitboxH += 75; // Include tentacles
-    }
-    if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, hitboxH)) {
-      loseLife();
-    }
-  }
-
-  // ============ GAME LOOP ============
+  // ============ GAME LOGIC ============
   function loseLife() {
     player.lives--;
     resetCombo();
-
     if (player.lives <= 0) {
       gameState = 'gameOver';
-      // Update high score on game over
-      if (score > highScore) {
-        highScore = score;
-      }
+      if (score > highScore) highScore = score;
       saveProgress();
       stopMusic();
-      playSound('hit');
-      vibrate([100, 50, 100]); // Haptic feedback for game over
       shake.intensity = 25;
-      createParticle(player.x + player.w / 2, player.y + player.h / 2, '#ff5555', 30);
     } else {
       player.x = camera.x + 100;
       player.y = GROUND_Y - player.h - 20;
-      player.vx = 0;
-      player.vy = 0;
-      player.invincible = true;
-      player.invincibleTimer = 2.5;
-      playSound('hit');
-      vibrate(50); // Haptic feedback for losing life
+      player.vx = 0; player.vy = 0;
+      player.invincible = true; player.invincibleTimer = 2.5;
       shake.intensity = 18;
     }
-  }
-
-  function spawnFlag(bossX, bossW) {
-    // Spawn flag at boss location
-    levelFlag = {
-      x: bossX + bossW / 2 - 30,
-      y: GROUND_Y - 120,
-      w: 60,
-      h: 100,
-      bobTimer: 0
-    };
   }
 
   function completeLevel() {
     gameState = 'levelComplete';
     stopMusic();
     playMusic('victory');
-    playSound('levelup');
-
-    // Award coins
     totalCoins += player.sessionCoins;
-    if (currentLevel > highestLevel) {
-      highestLevel = currentLevel;
-    }
-    // Update high score
-    if (score > highScore) {
-      highScore = score;
-    }
+    if (currentLevel > highestLevel) highestLevel = currentLevel;
+    if (score > highScore) highScore = score;
     saveProgress();
   }
 
   function startNextLevel() {
     currentLevel++;
-
-    // After level 10, loop back to level 1 with increased difficulty
-    if (currentLevel > 10) {
-      currentLevel = 1;
-      loopNumber++;
-    }
-
+    if (currentLevel > 10) { currentLevel = 1; loopNumber++; }
     segmentsInLevel = 0;
     boss = null;
-    levelGoal = null;
-    levelFlag = null; // Reset flag
+    levelFlag = null;
     segments.length = 0;
     lasers.length = 0;
     particles.length = 0;
-    damageNumbers.length = 0;
     currentSegmentIndex = 0;
     nextSegmentX = 0;
-
     player.x = 100;
     player.y = GROUND_Y - player.h - 20;
-    player.vx = 0;
-    player.vy = 0;
+    player.vx = 0; player.vy = 0;
     player.sessionCoins = 0;
     camera.x = 0;
-
     resetCombo();
-
-    // Load initial segments
-    for (let i = 0; i < 3; i++) {
-      loadNextSegment();
-    }
-
+    for (let i = 0; i < 3; i++) loadNextSegment();
     gameState = 'playing';
-    playMusic(getLevelMusicTrack());
+    playMusic(`level${currentLevel}`);
   }
 
   function updateHUD() {
-    const loopText = loopNumber > 0 ? ` (Loop ${loopNumber})` : '';
-    document.getElementById('level').textContent = `Level ${currentLevel}${loopText}`;
-    document.getElementById('lives').textContent = `×${player.lives}`;
-    document.getElementById('score').textContent = Math.floor(score);
-    document.getElementById('coins').textContent = player.sessionCoins + totalCoins;
-
-    const upgradeCount = permanentUpgrades.maxHealth - 5 +
-                        permanentUpgrades.moveSpeed +
-                        permanentUpgrades.jumpPower +
-                        permanentUpgrades.damage +
-                        permanentUpgrades.coinMultiplier;
-    document.getElementById('upgrades').textContent = `Upgrades: ${upgradeCount}`;
+    const levelEl = document.getElementById('level');
+    const livesEl = document.getElementById('lives');
+    const scoreEl = document.getElementById('score');
+    const coinsEl = document.getElementById('coins');
+    if (levelEl) levelEl.textContent = `Level ${currentLevel}`;
+    if (livesEl) livesEl.textContent = `×${player.lives}`;
+    if (scoreEl) scoreEl.textContent = Math.floor(score);
+    if (coinsEl) coinsEl.textContent = player.sessionCoins + totalCoins;
   }
 
   function update(dt) {
-    if (paused || !gameStarted) return;
-
+    if (paused || !gameStarted || gameState === 'start') return;
     time += dt;
 
-    // Music health check - ensure music is playing when it should be
-    if (soundEnabled && currentMusicTrack && gameState !== 'gameOver') {
-      if (!currentMusic || currentMusic.paused || currentMusic.ended) {
-        resumeMusic();
-      }
-    }
-
-    // Update combo timer
     if (player.comboTimer > 0) {
       player.comboTimer -= dt;
-      if (player.comboTimer <= 0) {
-        resetCombo();
-      }
+      if (player.comboTimer <= 0) resetCombo();
     }
 
     if (gameState === 'playing') {
       updatePlaying(dt);
     } else if (gameState === 'bossIntro') {
       bossIntroTimer += dt;
-
-      // Pan camera to boss over 1.5 seconds
       const targetCameraX = boss.x - 300;
-      const distance = targetCameraX - camera.x;
-      camera.x += distance * (dt / (1.5 - bossIntroTimer + 0.01));
-
-      // Transition to playing after 1.5 seconds
-      if (bossIntroTimer >= 1.5) {
-        gameState = 'playing';
-        camera.x = targetCameraX; // Snap to final position
-        // Ensure boss music is still playing
-        if (!currentMusic || currentMusic.paused) {
-          resumeMusic();
-        }
-      }
-    } else if (gameState === 'levelComplete') {
-      // Wait for input
-    } else if (gameState === 'shop') {
-      // Shop UI
-    } else if (gameState === 'gameOver') {
-      // Wait for restart
+      camera.x += (targetCameraX - camera.x) * (dt / 1.5);
+      if (bossIntroTimer >= 1.5) gameState = 'playing';
     }
 
-    // Update particles always
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += gravity * 0.5 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += gravity * 0.5 * dt;
       p.life -= p.decay * dt;
       if (p.life <= 0) particles.splice(i, 1);
     }
-
-    // Update damage numbers
     for (let i = damageNumbers.length - 1; i >= 0; i--) {
       const dn = damageNumbers[i];
-      dn.y += dn.vy * dt;
-      dn.life -= dt * 1.2;
+      dn.y += dn.vy * dt; dn.life -= dt * 1.2;
       if (dn.life <= 0) damageNumbers.splice(i, 1);
     }
 
     shake.intensity = Math.max(0, shake.intensity - dt * 15);
     shake.x = (Math.random() - 0.5) * shake.intensity;
     shake.y = (Math.random() - 0.5) * shake.intensity;
-
     updateHUD();
   }
 
   function updatePlaying(dt) {
-    // Update player
-    if (player.invincibleTimer > 0) {
-      player.invincibleTimer -= dt;
-      player.invincible = player.invincibleTimer > 0;
-    }
-
+    if (player.invincibleTimer > 0) player.invincibleTimer -= dt;
+    if (player.invincibleTimer <= 0) player.invincible = false;
     if (player.shootCooldown > 0) player.shootCooldown -= dt;
-
-    // Player animation
-    if (player.onGround) {
-      if (Math.abs(player.vx) > 50) {
-        player.animState = 'walk';
-        player.animTimer += dt * Math.abs(player.vx) / 100;
-        player.animFrame = player.animTimer % 1;
-      } else {
-        player.animState = 'idle';
-        player.animFrame = 0;
-      }
-    } else {
-      player.animState = 'jump';
-    }
-
-    // Movement with upgrades and loop multiplier
-    const loopMult = getLoopMultiplier();
-    const speedBonus = (1 + permanentUpgrades.moveSpeed * 0.15) * loopMult.speed;
-    const jumpBonus = (1 + permanentUpgrades.jumpPower * 0.12) * loopMult.speed;
 
     const moveLeft = keys.ArrowLeft;
     const moveRight = keys.ArrowRight;
     const wantJump = keys.Space || keys.ArrowUp;
 
-    if (moveLeft) {
-      player.vx -= moveSpeed * speedBonus * dt * 8;
-      player.facing = -1;
-    }
-    if (moveRight) {
-      player.vx += moveSpeed * speedBonus * dt * 8;
-      player.facing = 1;
-    }
+    if (moveLeft) { player.vx -= moveSpeed * dt * 8; player.facing = -1; }
+    if (moveRight) { player.vx += moveSpeed * dt * 8; player.facing = 1; }
+    if (!moveLeft && !moveRight) player.vx *= 0.85;
 
-    if (!moveLeft && !moveRight) {
-      player.vx *= 0.85;
-    }
-
-    player.vx = clamp(player.vx, -maxVelX * speedBonus, maxVelX * speedBonus);
+    player.vx = clamp(player.vx, -maxVelX, maxVelX);
 
     if (wantJump && player.onGround) {
-      player.vy = jumpVel * jumpBonus;
+      player.vy = jumpVel;
       player.onGround = false;
-      playSound('jump');
-      createParticle(player.x + player.w / 2, player.y + player.h, '#7be2ff', 6);
     }
 
     if (wantShoot && player.shootCooldown <= 0) {
       lasers.push({
         x: player.x + (player.facing > 0 ? player.w : 0),
         y: player.y + player.h / 2 - 2,
-        w: 20, h: 4,
-        vx: player.facing * 500,
-        dir: player.facing,
-        damage: 1 + permanentUpgrades.damage
+        w: 20, h: 4, vx: player.facing * 500, dir: player.facing
       });
       player.shootCooldown = 0.3;
-      playSound('shoot');
-      createParticle(player.x + player.w / 2, player.y + player.h / 2, player.facing > 0 ? '#ff3333' : '#3333ff', 4);
     }
     wantShoot = false;
 
@@ -1750,18 +640,14 @@
     player.x += player.vx * dt;
     player.y += player.vy * dt;
 
-    // Collision with platforms
     player.onGround = false;
     for (const segment of segments) {
       for (const plat of segment.platforms) {
         if (rectsOverlap(player.x, player.y, player.w, player.h, plat.x, plat.y, plat.w, plat.h)) {
-          if (player.vy > 0 && player.y + player.h - player.vy * dt < plat.y + 10) {
-            player.y = plat.y - player.h;
-            player.vy = 0;
-            player.onGround = true;
-          } else if (player.vy < 0 && player.y - player.vy * dt > plat.y + plat.h - 10) {
-            player.y = plat.y + plat.h;
-            player.vy = 0;
+          if (player.vy > 0 && (player.y + player.h - player.vy * dt) <= plat.y) {
+            player.y = plat.y - player.h; player.vy = 0; player.onGround = true;
+          } else if (player.vy < 0 && (player.y - player.vy * dt) >= (plat.y + plat.h)) {
+            player.y = plat.y + plat.h; player.vy = 0;
           }
         }
       }
@@ -1769,240 +655,104 @@
 
     if (player.y > canvas.height + 100) loseLife();
 
-    camera.x = player.x - canvas.width / 3;
-    camera.x = Math.max(0, camera.x);
+    camera.x = Math.max(0, player.x - canvas.width / 3);
 
-    // Load new segments (only if not in boss phase)
     if (player.x > nextSegmentX - canvas.width * 2 && !boss && !levelFlag && gameState === 'playing') {
-      if (segmentsInLevel >= segmentsPerLevel) {
-        spawnBoss();
-      } else {
-        loadNextSegment();
-      }
+      if (segmentsInLevel >= segmentsPerLevel) spawnBoss();
+      else loadNextSegment();
     }
-
     unloadOldSegments();
 
-    // Check flag collection (completes level after boss defeat)
-    if (levelFlag) {
-      levelFlag.bobTimer += dt * 3;
-      if (rectsOverlap(player.x, player.y, player.w, player.h, levelFlag.x, levelFlag.y, levelFlag.w, levelFlag.h)) {
-        levelFlag = null;
-        completeLevel();
-      }
+    if (levelFlag && rectsOverlap(player.x, player.y, player.w, player.h, levelFlag.x, levelFlag.y, levelFlag.w, levelFlag.h)) {
+      completeLevel();
     }
 
-    // Update lasers
     for (let i = lasers.length - 1; i >= 0; i--) {
       const laser = lasers[i];
       laser.x += laser.vx * dt;
-      if (laser.vy !== undefined) laser.y += laser.vy * dt;
+      if (laser.vy) laser.y += laser.vy * dt;
+      if (laser.x < camera.x - 100 || laser.x > camera.x + canvas.width + 100) { lasers.splice(i, 1); continue; }
 
-      if (laser.x < camera.x - 100 || laser.x > camera.x + canvas.width + 100) {
-        lasers.splice(i, 1);
-        continue;
-      }
-
-      // Boss projectiles hit player
-      if (laser.isBossProjectile) {
-        if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, laser.x, laser.y, laser.w, laser.h)) {
-          lasers.splice(i, 1);
-          loseLife();
-        }
-        continue;
-      }
-
-      // Player lasers hit enemies
       for (const segment of segments) {
         for (let j = segment.enemies.length - 1; j >= 0; j--) {
           const enemy = segment.enemies[j];
           if (rectsOverlap(laser.x, laser.y, laser.w, laser.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
-            const damage = laser.damage || 1;
-            enemy.health -= damage;
+            enemy.health--;
             lasers.splice(i, 1);
-            createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#ff5555', 10);
-            createDamageNumber(enemy.x + enemy.w / 2, enemy.y - 10, damage);
-            playSound('hit', 0.1);
-            vibrate(20); // Haptic feedback for hitting enemy
-            score += 10 * damage;
+            createParticle(enemy.x + enemy.w/2, enemy.y + enemy.h/2, '#fff', 5);
+            createDamageNumber(enemy.x + enemy.w/2, enemy.y, 1);
+            score += 10;
             addCombo();
-
-            if (enemy.health <= 0) {
-              segment.enemies.splice(j, 1);
-              score += 50 + player.combo * 5;
-              createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#FFD700', 20);
-              playSound('stomp');
-              vibrate(40); // Haptic feedback for defeating enemy
-            }
+            if (enemy.health <= 0) { segment.enemies.splice(j, 1); score += 50; }
             break;
           }
         }
       }
-
-      // Player lasers hit boss (full hitbox including tentacles)
-      if (boss) {
-        // Boss hitbox includes entire body and tentacles
-        const bossHitboxY = boss.y;
-        const bossHitboxHeight = boss.h + 75; // Include tentacles (3 segments * 25px each)
-
-        if (rectsOverlap(laser.x, laser.y, laser.w, laser.h, boss.x, bossHitboxY, boss.w, bossHitboxHeight)) {
-          const damage = laser.damage || 1;
-          boss.health -= damage;
-          boss.hitFlash = 1.0;
-          lasers.splice(i, 1);
-          createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#ff5555', 15);
-          createDamageNumber(boss.x + boss.w / 2, boss.y - 20, damage, '#ff5555');
-          playSound('hit', 0.12);
-          playSoundEffect('bossHit'); // Play boss scream sound
-          vibrate(30); // Haptic feedback on boss hit
-          score += 20 * damage;
-          shake.intensity = 8;
-          addCombo();
-
-          if (boss.health <= 0) {
-            score += 500 + currentLevel * 100;
-            player.sessionCoins += 50 + currentLevel * 10;
-            createParticle(boss.x + boss.w / 2, boss.y + boss.h / 2, '#FFD700', 50, 12);
-            shake.intensity = 30;
-            vibrate([50, 50, 50]); // Haptic feedback on boss defeat
-            spawnFlag(boss.x, boss.w); // Spawn flag at boss location
-            boss = null;
-          }
-        }
+      if (boss && rectsOverlap(laser.x, laser.y, laser.w, laser.h, boss.x, boss.y, boss.w, boss.h)) {
+        boss.health--; boss.hitFlash = 1.0; lasers.splice(i, 1);
+        createDamageNumber(boss.x + boss.w/2, boss.y, 1, '#ff5555');
+        score += 20; addCombo();
+        if (boss.health <= 0) { score += 1000; levelFlag = { x: boss.x + boss.w/2 - 30, y: GROUND_Y - 120, w: 60, h: 100 }; boss = null; }
       }
     }
 
-    // Update enemies
     for (const segment of segments) {
       for (let i = segment.enemies.length - 1; i >= 0; i--) {
         const enemy = segment.enemies[i];
         enemy.animTimer += dt;
-
         if (enemy.type === 'hopper') {
           enemy.jumpTimer -= dt;
-          if (enemy.jumpTimer <= 0 && enemy.vy === 0) {
-            enemy.vy = -600;
-            enemy.jumpTimer = rand(1.5, 3.0);
-          }
-          enemy.vy += gravity * dt;
-          enemy.y += enemy.vy * dt;
-          enemy.x += enemy.dir * enemy.vx * dt;
-
+          if (enemy.jumpTimer <= 0 && enemy.vy === 0) { enemy.vy = -600; enemy.jumpTimer = rand(1.5, 3.0); }
+          enemy.vy += gravity * dt; enemy.y += enemy.vy * dt;
+          let onGround = false;
           for (const plat of segment.platforms) {
             if (rectsOverlap(enemy.x, enemy.y, enemy.w, enemy.h, plat.x, plat.y, plat.w, plat.h)) {
-              if (enemy.vy > 0) {
-                enemy.y = plat.y - enemy.h;
-                enemy.vy = 0;
-              }
+              if (enemy.vy > 0 && (enemy.y + enemy.h - enemy.vy*dt) <= plat.y) { enemy.y = plat.y - enemy.h; enemy.vy = 0; onGround = true; }
             }
           }
+          if (!onGround) { enemy.x += enemy.dir * (enemy.vx * 0.5) * dt; }
         } else if (enemy.type === 'walker') {
-          enemy.x += enemy.dir * enemy.vx * dt;
-          enemy.rotateAngle += 0.15 * enemy.dir;
-
-          if (enemy.x < segment.startX || enemy.x > segment.startX + segment.width) {
-            enemy.dir *= -1;
-          }
+          enemy.x += enemy.dir * enemy.vx * dt; enemy.rotateAngle += 0.15 * enemy.dir;
+          if (enemy.x < segment.startX || enemy.x > segment.startX + segment.width - enemy.w) enemy.dir *= -1;
         } else if (enemy.type === 'flyer') {
           enemy.x += enemy.dir * enemy.vx * dt;
-          enemy.bobT += 0.08;
-          enemy.flapTimer += 0.2;
-
-          if (enemy.x < camera.x - 50 || enemy.x > camera.x + canvas.width + 50) {
-            enemy.dir *= -1;
-          }
-        } else if (enemy.type === 'tank') {
-          // Tanks are stationary but shoot at the player
-          enemy.shootTimer -= dt;
-
-          if (enemy.shootTimer <= 0) {
-            // Shoot a projectile at the player
-            const tankCenterX = enemy.x + enemy.w / 2;
-            const tankCenterY = enemy.y + enemy.h;
-
-            lasers.push({
-              x: tankCenterX,
-              y: tankCenterY,
-              w: 12,
-              h: 24,
-              vx: 0,
-              vy: 400, // Projectile falls downward
-              damage: 0,
-              isBossProjectile: true, // Treat as enemy projectile
-              isTankProjectile: true
-            });
-
-            playSound('shoot', 0.08);
-            enemy.shootTimer = enemy.shootCooldown;
-          }
+          if (enemy.x < camera.x || enemy.x > camera.x + canvas.width - enemy.w) enemy.dir *= -1;
         }
-
         if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
-          if (player.vy > 0 && player.y + player.h * 0.6 < enemy.y + enemy.h / 2) {
-            enemy.health--;
-            player.vy = jumpVel * 0.6;
-            createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#FFD700', 12);
-            createDamageNumber(enemy.x + enemy.w / 2, enemy.y - 10, 1);
-            playSound('stomp');
-            score += 100;
-            addCombo();
-
-            if (enemy.health <= 0) {
-              segment.enemies.splice(i, 1);
-              createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#FFD700', 20);
-            }
-          } else {
-            loseLife();
-          }
+          if (player.vy > 0 && player.y + player.h * 0.8 < enemy.y) { enemy.health--; player.vy = jumpVel * 0.6; if (enemy.health <= 0) segment.enemies.splice(i, 1); }
+          else { loseLife(); }
         }
       }
     }
 
-    // Update coins
+    if (boss) {
+      boss.animTimer += dt;
+      if (boss.hitFlash > 0) boss.hitFlash -= dt * 5;
+      if (boss.x > player.x + 100) boss.x -= 40 * dt;
+      else if (boss.x < player.x - 100) boss.x += 40 * dt;
+      if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h)) loseLife();
+    }
+
     for (const segment of segments) {
       for (let i = segment.coins.length - 1; i >= 0; i--) {
-        const coin = segment.coins[i];
-        coin.sparkleT += dt * 8;
-
-        if (rectsOverlap(player.x, player.y, player.w, player.h, coin.x - coin.size, coin.y - coin.size, coin.size * 2, coin.size * 2)) {
+        const c = segment.coins[i];
+        c.sparkleT += dt * 8;
+        if (rectsOverlap(player.x, player.y, player.w, player.h, c.x - c.size/2, c.y - c.size/2, c.size * 2, c.size * 2)) {
           segment.coins.splice(i, 1);
-          const coinValue = coin.value * (1 + permanentUpgrades.coinMultiplier * 0.5);
-          player.sessionCoins += coinValue;
-          score += 10 * coinValue;
-          createParticle(coin.x, coin.y, '#FFD700', 8);
-          createDamageNumber(coin.x, coin.y - 20, `+${Math.floor(coinValue)}`, '#FFD700');
-          playSound('coin', 0.08);
+          player.sessionCoins++; score += 10;
+          createParticle(c.x, c.y, '#FFD700', 5, 8);
         }
       }
-    }
-
-    // Update powerups
-    for (const segment of segments) {
       for (let i = segment.powerups.length - 1; i >= 0; i--) {
-        const powerup = segment.powerups[i];
-        powerup.bobT += dt * 3;
-
-        if (rectsOverlap(player.x, player.y, player.w, player.h, powerup.x - powerup.w / 2, powerup.y - powerup.h / 2, powerup.w, powerup.h)) {
+        const p = segment.powerups[i];
+        if (rectsOverlap(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
           segment.powerups.splice(i, 1);
-
-          if (powerup.type === 'extraLife') {
-            // Allow gaining extra lives beyond the starting max (up to 10)
-            const absoluteMaxLives = 10;
-            if (player.lives < absoluteMaxLives) {
-              player.lives++;
-              createParticle(powerup.x, powerup.y, '#ff5555', 20);
-              createDamageNumber(powerup.x, powerup.y - 20, '+1 LIFE', '#ff5555');
-              playSound('levelup', 0.15);
-              vibrate(100);
-            }
+          if (player.lives < player.maxLives) {
+            player.lives++;
+            createDamageNumber(p.x, p.y, '+1 LIFE', '#f00');
           }
         }
       }
-    }
-
-    // Update boss
-    if (boss) {
-      updateBoss(dt);
     }
   }
 
@@ -2011,1227 +761,234 @@
     ctx.save();
     ctx.translate(shake.x, shake.y);
 
-    // Background
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (const layer of bgLayers) {
-      for (const star of layer.elements) {
-        const parallaxX = star.x - camera.x * layer.speed;
-
-        if (parallaxX > -50 && parallaxX < canvas.width + 50) {
-          star.twinkle += star.twinkleSpeed * 0.05;
-          const alpha = 0.3 + Math.sin(star.twinkle) * 0.2;
-
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = layer.color;
-          ctx.fillRect(parallaxX, star.y, star.size, star.size);
-        }
-      }
+    // Parallax BG
+    if (assets.bg && assets.bg.width > 0) {
+      const bgW = assets.bg.width;
+      const bgH = assets.bg.height;
+      const scale = canvas.height / bgH;
+      const scaledW = bgW * scale;
+      const scaledH = canvas.height;
+      const totalScroll = camera.x * 0.2;
+      const offset = totalScroll % scaledW;
+      ctx.drawImage(assets.bg, -offset, 0, scaledW, scaledH);
+      ctx.drawImage(assets.bg, -offset + scaledW, 0, scaledW, scaledH);
+    } else {
+      ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
     }
-    ctx.globalAlpha = 1;
 
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
 
-    // Draw platforms with path indicators
-    const palette = getCurrentPalette();
+    // Platforms
     for (const segment of segments) {
       for (const plat of segment.platforms) {
         if (plat.type === 'ground') {
-          ctx.fillStyle = '#2a313c';
-          ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
-          ctx.fillStyle = '#1b1f26';
-          ctx.fillRect(plat.x, plat.y + 20, plat.w, plat.h - 20);
-        } else {
-          // Color platforms by path using palette
-          ctx.fillStyle = palette.platform;
-          ctx.strokeStyle = '#2a4050';
-          ctx.lineWidth = 2;
-          roundRect(plat.x, plat.y, plat.w, plat.h, 4, true, true);
-
-          // High path indicator
-          if (plat.path === 2) {
-            ctx.fillStyle = '#FFD700';
-            ctx.globalAlpha = 0.3;
-            ctx.fillRect(plat.x, plat.y - 3, plat.w, 3);
-            ctx.globalAlpha = 1;
+          if (assets.ground && assets.ground.width > 0) {
+            const pat = ctx.createPattern(assets.ground, 'repeat');
+            if (pat) {
+              ctx.fillStyle = pat; ctx.save(); ctx.translate(plat.x, plat.y); ctx.fillRect(0, 0, plat.w, plat.h); ctx.restore();
+            } else {
+              ctx.fillStyle = '#333'; ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+            }
+          } else {
+            ctx.fillStyle = '#333'; ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
           }
+        } else {
+          if (assets.platform && assets.platform.width > 0) ctx.drawImage(assets.platform, plat.x, plat.y, plat.w, plat.h);
+          else { ctx.fillStyle = '#555'; ctx.fillRect(plat.x, plat.y, plat.w, plat.h); }
         }
       }
     }
 
-    // Draw coins
+    // Coins & Hearts
     for (const segment of segments) {
-      for (const coin of segment.coins) {
-        ctx.save();
-        ctx.translate(coin.x, coin.y);
-
-        const pulse = 1 + Math.sin(coin.sparkleT) * 0.1;
-        ctx.scale(pulse, pulse);
-
-        ctx.fillStyle = coin.value > 1 ? '#FFD700' : '#FFA500';
-        ctx.strokeStyle = '#FF8C00';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        if (coin.value > 1) {
-          ctx.fillStyle = '#FFF';
-          ctx.font = 'bold 10px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('×2', 0, 0);
+      if (assets.coin && assets.coin.complete && assets.coin.naturalWidth > 0) {
+        for (const c of segment.coins) {
+          const pulse = 1.0 + Math.sin(c.sparkleT) * 0.1;
+          const w = (c.size * 2) * pulse;
+          const h = (c.size * 2) * pulse;
+          ctx.drawImage(assets.coin, c.x - w/2, c.y - h/2, w, h);
         }
-
-        ctx.restore();
+      }
+      if (assets.heart && assets.heart.complete && assets.heart.naturalWidth > 0) {
+        for (const p of segment.powerups) {
+          const pulse = 1.0 + Math.sin(time * 5) * 0.1;
+          const w = p.w * pulse;
+          const h = p.h * pulse;
+          const centerX = p.x + p.w/2;
+          const centerY = p.y + p.h/2;
+          ctx.drawImage(assets.heart, centerX - w/2, centerY - h/2, w, h);
+        }
       }
     }
 
-    // Draw powerups
-    for (const segment of segments) {
-      for (const powerup of segment.powerups) {
-        ctx.save();
-        const bob = Math.sin(powerup.bobT) * 8;
-        ctx.translate(powerup.x, powerup.y + bob);
-
-        if (powerup.type === 'extraLife') {
-          // Heart shape for extra life
-          ctx.fillStyle = '#ff5555';
-          ctx.strokeStyle = '#cc0000';
-          ctx.lineWidth = 3;
-
-          // Glow effect
-          ctx.shadowColor = '#ff5555';
-          ctx.shadowBlur = 15;
-
-          // Draw heart
-          const scale = 1 + Math.sin(powerup.bobT * 2) * 0.1;
-          ctx.scale(scale, scale);
-
-          ctx.beginPath();
-          ctx.moveTo(0, -8);
-          ctx.bezierCurveTo(-12, -18, -18, -8, -18, 0);
-          ctx.bezierCurveTo(-18, 8, 0, 18, 0, 18);
-          ctx.bezierCurveTo(0, 18, 18, 8, 18, 0);
-          ctx.bezierCurveTo(18, -8, 12, -18, 0, -8);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.shadowBlur = 0;
-        }
-
-        ctx.restore();
-      }
-    }
-
-    // Draw completion flag (appears after boss defeat)
+    // Flag
     if (levelFlag) {
-      ctx.save();
-      const bob = Math.sin(levelFlag.bobTimer) * 8;
-      ctx.translate(levelFlag.x, levelFlag.y + bob);
-
-      // Flagpole
-      ctx.fillStyle = '#9fb1cc';
-      ctx.fillRect(5, 0, 8, levelFlag.h);
-
-      // Flag with gradient
-      const wave = Math.sin(levelFlag.bobTimer * 2);
-      const gradient = ctx.createLinearGradient(0, 0, 60, 0);
-      gradient.addColorStop(0, '#FFD700');
-      gradient.addColorStop(0.5, '#FFA500');
-      gradient.addColorStop(1, '#FF8C00');
-
-      ctx.fillStyle = gradient;
-      ctx.strokeStyle = '#FF6347';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(13, 15);
-      ctx.quadraticCurveTo(35 + wave * 8, 25, 55, 30);
-      ctx.quadraticCurveTo(35 + wave * 8, 35, 13, 45);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Victory star on flag
-      ctx.fillStyle = '#FFF';
-      ctx.font = 'bold 20px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('★', 30 + wave * 4, 30);
-
-      // Glow effect
-      ctx.shadowColor = '#FFD700';
-      ctx.shadowBlur = 20;
-      ctx.globalAlpha = 0.5 + Math.sin(levelFlag.bobTimer * 3) * 0.3;
-      ctx.fillText('★', 30 + wave * 4, 30);
-      ctx.shadowBlur = 0;
-
-      ctx.restore();
+      ctx.fillStyle = '#fff'; ctx.fillRect(levelFlag.x, levelFlag.y, 5, levelFlag.h);
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(levelFlag.x+5, levelFlag.y, 40, 30);
     }
 
-    // Draw enemies
+    // Enemies
     for (const segment of segments) {
       for (const enemy of segment.enemies) {
         ctx.save();
-        ctx.translate(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2);
-
+        ctx.translate(enemy.x + enemy.w/2, enemy.y + enemy.h/2);
         if (enemy.type === 'hopper') {
-          // Calculate squish animation for jumping
-          const squish = enemy.vy !== 0 ? (enemy.vy > 0 ? 0.85 : 1.15) : (1 + Math.sin(enemy.animTimer * 3) * 0.08);
-          const stretch = 1 / squish; // Inverse for width to maintain volume
-
-          // Scale to fit enemy dimensions (original design is ~110x68)
-          let scaleX = (enemy.w / 110) * stretch;
-          const scaleY = (enemy.h / 68) * squish;
-
-          // Flip horizontally based on movement direction
-          scaleX *= enemy.dir;
-
-          // Animated feet rotation when jumping (point toes down)
-          const feetRotation = enemy.vy !== 0 ? Math.PI / 6 : 0; // 30 degrees when airborne
-
-          // Apply palette colors
-          const colorMap = getPaletteColorMap('hopper');
-          const palettedHopperShape = hopperShape.map(s => applyPaletteToShape(s, colorMap));
-
-          ctx.save();
-          // Draw body first
-          const bodyShapes = palettedHopperShape.filter((s, i) => i === 0); // Just the rhombus
-          const offsetX = -214 * scaleX;
-          const offsetY = -279 * scaleY;
-          renderShapes(bodyShapes, scaleX, scaleY, offsetX, offsetY);
-
-          // Draw feet with rotation
-          if (feetRotation !== 0) {
-            ctx.save();
-            // Rotate feet around their centers
-            const leftFootCenterX = (175.20001220703125 - 214) * scaleX;
-            const leftFootCenterY = (309.0000305175781 - 279) * scaleY;
-            const rightFootCenterX = (262.3999938964844 - 214) * scaleX;
-            const rightFootCenterY = (304.6000061035156 - 279) * scaleY;
-
-            ctx.translate(leftFootCenterX, leftFootCenterY);
-            ctx.rotate(feetRotation * enemy.dir);
-            ctx.translate(-leftFootCenterX, -leftFootCenterY);
-          }
-
-          const feetShapes = palettedHopperShape.filter((s, i) => i === 1 || i === 2 || i === 7 || i === 8); // Feet and outlines
-          renderShapes(feetShapes, scaleX, scaleY, offsetX, offsetY);
-
-          if (feetRotation !== 0) {
-            ctx.restore();
-          }
-
-          // Draw eyes and mouth (always on top)
-          const faceShapes = palettedHopperShape.filter((s, i) => i >= 3 && i <= 6 || i === 9); // Eyes, pupils, mouth
-          renderShapes(faceShapes, scaleX, scaleY, offsetX, offsetY);
-
-          ctx.restore();
+          ctx.scale(enemy.dir, 1);
+          if (assets.hopper && assets.hopper.complete && assets.hopper.naturalWidth > 0) ctx.drawImage(assets.hopper, -enemy.w/2, -enemy.h/2, enemy.w, enemy.h);
+          else { ctx.fillStyle = '#FF9900'; ctx.fillRect(-enemy.w/2, -enemy.h/2, enemy.w, enemy.h); }
+        } else if (enemy.type === 'flyer') {
+          ctx.scale(-enemy.dir, 1);
+          if (assets.flyer && assets.flyer.complete && assets.flyer.naturalWidth > 0) ctx.drawImage(assets.flyer, -enemy.w/2, -enemy.h/2, enemy.w, enemy.h);
+          else { ctx.fillStyle = '#99CCFF'; ctx.fillRect(-enemy.w/2, -enemy.h/2, enemy.w, enemy.h); }
         } else if (enemy.type === 'walker') {
           ctx.rotate(enemy.rotateAngle);
-
-          // Draw filled circle background with current palette
-          const palette = getCurrentPalette();
-          ctx.fillStyle = palette.walker;
-          // Darken stroke by 20%
-          const darker = palette.walker.replace(/[0-9a-f]{6}/i, m => {
-            const r = Math.max(0, parseInt(m.substr(0, 2), 16) - 30).toString(16).padStart(2, '0');
-            const g = Math.max(0, parseInt(m.substr(2, 2), 16) - 30).toString(16).padStart(2, '0');
-            const b = Math.max(0, parseInt(m.substr(4, 2), 16) - 30).toString(16).padStart(2, '0');
-            return r + g + b;
-          });
-          ctx.strokeStyle = '#' + darker;
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(0, 0, enemy.w / 2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-
-          // Draw spiral that rotates with the walker (even darker)
-          const darkest = darker.replace(/[0-9a-f]{6}/i, m => {
-            const r = Math.max(0, parseInt(m.substr(0, 2), 16) - 20).toString(16).padStart(2, '0');
-            const g = Math.max(0, parseInt(m.substr(2, 2), 16) - 20).toString(16).padStart(2, '0');
-            const b = Math.max(0, parseInt(m.substr(4, 2), 16) - 20).toString(16).padStart(2, '0');
-            return r + g + b;
-          });
-          ctx.strokeStyle = '#' + darkest;
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          const radius = enemy.w / 2;
-          const spiralTurns = 2.5;
-          const points = 50;
-          for (let i = 0; i < points; i++) {
-            const t = i / points;
-            const angle = t * spiralTurns * Math.PI * 2;
-            const r = t * radius * 0.85; // Spiral goes from center to 85% of radius
-            const x = Math.cos(angle) * r;
-            const y = Math.sin(angle) * r;
-            if (i === 0) {
-              ctx.moveTo(x, y);
-            } else {
-              ctx.lineTo(x, y);
-            }
-          }
-          ctx.stroke();
-        } else if (enemy.type === 'flyer') {
-          const wobble = Math.sin(enemy.bobT) * 3;
-          ctx.translate(0, wobble);
-
-          // Calculate wing flapping animation - flaps down crossing body, then back up
-          // Oscillates from 1.0 (up) to -0.8 (down crossing body) and back
-          const wingFlap = Math.sin(enemy.flapTimer) * 0.9; // Oscillates between -0.9 and 0.9
-
-          // Scale to fit enemy dimensions (original design is ~240x46)
-          let scaleX = (enemy.w / 240);
-          const scaleY = (enemy.h / 46);
-
-          // Flip horizontally based on movement direction (reverse because design faces left)
-          scaleX *= -enemy.dir;
-
-          const offsetX = -226 * scaleX;
-          const offsetY = -242 * scaleY;
-
-          // Apply palette colors
-          const colorMap = getPaletteColorMap('flyer');
-          const palettedFlyerShape = flyerShape.map(s => applyPaletteToShape(s, colorMap));
-
-          ctx.save();
-
-          // Draw body first (indices 0-1)
-          const bodyShapes = palettedFlyerShape.filter((s, i) => i === 0 || i === 1);
-          renderShapes(bodyShapes, scaleX, scaleY, offsetX, offsetY);
-
-          // Draw wings with flapping animation (indices 4-7: the triangular wings)
-          const wingShapes = palettedFlyerShape.filter((s, i) => i >= 4 && i <= 7).map(shape => {
-            if (shape.type === 'triangle' && Math.abs(shape.h) > 10) {
-              // Apply wing flap - negative values make wings cross the body
-              return { ...shape, h: shape.h * wingFlap };
-            }
-            return shape;
-          });
-          renderShapes(wingShapes, scaleX, scaleY, offsetX, offsetY);
-
-          // Draw eye - it faces direction of travel due to horizontal flip (indices 10-14)
-          const eyeShapes = palettedFlyerShape.filter((s, i) => i >= 10 && i <= 14);
-          renderShapes(eyeShapes, scaleX, scaleY, offsetX, offsetY);
-
-          ctx.restore();
-        } else if (enemy.type === 'tank') {
-          // Scale to fit enemy dimensions (original design is ~324x258)
-          const scaleX = enemy.w / 324;
-          const scaleY = enemy.h / 258;
-
-          // Center the design (original center is around x:253, y:187)
-          const offsetX = -253 * scaleX;
-          const offsetY = -187 * scaleY;
-
-          // Apply palette colors
-          const colorMap = getPaletteColorMap('tank');
-          const palettedTankShape = tankShape.map(s => applyPaletteToShape(s, colorMap));
-
-          renderShapes(palettedTankShape, scaleX, scaleY, offsetX, offsetY);
+          ctx.fillStyle = '#a890d0'; ctx.beginPath(); ctx.arc(0,0,enemy.w/2, 0, Math.PI*2); ctx.fill();
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(enemy.w/2, 0); ctx.stroke();
         }
-
-        // Health bar
-        if (enemy.health < enemy.maxHealth) {
-          ctx.resetTransform();
-          ctx.translate(-camera.x, -camera.y);
-          const barW = enemy.w;
-          const barH = 4;
-          const barX = enemy.x;
-          const barY = enemy.y - 10;
-
-          ctx.fillStyle = 'rgba(0,0,0,0.5)';
-          roundRect(barX, barY, barW, barH, 2, true, false);
-
-          const healthPercent = enemy.health / enemy.maxHealth;
-          ctx.fillStyle = healthPercent > 0.5 ? '#5bc0de' : '#ff5555';
-          roundRect(barX + 1, barY + 1, (barW - 2) * healthPercent, barH - 2, 1, true, false);
-        }
-
         ctx.restore();
       }
     }
 
-    // Draw boss
+    // Boss
     if (boss) {
       ctx.save();
-
-      if (boss.hitFlash > 0) {
-        ctx.globalAlpha = 0.5 + Math.sin(time * 50) * 0.5;
-      }
-
-      // Boss glow based on phase
-      const glowColors = ['#8a2be2', '#ff1493', '#00ff00'];
-
-      // Draw boss based on type
-      if (boss.bossType === 'octopus' || boss.bossType === 'hybrid') {
-        drawOctopusBoss(boss, glowColors);
-      }
-      if (boss.bossType === 'mantis' || boss.bossType === 'hybrid') {
-        drawMantisBoss(boss, glowColors);
-      }
-      if (boss.bossType === 'salamander' || boss.bossType === 'hybrid') {
-        drawSalamanderBoss(boss, glowColors);
-      }
-
-      // Draw armor/spikes overlay
-      if (boss.variation === 'armor' || boss.variation === 'spikes' || boss.variation === 'ultimate') {
-        drawBossArmor(boss, boss.variation === 'spikes' || boss.variation === 'ultimate');
-      }
-
-      // Health bar
-      const barW = boss.w;
-      const barH = 8;
-      const barX = boss.x;
-      const barY = boss.y - 25;
-
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      roundRect(barX, barY, barW, barH, 4, true, false);
-
-      const healthPercent = boss.health / boss.maxHealth;
-      ctx.fillStyle = healthPercent > 0.5 ? '#5bc0de' : '#ff5555';
-      roundRect(barX + 2, barY + 2, (barW - 4) * healthPercent, barH - 4, 3, true, false);
-
-      // Boss name
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#000';
-      ctx.shadowBlur = 4;
-      ctx.fillText(`${boss.name} - Phase ${boss.phase + 1}`, boss.x + boss.w / 2, barY - 8);
-
-      ctx.globalAlpha = 1;
+      if (boss.hitFlash > 0) ctx.globalAlpha = 0.5 + Math.sin(time*50)*0.5;
+      let imgKey = boss.bossType;
+      if (boss.variation !== 'plain' && boss.bossType !== 'chimiera') imgKey += '_' + boss.variation;
+      if (assets[imgKey] && assets[imgKey].complete && assets[imgKey].naturalWidth > 0) ctx.drawImage(assets[imgKey], boss.x, boss.y, boss.w, boss.h);
+      else { ctx.fillStyle = 'red'; ctx.fillRect(boss.x, boss.y, boss.w, boss.h); }
       ctx.restore();
+      // HP bar
+      ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(boss.x, boss.y - 20, boss.w, 10);
+      ctx.fillStyle = 'red'; ctx.fillRect(boss.x+1, boss.y - 19, (boss.w-2) * (boss.health / boss.maxHealth), 8);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+      ctx.shadowColor = '#000'; ctx.shadowBlur = 2; ctx.fillText(boss.name, boss.x + boss.w/2, boss.y - 25); ctx.shadowBlur = 0;
     }
 
-    // Boss drawing functions
-    function drawOctopusBoss(boss, glowColors) {
-      const bodyColors = ['#6a1fb2', '#9932cc', '#8b008b'];
-      ctx.shadowColor = glowColors[boss.phase];
-      ctx.shadowBlur = 25 + Math.sin(boss.animTimer * 3) * 8;
-
-      const scale = boss.bossType === 'hybrid' ? 0.6 : 1;
-      const offsetY = boss.bossType === 'hybrid' ? boss.h * 0.3 : 0;
-
-      // Tentacles (8 animated tentacles)
-      const tentacleCount = 8;
-      for (let i = 0; i < tentacleCount; i++) {
-        const angle = (Math.PI * 2 * i) / tentacleCount;
-        const tentacleWave = Math.sin(boss.animTimer * 4 + i) * 15 * scale;
-
-        ctx.strokeStyle = bodyColors[boss.phase];
-        ctx.lineWidth = 6 * scale;
-        ctx.lineCap = 'round';
-
-        ctx.beginPath();
-        const startX = boss.x + boss.w / 2 + Math.cos(angle) * (boss.w * 0.3 * scale);
-        const startY = boss.y + offsetY + boss.h * 0.7 * scale + Math.sin(angle) * (boss.h * 0.2 * scale);
-        ctx.moveTo(startX, startY);
-
-        // Wavy tentacle
-        for (let j = 1; j <= 3; j++) {
-          const segmentX = startX + Math.cos(angle) * j * 20 * scale + Math.sin(boss.animTimer * 3 + i + j) * tentacleWave;
-          const segmentY = startY + j * 25 * scale + Math.cos(boss.animTimer * 3 + i + j) * 10 * scale;
-          ctx.lineTo(segmentX, segmentY);
-        }
-        ctx.stroke();
-
-        // Tentacle suckers
-        ctx.fillStyle = glowColors[boss.phase];
-        for (let j = 1; j <= 3; j++) {
-          const segmentX = startX + Math.cos(angle) * j * 20 * scale + Math.sin(boss.animTimer * 3 + i + j) * tentacleWave;
-          const segmentY = startY + j * 25 * scale + Math.cos(boss.animTimer * 3 + i + j) * 10 * scale;
-          ctx.beginPath();
-          ctx.arc(segmentX, segmentY, 3 * scale, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // Main body (squid head/mantle)
-      const bodyPulse = 1 + Math.sin(boss.animTimer * 2) * 0.08;
-      ctx.fillStyle = bodyColors[boss.phase];
-      ctx.strokeStyle = glowColors[boss.phase];
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.ellipse(boss.x + boss.w / 2, boss.y + offsetY + boss.h * 0.35 * scale, boss.w * 0.45 * bodyPulse * scale, boss.h * 0.4 * bodyPulse * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Eyes (three alien eyes)
-      const eyeY = boss.y + offsetY + boss.h * 0.25 * scale;
-      const eyePositions = [
-        { x: boss.x + boss.w * 0.35, size: 10 * scale },
-        { x: boss.x + boss.w * 0.5, size: 12 * scale },
-        { x: boss.x + boss.w * 0.65, size: 10 * scale }
-      ];
-
-      for (const eye of eyePositions) {
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(eye.x, eyeY, eye.size, 0, Math.PI * 2);
-        ctx.fill();
-
-        const pupilColor = boss.state === 'charging' ? '#ff0000' : glowColors[boss.phase];
-        ctx.fillStyle = pupilColor;
-        ctx.beginPath();
-        ctx.arc(eye.x, eyeY, eye.size * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
-    }
-
-    function drawMantisBoss(boss, glowColors) {
-      const bodyColors = ['#228B22', '#32CD32', '#00FF00'];
-      const scale = boss.bossType === 'hybrid' ? 0.5 : 1;
-      const offsetX = boss.bossType === 'hybrid' ? boss.w * 0.25 : 0;
-      const offsetY = boss.bossType === 'hybrid' ? 0 : 0;
-
-      ctx.shadowColor = glowColors[boss.phase];
-      ctx.shadowBlur = 20 + Math.sin(boss.animTimer * 3) * 8;
-
-      ctx.fillStyle = bodyColors[boss.phase];
-      ctx.strokeStyle = glowColors[boss.phase];
-      ctx.lineWidth = 3;
-
-      // Segmented abdomen (long and tapered like real mantis)
-      const abdomenSegments = 7;
-      for (let i = 0; i < abdomenSegments; i++) {
-        const segmentProgress = i / abdomenSegments;
-        const abdomenY = boss.y + offsetY + boss.h * (0.45 + segmentProgress * 0.45) * scale;
-        const segmentWidth = boss.w * (0.25 - segmentProgress * 0.1) * scale;
-        const segmentHeight = boss.h * 0.08 * scale;
-
-        ctx.fillStyle = i % 2 === 0 ? bodyColors[boss.phase] : '#1a6b1a';
-        ctx.beginPath();
-        ctx.ellipse(boss.x + boss.w / 2 + offsetX, abdomenY, segmentWidth, segmentHeight, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      // Prothorax (elongated front segment - distinctive of mantis)
-      ctx.fillStyle = bodyColors[boss.phase];
-      ctx.beginPath();
-      ctx.ellipse(boss.x + boss.w / 2 + offsetX, boss.y + offsetY + boss.h * 0.35 * scale, boss.w * 0.15 * scale, boss.h * 0.25 * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Mesothorax and Metathorax (middle body segments)
-      ctx.beginPath();
-      ctx.ellipse(boss.x + boss.w / 2 + offsetX, boss.y + offsetY + boss.h * 0.42 * scale, boss.w * 0.2 * scale, boss.h * 0.12 * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Triangular head (characteristic mantis head)
-      ctx.save();
-      ctx.translate(boss.x + boss.w / 2 + offsetX, boss.y + offsetY + boss.h * 0.2 * scale);
-
-      ctx.fillStyle = bodyColors[boss.phase];
-      ctx.beginPath();
-      ctx.moveTo(0, -boss.h * 0.15 * scale);
-      ctx.lineTo(-boss.w * 0.18 * scale, boss.h * 0.05 * scale);
-      ctx.lineTo(boss.w * 0.18 * scale, boss.h * 0.05 * scale);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-
-      // Antennae (thin and wispy)
-      ctx.strokeStyle = glowColors[boss.phase];
-      ctx.lineWidth = 2;
-      const antennaWave = Math.sin(boss.animTimer * 2);
-      for (let side = -1; side <= 1; side += 2) {
-        ctx.beginPath();
-        ctx.moveTo(boss.x + boss.w / 2 + offsetX + side * boss.w * 0.1 * scale, boss.y + offsetY + boss.h * 0.15 * scale);
-        ctx.quadraticCurveTo(
-          boss.x + boss.w / 2 + offsetX + side * boss.w * 0.25 * scale,
-          boss.y + offsetY + boss.h * 0.05 * scale + antennaWave * 5,
-          boss.x + boss.w / 2 + offsetX + side * boss.w * 0.3 * scale,
-          boss.y + offsetY - boss.h * 0.05 * scale
-        );
-        ctx.stroke();
-      }
-
-      // Raptorial forelegs (iconic praying position with spined grasping arms)
-      const armAngle = Math.sin(boss.animTimer * 3) * 0.15;
-      for (let side = -1; side <= 1; side += 2) {
-        ctx.save();
-        ctx.translate(boss.x + boss.w / 2 + offsetX + side * boss.w * 0.12 * scale, boss.y + offsetY + boss.h * 0.3 * scale);
-        ctx.rotate(side * (Math.PI / 6 + armAngle));
-
-        // Coxa (base segment)
-        ctx.fillStyle = bodyColors[boss.phase];
-        ctx.strokeStyle = glowColors[boss.phase];
-        ctx.lineWidth = 2;
-        ctx.fillRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.15 * scale);
-        ctx.strokeRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.15 * scale);
-
-        // Femur (upper arm - thick and muscular)
-        ctx.translate(0, boss.h * 0.15 * scale);
-        ctx.fillRect(-boss.w * 0.05 * scale, 0, boss.w * 0.1 * scale, boss.h * 0.3 * scale);
-        ctx.strokeRect(-boss.w * 0.05 * scale, 0, boss.w * 0.1 * scale, boss.h * 0.3 * scale);
-
-        // Spines along the femur
-        ctx.fillStyle = '#000';
-        for (let i = 0; i < 4; i++) {
-          const spineY = i * boss.h * 0.075 * scale;
-          ctx.beginPath();
-          ctx.moveTo(0, spineY);
-          ctx.lineTo(side * boss.w * 0.06 * scale, spineY + boss.h * 0.03 * scale);
-          ctx.lineTo(0, spineY + boss.h * 0.05 * scale);
-          ctx.fill();
-        }
-
-        // Tibia (forearm - with grasping spines)
-        ctx.fillStyle = bodyColors[boss.phase];
-        ctx.translate(0, boss.h * 0.3 * scale);
-        ctx.rotate(side * -Math.PI / 2.5);
-        ctx.fillRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.25 * scale);
-        ctx.strokeRect(-boss.w * 0.04 * scale, 0, boss.w * 0.08 * scale, boss.h * 0.25 * scale);
-
-        // Spines on tibia (for grasping prey)
-        ctx.fillStyle = glowColors[boss.phase];
-        for (let i = 0; i < 5; i++) {
-          ctx.beginPath();
-          ctx.moveTo(0, i * boss.h * 0.05 * scale);
-          ctx.lineTo(side * boss.w * 0.07 * scale, i * boss.h * 0.05 * scale + boss.h * 0.025 * scale);
-          ctx.lineTo(0, i * boss.h * 0.05 * scale + boss.h * 0.04 * scale);
-          ctx.fill();
-        }
-
-        // Tarsus (claw/foot)
-        ctx.fillStyle = '#000';
-        ctx.translate(0, boss.h * 0.25 * scale);
-        ctx.rotate(side * -Math.PI / 6);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(side * boss.w * 0.05 * scale, boss.h * 0.08 * scale);
-        ctx.lineTo(0, boss.h * 0.1 * scale);
-        ctx.fill();
-
-        ctx.restore();
-      }
-
-      // Walking legs (4 legs - thinner than raptorial forelegs)
-      for (let legPair = 0; legPair < 2; legPair++) {
-        const legY = boss.y + offsetY + boss.h * (0.42 + legPair * 0.08) * scale;
-        for (let side = -1; side <= 1; side += 2) {
-          ctx.save();
-          ctx.translate(boss.x + boss.w / 2 + offsetX + side * boss.w * 0.15 * scale, legY);
-
-          const walkCycle = Math.sin(boss.animTimer * 3 + legPair);
-          ctx.rotate(side * (Math.PI / 3 + walkCycle * 0.2));
-
-          ctx.strokeStyle = bodyColors[boss.phase];
-          ctx.lineWidth = 3 * scale;
-          ctx.lineCap = 'round';
-
-          // Upper leg segment
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(side * boss.w * 0.2 * scale, boss.h * 0.15 * scale);
-          ctx.stroke();
-
-          // Lower leg segment
-          ctx.beginPath();
-          ctx.moveTo(side * boss.w * 0.2 * scale, boss.h * 0.15 * scale);
-          ctx.lineTo(side * boss.w * 0.35 * scale, boss.h * 0.25 * scale);
-          ctx.stroke();
-
-          ctx.restore();
-        }
-      }
-
-      // Large compound eyes (distinctive bulging eyes)
-      ctx.fillStyle = '#FF4500';
-      ctx.strokeStyle = '#8B0000';
-      ctx.lineWidth = 2;
-      const eyeSize = boss.w * 0.14 * scale;
-
-      for (let side = -1; side <= 1; side += 2) {
-        const eyeX = boss.x + boss.w / 2 + offsetX + side * boss.w * 0.13 * scale;
-        const eyeY = boss.y + offsetY + boss.h * 0.18 * scale;
-
-        ctx.beginPath();
-        ctx.arc(eyeX, eyeY, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Hexagonal pattern (compound eye detail)
-        ctx.fillStyle = '#000';
-        ctx.globalAlpha = 0.3;
-        for (let row = 0; row < 3; row++) {
-          for (let col = 0; col < 3; col++) {
-            const hexX = eyeX + (col - 1) * eyeSize * 0.3;
-            const hexY = eyeY + (row - 1) * eyeSize * 0.3;
-            ctx.beginPath();
-            ctx.arc(hexX, hexY, eyeSize * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-        ctx.globalAlpha = 1;
-
-        // Pupil/highlight
-        ctx.fillStyle = boss.state === 'charging' ? '#ff0000' : '#FFD700';
-        ctx.beginPath();
-        ctx.arc(eyeX - eyeSize * 0.2, eyeY - eyeSize * 0.2, eyeSize * 0.3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.shadowBlur = 0;
-    }
-
-    function drawSalamanderBoss(boss, glowColors) {
-      const bodyColors = ['#FF4500', '#FF6347', '#FF8C00'];
-      const scale = boss.bossType === 'hybrid' ? 0.6 : 1;
-      const offsetY = boss.bossType === 'hybrid' ? boss.h * 0.4 : 0;
-
-      ctx.shadowColor = glowColors[boss.phase];
-      ctx.shadowBlur = 20 + Math.sin(boss.animTimer * 3) * 8;
-
-      // Tail (wavy animated)
-      const tailSegments = 8;
-      ctx.strokeStyle = bodyColors[boss.phase];
-      ctx.lineWidth = boss.h * 0.2 * scale;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-
-      for (let i = 0; i < tailSegments; i++) {
-        const t = i / tailSegments;
-        const wave = Math.sin(boss.animTimer * 3 - i * 0.5) * 20 * scale;
-        const x = boss.x + boss.w / 2 + (1 - t) * boss.w * 0.6 * scale;
-        const y = boss.y + offsetY + boss.h * 0.6 * scale + wave;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // Main body
-      ctx.fillStyle = bodyColors[boss.phase];
-      ctx.strokeStyle = glowColors[boss.phase];
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.ellipse(boss.x + boss.w / 2, boss.y + offsetY + boss.h * 0.45 * scale, boss.w * 0.4 * scale, boss.h * 0.35 * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Head (reptilian)
-      ctx.beginPath();
-      ctx.ellipse(boss.x + boss.w / 2, boss.y + offsetY + boss.h * 0.2 * scale, boss.w * 0.3 * scale, boss.h * 0.25 * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Salamander spots
-      ctx.fillStyle = '#000';
-      ctx.globalAlpha = 0.4;
-      for (let i = 0; i < 6; i++) {
-        const spotX = boss.x + boss.w * (0.3 + Math.random() * 0.4);
-        const spotY = boss.y + offsetY + boss.h * (0.3 + Math.random() * 0.4) * scale;
-        ctx.beginPath();
-        ctx.arc(spotX, spotY, boss.w * 0.08 * scale, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-
-      // Eyes (golden)
-      ctx.fillStyle = '#FFD700';
-      const eyeSize = boss.w * 0.08 * scale;
-      ctx.beginPath();
-      ctx.arc(boss.x + boss.w * 0.4, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(boss.x + boss.w * 0.6, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Pupils
-      ctx.fillStyle = boss.state === 'charging' ? '#ff0000' : '#000';
-      ctx.beginPath();
-      ctx.arc(boss.x + boss.w * 0.4, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(boss.x + boss.w * 0.6, boss.y + offsetY + boss.h * 0.18 * scale, eyeSize * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.shadowBlur = 0;
-    }
-
-    function drawBossArmor(boss, withSpikes) {
-      // Armor plating
-      ctx.strokeStyle = '#4A4A4A';
-      ctx.fillStyle = '#2A2A2A';
-      ctx.lineWidth = 3;
-
-      const armorPieces = [
-        { x: 0.3, y: 0.3, w: 0.4, h: 0.25 },
-        { x: 0.25, y: 0.5, w: 0.5, h: 0.2 },
-        { x: 0.35, y: 0.65, w: 0.3, h: 0.15 }
-      ];
-
-      for (const piece of armorPieces) {
-        const px = boss.x + boss.w * piece.x;
-        const py = boss.y + boss.h * piece.y;
-        const pw = boss.w * piece.w;
-        const ph = boss.h * piece.h;
-
-        roundRect(px, py, pw, ph, 5, true, true);
-
-        // Armor rivets
-        ctx.fillStyle = '#5A5A5A';
-        ctx.beginPath();
-        ctx.arc(px + 5, py + 5, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(px + pw - 5, py + 5, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Spikes if variation is 'spikes'
-      if (withSpikes) {
-        ctx.fillStyle = '#8B0000';
-        ctx.strokeStyle = '#FF0000';
-        ctx.lineWidth = 2;
-
-        const spikeCount = 6;
-        for (let i = 0; i < spikeCount; i++) {
-          const angle = (Math.PI * 2 * i) / spikeCount;
-          const baseX = boss.x + boss.w / 2 + Math.cos(angle) * boss.w * 0.35;
-          const baseY = boss.y + boss.h / 2 + Math.sin(angle) * boss.h * 0.35;
-          const tipX = baseX + Math.cos(angle) * boss.w * 0.15;
-          const tipY = baseY + Math.sin(angle) * boss.h * 0.15;
-
-          ctx.beginPath();
-          ctx.moveTo(baseX - Math.cos(angle + Math.PI / 2) * 5, baseY - Math.sin(angle + Math.PI / 2) * 5);
-          ctx.lineTo(tipX, tipY);
-          ctx.lineTo(baseX + Math.cos(angle + Math.PI / 2) * 5, baseY + Math.sin(angle + Math.PI / 2) * 5);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-      }
-    }
-
-    // Draw lasers
+    // Lasers
     for (const laser of lasers) {
-      if (laser.isTankProjectile) {
-        ctx.save();
-        ctx.translate(laser.x + laser.w / 2, laser.y + laser.h / 2);
-        const scaleX = laser.w / 12.8;
-        const scaleY = laser.h / 36;
-        const offsetX = -253.6 * scaleX;
-        const offsetY = -425.8 * scaleY;
-        renderShapes(tankProjectileShape, scaleX, scaleY, offsetX, offsetY);
-        ctx.restore();
-      } else if (laser.isBossProjectile) {
-        ctx.fillStyle = '#ff5555';
-        ctx.shadowColor = '#ff0000';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(laser.x, laser.y, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      } else {
-        ctx.fillStyle = laser.dir > 0 ? '#ff3333' : '#3333ff';
-        roundRect(laser.x, laser.y, laser.w, laser.h, 2, true, false);
-      }
+      ctx.fillStyle = '#7be2ff'; ctx.fillRect(laser.x, laser.y, laser.w, laser.h);
     }
 
-    // Draw player
+    // Player
     ctx.save();
-    ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
-
-    if (player.invincible) {
-      ctx.globalAlpha = 0.5 + Math.sin(time * 20) * 0.5;
-    }
-
-    ctx.scale(player.facing, 1);
-    ctx.translate(-player.w / 2, -player.h / 2);
-
-    let bodyOffset = 0;
-    if (player.animState === 'walk') {
-      bodyOffset = Math.sin(player.animFrame * Math.PI) * 2;
-    }
-
-    ctx.fillStyle = '#aeb7c4';
-    ctx.strokeStyle = '#738096';
-    ctx.lineWidth = 2;
-    roundRect(4, 6 + bodyOffset, player.w - 8, player.h - 14, 10, true, true);
-
-    ctx.fillStyle = '#8c97a7';
-    roundRect(2, player.h - 12, player.w * 0.42, 12, 6, true, false);
-    roundRect(player.w - player.w * 0.42 - 2, player.h - 12, player.w * 0.42, 12, 6, true, false);
-
-    const earW = player.w * 0.2, earH = player.h * 0.7;
-    ctx.fillStyle = '#aeb7c4';
-    roundRect(player.w * 0.2, -earH * 0.4, earW, earH, 8, true, true);
-    roundRect(player.w * 0.6, -earH * 0.3, earW, earH, 8, true, true);
-
-    ctx.fillStyle = '#0d131a';
-    roundRect(player.w * 0.25, player.h * 0.35 + bodyOffset, player.w * 0.5, player.h * 0.18, 8, true, false);
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = '#7be2ff';
-    roundRect(player.w * 0.3, player.h * 0.4 + bodyOffset, player.w * 0.4, player.h * 0.08, 5, true, false);
-    ctx.globalCompositeOperation = 'source-over';
-
-    ctx.globalAlpha = 1;
+    ctx.translate(player.x, player.y);
+    if (player.invincible) ctx.globalAlpha = 0.5 + Math.sin(time*20)*0.4;
+    ctx.save();
+    ctx.translate(player.w/2, 0); ctx.scale(player.facing, 1); ctx.translate(-player.w/2, 0);
+    if (assets.player && assets.player.complete && assets.player.naturalWidth > 0) ctx.drawImage(assets.player, 0, 0, player.w, player.h);
+    else { ctx.fillStyle = '#ccc'; ctx.fillRect(0, 0, player.w, player.h); }
+    ctx.restore();
     ctx.restore();
 
-    // Draw particles
-    for (const p of particles) {
-      ctx.globalAlpha = p.life;
-      ctx.fillStyle = p.color;
-      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-    }
+    // Particles & Damage numbers
+    for (const p of particles) { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); }
     ctx.globalAlpha = 1;
-
-    // Draw damage numbers
     for (const dn of damageNumbers) {
-      ctx.globalAlpha = dn.life;
-      ctx.fillStyle = dn.color;
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 3;
-      ctx.font = 'bold 18px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.strokeText(dn.value, dn.x, dn.y);
-      ctx.fillText(dn.value, dn.x, dn.y);
+      ctx.globalAlpha = dn.life; ctx.fillStyle = dn.color; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+      ctx.shadowColor = '#000'; ctx.shadowBlur = 2; ctx.fillText(dn.value, dn.x, dn.y);
     }
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 
     ctx.restore();
-    ctx.restore();
 
-    // Draw UI overlays
+    // Overlays
     if (gameState === 'bossIntro') {
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#ff5555';
-      ctx.font = 'bold 48px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#ff0000';
-      ctx.shadowBlur = 20;
-      ctx.fillText('BOSS APPROACHING', canvas.width / 2, canvas.height / 2);
-      ctx.shadowBlur = 0;
-    } else if (gameState === 'levelComplete') {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 56px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#FFA500';
-      ctx.shadowBlur = 20;
-      ctx.fillText(`LEVEL ${currentLevel} COMPLETE!`, canvas.width / 2, canvas.height / 2 - 80);
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#9fb1cc';
-      ctx.font = '20px sans-serif';
-      ctx.fillText(`Coins Earned: ${player.sessionCoins}`, canvas.width / 2, canvas.height / 2 - 20);
-      ctx.fillText(`Score: ${Math.floor(score)}`, canvas.width / 2, canvas.height / 2 + 10);
-      ctx.fillText(`High Score: ${Math.floor(highScore)}`, canvas.width / 2, canvas.height / 2 + 40);
-
-      ctx.fillStyle = '#7be2ff';
-      ctx.font = 'bold 24px sans-serif';
-      const isMobile = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
-      ctx.fillText(isMobile ? 'TAP to Continue' : 'Press ENTER for Next Level', canvas.width / 2, canvas.height / 2 + 80);
-
-      ctx.fillStyle = '#FFD700';
-      ctx.font = '16px sans-serif';
-      ctx.fillText('(Shop coming soon!)', canvas.width / 2, canvas.height / 2 + 110);
+      ctx.fillStyle = 'rgba(0,0,0, 0.3)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.font = 'bold 80px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'red';
+      ctx.shadowColor = '#000'; ctx.shadowBlur = 10; ctx.fillText('Boss Approaching', canvas.width/2, canvas.height/2); ctx.shadowBlur = 0;
+    }
+    if (gameState === 'levelComplete') {
+      ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#FFD700'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('LEVEL COMPLETE!', canvas.width/2, canvas.height/2 - 20);
+      ctx.font = '20px sans-serif'; ctx.fillText('Press ENTER or TAP to continue', canvas.width/2, canvas.height/2 + 40);
     } else if (gameState === 'gameOver') {
-      ctx.fillStyle = 'rgba(0,0,0,0.8)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#ff5555';
-      ctx.font = 'bold 56px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 60);
-
-      ctx.fillStyle = '#9fb1cc';
-      ctx.font = '20px sans-serif';
-      const loopText = loopNumber > 0 ? ` (Loop ${loopNumber})` : '';
-      ctx.fillText(`Level Reached: ${currentLevel}${loopText}`, canvas.width / 2, canvas.height / 2 - 10);
-      ctx.fillText(`Score: ${Math.floor(score)}`, canvas.width / 2, canvas.height / 2 + 20);
-      ctx.fillText(`High Score: ${Math.floor(highScore)}`, canvas.width / 2, canvas.height / 2 + 50);
-      ctx.fillText(`Total Coins: ${totalCoins}`, canvas.width / 2, canvas.height / 2 + 80);
-
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 24px sans-serif';
-      const isMobileGameOver = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
-      ctx.fillText(isMobileGameOver ? 'TAP to Restart' : 'Press R to Restart', canvas.width / 2, canvas.height / 2 + 100);
-    } else if (paused) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#7be2ff';
-      ctx.font = 'bold 48px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
-
-      ctx.fillStyle = '#9fb1cc';
-      ctx.font = '18px sans-serif';
-      const isMobilePaused = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
-      ctx.fillText(isMobilePaused ? 'TAP to Resume' : 'Press ESC to Resume', canvas.width / 2, canvas.height / 2 + 40);
+      ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#f00'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.fillText('Press R or TAP to Restart', canvas.width/2, canvas.height/2 + 40);
     }
   }
 
-  // ============ INPUT HANDLERS ============
-  window.addEventListener('keydown', (e) => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','Escape','KeyM','KeyX','KeyR','Enter'].includes(e.code)) e.preventDefault();
+  // ============ DRAW START SCREEN BUNNY ============
+  window.drawStartScreenBunny = function() {
+    const sCanvas = document.getElementById('start-bunny-canvas');
+    if (!sCanvas || !assets.player) return;
+    if (!assets.player.complete || assets.player.naturalWidth === 0) { setTimeout(drawStartScreenBunny, 100); return; }
+    const sCtx = sCanvas.getContext('2d');
+    sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
+    const img = assets.player;
+    const x = (sCanvas.width - img.naturalWidth) / 2;
+    const y = (sCanvas.height - img.naturalHeight) / 2;
+    sCtx.drawImage(img, x, y);
+  };
 
-    if (e.code === 'Escape') {
-      if (gameState === 'playing' || gameState === 'bossIntro') {
-        paused = !paused;
-        if (paused) pauseMusic();
-        else resumeMusic();
-      }
-      return;
-    }
-
-    if (e.code === 'KeyM') {
-      soundEnabled = !soundEnabled;
-      if (!soundEnabled) {
-        pauseMusic();
-      } else {
-        // Resume the current track that should be playing
-        resumeMusic();
-      }
-      return;
-    }
-
-    if (e.code === 'KeyR' && gameState === 'gameOver') {
-      location.reload();
-      return;
-    }
-
-    if (e.code === 'Enter' && gameState === 'levelComplete') {
-      startNextLevel();
-      return;
-    }
-
-    if (gameState === 'playing' && !paused) {
-      keys[e.code] = true;
-      if (e.code === 'KeyX') wantShoot = true;
-    }
+  // ============ INPUT ============
+  window.addEventListener('keydown', e => {
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
+    if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
+    if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
+    keys[e.code] = true;
+    if (e.code === 'KeyX') wantShoot = true;
+    if (e.code === 'Escape') paused = !paused;
   });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-  window.addEventListener('keyup', (e) => {
-    keys[e.code] = false;
-  });
-
-  // ============ MOBILE CONTROLS ============
-  const mobileButtons = {
+  const btns = {
     left: document.getElementById('mobile-left'),
     right: document.getElementById('mobile-right'),
     jump: document.getElementById('mobile-jump'),
     shoot: document.getElementById('mobile-shoot')
   };
+  const bindTouch = (btn, code) => {
+    if (!btn) return;
+    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[code]=true; if(code==='KeyX') wantShoot=true; }, { passive: false });
+    btn.addEventListener('touchend', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
+    btn.addEventListener('touchcancel', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
+  };
+  bindTouch(btns.left, 'ArrowLeft'); bindTouch(btns.right, 'ArrowRight');
+  bindTouch(btns.jump, 'Space'); bindTouch(btns.shoot, 'KeyX');
 
-  function handleTouchStart(btn, keyCode) {
-    return (e) => {
-      e.preventDefault();
-      btn.classList.add('pressed');
-      if (gameState === 'playing' && !paused && gameStarted) {
-        keys[keyCode] = true;
-        if (keyCode === 'KeyX') {
-          wantShoot = true;
-        }
-      }
-    };
+  // Start Game Logic
+  function startGame() {
+    if (gameStarted) return;
+    // Unlock audio on first user gesture
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
+    }
+    gameStarted = true;
+    document.getElementById('start-screen').classList.add('hidden');
+    gameState = 'playing';
+    playMusic(`level${currentLevel}`);
   }
 
-  function handleTouchEnd(btn, keyCode) {
-    return (e) => {
-      e.preventDefault();
-      btn.classList.remove('pressed');
-      keys[keyCode] = false;
-    };
-  }
-
-  // Set up mobile button listeners
-  mobileButtons.left.addEventListener('touchstart', handleTouchStart(mobileButtons.left, 'ArrowLeft'));
-  mobileButtons.left.addEventListener('touchend', handleTouchEnd(mobileButtons.left, 'ArrowLeft'));
-  mobileButtons.left.addEventListener('touchcancel', handleTouchEnd(mobileButtons.left, 'ArrowLeft'));
-
-  mobileButtons.right.addEventListener('touchstart', handleTouchStart(mobileButtons.right, 'ArrowRight'));
-  mobileButtons.right.addEventListener('touchend', handleTouchEnd(mobileButtons.right, 'ArrowRight'));
-  mobileButtons.right.addEventListener('touchcancel', handleTouchEnd(mobileButtons.right, 'ArrowRight'));
-
-  mobileButtons.jump.addEventListener('touchstart', handleTouchStart(mobileButtons.jump, 'Space'));
-  mobileButtons.jump.addEventListener('touchend', handleTouchEnd(mobileButtons.jump, 'Space'));
-  mobileButtons.jump.addEventListener('touchcancel', handleTouchEnd(mobileButtons.jump, 'Space'));
-
-  mobileButtons.shoot.addEventListener('touchstart', handleTouchStart(mobileButtons.shoot, 'KeyX'));
-  mobileButtons.shoot.addEventListener('touchend', handleTouchEnd(mobileButtons.shoot, 'KeyX'));
-  mobileButtons.shoot.addEventListener('touchcancel', handleTouchEnd(mobileButtons.shoot, 'KeyX'));
-
-  // Double-tap to pause on mobile
-  let lastTap = 0;
-  canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-
-    const currentTime = new Date().getTime();
-    const tapGap = currentTime - lastTap;
-
-    if (gameState === 'levelComplete') {
-      startNextLevel();
-    } else if (gameState === 'gameOver') {
-      location.reload();
-    } else if (paused && (gameState === 'playing' || gameState === 'bossIntro')) {
-      paused = false;
-      resumeMusic();
-    } else if ((gameState === 'playing' || gameState === 'bossIntro') && tapGap < 300 && tapGap > 0) {
-      // Double-tap detected - toggle pause
-      paused = !paused;
-      if (paused) pauseMusic();
-      else resumeMusic();
-    }
-
-    lastTap = currentTime;
+  // Handle click on start button AND canvas
+  document.getElementById('start-btn').addEventListener('click', startGame);
+  canvas.addEventListener('click', () => {
+    if (!gameStarted && gameReady) { startGame(); return; }
+    if (gameState === 'levelComplete') startNextLevel();
+    if (gameState === 'gameOver') location.reload();
   });
 
-  // Canvas click handler for desktop
-  canvas.addEventListener('click', (e) => {
-    if (gameState === 'levelComplete') {
-      startNextLevel();
-    } else if (gameState === 'gameOver') {
-      location.reload();
-    } else if (paused && (gameState === 'playing' || gameState === 'bossIntro')) {
-      paused = false;
-      resumeMusic();
-    }
-  });
+  // Prevent scrolling while playing on mobile
+  document.body.addEventListener('touchmove', e => { if (gameStarted) e.preventDefault(); }, { passive: false });
 
-  // Prevent scrolling/zooming on mobile
-  document.body.addEventListener('touchmove', (e) => {
-    if (gameStarted && e.target === canvas) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-
-  // ============ GAME LOOP ============
+  // Loop
   let last = performance.now();
-  function loop(now) {
-    const rawDt = (now - last) / 1000;
+  function frame(now) {
+    const dt = Math.min(1/30, (now - last)/1000);
     last = now;
-    const dt = Math.min(1 / 30, rawDt);
-
-    update(dt);
+    if (gameStarted) update(dt);
     draw();
-
-    requestAnimationFrame(loop);
+    requestAnimationFrame(frame);
   }
 
-  // ============ START SCREEN ============
-  const startScreen = document.getElementById('start-screen');
-
-  async function startGame() {
-    if (!gameStarted) {
-      gameStarted = true;
-      startScreen.classList.add('hidden');
-
-      // Resume audio context (required by some browsers)
-      if (audioCtx.state === 'suspended') {
-        await audioCtx.resume();
-      }
-
-      // Unlock all audio for mobile devices
-      await unlockAudio();
-
-      // Start music with proper user interaction
-      playMusic(getLevelMusicTrack());
-    }
-  }
-
-  startScreen.addEventListener('click', startGame);
-  startScreen.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    startGame();
-  });
-
-  // Draw robot bunny on start screen
-  function drawStartScreenBunny() {
-    const startCanvas = document.getElementById('start-bunny-canvas');
-    if (!startCanvas) return;
-
-    const sctx = startCanvas.getContext('2d');
-    const scale = 1.0;
-    const w = 48 * scale;
-    const h = 64 * scale;
-
-    sctx.clearRect(0, 0, startCanvas.width, startCanvas.height);
-    sctx.save();
-    sctx.translate(startCanvas.width / 2, startCanvas.height / 2);
-    sctx.translate(-w / 2, -h / 2);
-
-    // Draw body
-    sctx.fillStyle = '#aeb7c4';
-    sctx.strokeStyle = '#738096';
-    sctx.lineWidth = 2 * scale;
-    sctx.beginPath();
-    sctx.roundRect(4 * scale, 6 * scale, w - 8 * scale, h - 14 * scale, 10 * scale);
-    sctx.fill();
-    sctx.stroke();
-
-    // Draw feet
-    sctx.fillStyle = '#8c97a7';
-    sctx.beginPath();
-    sctx.roundRect(2 * scale, h - 12 * scale, w * 0.42, 12 * scale, 6 * scale);
-    sctx.fill();
-    sctx.beginPath();
-    sctx.roundRect(w - w * 0.42 - 2 * scale, h - 12 * scale, w * 0.42, 12 * scale, 6 * scale);
-    sctx.fill();
-
-    // Draw ears
-    const earW = w * 0.2, earH = h * 0.7;
-    sctx.fillStyle = '#aeb7c4';
-    sctx.strokeStyle = '#738096';
-    sctx.beginPath();
-    sctx.roundRect(w * 0.2, -earH * 0.4, earW, earH, 8 * scale);
-    sctx.fill();
-    sctx.stroke();
-    sctx.beginPath();
-    sctx.roundRect(w * 0.6, -earH * 0.3, earW, earH, 8 * scale);
-    sctx.fill();
-    sctx.stroke();
-
-    // Draw visor
-    sctx.fillStyle = '#0d131a';
-    sctx.beginPath();
-    sctx.roundRect(w * 0.25, h * 0.35, w * 0.5, h * 0.18, 8 * scale);
-    sctx.fill();
-
-    // Draw visor glow
-    sctx.globalCompositeOperation = 'lighter';
-    sctx.fillStyle = '#7be2ff';
-    sctx.beginPath();
-    sctx.roundRect(w * 0.3, h * 0.4, w * 0.4, h * 0.08, 5 * scale);
-    sctx.fill();
-    sctx.globalCompositeOperation = 'source-over';
-
-    sctx.restore();
-  }
-
-  // ============ INITIALIZATION ============
-  // Update hint text for mobile
-  const isMobileDevice = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
-  if (isMobileDevice) {
-    document.getElementById('hint-text').textContent = 'Use on-screen buttons • Double-tap to Pause';
-  }
-
-  initBackground();
-  drawStartScreenBunny();
-
-  for (let i = 0; i < 3; i++) {
-    loadNextSegment();
-  }
-  updateHUD();
-  requestAnimationFrame(loop);
+  // INITIALIZE
+  loadAssets();
+  fit();
+  for (let i = 0; i < 3; i++) loadNextSegment();
+  requestAnimationFrame(frame);
 })();
 </script>
 </body>
