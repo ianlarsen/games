@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sun Tzu's Wisdom</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for custom colors and Inter font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'suntzu-gold': '#ffcc00',
+                        'suntzu-dark': '#1e293b',
+                        'suntzu-stone': '#475569',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font Import -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-suntzu-dark font-sans text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-4xl bg-suntzu-stone/70 backdrop-blur-sm p-6 sm:p-10 rounded-xl shadow-2xl transition-all duration-300">
+        
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-suntzu-gold mb-2">
+                <svg class="w-8 h-8 sm:w-10 sm:h-10 inline-block align-text-bottom mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                The Art of War
+            </h1>
+            <p class="text-suntzu-gold/70 text-lg sm:text-xl font-medium">Sun Tzu's Strategic Wisdom</p>
+        </header>
+
+        <!-- Quote Display Card -->
+        <div id="quote-card" class="bg-suntzu-dark/60 p-6 sm:p-8 rounded-lg min-h-[150px] flex flex-col justify-center shadow-inner mb-8 transition-all duration-500 ease-in-out transform hover:scale-[1.01] border-2 border-suntzu-gold/30">
+            <p id="quote-text" class="text-xl sm:text-2xl italic font-light text-center leading-relaxed text-gray-100">
+                Click 'Seek Wisdom' to reveal a timeless principle of strategy.
+            </p>
+            <p id="quote-source" class="text-sm mt-4 text-suntzu-gold text-center">— Sun Tzu</p>
+        </div>
+
+        <!-- Action Button -->
+        <div class="text-center">
+            <button id="generate-button" 
+                    class="px-8 py-3 bg-suntzu-gold text-suntzu-dark font-bold text-lg rounded-full shadow-lg shadow-suntzu-gold/40 
+                           hover:bg-yellow-300 active:bg-yellow-400 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-suntzu-gold/50">
+                Seek Wisdom
+            </button>
+        </div>
+
+    </div>
+
+<script>
+        // List of comprehensive quotes from The Art of War (Sun Tzu)
+        // **This list covers all 13 chapters of The Art of War.**
+        const quotes = [
+            // --- Chapter 1: Laying Plans ---
+            { text: "The Art of War is of vital importance to the State. It is a matter of life and death, a road either to safety or to ruin. Hence it is a subject of inquiry which can on no account be neglected.", chapter: "Chapter 1: Laying Plans" },
+            { text: "All warfare is based on deception. Hence, when able to attack, we must seem unable; when using our forces, we must seem inactive; when we are near, we must make the enemy believe we are far away; when far away, we must make him believe we are near.", chapter: "Chapter 1: Laying Plans" },
+            { text: "If your opponent is of choleric temper, seek to irritate him. Pretend to be weak, that he may grow arrogant.", chapter: "Chapter 1: Laying Plans" },
+            { text: "Simulated disorder postulates perfect discipline; simulated fear postulates courage; simulated weakness postulates strength.", chapter: "Chapter 1: Laying Plans" },
+
+            // --- Chapter 2: Waging War ---
+            { text: "There is no instance of a country having benefited from prolonged warfare.", chapter: "Chapter 2: Waging War" },
+            { text: "In war, then, let your great object be victory, not lengthy campaigns.", chapter: "Chapter 2: Waging War" },
+            { text: "A wise general makes a point of foraging on the enemy. One cartload of the enemy's provisions is equivalent to twenty of one's own.", chapter: "Chapter 2: Waging War" },
+            { text: "If victory is long in coming, then men's weapons will grow dull and their ardor will be damped.", chapter: "Chapter 2: Waging War" },
+
+            // --- Chapter 3: Attack by Stratagem ---
+            { text: "The supreme art of war is to subdue the enemy without fighting. Thus, the highest form of generalship is to baulk the enemy's plans.", chapter: "Chapter 3: Attack by Stratagem" },
+            { text: "If you know the enemy and know yourself, you need not fear the result of a hundred battles. If you know neither the enemy nor yourself, you will succumb in every battle.", chapter: "Chapter 3: Attack by Stratagem" },
+            { text: "The worst policy of all is to besiege walled cities.", chapter: "Chapter 3: Attack by Stratagem" },
+            { text: "He will win who knows when to fight and when not to fight.", chapter: "Chapter 3: Attack by Stratagem" },
+
+            // --- Chapter 4: Tactical Dispositions ---
+            { text: "Victorious warriors win first and then go to war, while defeated warriors go to war first and then seek to win.", chapter: "Chapter 4: Tactical Dispositions" },
+            { text: "To secure ourselves against defeat lies in our own hands, but the opportunity of defeating the enemy is provided by the enemy himself.", chapter: "Chapter 4: Tactical Dispositions" },
+            { text: "Making no mistakes is what establishes the certainty of victory, for it means conquering an enemy that is already defeated.", chapter: "Chapter 4: Tactical Dispositions" },
+
+            // --- Chapter 5: Energy ---
+            { text: "Energy may be likened to the bending of a crossbow; decision, to the releasing of a trigger.", chapter: "Chapter 5: Energy" },
+            { text: "Fighting with a large army under your command is nowise different from fighting with a small one: it is merely a question of instituting signs and signals.", chapter: "Chapter 5: Energy" },
+            { text: "The onset of troops is like the rush of a torrent which will even roll stones along in its course.", chapter: "Chapter 5: Energy" },
+
+            // --- Chapter 6: Weak Points and Strong ---
+            { text: "Be extremely subtle, even to the point of formlessness. Be extremely mysterious, even to the point of soundlessness. Thereby you can be the director of the opponent's fate.", chapter: "Chapter 6: Weak Points and Strong" },
+            { text: "The skillful warrior attacks so that the enemy cannot defend; he defends so that the enemy cannot attack.", chapter: "Chapter 6: Weak Points and Strong" },
+            { text: "The skillful general forces the enemy to conform to his movements, and is always formless, like water.", chapter: "Chapter 6: Weak Points and Strong" },
+            { text: "Attack him where he is unprepared, appear where you are not expected.", chapter: "Chapter 6: Weak Points and Strong" },
+
+            // --- Chapter 7: Maneuvering ---
+            { text: "Move swift as the Wind and closely-formed as the Wood. Attack like the Fire and be immovable as the Mountain.", chapter: "Chapter 7: Maneuvering" },
+            { text: "In all fighting, the direct method may be used for joining battle, but indirect methods will be needed in order to secure victory.", chapter: "Chapter 7: Maneuvering" },
+            { text: "The whole secret lies in confusing the enemy, so that he cannot fathom our real intent.", chapter: "Chapter 7: Maneuvering" },
+            { text: "When you surround an army, leave an outlet free. Do not press a desperate foe too hard.", chapter: "Chapter 7: Maneuvering" },
+
+            // --- Chapter 8: Variation in Tactics ---
+            { text: "The art of war teaches us to rely not on the likelihood of the enemy's not coming, but on our own readiness to receive him.", chapter: "Chapter 8: Variation in Tactics" },
+            { text: "Move not unless you see an advantage; use not your troops unless there is something to be gained; fight not unless the position is critical.", chapter: "Chapter 8: Variation in Tactics" },
+            { text: "In the midst of chaos, there is also opportunity.", chapter: "Chapter 8: Variation in Tactics" },
+
+            // --- Chapter 9: The Army on the March ---
+            { text: "Camp in high places, facing the sun. Do not climb heights in order to fight. So much for mountain warfare.", chapter: "Chapter 9: The Army on the March" },
+            { text: "When an invading force crosses a river in its onward march, do not advance to meet it in mid-stream.", chapter: "Chapter 9: The Army on the March" },
+            { text: "When trees are seen moving, it means that the enemy is advancing. If there are many dust clouds rising, it is a sign that chariots are approaching.", chapter: "Chapter 9: The Army on the March" },
+
+            // --- Chapter 10: Terrain ---
+            { text: "The general who advances without coveting fame and retreats without fearing disgrace, whose only thought is to protect his country and do good service for his sovereign, is the jewel of the kingdom.", chapter: "Chapter 10: Terrain" },
+            { text: "If a general views his soldiers as his own beloved sons, they will be willing to die with him.", chapter: "Chapter 10: Terrain" },
+            { text: "Regard your soldiers as your children, and they will follow you into the deepest valleys.", chapter: "Chapter 10: Terrain" },
+            { text: "The wise general studies the terrain and chooses his ground carefully.", chapter: "Chapter 10: Terrain" },
+
+            // --- Chapter 11: The Nine Situations ---
+            { text: "Throw your soldiers into positions whence there is no escape, and they will prefer death to flight. If they will face death, there is nothing they may not achieve.", chapter: "Chapter 11: The Nine Situations" },
+            { text: "Begin by seizing something which your opponent holds dear; then he will be amenable to your will.", chapter: "Chapter 11: The Nine Situations" },
+            { text: "Concentrate your energy and hoard your strength. Keep your army continually on the move, and make unfathomable plans.", chapter: "Chapter 11: The Nine Situations" },
+
+            // --- Chapter 12: Attack by Fire ---
+            { text: "A kingdom that has once been destroyed can never come again into being; nor can the dead ever be brought back to life.", chapter: "Chapter 12: Attack by Fire" },
+            { text: "There are five ways of attacking with fire. The first is to burn soldiers in their camp; the second is to burn stores; the third is to burn baggage trains; the fourth is to burn arsenals and magazines; the fifth is to hurl dropping fire amongst the enemy.", chapter: "Chapter 12: Attack by Fire" },
+
+            // --- Chapter 13: The Use of Spies ---
+            { text: "Knowledge of the enemy's dispositions can only be obtained from other men. Hence the use of spies.", chapter: "Chapter 13: The Use of Spies" },
+            { text: "If a secret is prematurely divulged by a spy, he and the general to whom it was betrayed must be put to death.", chapter: "Chapter 13: The Use of Spies" },
+            { text: "Of all people in the army, close relationship should be maintained with none but the spies. All rewards should be given to none but the spies.", chapter: "Chapter 13: The Use of Spies" }
+        ];
+
+        // DOM elements
+        const quoteTextElement = document.getElementById('quote-text');
+        const quoteSourceElement = document.getElementById('quote-source');
+        const generateButton = document.getElementById('generate-button');
+        const quoteCard = document.getElementById('quote-card');
+        
+        // State to track the last displayed quote index to prevent immediate repetition
+        let lastIndex = -1;
+
+        /**
+         * Selects and displays a random quote from the array.
+         */
+        function displayRandomQuote() {
+            if (quotes.length === 0) {
+                quoteTextElement.textContent = "No quotes available.";
+                quoteSourceElement.textContent = "";
+                return;
+            }
+
+            let randomIndex;
+            
+            // Generate a random index, ensuring it's not the same as the last one (if possible)
+            do {
+                randomIndex = Math.floor(Math.random() * quotes.length);
+            } while (quotes.length > 1 && randomIndex === lastIndex);
+
+            lastIndex = randomIndex;
+            const quote = quotes[randomIndex];
+
+            // Add a temporary class for a subtle transition/flash effect
+            quoteCard.classList.add('opacity-0', 'scale-95');
+
+            // Wait for the transition to start, then update the content
+            setTimeout(() => {
+                quoteTextElement.textContent = quote.text;
+                quoteSourceElement.textContent = `— Sun Tzu (${quote.chapter})`;
+                
+                // Remove the transition class to fade the new content in
+                quoteCard.classList.remove('opacity-0', 'scale-95');
+            }, 100); // Short delay matches the CSS transition time
+        }
+
+        // Event Listener for the button
+        generateButton.addEventListener('click', displayRandomQuote);
+
+        // Display an initial quote on load
+        window.onload = () => {
+             displayRandomQuote();
+        };
+
+    </script>
+</body>
+</html>
