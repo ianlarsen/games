@@ -12,11 +12,36 @@
         <div id="title-screen" class="screen active">
             <div class="title-content">
                 <div class="title-dino-container">
-                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="title-dino">
+                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="dino title">
                 </div>
                 <h1 class="game-title bounce">Detective Dino 🔍</h1>
                 <h2 class="subtitle">The Missing Cookie Case!</h2>
-                <button class="start-btn pulse" onclick="startGame()">Start Investigation!</button>
+                <button class="start-btn pulse" onclick="showReadingLevelScreen()">Start Investigation!</button>
+            </div>
+        </div>
+
+        <!-- Reading Level Selection Screen -->
+        <div id="reading-level-screen" class="screen">
+            <div class="reading-level-content">
+                <h1 class="level-title">Choose Your Reading Level</h1>
+                <p class="level-subtitle">Pick the level that's right for you!</p>
+                <div class="level-buttons">
+                    <div class="level-card" onclick="selectReadingLevel('beginner')">
+                        <div class="level-icon">📖</div>
+                        <h2>Beginner</h2>
+                        <p>Easy words<br>Short sentences<br>1st Grade</p>
+                    </div>
+                    <div class="level-card" onclick="selectReadingLevel('intermediate')">
+                        <div class="level-icon">📚</div>
+                        <h2>Intermediate</h2>
+                        <p>More words<br>Longer sentences<br>3rd Grade</p>
+                    </div>
+                    <div class="level-card" onclick="selectReadingLevel('advanced')">
+                        <div class="level-icon">🎓</div>
+                        <h2>Advanced</h2>
+                        <p>Complex clues<br>Detailed descriptions<br>5th Grade</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -25,7 +50,7 @@
             <!-- Top Bar -->
             <div id="top-bar">
                 <div id="detective-name">
-                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="detective-icon">
+                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="dino icon">
                     <span>Detective Dino</span>
                 </div>
                 <button id="notebook-btn" onclick="toggleNotebook()">
@@ -76,26 +101,26 @@
                 <p>Think carefully, Detective Dino!</p>
                 <div id="suspects-grid">
                     <div class="suspect-card" onclick="accuseSuspect('bunny')">
-                        <div class="suspect-avatar bunny-avatar">
-                            <img src="images/characters/bunny_happy.png" alt="Bunny">
+                        <div class="bunny avatar">
+                            <img src="images/characters/bunny_happy.png" alt="Bunny" class="bunny">
                         </div>
                         <p>Bunny</p>
                     </div>
                     <div class="suspect-card" onclick="accuseSuspect('cat')">
-                        <div class="suspect-avatar cat-avatar">
-                            <img src="images/characters/cat_happy.png" alt="Cat">
+                        <div class="cat avatar">
+                            <img src="images/characters/cat_happy.png" alt="Cat" class="cat">
                         </div>
                         <p>Cat</p>
                     </div>
                     <div class="suspect-card" onclick="accuseSuspect('dog')">
-                        <div class="suspect-avatar dog-avatar">
-                            <img src="images/characters/dog_happy.png" alt="Dog">
+                        <div class="dog avatar">
+                            <img src="images/characters/dog_happy.png" alt="Dog" class="dog">
                         </div>
                         <p>Dog</p>
                     </div>
                     <div class="suspect-card" onclick="accuseSuspect('mouse')">
-                        <div class="suspect-avatar mouse-avatar">
-                            <img src="images/characters/mouse_happy.png" alt="Mouse">
+                        <div class="mouse avatar">
+                            <img src="images/characters/mouse_happy.png" alt="Mouse" class="mouse">
                         </div>
                         <p>Mouse</p>
                     </div>
@@ -112,7 +137,7 @@
                     <p class="big-text">Great detective work!</p>
                     <p>You found the cookie thief! 🍪</p>
                     <div class="culprit">
-                        <img src="images/characters/mouse_sad.png" alt="Mouse" class="culprit-image">
+                        <img src="images/characters/mouse_sad.png" alt="Mouse" class="mouse culprit">
                         <div>It was Mouse!</div>
                     </div>
                 </div>
@@ -141,7 +166,6 @@
 
     <!-- Game Scripts -->
     <script src="mysteries.js"></script>
-    <script src="scenes.js"></script>
     <script src="audio.js"></script>
     <script src="game.js"></script>
 </body>

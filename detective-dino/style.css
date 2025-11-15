@@ -91,7 +91,7 @@ body {
     margin: 0 auto 20px;
 }
 
-.title-dino {
+.dino.title {
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -178,7 +178,7 @@ body {
     z-index: 100;
 }
 
-.detective-icon {
+.dino.icon {
     width: 40px;
     height: 40px;
     margin-right: 10px;
@@ -563,7 +563,7 @@ body {
     transform: scale(0.95);
 }
 
-.suspect-avatar {
+.avatar {
     font-size: 5rem;
     margin-bottom: 10px;
     width: 120px;
@@ -571,7 +571,7 @@ body {
     margin: 0 auto 10px;
 }
 
-.suspect-avatar img {
+.avatar img {
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -640,7 +640,7 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
-.culprit-image {
+.culprit img {
     width: 80px;
     height: 80px;
     object-fit: contain;
@@ -763,7 +763,7 @@ body {
         font-size: 1rem;
     }
 
-    .detective-icon {
+    .dino.icon {
         width: 30px;
         height: 30px;
     }
@@ -824,7 +824,7 @@ body {
         min-height: 44px;
     }
 
-    .suspect-avatar {
+    .avatar {
         width: 80px;
         height: 80px;
     }
@@ -846,7 +846,7 @@ body {
         padding: 15px 25px;
     }
 
-    .culprit-image {
+    .culprit img {
         width: 60px;
         height: 60px;
     }
@@ -964,5 +964,108 @@ body {
     .object, .clue {
         width: 40px;
         height: 40px;
+    }
+}
+
+/* Reading Level Selection Screen */
+#reading-level-screen {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.reading-level-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.level-title {
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.level-subtitle {
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 50px;
+}
+
+.level-buttons {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1000px;
+}
+
+.level-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    width: 250px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.level-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.level-card:active {
+    transform: translateY(-5px) scale(1.02);
+}
+
+.level-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.level-card h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.level-card p {
+    font-size: 1.2rem;
+    color: #666;
+    line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+    .level-title {
+        font-size: 2rem;
+    }
+
+    .level-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .level-buttons {
+        gap: 20px;
+    }
+
+    .level-card {
+        width: 200px;
+        padding: 30px 20px;
+    }
+
+    .level-icon {
+        font-size: 3rem;
+    }
+
+    .level-card h2 {
+        font-size: 1.5rem;
+    }
+
+    .level-card p {
+        font-size: 1rem;
     }
 }

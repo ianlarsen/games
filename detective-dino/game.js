@@ -9,10 +9,12 @@ const Game = {
   guiltySuspect: null, // Will be randomly selected
   currentMystery: null, // Current mystery scenario
   currentMysteryData: null, // Mystery data from mysteriesData
+  readingLevel: null, // beginner, intermediate, or advanced
 
   // DOM elements
   elements: {
     titleScreen: null,
+    readingLevelScreen: null,
     gameScreen: null,
     sceneContainer: null,
     background: null,
@@ -31,10 +33,69 @@ const Game = {
     tryAgainScreen: null
   },
 
+  // Adapt text to reading level
+  adaptText(originalText, context = 'general') {
+    if (!this.readingLevel || this.readingLevel === 'advanced') {
+      return originalText; // Advanced uses original text (5th grade)
+    }
+
+    let text = originalText;
+
+    if (this.readingLevel === 'beginner') {
+      // Beginner: 3-5 word sentences, 1st grade level, present tense
+      // Simplify common patterns
+      text = text.replace(/Oh no! Someone stole /g, '')
+        .replace(/all the cookies from the cookie jar! 🍪 We need to find out who did it!/g, 'The cookies are gone! Who took them?')
+        .replace(/Let's investigate! 🔍/g, 'Let\'s look!')
+        .replace(/You found /g, '')
+        .replace(/ stuck to the cookie jar!/g, ' on jar!')
+        .replace(/ leading to /g, ' to ')
+        .replace(/ heading back toward /g, ' to ')
+        .replace(/Cookie crumbs with /g, 'Crumbs and ')
+        .replace(/Cookies hidden /g, 'Cookies ')
+        .replace(/ mixed in!/g, '!')
+        .replace(/Look closer! 👀/g, 'Look!')
+        .replace(/Add to notebook! 📓/g, 'Got it!')
+        .replace(/Keep looking! 👍/g, 'Keep going!')
+        .replace(/We need more clues before we can make an accusation! Keep investigating! 🔍/g, 'Find more clues!')
+        .replace(/You seem nervous\.\.\. 🤔/g, 'You look worried!')
+        .replace(/The truth comes out! ⚖️/g, 'I know now!')
+        .replace(/Okay! ✅/g, 'OK!')
+        .replace(/I was just\.\.\. uh\.\.\. /g, 'I ')
+        .replace(/definitely wasn't /g, 'was not ')
+        .replace(/I couldn't help it!/g, 'I did it!')
+        .replace(/They smelled like /g, 'They smell like ')
+        .replace(/somehow!/g, '!')
+        .replace(/I'm so sorry!/g, 'I am sorry!')
+        .replace(/I... I couldn't resist!/g, 'I took them!')
+        .replace(/Forgive me!/g, 'Sorry!')
+        .replace(/I prefer /g, 'I like ');
+
+      // Shorten long sentences to 3-5 words
+      if (text.length > 30 && !text.includes('!') && !text.includes('?')) {
+        text = text.split('.')[0] + '!';
+      }
+    } else if (this.readingLevel === 'intermediate') {
+      // Intermediate: up to 10 word sentences, 3rd grade level
+      text = text.replace(/Oh no! Someone stole all the cookies from the cookie jar! 🍪 We need to find out who did it!/g, 'Someone took the cookies from the jar! We must find who did it!')
+        .replace(/Let's investigate! 🔍/g, 'Let\'s find clues!')
+        .replace(/You found /g, 'You see ')
+        .replace(/I was just\.\.\. uh\.\.\. /g, 'I was ')
+        .replace(/I couldn't help it!/g, 'I could not stop!')
+        .replace(/I... I couldn't resist!/g, 'I could not resist!')
+        .replace(/definitely wasn't/g, 'was not')
+        .replace(/I prefer /g, 'I like ')
+        .replace(/We need more clues before we can make an accusation! Keep investigating! 🔍/g, 'We need more clues first! Keep looking!');
+    }
+
+    return text;
+  },
+
   // Initialize game
   init() {
     // Cache DOM elements
     this.elements.titleScreen = document.getElementById('title-screen');
+    this.elements.readingLevelScreen = document.getElementById('reading-level-screen');
     this.elements.gameScreen = document.getElementById('game-screen');
     this.elements.sceneContainer = document.getElementById('scene-container');
     this.elements.background = document.getElementById('background');
@@ -55,11 +116,7 @@ const Game = {
     // Mobile optimizations
     this.initMobileOptimizations();
 
-    // Select random mystery
-    this.selectRandomMystery();
     console.log('Detective Dino initialized!');
-    console.log('Mystery:', this.currentMystery);
-    console.log('Guilty suspect:', this.guiltySuspect);
   },
 
   // Select random mystery and culprit
@@ -123,8 +180,9 @@ const Game = {
     AudioManager.playClick();
     this.gameStarted = true;
 
-    // Hide title, show game
+    // Hide title and reading level screen, show game
     this.elements.titleScreen.classList.remove('active');
+    this.elements.readingLevelScreen.classList.remove('active');
     this.elements.gameScreen.classList.add('active');
 
     // Render navigation buttons for this mystery
@@ -235,7 +293,7 @@ const Game = {
   // Render character
   renderCharacter(char) {
     const charEl = document.createElement('div');
-    charEl.className = 'character';
+    charEl.className = char.id;
     charEl.style.bottom = char.position.bottom;
     charEl.style.left = char.position.left;
     charEl.title = char.name;
@@ -244,9 +302,7 @@ const Game = {
     const img = document.createElement('img');
     img.src = `images/characters/${char.id}_happy.png`;
     img.alt = char.name;
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'contain';
+    img.className = char.id;
     charEl.appendChild(img);
 
     const handleInteraction = (e) => {
@@ -388,13 +444,13 @@ const Game = {
   // Show dialogue
   showDialogue(speaker, text, choices) {
     this.elements.speakerName.textContent = speaker;
-    this.elements.dialogueText.textContent = text;
+    this.elements.dialogueText.textContent = this.adaptText(text);
     this.elements.dialogueChoices.innerHTML = '';
 
     choices.forEach(choice => {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
-      btn.textContent = choice.text;
+      btn.textContent = this.adaptText(choice.text);
 
       const handleChoice = (e) => {
         e.preventDefault();
@@ -523,12 +579,13 @@ const Game = {
 
     // Update win screen with correct suspect
     const suspect = this.currentMysteryData.suspects[suspectId];
-    const culpritImg = this.elements.winScreen.querySelector('.culprit-image');
-    const culpritText = this.elements.winScreen.querySelector('.culprit div');
+    const culpritImg = this.elements.winScreen.querySelector('.culprit img');
+    const culpritText = this.elements.winScreen.querySelector('.culprit > div');
 
     if (culpritImg) {
       culpritImg.src = `images/characters/${suspectId}_sad.png`;
       culpritImg.alt = suspect.name;
+      culpritImg.className = `${suspectId} culprit`;
     }
     if (culpritText) {
       culpritText.textContent = `It was ${suspect.name}! ${suspect.confession}`;
@@ -556,6 +613,26 @@ const Game = {
 };
 
 // Global functions (called from HTML onclick)
+function showReadingLevelScreen() {
+  AudioManager.playClick();
+  document.getElementById('title-screen').classList.remove('active');
+  document.getElementById('reading-level-screen').classList.add('active');
+}
+
+function selectReadingLevel(level) {
+  AudioManager.playClick();
+  Game.readingLevel = level;
+  console.log('Reading level selected:', level);
+
+  // Select random mystery after level is chosen
+  Game.selectRandomMystery();
+  console.log('Mystery:', Game.currentMystery);
+  console.log('Guilty suspect:', Game.guiltySuspect);
+
+  // Start game
+  Game.start();
+}
+
 function startGame() {
   Game.start();
 }
