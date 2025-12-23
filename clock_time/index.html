@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Master: Challenge Mode</title>
+    <style>
+        :root {
+            --bg-color: #f0f8ff;
+            --clock-face: #ffffff;
+            --clock-border: #4a90e2;
+            --hour-number: #333;
+            --minute-number: #4a90e2; 
+            --hour-hand: #ff6b6b;
+            --minute-hand: #4a90e2;
+            --digital-bg: #333;
+            --digital-text: #00ff00;
+            --tick-color: #ccc;
+            --success-color: #20bf6b;
+            --error-color: #eb3b5a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            overflow: hidden; /* Prevent scrolling during drag */
+        }
+
+        h1 {
+            color: var(--clock-border);
+            margin: 10px 0;
+            font-size: 2rem;
+        }
+
+        /* Clock Container */
+        .clock-container {
+            position: relative;
+            width: 420px; 
+            height: 420px;
+            margin-bottom: 20px;
+            touch-action: none;
+        }
+
+        .clock {
+            width: 100%;
+            height: 100%;
+            background-color: var(--clock-face);
+            border: 12px solid var(--clock-border);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            background-color: #333;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* --- MARKINGS --- */
+
+        /* Hours (Outer Ring) */
+        .number-hour {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--hour-number);
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            transition: opacity 0.3s;
+        }
+
+        /* Minutes (Inner Ring) */
+        .number-minute {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--minute-number);
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            transition: opacity 0.3s;
+        }
+        
+        .hidden { opacity: 0; }
+
+        /* Ticks (Middle Ring) */
+        .tick {
+            position: absolute;
+            background-color: var(--tick-color);
+            transform-origin: bottom center;
+            bottom: 50%;
+            left: 50%;
+            width: 2px;
+            height: 10px;
+            z-index: 1;
+        }
+        .tick.heavy {
+            background-color: #999;
+            width: 4px;
+            height: 15px;
+        }
+
+        /* --- HANDS --- */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            z-index: 5;
+            transition: transform 0.1s ease-out; /* Smooth movement */
+            pointer-events: none; 
+        }
+
+        .hour-hand {
+            width: 12px;
+            height: 20%; /* Shorter to not cover minutes */
+            background-color: var(--hour-hand);
+        }
+
+        .minute-hand {
+            width: 6px;
+            height: 38%; /* Reach near ticks */
+            background-color: var(--minute-hand);
+        }
+
+        /* --- CONTROLS UI --- */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 350px;
+        }
+
+        /* Panel containers */
+        .panel {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Digital Display */
+        .digital-display {
+            background-color: var(--digital-bg);
+            color: var(--digital-text);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 42px;
+            padding: 5px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 10px;
+            border: 3px solid #555;
+        }
+        
+        .digital-display.blur {
+             color: transparent;
+             text-shadow: 0 0 15px rgba(0,255,0,0.5);
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: var(--clock-border);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        button.secondary { background-color: #f7b731; color: #333; }
+        button.tertiary { background-color: #a55eea; }
+        
+        /* Game Mode Styles */
+        .game-panel {
+            border: 3px solid #f7b731;
+            display: none; /* Hidden by default */
+        }
+        .game-panel.active { display: block; }
+
+        .challenge-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .target-time {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .check-btn {
+            background-color: var(--success-color);
+            font-size: 18px;
+            width: 100%;
+        }
+
+        /* Feedback Animation classes */
+        .success-anim {
+            animation: pulseGreen 0.5s ease-in-out;
+            border-color: var(--success-color) !important;
+        }
+        .error-anim {
+            animation: shakeRed 0.4s ease-in-out;
+            border-color: var(--error-color) !important;
+        }
+
+        @keyframes pulseGreen {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(32, 191, 107, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(32, 191, 107, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(32, 191, 107, 0); }
+        }
+
+        @keyframes shakeRed {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .tab-btn {
+            background: #ddd;
+            color: #555;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+        .tab-btn.active {
+            background: var(--clock-border);
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="btn-row" style="margin-top: 10px;">
+        <button id="modePractice" class="tab-btn active">Free Play</button>
+        <button id="modeGame" class="tab-btn">Challenge Mode 🎮</button>
+    </div>
+
+    <div class="clock-container" id="clockArea">
+        <div class="clock" id="clockFace">
+            <div class="hand hour-hand" id="hourHand"></div>
+            <div class="hand minute-hand" id="minuteHand"></div>
+            <div class="center-dot"></div>
+            <div id="faceContainer"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        
+        <div id="practicePanel" class="panel">
+            <div id="digitalClock" class="digital-display">12:00</div>
+            <div class="btn-row">
+                <button id="toggleDigitalBtn">Hide Answer</button>
+                <button id="randomBtn" class="secondary">Random Time</button>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <div class="btn-row">
+                <button id="toggleMinutesBtn" class="tertiary">Hide Blue Minutes</button>
+                <button id="toggleHoursBtn" class="tertiary">Hide Hours (Advanced)</button>
+            </div>
+        </div>
+
+        <div id="gamePanel" class="panel game-panel">
+            <div class="challenge-text">Set the clock to:</div>
+            <div class="target-time" id="targetTimeDisplay">--:--</div>
+            <button id="checkAnswerBtn" class="check-btn">Check Answer</button>
+            <div id="feedbackMsg" style="height: 20px; color: var(--success-color); font-weight: bold; margin-top:5px;"></div>
+            <button id="newChallengeBtn" class="secondary" style="margin-top:10px; display:none;">Next Question ➡</button>
+        </div>
+
+    </div>
+
+<script>
+    // Elements
+    const hourHand = document.getElementById('hourHand');
+    const minuteHand = document.getElementById('minuteHand');
+    const clockFace = document.getElementById('clockFace');
+    const faceContainer = document.getElementById('faceContainer');
+    const clockArea = document.getElementById('clockArea');
+    
+    // Panels
+    const practicePanel = document.getElementById('practicePanel');
+    const gamePanel = document.getElementById('gamePanel');
+    const modePracticeBtn = document.getElementById('modePractice');
+    const modeGameBtn = document.getElementById('modeGame');
+
+    // Practice Controls
+    const digitalClock = document.getElementById('digitalClock');
+    const toggleDigitalBtn = document.getElementById('toggleDigitalBtn');
+    const toggleMinutesBtn = document.getElementById('toggleMinutesBtn');
+    const toggleHoursBtn = document.getElementById('toggleHoursBtn');
+    const randomBtn = document.getElementById('randomBtn');
+
+    // Game Controls
+    const targetTimeDisplay = document.getElementById('targetTimeDisplay');
+    const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+    const feedbackMsg = document.getElementById('feedbackMsg');
+    const newChallengeBtn = document.getElementById('newChallengeBtn');
+
+    // State
+    let totalMinutes = 720; 
+    let isDragging = false;
+    let isDigitalVisible = true;
+    let areMinutesVisible = true;
+    let areHoursVisible = true;
+    
+    // Game State
+    let targetMinutesGame = 0;
+    let isGameMode = false;
+
+    // Initialize
+    function init() {
+        generateClockFace();
+        updateClockDisplay();
+        
+        // Input Events
+        clockArea.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
+
+        clockArea.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('touchmove', drag, {passive: false});
+        window.addEventListener('touchend', endDrag);
+
+        // UI Listeners
+        modePracticeBtn.addEventListener('click', () => setMode('practice'));
+        modeGameBtn.addEventListener('click', () => setMode('game'));
+
+        // Practice Buttons
+        toggleDigitalBtn.addEventListener('click', toggleDigital);
+        toggleMinutesBtn.addEventListener('click', toggleMinutes);
+        toggleHoursBtn.addEventListener('click', toggleHours);
+        randomBtn.addEventListener('click', setRandomTime);
+
+        // Game Buttons
+        checkAnswerBtn.addEventListener('click', checkAnswer);
+        newChallengeBtn.addEventListener('click', startNewChallenge);
+    }
+
+    function generateClockFace() {
+        // Dimensions (based on 420px width, center 210)
+        const centerX = 210;
+        const centerY = 210;
+        
+        // NEW RADII SETUP:
+        const radiusMinutes = 105; // Inner Ring
+        const radiusTicks = 145;   // Middle Ring
+        const radiusHours = 180;   // Outer Ring
+
+        // 1. Generate Ticks
+        for (let i = 0; i < 60; i++) {
+            const tick = document.createElement('div');
+            tick.className = (i % 5 === 0) ? 'tick heavy' : 'tick';
+            
+            const angleDeg = i * 6;
+            const angleRad = (i * 6 - 90) * (Math.PI / 180);
+            
+            const x = centerX + radiusTicks * Math.cos(angleRad);
+            const y = centerY + radiusTicks * Math.sin(angleRad);
+            
+            tick.style.left = `${x}px`;
+            tick.style.top = `${y}px`;
+            tick.style.transform = `translate(-50%, -50%) rotate(${angleDeg}deg)`; 
+            faceContainer.appendChild(tick);
+        }
+
+        // 2. Generate Hour Numbers (Outer)
+        for (let i = 1; i <= 12; i++) {
+            const num = document.createElement('div');
+            num.className = 'number-hour';
+            num.textContent = i;
+            
+            const angle = (i * 30 - 90) * (Math.PI / 180);
+            const x = centerX + radiusHours * Math.cos(angle);
+            const y = centerY + radiusHours * Math.sin(angle);
+
+            num.style.left = `${x}px`;
+            num.style.top = `${y}px`;
+            faceContainer.appendChild(num);
+        }
+
+        // 3. Generate Minute Numbers (Inner)
+        for (let i = 5; i <= 60; i += 5) {
+            const num = document.createElement('div');
+            num.className = 'number-minute';
+            num.textContent = (i === 60) ? '60' : i;
+            
+            const angle = (i * 6 - 90) * (Math.PI / 180);
+            const x = centerX + radiusMinutes * Math.cos(angle);
+            const y = centerY + radiusMinutes * Math.sin(angle);
+
+            num.style.left = `${x}px`;
+            num.style.top = `${y}px`;
+            faceContainer.appendChild(num);
+        }
+    }
+
+    // --- DRAG LOGIC ---
+    function startDrag(e) {
+        isDragging = true;
+        updateFromInput(e);
+        e.preventDefault();
+    }
+
+    function drag(e) {
+        if (!isDragging) return;
+        updateFromInput(e);
+        e.preventDefault();
+    }
+
+    function endDrag() {
+        isDragging = false;
+    }
+
+    function updateFromInput(e) {
+        const rect = clockArea.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        angle += 90; 
+        if (angle < 0) angle += 360;
+
+        let minutes = Math.round(angle / 6);
+        
+        // Logic to maintain continuous rotation
+        const currentMinuteOfHour = totalMinutes % 60;
+        let diff = minutes - currentMinuteOfHour;
+
+        if (diff > 30) diff -= 60;
+        if (diff < -30) diff += 60;
+
+        totalMinutes += diff;
+        if (totalMinutes < 0) totalMinutes += 720;
+        
+        updateClockDisplay();
+        
+        // Clear feedback if moving hands in game mode
+        if(isGameMode) {
+            clockFace.classList.remove('success-anim', 'error-anim');
+            feedbackMsg.textContent = "";
+        }
+    }
+
+    function updateClockDisplay() {
+        let h = Math.floor(totalMinutes / 60);
+        let m = totalMinutes % 60;
+        
+        // Wrap for display
+        let displayH = h % 12;
+        if (displayH === 0) displayH = 12;
+        const displayM = m.toString().padStart(2, '0');
+
+        // Update Digital text
+        digitalClock.textContent = `${displayH}:${displayM}`;
+
+        // Update Hands
+        const minuteDeg = m * 6;
+        const hourDeg = (totalMinutes % 720) * 0.5;
+
+        minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+        hourHand.style.transform = `rotate(${hourDeg}deg)`;
+    }
+
+    // --- MODES ---
+    function setMode(mode) {
+        isGameMode = (mode === 'game');
+        
+        if (isGameMode) {
+            modeGameBtn.classList.add('active');
+            modePracticeBtn.classList.remove('active');
+            gamePanel.classList.add('active');
+            practicePanel.style.display = 'none';
+            startNewChallenge();
+        } else {
+            modeGameBtn.classList.remove('active');
+            modePracticeBtn.classList.add('active');
+            gamePanel.classList.remove('active');
+            practicePanel.style.display = 'block';
+            clockFace.classList.remove('success-anim', 'error-anim');
+        }
+    }
+
+    // --- PRACTICE FUNCTIONS ---
+    function toggleDigital() {
+        isDigitalVisible = !isDigitalVisible;
+        if (isDigitalVisible) {
+            digitalClock.classList.remove('blur');
+            toggleDigitalBtn.textContent = "Hide Answer";
+        } else {
+            digitalClock.classList.add('blur');
+            toggleDigitalBtn.textContent = "Show Answer";
+        }
+    }
+
+    function toggleMinutes() {
+        areMinutesVisible = !areMinutesVisible;
+        const minNums = document.querySelectorAll('.number-minute');
+        minNums.forEach(el => el.classList.toggle('hidden', !areMinutesVisible));
+        toggleMinutesBtn.textContent = areMinutesVisible ? "Hide Blue Minutes" : "Show Blue Minutes";
+    }
+
+    function toggleHours() {
+        areHoursVisible = !areHoursVisible;
+        const hourNums = document.querySelectorAll('.number-hour');
+        hourNums.forEach(el => el.classList.toggle('hidden', !areHoursVisible));
+        toggleHoursBtn.textContent = areHoursVisible ? "Hide Hours (Advanced)" : "Show Hours";
+    }
+
+    function setRandomTime() {
+        totalMinutes = Math.floor(Math.random() * 720);
+        updateClockDisplay();
+    }
+
+    // --- GAME LOGIC ---
+    function startNewChallenge() {
+        // Reset UI
+        checkAnswerBtn.style.display = 'inline-block';
+        newChallengeBtn.style.display = 'none';
+        feedbackMsg.textContent = "";
+        feedbackMsg.style.color = "#333";
+        clockFace.classList.remove('success-anim', 'error-anim');
+        
+        // Pick random time
+        targetMinutesGame = Math.floor(Math.random() * 720);
+        
+        // Format for display
+        let h = Math.floor(targetMinutesGame / 60);
+        let m = targetMinutesGame % 60;
+        let displayH = h % 12;
+        if (displayH === 0) displayH = 12;
+        let displayM = m.toString().padStart(2, '0');
+        
+        targetTimeDisplay.textContent = `${displayH}:${displayM}`;
+        
+        // Move hands to 12:00 to start fresh
+        totalMinutes = 720;
+        updateClockDisplay();
+    }
+
+    function checkAnswer() {
+        // Normalize current time to 0-719 for comparison
+        let currentNorm = totalMinutes % 720;
+        if (currentNorm < 0) currentNorm += 720;
+        
+        let targetNorm = targetMinutesGame % 720;
+
+        // Allow wiggle room? Let's say exact match for now, or +/- 0 minutes
+        // Since we snap hands to minutes, exact match is fair.
+        
+        if (currentNorm === targetNorm) {
+            // Success
+            clockFace.classList.add('success-anim');
+            feedbackMsg.textContent = "CORRECT! GREAT JOB!";
+            feedbackMsg.style.color = "var(--success-color)";
+            checkAnswerBtn.style.display = 'none';
+            newChallengeBtn.style.display = 'inline-block';
+        } else {
+            // Fail
+            clockFace.classList.remove('error-anim');
+            void clockFace.offsetWidth; // trigger reflow to restart animation
+            clockFace.classList.add('error-anim');
+            feedbackMsg.textContent = "Not quite. Try again!";
+            feedbackMsg.style.color = "var(--error-color)";
+        }
+    }
+
+    init();
+
+</script>
+</body>
+</html>
