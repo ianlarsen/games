@@ -6,37 +6,32 @@
   <title>OTG PlayShift - Occupational Therapy Learning Games</title>
   <meta name="description" content="A collection of fun, kid-friendly occupational therapy learning games." />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';">
-  <!-- Link to shared CSS -->
   <link rel="stylesheet" href="style/main-menu.css">
 </head>
 <body>
-  <!-- Skip navigation link for screen readers -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
   
   <header>
     <div class="header-content">
-        <h1><image src="images/OTG_PlayShift_logo.png" alt text="OTGames" height="100"></h1>
+        <h1><img src="images/OTG_PlayShift_logo.png" alt="OTGames" height="100"></h1>
         <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
     </div>
   </header>
 
   <main id="main-content">
     <div class="grid">
-      <!-- Left or Right Game -->
       <a class="tile" href="leftright/index.html" data-say="Left or Right. Which way are they facing?" aria-label="Left or Right. Which way are they facing?">
         <div class="emoji" aria-hidden="true">⬅️➡️</div>
         <div class="label">Left or Right</div>
         <div class="hint">Which way are they facing?</div>
       </a>
 
-      <!-- Letter Reversals Game -->
       <a class="tile" href="letterreverse/index.html" data-say="Letter Reversals. Watch out for tricky letters." aria-label="Letter Reversals. Watch out for tricky letters.">
         <div class="emoji" aria-hidden="true">🔄🔡</div>
         <div class="label">Letter Reversals</div>
         <div class="hint">Watch out for tricky letters!</div>
       </a>
 
-      <!-- Shape Finder Game -->
       <a class="tile" href="shapes/index.html" data-say="Shape Finder. Find the hidden shapes." aria-label="Shape Finder. Find the hidden shapes.">
         <div class="emoji" aria-hidden="true">
            <svg role="img" aria-labelledby="shapes-title" width="1em" height="1em" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="font-size: 50px; overflow: visible; fill: currentColor;">
@@ -51,33 +46,36 @@
         <div class="hint">Find the hidden shapes!</div>
       </a>
       
-      <!-- Concentration -->
       <a class="tile" href="concentration/index.html" data-say="Concentration. Match the cards." aria-label="Concentration. Match the cards.">
         <div class="emoji" aria-hidden="true">🤔🃏</div>
         <div class="label">Concentration</div>
         <div class="hint">Match the cards</div>
       </a>
 
-      <!-- Seek & Find -->
       <a class="tile" href="seekandfind/index.html" data-say="Seek and Find. Look for hidden things." aria-label="Seek and Find. Look for hidden things.">
         <div class="emoji" aria-hidden="true">🔎✨</div>
         <div class="label">Seek &amp; Find</div>
         <div class="hint">Look for hidden things</div>
       </a>
 
-      <!-- Dot-to-Dot -->
       <a class="tile" href="dottodot/index.html" data-say="Dot to Dot. Connect the dots." aria-label="Dot to Dot. Connect the dots.">
         <div class="emoji" aria-hidden="true">✏️🎨</div>
         <div class="label">Dot-to-Dot</div>
         <div class="hint">Connect the dots</div>
       </a>
 
-      <!-- Sequencing -->
       <a class="tile" href="sequence/index.html" data-say="Sequencing. Put the stories in order." aria-label="Sequencing. Put the stories in order.">
         <div class="emoji" aria-hidden="true">📖</div>
         <div class="label">Sequencing</div>
         <div class="hint">Put the stories in order</div>
       </a>
+
+      <a class="tile" href="clock_time/index.html" data-say="Time Teacher. Learn to tell time." aria-label="Time Teacher. Learn to tell time.">
+        <div class="emoji" aria-hidden="true">🕒</div>
+        <div class="label">Time Teacher</div>
+        <div class="hint">Learn to tell time</div>
+      </a>
+
     </div>
   </main>
 
@@ -85,35 +83,34 @@
     <small>Press TAB to move. ENTER to pick. Big buttons for kids and early readers.</small>
   </footer>
 
-  <!-- Audio element for click sound with fallback -->
   <audio id="flip-sound" preload="auto">
     <source src="sounds/flip.mp3">
   </audio>
 
-  <!-- Audio element for background music -->
   <audio id="background-music" loop preload="auto">
     <source src="sounds/main_theme.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Visual feedback for sound errors -->
   <div id="sound-status" class="sound-status" aria-live="polite" aria-atomic="true"></div>
 
   <script>
 window.addEventListener('load', () => {
   // Preload the flip sound
   const flip = document.getElementById('flip-sound');
-  flip.load();
+  if(flip) flip.load();
 
   // Prepare the unlock listener
   const unlockAudio = () => {
-    flip.play().then(() => {
-      flip.pause();
-      flip.currentTime = 0;
-      settings.audioUnlocked = true;
-      console.log('Audio unlocked');
-    }).catch(err => {
-      console.warn('Autoplay blocked:', err);
-    });
+    if(flip) {
+        flip.play().then(() => {
+        flip.pause();
+        flip.currentTime = 0;
+        settings.audioUnlocked = true;
+        console.log('Audio unlocked');
+        }).catch(err => {
+        console.warn('Autoplay blocked:', err);
+        });
+    }
 
     // Remove listeners after first gesture
     document.removeEventListener('click', unlockAudio);
@@ -134,7 +131,6 @@ window.addEventListener('load', () => {
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            // FIXED: Check if the property exists before assigning, to respect default 'true'
             if (parsed.hasOwnProperty('ttsEnabled')) { 
                 this.ttsEnabled = parsed.ttsEnabled;
             }
@@ -157,7 +153,7 @@ window.addEventListener('load', () => {
     // --- Audio Playback with Error Handling ---
     const audio = {
       flipSound: document.getElementById('flip-sound'),
-      backgroundMusic: document.getElementById('background-music'), // Added background music element
+      backgroundMusic: document.getElementById('background-music'), 
       statusEl: document.getElementById('sound-status'),
       
       unlock() {
@@ -233,7 +229,7 @@ window.addEventListener('load', () => {
       
       // New function to apply the current state to the UI and music
       applyState() {
-        if (!this.btn) return; // Added check for safety
+        if (!this.btn) return; 
         this.btn.setAttribute('aria-pressed', String(settings.ttsEnabled));
         this.btn.textContent = settings.ttsEnabled ? '🔊 Sound On' : '🔇 Sound Off';
         
@@ -245,7 +241,7 @@ window.addEventListener('load', () => {
         if (!this.btn) return;
         
         // Apply saved preference or default
-        settings.init(); // <-- MOVED settings.init() here to load before applying state
+        settings.init(); 
         this.applyState();
         
         this.btn.addEventListener('click', () => this.toggle(true));
@@ -255,7 +251,7 @@ window.addEventListener('load', () => {
         settings.ttsEnabled = !settings.ttsEnabled;
         settings.save();
         
-        this.applyState(); // <-- CHANGED: Use applyState to update UI
+        this.applyState(); 
 
         if (announce) {
           if (settings.ttsEnabled) {
@@ -280,7 +276,6 @@ window.addEventListener('load', () => {
           utterance.rate = 0.95;
           utterance.pitch = 1.05;
           utterance.onerror = (e) => {
-            // More detailed error logging
             let errorMsg = 'TTS error';
             if (e.error) {
                 errorMsg += `: ${e.error}`;
@@ -298,7 +293,6 @@ window.addEventListener('load', () => {
 
     // --- Initialize on DOM Ready ---
     document.addEventListener('DOMContentLoaded', () => {
-      // settings.init(); // <-- MOVED to tts.init() to ensure it runs first
       tts.init();
       
       // Set up audio unlock listeners
@@ -309,16 +303,11 @@ window.addEventListener('load', () => {
       document.querySelectorAll('.tile').forEach(tile => {
         const textToSay = tile.dataset.say;
         
-        // Play sound and speak on click (This is a user interaction, usually allowed)
+        // Play sound and speak on click 
         tile.addEventListener('click', (e) => {
           audio.play(audio.flipSound);
           tts.speak('Loading ' + textToSay);
         });
-        
-        // TTS on hover/focus is often blocked by browsers as it's not a direct click.
-        // This is the most likely cause of the TTS errors.
-        // REMOVED: tile.addEventListener('mouseenter', () => tts.speak(textToSay));
-        // REMOVED: tile.addEventListener('focus', () => tts.speak(textToSay));
       });
     });
 
@@ -333,4 +322,3 @@ window.addEventListener('load', () => {
   </script>
 </body>
 </html>
-
