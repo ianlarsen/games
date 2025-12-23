@@ -1,1 +1,476 @@
-yes
+What I think about SmartGames Color Code:
+This is an excellent puzzle game, particularly for developing visual perception and spatial reasoning skills. It effectively gamifies the concept of "layers" found in graphic design software like Photoshop. By forcing players to deconstruct a flat 2D image into a stack of components, it builds a specific type of logical deduction: understanding how occlusion (hiding things behind other things) and orientation work together.
+It is deceptively simple because the early challenges are straightforward, but as the number of layers increases, the mental load of predicting "what will show through" becomes significant. It's a great tool for kids (ages 5+) but validly challenging for adults in the later levels.
+Browser Game Version
+I have created a fully functional browser version of the game mechanics for you.
+How to Play:
+ * Goal: Recreate the "Target Image" on the left by stacking tiles in the "Your Stack" area.
+ * Place: Drag tiles from the bottom tray into the stack area.
+ * Rotate: Click a tile in the tray (or in the stack) to rotate it 90 degrees.
+ * Layer: The order matters! Tiles placed later will cover tiles placed earlier. You can drag items out of the stack to remove them.
+ * Win: When your stack matches the target, the border turns green!
+Copy and save the following code as an .html file (e.g., colorcode.html) and open it in your browser.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Code: Browser Edition</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 20px; max-width: 600px; text-align: center; }
+
+        .game-container {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .board-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* The main display squares */
+        .display-box {
+            width: 200px;
+            height: 200px;
+            background-color: white;
+            border: 4px solid #ccc;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        /* Success state */
+        .display-box.success {
+            border-color: #2ecc71;
+            box-shadow: 0 0 15px #2ecc71;
+        }
+
+        /* Canvas inside boxes */
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* The Tray */
+        .tray-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            min-height: 120px;
+        }
+
+        .tile {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: grab;
+            position: relative;
+            background: rgba(255,255,255,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tile:hover {
+            border-color: #aaa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .tile:active {
+            cursor: grabbing;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: #2980b9; }
+        button.secondary { background-color: #95a5a6; }
+        button.secondary:hover { background-color: #7f8c8d; }
+
+        /* Ghost element for dragging */
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .rotate-hint {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            color: #aaa;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Color Layer Puzzle</h1>
+    <p>1. Drag tiles to the "Your Stack" box. <br> 2. Click any tile to rotate it 90°. <br> 3. Match the Target Image!</p>
+
+    <div class="controls">
+        <button onclick="initGame()">New Challenge</button>
+        <button class="secondary" onclick="resetStack()">Clear Stack</button>
+    </div>
+
+    <div class="game-container">
+        <div class="board-section">
+            <div class="label">Target Image</div>
+            <div class="display-box" id="target-box">
+                <canvas id="target-canvas" width="400" height="400"></canvas>
+            </div>
+        </div>
+
+        <div class="board-section">
+            <div class="label">Your Stack</div>
+            <div class="display-box" id="stack-box">
+                <canvas id="stack-canvas" width="400" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="label">Tile Tray (Click to Rotate, Drag to Stack)</div>
+    <div class="tray-container" id="tray">
+        </div>
+
+<script>
+    // --- Game Data & Config ---
+    const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22'];
+    
+    // Definitions of shapes. Each draws on a 100x100 coord system
+    const SHAPES = [
+        { name: 'corner-tri', draw: (ctx) => { ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(100,0); ctx.lineTo(0,100); ctx.fill(); } },
+        { name: 'center-circle', draw: (ctx) => { ctx.beginPath(); ctx.arc(50,50, 25, 0, Math.PI*2); ctx.fill(); } },
+        { name: 'bar-h', draw: (ctx) => { ctx.fillRect(0, 35, 100, 30); } },
+        { name: 'half-diag', draw: (ctx) => { ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(100,100); ctx.lineTo(0,100); ctx.fill(); } },
+        { name: 'quarter-pie', draw: (ctx) => { ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0, 90, 0, Math.PI/2); ctx.lineTo(0,0); ctx.fill(); } },
+        { name: 'frame', draw: (ctx) => { ctx.fillRect(10,10,80,10); ctx.fillRect(10,10,10,80); ctx.fillRect(10,80,80,10); ctx.fillRect(80,10,10,80); } },
+        { name: 'cross', draw: (ctx) => { ctx.fillRect(35, 0, 30, 100); ctx.fillRect(0, 35, 100, 30); } },
+        { name: 'L-shape', draw: (ctx) => { ctx.fillRect(0,0,40,100); ctx.fillRect(0,60,100,40); } }
+    ];
+
+    // Generate unique tiles (Shape + Color combinations)
+    let allTiles = [];
+    let currentStack = [];
+    let targetStack = []; // The solution
+    
+    // Setup Drag & Drop vars
+    let draggedTile = null;
+    let dragSource = null; // 'tray' or 'stack'
+
+    // --- Initialization ---
+    function createTiles() {
+        allTiles = [];
+        let idCounter = 0;
+        // Create a set of interesting tiles. 
+        // We combine shapes and colors to make ~12-16 tiles.
+        for(let i=0; i<SHAPES.length; i++) {
+            // Assign a color cyclically
+            let color = COLORS[i % COLORS.length];
+            // Add a second color variant for some shapes
+            allTiles.push({ id: idCounter++, shapeIdx: i, color: color, rotation: 0 });
+            if (i % 2 === 0) {
+                 allTiles.push({ id: idCounter++, shapeIdx: i, color: COLORS[(i+2) % COLORS.length], rotation: 0 });
+            }
+        }
+    }
+
+    function renderTileCanvas(canvas, tile) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Save context state
+        ctx.save();
+        
+        // Move to center to rotate
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.rotate(tile.rotation * Math.PI / 180);
+        ctx.translate(-canvas.width/2, -canvas.height/2);
+
+        // Scale 100x100 coord system to canvas size
+        const scale = canvas.width / 100;
+        ctx.scale(scale, scale);
+
+        ctx.fillStyle = tile.color;
+        SHAPES[tile.shapeIdx].draw(ctx);
+
+        ctx.restore();
+    }
+
+    function renderStack(canvasId, stack) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        stack.forEach(tile => {
+            // Draw tile on top of previous
+            // Create a temp canvas to handle rotation cleanly or just use transform
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(tile.rotation * Math.PI / 180);
+            ctx.translate(-canvas.width/2, -canvas.height/2);
+            
+            const scale = canvas.width / 100;
+            ctx.scale(scale, scale);
+            
+            ctx.fillStyle = tile.color;
+            SHAPES[tile.shapeIdx].draw(ctx);
+            ctx.restore();
+        });
+    }
+
+    function renderTray() {
+        const tray = document.getElementById('tray');
+        tray.innerHTML = '';
+        
+        // Filter out tiles that are currently in the stack
+        const availableTiles = allTiles.filter(t => !currentStack.includes(t));
+
+        availableTiles.forEach(tile => {
+            const div = document.createElement('div');
+            div.className = 'tile';
+            div.draggable = true;
+            div.dataset.id = tile.id;
+            
+            const cvs = document.createElement('canvas');
+            cvs.width = 100;
+            cvs.height = 100;
+            renderTileCanvas(cvs, tile);
+            
+            // Add rotation hint
+            const hint = document.createElement('span');
+            hint.className = 'rotate-hint';
+            hint.innerText = '↻';
+            
+            div.appendChild(cvs);
+            div.appendChild(hint);
+            
+            // Events
+            div.addEventListener('dragstart', handleDragStart);
+            div.addEventListener('click', () => {
+                tile.rotation = (tile.rotation + 90) % 360;
+                renderTileCanvas(cvs, tile);
+            });
+
+            tray.appendChild(div);
+        });
+        
+        // Also re-render the user's stack visual (though usually handled separately)
+        renderStack('stack-canvas', currentStack);
+        checkWinCondition();
+    }
+
+    // --- Game Logic ---
+
+    function generateChallenge() {
+        // Pick 2 to 4 random tiles
+        const difficulty = Math.floor(Math.random() * 3) + 2; // 2, 3, or 4 layers
+        targetStack = [];
+        
+        // Deep copy a subset of allTiles
+        let pool = [...allTiles];
+        
+        for(let i=0; i<difficulty; i++) {
+            if(pool.length === 0) break;
+            const idx = Math.floor(Math.random() * pool.length);
+            const tile = pool.splice(idx, 1)[0];
+            
+            // Randomize target rotation
+            tile.rotation = Math.floor(Math.random() * 4) * 90;
+            
+            // Add a clone to the target stack (so we don't mess up the actual tile ref)
+            targetStack.push({ ...tile });
+            
+            // Reset the actual tile rotation for the player to figure out
+            // Find the original tile object in allTiles and reset it
+            const original = allTiles.find(t => t.id === tile.id);
+            original.rotation = 0; 
+        }
+        
+        renderStack('target-canvas', targetStack);
+    }
+
+    function checkWinCondition() {
+        const stackBox = document.getElementById('stack-box');
+        
+        // Simple check: Same number of tiles?
+        if (currentStack.length !== targetStack.length) {
+            stackBox.classList.remove('success');
+            return;
+        }
+
+        // Hard check: Generate image data strings and compare
+        // We can compare logic (id and rotation)
+        // BUT: The player might stack them in different order if shapes don't overlap?
+        // No, in this game order always matters for the exact pixel match usually.
+        // However, to be robust, let's compare the pixels of the two canvases.
+        
+        const c1 = document.getElementById('target-canvas');
+        const c2 = document.getElementById('stack-canvas');
+        
+        const data1 = c1.getContext('2d').getImageData(0,0,200,200).data; // Sample smaller area for speed
+        const data2 = c2.getContext('2d').getImageData(0,0,200,200).data;
+        
+        let match = true;
+        for(let i=0; i<data1.length; i += 4) { // Check every pixel (rgba)
+            // Allow small margin of error for anti-aliasing diffs?
+            // Actually exact logic check is safer if we enforce order.
+            // Let's stick to Logic Check first.
+        }
+
+        // Logic Check:
+        // Does currentStack match targetStack exactly?
+        let exactMatch = true;
+        for(let i=0; i<targetStack.length; i++) {
+            if (currentStack[i].id !== targetStack[i].id || 
+                currentStack[i].rotation !== targetStack[i].rotation) {
+                exactMatch = false;
+                break;
+            }
+        }
+        
+        if (exactMatch) {
+            stackBox.classList.add('success');
+        } else {
+            stackBox.classList.remove('success');
+        }
+    }
+
+    // --- Drag & Drop Handlers ---
+
+    function handleDragStart(e) {
+        draggedTile = allTiles.find(t => t.id == this.dataset.id);
+        dragSource = this.parentElement.id === 'tray' ? 'tray' : 'stack';
+        e.dataTransfer.effectAllowed = 'move';
+        this.classList.add('dragging');
+    }
+
+    function initDnD() {
+        const stackBox = document.getElementById('stack-box');
+        const tray = document.getElementById('tray');
+
+        // Allow dropping on stack
+        stackBox.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Necessary to allow dropping
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        stackBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedTile && dragSource === 'tray') {
+                currentStack.push(draggedTile);
+                renderTray();
+            }
+            // If dragging from stack to stack, maybe reorder? (Skipped for MVP)
+        });
+        
+        // Allow dropping back on tray (remove from stack)
+        tray.addEventListener('dragover', (e) => {
+             e.preventDefault();
+        });
+        
+        tray.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedTile && dragSource === 'stack') {
+                currentStack = currentStack.filter(t => t !== draggedTile);
+                renderTray();
+            }
+        });
+        
+        // Click to remove from stack specific handler
+        stackBox.addEventListener('click', (e) => {
+            // If we click the stack box, maybe pop the top item?
+            // Or easier: add logic to rotate items in stack if clicked?
+            if (currentStack.length > 0) {
+                // Rotate top item?
+                const topTile = currentStack[currentStack.length - 1];
+                topTile.rotation = (topTile.rotation + 90) % 360;
+                renderStack('stack-canvas', currentStack);
+                checkWinCondition();
+            }
+        });
+        
+        // Right click stack to remove top item?
+        stackBox.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (currentStack.length > 0) {
+                currentStack.pop();
+                renderTray();
+            }
+        });
+    }
+
+    // --- Main Functions ---
+
+    function resetStack() {
+        currentStack = [];
+        renderTray();
+    }
+
+    function initGame() {
+        createTiles();
+        currentStack = [];
+        document.getElementById('stack-box').classList.remove('success');
+        generateChallenge();
+        renderTray();
+    }
+
+    // Start
+    initDnD();
+    initGame();
+
+</script>
+</body>
+</html>
