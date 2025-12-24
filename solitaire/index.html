@@ -11,7 +11,7 @@
             --card-height: 16.8vw; /* 1.4 aspect ratio */
             --card-radius: 4px;
             --spacing: 2vw;
-            --font-size: 3.5vw; /* Slightly larger font for ranks */
+            --font-size: 3.5vw;
         }
 
         @media (min-width: 600px) {
@@ -27,10 +27,13 @@
             background-color: var(--bg-color);
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; /* Prevent scrolling while dragging */
-            touch-action: none;
-            user-select: none;
+            /* CHANGED: Allow scrolling, prevent horizontal scroll */
+            overflow-x: hidden;
+            overflow-y: auto;
+            /* CHANGED: Removed global touch-action: none so you can scroll the body */
             -webkit-user-select: none;
+            user-select: none;
+            padding-bottom: 50px; /* Extra space at bottom */
         }
 
         /* Top Bar: Controls */
@@ -42,6 +45,10 @@
             background: rgba(0,0,0,0.2);
             color: white;
             font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
         }
 
         select, button {
@@ -60,7 +67,8 @@
             grid-template-rows: auto 1fr;
             gap: var(--spacing);
             padding: var(--spacing);
-            height: calc(100vh - 60px);
+            /* CHANGED: min-height instead of fixed height so it grows */
+            min-height: calc(100vh - 60px); 
         }
 
         /* Top Row: Stock, Waste, Gap, Foundations */
@@ -92,7 +100,13 @@
         }
         
         /* Specific pile styling */
-        #stock { grid-column: 1; cursor: pointer; background: url('data:image/svg+xml;utf8,<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="2" fill="white" opacity="0.5"/></svg>') center/4px 4px repeat; }
+        #stock { 
+            grid-column: 1; 
+            cursor: pointer; 
+            background: url('data:image/svg+xml;utf8,<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="2" fill="white" opacity="0.5"/></svg>') center/4px 4px repeat;
+            /* CHANGED: Prevent scrolling when tapping stock fast */
+            touch-action: none; 
+        }
         #waste { grid-column: 2; }
         
         #foundation-0 { grid-column: 4; }
@@ -118,6 +132,8 @@
             font-size: var(--font-size);
             font-weight: bold;
             z-index: 10;
+            /* CHANGED: This is crucial. It stops the browser from scrolling when you touch a CARD. */
+            touch-action: none; 
         }
 
         .card.red { color: #d40000; }
@@ -134,10 +150,9 @@
             border: 1px solid #fff;
         }
         
-        /* Hide face details on back */
         .card-back * { display: none; }
 
-        /* Updated Card Face Styles */
+        /* Card Face Styles */
         .top-corner { 
             text-align: left; 
             line-height: 1;
@@ -155,22 +170,17 @@
             line-height: 1;
         }
 
-        /* Tableau Stacking Logic */
         .tableau-pile {
             position: relative;
             height: 100%;
+            /* Ensure the pile itself takes up space so we can scroll past it */
+            min-height: var(--card-height); 
         }
 
-        /* Dragging State */
         .dragging {
             z-index: 1000 !important;
             opacity: 0.9;
-            pointer-events: none; /* Let events pass through to check drop target */
-        }
-        
-        .placeholder {
-            background: rgba(255,255,255,0.2);
-            border-radius: var(--card-radius);
+            pointer-events: none; 
         }
 
     </style>
@@ -212,13 +222,12 @@
 
 <script>
     // --- Game Configuration & State ---
-    const SUITS = ['h', 'd', 'c', 's']; // Hearts, Diamonds, Clubs, Spades
+    const SUITS = ['h', 'd', 'c', 's']; 
     const SUIT_SYMBOLS = { 'h': '♥', 'd': '♦', 'c': '♣', 's': '♠' };
-    const RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]; // A=1, J=11, Q=12, K=13
+    const RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
     const RANK_SYMBOLS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
 
     let deck = [];
-    // State arrays hold Card Objects
     let stock = [];
     let waste = [];
     let foundations = [[], [], [], []];
@@ -226,9 +235,7 @@
     
     let drawCount = 1;
     let dragOffset = { x: 0, y: 0 };
-    let activeCard = null; // The card element being dragged
-    let originalParent = null;
-    let originalIndex = -1;
+    let activeCard = null;
 
     // --- Initialization ---
 
@@ -270,11 +277,10 @@
         foundations = [[], [], [], []];
         tableau = [[], [], [], [], [], [], []];
 
-        // Standard Deal
         for (let i = 0; i < 7; i++) {
             for (let j = i; j < 7; j++) {
                 let card = stock.pop();
-                if (i === j) card.faceUp = true; // Top card face up
+                if (i === j) card.faceUp = true; 
                 tableau[j].push(card);
             }
         }
@@ -283,7 +289,7 @@
     // --- Rendering ---
 
     function render() {
-        renderPile('stock', stock, true); // true = stacked
+        renderPile('stock', stock, true);
         renderPile('waste', waste, true);
         
         foundations.forEach((pile, idx) => {
@@ -302,62 +308,48 @@
         el.dataset.suit = card.suit;
         el.dataset.rank = card.rank;
         
-        // Setup Drag & Double Click
         if (card.faceUp) {
             const rankText = RANK_SYMBOLS[card.rank] || card.rank;
-            // Updated HTML structure for card face
             el.innerHTML = `
                 <div class="top-corner">${rankText}</div>
                 <div class="center-suit">${SUIT_SYMBOLS[card.suit]}</div>
                 <div class="bottom-corner">${rankText}</div>
             `;
-            el.draggable = false; // We use custom touch logic
+            el.draggable = false; 
             addInteraction(el);
-        } else {
-            // For card back, no interaction except stock needs click (handled by pile click)
         }
         return el;
     }
 
-    // Render simple piles (stock, waste, foundation)
     function renderPile(elementId, cards, stacked) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
         
         if (cards.length === 0) {
-            // Empty visuals handled by CSS
             if(elementId === 'stock') {
                  container.onclick = resetStock;
             }
             return;
         }
-
-        // Only render top card visually for stacked piles to save DOM, 
-        // OR render all for dragging logic? 
-        // For Solitaire, we usually only interact with top of waste/foundation.
         
         if (elementId === 'stock') {
-            // Stock is face down mostly
             const topCard = cards[cards.length - 1];
             const el = createCardElement(topCard);
-            el.className = 'card card-back'; // Force back
+            el.className = 'card card-back';
             el.onclick = drawCard;
             container.appendChild(el);
         } else {
-            // Waste & Foundation
             const topCard = cards[cards.length - 1];
             const el = createCardElement(topCard);
             container.appendChild(el);
         }
     }
 
-    // Render Tableau (Waterfall)
     function renderTableau(elementId, cards) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
         
         let topOffset = 0;
-        const spacing = 3.5; // vmin or % equivalent logic via CSS usually, doing pixels here relative to em
         
         cards.forEach((card, index) => {
             const el = createCardElement(card);
@@ -366,12 +358,31 @@
             el.dataset.index = index;
             el.dataset.pile = elementId;
             container.appendChild(el);
-            
-            // Increment spacing. Face down cards bunch closer? 
             topOffset += (card.faceUp ? 25 : 15);
         });
         
-        // Make the empty pile valid drop target
+        // Update pile container height based on content to allow scrolling
+        // Calculate approx height: card height + offset * count
+        // Since we use % for top, the container height needs to grow physically.
+        // For simplicity in this layout, we let the container overflow visually 
+        // but we rely on the body scrolling.
+        
+        // However, to make scrolling work perfectly, the container needs a physical height.
+        // We can estimate the required height:
+        if (cards.length > 0) {
+           const lastCardTop = topOffset; 
+           // If the last card is at 200%, the container needs to be roughly that tall
+           // But since cards are absolute, parent doesn't grow automatically.
+           // We will force a height on the container.
+           container.style.height = `calc(var(--card-height) + ${topOffset * 0.8}vw)`;
+           // Desktop adjustment
+           if(window.innerWidth > 600) {
+               container.style.height = `calc(var(--card-height) + ${topOffset * 2}px)`;
+           }
+        } else {
+            container.style.height = '100%';
+        }
+        
         if (cards.length === 0) {
             container.dataset.pile = elementId;
         }
@@ -389,7 +400,6 @@
 
     function drawCard() {
         if (stock.length === 0) return;
-        
         for(let i=0; i<drawCount; i++) {
             if(stock.length > 0) {
                 let card = stock.pop();
@@ -400,21 +410,17 @@
         render();
     }
 
-    // --- Interaction (Drag & Double Click) ---
+    // --- Interaction ---
 
     let lastClickTime = 0;
 
     function addInteraction(el) {
-        // Double Click / Tap
         el.addEventListener('pointerdown', (e) => {
             const now = new Date().getTime();
             if (now - lastClickTime < 300) {
-                // Double tap detected
                 autoMove(el);
             }
             lastClickTime = now;
-            
-            // Start Drag logic
             handleDragStart(e, el);
         });
     }
@@ -423,10 +429,8 @@
         const cardObj = getCardFromElement(el);
         if (!cardObj) return;
 
-        // Try to move to foundation
         for (let i = 0; i < 4; i++) {
             if (isValidFoundationMove(cardObj, i)) {
-                // Perform move
                 moveCardToPile(cardObj, `foundation-${i}`);
                 checkWin();
                 return;
@@ -435,7 +439,6 @@
     }
 
     function handleDragStart(e, el) {
-        // Prevent interaction if it's not the top card of waste/foundation, or a valid tableau stack
         const pileId = el.parentElement.id || el.parentElement.dataset.pile;
         if (!pileId) return;
 
@@ -443,12 +446,10 @@
         const isWaste = pileId === 'waste';
         const isFoundation = pileId.includes('foundation');
 
-        // Logic to verify if card can be dragged
         if (isWaste || isFoundation) {
-            if (el.nextElementSibling) return; // Only top card
+            if (el.nextElementSibling) return; 
         }
         
-        // For tableau, we can drag a stack if they are face up
         let draggingStack = [el];
         if (isTableau) {
             let next = el.nextElementSibling;
@@ -458,7 +459,7 @@
             }
         }
 
-        e.preventDefault(); // Stop text selection
+        e.preventDefault(); 
         
         const touch = e.touches ? e.touches[0] : e;
         const rect = el.getBoundingClientRect();
@@ -467,24 +468,15 @@
         
         activeCard = el;
         activeCard.style.zIndex = 1000;
-        
-        // Visual feedback
         draggingStack.forEach(c => c.classList.add('dragging'));
 
-        // Attach global move/up listeners
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
         
-        // Movement handler
         function onMove(ev) {
             const t = ev.touches ? ev.touches[0] : ev;
-            
-            // Move the stack
             draggingStack.forEach((cardEl, idx) => {
-                // Calculate position relative to viewport fixed to pointer
-                // but we need to keep them relative to the first card
-                const yOffset = idx * (cardEl.offsetHeight * 0.25); // simple offset for dragging stack visual
-                
+                const yOffset = idx * (cardEl.offsetHeight * 0.25);
                 cardEl.style.position = 'fixed';
                 cardEl.style.left = (t.clientX - dragOffset.x) + 'px';
                 cardEl.style.top = (t.clientY - dragOffset.y + yOffset) + 'px';
@@ -498,49 +490,40 @@
             
             draggingStack.forEach(c => c.classList.remove('dragging'));
             
-            // Hit Test
-            // We hide the active cards momentarily to find what's underneath
             draggingStack.forEach(c => c.style.display = 'none');
             const t = ev.changedTouches ? ev.changedTouches[0] : ev;
             const elemBelow = document.elementFromPoint(t.clientX, t.clientY);
             draggingStack.forEach(c => c.style.display = 'flex');
 
             if (!elemBelow) {
-                render(); // Snap back
+                render(); 
                 return;
             }
 
-            // Find closest valid drop target (card or empty pile)
             let dropTarget = elemBelow.closest('.card') || elemBelow.closest('.pile') || elemBelow.closest('.tableau-pile');
             
             if (dropTarget) {
                 attemptDrop(draggingStack[0], dropTarget);
             } else {
-                render(); // Snap back
+                render(); 
             }
         }
     }
 
     function attemptDrop(cardEl, targetEl) {
         const cardObj = getCardFromElement(cardEl);
-        
-        // Identify Source Pile
         const sourcePileId = cardEl.parentElement.id;
         
-        // Identify Target Pile
         let targetPileId = targetEl.id;
-        // If dropped on a card in tableau, get the pile ID
         if (targetEl.classList.contains('card')) {
             targetPileId = targetEl.parentElement.id;
         }
 
         if (!targetPileId) { render(); return; }
 
-        // Logic
         let success = false;
 
         if (targetPileId.includes('foundation')) {
-            // Can only drop single card on foundation
             if (!cardEl.nextElementSibling) {
                 const fIndex = parseInt(targetPileId.split('-')[1]);
                 if (isValidFoundationMove(cardObj, fIndex)) {
@@ -551,7 +534,6 @@
         } else if (targetPileId.includes('tableau')) {
             const tIndex = parseInt(targetPileId.split('-')[1]);
             if (isValidTableauMove(cardObj, tIndex)) {
-                // Move card AND all siblings following it
                 moveStackToTableau(cardObj, tIndex);
                 success = true;
             }
@@ -560,11 +542,9 @@
         if (success) {
             checkWin();
         } else {
-            render(); // Snap back
+            render(); 
         }
     }
-
-    // --- Rules Logic ---
 
     function getCardFromElement(el) {
         const suit = el.dataset.suit;
@@ -575,7 +555,7 @@
     function isValidFoundationMove(card, fIndex) {
         const pile = foundations[fIndex];
         if (pile.length === 0) {
-            return card.rank === 1; // Must be Ace
+            return card.rank === 1; 
         }
         const top = pile[pile.length - 1];
         return card.suit === top.suit && card.rank === top.rank + 1;
@@ -584,30 +564,24 @@
     function isValidTableauMove(card, tIndex) {
         const pile = tableau[tIndex];
         if (pile.length === 0) {
-            return card.rank === 13; // Must be King
+            return card.rank === 13; 
         }
         const top = pile[pile.length - 1];
         return card.color !== top.color && card.rank === top.rank - 1;
     }
 
     function findAndRemoveCard(cardId) {
-        // Search Waste
         let idx = waste.findIndex(c => c.id === cardId);
         if (idx !== -1) return waste.splice(idx, 1)[0];
 
-        // Search Foundations
         for(let p of foundations) {
             idx = p.findIndex(c => c.id === cardId);
             if (idx !== -1) return p.splice(idx, 1)[0];
         }
 
-        // Search Tableau
         for(let p of tableau) {
             idx = p.findIndex(c => c.id === cardId);
             if (idx !== -1) {
-                // If it's tableau, we might be moving a stack. 
-                // However, findAndRemove is usually for single moves.
-                // Logic handled specifically in moveStackToTableau for stacks.
                 return p.splice(idx, 1)[0];
             }
         }
@@ -615,31 +589,24 @@
     }
 
     function moveCardToPile(cardObj, targetPileId) {
-        // Locate actual object in memory to remove
         let moved = findAndRemoveCard(cardObj.id);
-        
         if (targetPileId.includes('foundation')) {
             foundations[parseInt(targetPileId.split('-')[1])].push(moved);
         }
-        
-        // Reveal card underneath in previous pile?
         revealNextCard();
         render();
     }
 
     function moveStackToTableau(headCardObj, targetTableauIndex) {
-        // Need to find where the headCard is, then splice it and everything after
         let sourceArray = null;
         let splitIndex = -1;
 
-        // Check Waste
         let wIdx = waste.findIndex(c => c.id === headCardObj.id);
         if (wIdx !== -1) {
             sourceArray = waste;
             splitIndex = wIdx;
         }
 
-        // Check Tableau
         if (!sourceArray) {
             tableau.forEach(col => {
                 let tIdx = col.findIndex(c => c.id === headCardObj.id);
@@ -650,7 +617,6 @@
             });
         }
         
-        // Check Foundation
         if (!sourceArray) {
              foundations.forEach(col => {
                 let fIdx = col.findIndex(c => c.id === headCardObj.id);
@@ -670,7 +636,6 @@
     }
 
     function revealNextCard() {
-        // Check all tableau columns. If top card is face down, flip it up.
         tableau.forEach(col => {
             if (col.length > 0) {
                 const top = col[col.length - 1];
@@ -687,7 +652,6 @@
         }
     }
 
-    // Start
     initGame();
 
 </script>
