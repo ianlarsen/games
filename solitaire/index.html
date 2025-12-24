@@ -11,7 +11,7 @@
             --card-height: 16.8vw; /* 1.4 aspect ratio */
             --card-radius: 4px;
             --spacing: 2vw;
-            --font-size: 3vw;
+            --font-size: 3.5vw; /* Slightly larger font for ranks */
         }
 
         @media (min-width: 600px) {
@@ -19,7 +19,7 @@
                 --card-width: 60px;
                 --card-height: 84px;
                 --spacing: 10px;
-                --font-size: 14px;
+                --font-size: 16px;
             }
         }
 
@@ -113,7 +113,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 2px;
+            padding: 4px;
             box-sizing: border-box;
             font-size: var(--font-size);
             font-weight: bold;
@@ -137,16 +137,23 @@
         /* Hide face details on back */
         .card-back * { display: none; }
 
-        .top-corner { text-align: left; padding-left: 2px;}
+        /* Updated Card Face Styles */
+        .top-corner { 
+            text-align: left; 
+            line-height: 1;
+        }
         .center-suit { 
             position: absolute; 
             top: 50%; 
             left: 50%; 
             transform: translate(-50%, -50%); 
-            font-size: calc(var(--font-size) * 2.5);
-            opacity: 0.2; 
+            font-size: calc(var(--card-width) * 0.6);
         }
-        .bottom-corner { text-align: right; transform: rotate(180deg); padding-left: 2px; }
+        .bottom-corner { 
+            text-align: left; 
+            transform: rotate(180deg); 
+            line-height: 1;
+        }
 
         /* Tableau Stacking Logic */
         .tableau-pile {
@@ -297,10 +304,12 @@
         
         // Setup Drag & Double Click
         if (card.faceUp) {
+            const rankText = RANK_SYMBOLS[card.rank] || card.rank;
+            // Updated HTML structure for card face
             el.innerHTML = `
-                <div class="top-corner">${RANK_SYMBOLS[card.rank] || card.rank}<br>${SUIT_SYMBOLS[card.suit]}</div>
+                <div class="top-corner">${rankText}</div>
                 <div class="center-suit">${SUIT_SYMBOLS[card.suit]}</div>
-                <div class="bottom-corner">${RANK_SYMBOLS[card.rank] || card.rank}<br>${SUIT_SYMBOLS[card.suit]}</div>
+                <div class="bottom-corner">${rankText}</div>
             `;
             el.draggable = false; // We use custom touch logic
             addInteraction(el);
