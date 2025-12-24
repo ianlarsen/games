@@ -123,7 +123,6 @@
             box-sizing: border-box;
             font-size: var(--font-size);
             font-weight: bold;
-            z-index: 10;
             touch-action: none; 
         }
 
@@ -277,6 +276,12 @@
             el.innerHTML = `<div class="top-corner">${rankText}</div><div class="center-suit">${SUIT_SYMBOLS[card.suit]}</div><div class="bottom-corner">${rankText}</div>`;
             el.draggable = false; 
             addInteraction(el);
+        } else {
+            // NEW: Allow clicking face-down cards to check if they can be flipped
+            el.onclick = (e) => {
+                e.stopPropagation();
+                tryFlipTopCard(el);
+            };
         }
         return el;
     }
@@ -288,7 +293,6 @@
             if(elementId === 'stock') container.onclick = resetStock;
             return;
         }
-        // Only render top card for non-tableau piles
         const topCard = cards[cards.length - 1];
         const el = createCardElement(topCard);
         if (elementId === 'stock') {
@@ -302,31 +306,24 @@
         const container = document.getElementById(elementId);
         container.innerHTML = '';
         
-        // --- FIXED SPACING LOGIC ---
         const isMobile = window.innerWidth < 600;
         const unit = isMobile ? 'vw' : 'px';
-        
-        // Define spacing values
-        const faceDownSpacing = isMobile ? 3 : 15; // 3vw mobile, 15px desktop
-        const faceUpSpacing = isMobile ? 6 : 30;   // 6vw mobile, 30px desktop
+        const faceDownSpacing = isMobile ? 3 : 15;
+        const faceUpSpacing = isMobile ? 6 : 30;
 
         let currentTop = 0;
         
         cards.forEach((card, index) => {
             const el = createCardElement(card);
-            // Apply Fixed Top Position
             el.style.top = `${currentTop}${unit}`;
             el.style.position = 'absolute';
+            el.style.zIndex = index; // Explicit Z-Index ensures stacking order is correct
             el.dataset.index = index;
             el.dataset.pile = elementId;
             container.appendChild(el);
-            
-            // Increment logic
             currentTop += (card.faceUp ? faceUpSpacing : faceDownSpacing);
         });
         
-        // Force container height so scrolling works
-        // We add card height to the last card's top position
         if (cards.length > 0) {
              const cardHeightVar = getComputedStyle(document.documentElement).getPropertyValue('--card-height');
              container.style.height = `calc(${cardHeightVar} + ${currentTop}${unit})`;
@@ -335,6 +332,8 @@
              container.dataset.pile = elementId;
         }
     }
+
+    // --- Actions ---
 
     function resetStock() {
         if (stock.length === 0 && waste.length > 0) {
@@ -354,6 +353,23 @@
             }
         }
         render();
+    }
+
+    function tryFlipTopCard(el) {
+        // Find which pile this card is in
+        const pileId = el.parentElement.id || el.dataset.pile;
+        if (!pileId || !pileId.includes('tableau')) return;
+        
+        const pileIndex = parseInt(pileId.split('-')[1]);
+        const pile = tableau[pileIndex];
+        const cardIndex = parseInt(el.dataset.index);
+        
+        // If this is the last card in the pile (topmost visually)
+        if (cardIndex === pile.length - 1) {
+            const cardObj = pile[cardIndex];
+            cardObj.faceUp = true;
+            render();
+        }
     }
 
     let lastClickTime = 0;
@@ -402,13 +418,13 @@
         
         draggingStack.forEach(c => {
             c.classList.add('dragging');
-            c.style.zIndex = 1000;
+            c.style.zIndex = 1000 + parseInt(c.dataset.index || 0);
         });
 
         function onMove(ev) {
             const t = ev.touches ? ev.touches[0] : ev;
             draggingStack.forEach((cardEl, idx) => {
-                const yOffset = idx * (cardEl.offsetHeight * 0.25); // visual offset while dragging
+                const yOffset = idx * (cardEl.offsetHeight * 0.25);
                 cardEl.style.position = 'fixed';
                 cardEl.style.left = (t.clientX - dragOffset.x) + 'px';
                 cardEl.style.top = (t.clientY - dragOffset.y + yOffset) + 'px';
@@ -422,7 +438,7 @@
             
             draggingStack.forEach(c => {
                 c.classList.remove('dragging');
-                c.style.zIndex = '';
+                c.style.zIndex = c.dataset.index;
             });
             
             draggingStack.forEach(c => c.style.display = 'none');
