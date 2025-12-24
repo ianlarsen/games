@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mystic Tarot Mobile</title>
+    <title>Solaris Tarot</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-back: #2a2a40;
-            --card-face: #f4f4f4;
+            --bg-color: #1a1a1a;
+            --card-back: #2e2e42;
+            --card-face: #f4f1ea;
             --accent: #d4af37; /* Gold */
             --text-main: #e0e0e0;
-            --text-dark: #222;
+            --text-dark: #1a1a1a;
         }
 
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Removes blue highlight on tap */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Georgia', serif; /* Serif fits the classic text better */
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
@@ -33,64 +33,66 @@
 
         h1 {
             color: var(--accent);
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             margin: 10px 0 20px 0;
             text-align: center;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 10px;
+            width: 100%;
+            max-width: 600px;
         }
 
-        /* --- Controls Area --- */
         .controls {
             width: 100%;
             max-width: 600px;
             margin-bottom: 20px;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        /* Large, thumb-friendly touch targets */
-        select, button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--accent);
-            background: rgba(20, 20, 20, 0.8);
-            color: var(--accent);
-            font-size: 1rem;
-            font-weight: 600;
-            appearance: none; /* Removes default OS styling */
-            outline: none;
-        }
-
-        select {
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23d4af37%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px top 50%;
-            background-size: 12px auto;
+            justify-content: center;
         }
 
         button {
+            width: 100%;
+            padding: 18px;
+            border-radius: 4px;
+            border: 1px solid var(--accent);
             background: var(--accent);
             color: var(--bg-color);
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+            transition: transform 0.1s;
         }
 
         button:active {
             transform: scale(0.98);
-            opacity: 0.9;
         }
 
-        /* --- Spread Layout --- */
         .spread-container {
             display: flex;
-            flex-direction: column; /* Stack vertically on mobile */
+            flex-direction: column;
             align-items: center;
-            gap: 25px;
+            gap: 30px;
             width: 100%;
             max-width: 600px;
             padding-bottom: 50px;
+        }
+
+        /* Desktop Grid */
+        @media (min-width: 768px) {
+            .spread-container {
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: center;
+                max-width: 1000px;
+            }
+            .card-slot {
+                flex: 1;
+            }
         }
 
         .card-slot {
@@ -102,26 +104,24 @@
         }
 
         .slot-label {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: var(--accent);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.9;
+            letter-spacing: 2px;
+            font-family: sans-serif;
         }
 
-        /* --- Card Styles --- */
         .card {
             width: 100%;
-            /* Responsive height based on aspect ratio approx tarot card size */
+            /* Classic Tarot Ratio */
             aspect-ratio: 2/3.5; 
-            max-height: 450px; 
+            max-height: 500px; 
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy flip */
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
-            border-radius: 12px;
-            will-change: transform; /* Performance hint for mobile */
+            border-radius: 8px;
         }
 
         .card.flipped {
@@ -133,172 +133,205 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 12px;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            border: 2px solid var(--accent);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            border: 1px solid #444;
         }
 
-        /* Back Design */
+        /* Card Back (Pattern) */
         .card-front {
             background-color: var(--card-back);
-            background-image: 
-                radial-gradient(circle at 50% 50%, #3a3a55 2px, transparent 2.5px),
-                radial-gradient(circle at 50% 50%, #3a3a55 2px, transparent 2.5px);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
+            background-image: repeating-linear-gradient(
+                45deg,
+                var(--card-back),
+                var(--card-back) 10px,
+                #3a3a52 10px,
+                #3a3a52 20px
+            );
         }
-
+        
         .card-front::after {
             content: "✦";
-            font-size: 4rem;
-            color: var(--accent);
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            font-size: 3rem;
+            color: rgba(212, 175, 55, 0.5);
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Revealed Face */
+        /* Card Face (Content) */
         .card-back {
             background-color: var(--card-face);
             color: var(--text-dark);
             transform: rotateY(180deg);
             text-align: center;
+            border: 4px solid var(--accent);
         }
 
         .card-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 8px;
-            width: 90%;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--text-dark);
+            padding-bottom: 5px;
+            width: 100%;
         }
 
-        .card-img-placeholder {
-            font-size: 4rem;
-            margin: 15px 0;
-            /* Prevent emoji from looking flat */
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        .card-symbol {
+            font-size: 3rem;
+            margin: 10px 0;
         }
 
         .card-desc {
             font-size: 1rem;
             line-height: 1.5;
-            color: #444;
-            padding: 0 10px;
+            font-style: italic;
+            overflow-y: auto;
+            max-height: 60%;
         }
 
         .reversed-tag {
-            color: #c62828;
-            font-size: 0.85rem;
-            font-weight: 800;
+            color: #b71c1c;
+            font-size: 0.8rem;
+            font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 5px;
+            margin-bottom: 5px;
             display: none;
+            font-family: sans-serif;
         }
 
-        /* Reversal Logic */
+        /* Reversal Visuals */
         .card.is-reversed .card-back .inner-content {
             transform: rotate(180deg);
         }
         .card.is-reversed .reversed-tag {
             display: block;
         }
-
-        /* --- Tablet/Desktop tweaks --- */
-        @media (min-width: 600px) {
-            .spread-container {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .card-slot {
-                width: 220px;
-            }
-            .card {
-                aspect-ratio: 2/3.5;
-                height: auto;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <h1>✨ Solaris Tarot ✨</h1>
+    <h1>Solaris Tarot</h1>
 
     <div class="controls">
-        <select id="spreadSelect">
-            <option value="1">Daily Insight (1 Card)</option>
-            <option value="3">Past / Present / Future (3 Cards)</option>
-            <option value="3b">Mind / Body / Spirit (3 Cards)</option>
-            <option value="5">The Arrow (5 Cards)</option>
-        </select>
-        <button onclick="dealCards()">🔮 Deal Cards</button>
+        <button onclick="dealCards()">Draw Three Cards</button>
     </div>
 
     <div class="spread-container" id="spreadContainer">
-        <div style="color: #666; font-style: italic; margin-top: 20px;">
-            Select a spread above and tap "Deal Cards"
+        <div style="color: #888; text-align: center; font-style: italic; margin-top: 20px;">
+            Focus on your question and tap the button above.
         </div>
     </div>
 
 <script>
-    // --- TAROT DATA ---
-    const suits = ['Wands', 'Cups', 'Swords', 'Pentacles'];
-    const ranks = ['Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Page', 'Knight', 'Queen', 'King'];
+    // --- DATA ---
     
+    // 1. MAJOR ARCANA (Transcribed from your Book)
     const majorArcana = [
-        {name: "The Fool", symbol: "🤡", mean: "New beginnings, innocence, spontaneity.", rev: "Recklessness, risk-taking."},
-        {name: "The Magician", symbol: "🧙", mean: "Manifestation, resourcefulness, power.", rev: "Manipulation, poor planning."},
-        {name: "The High Priestess", symbol: "🌙", mean: "Intuition, sacred knowledge, divine feminine.", rev: "Secrets, disconnected from intuition."},
-        {name: "The Empress", symbol: "👑", mean: "Femininity, beauty, nature, nurturing.", rev: "Dependence, smothering."},
-        {name: "The Emperor", symbol: "🏰", mean: "Authority, establishment, structure.", rev: "Domination, excessive control."},
-        {name: "The Hierophant", symbol: "⛪", mean: "Spiritual wisdom, religious beliefs, tradition.", rev: "Personal beliefs, freedom, challenging status quo."},
-        {name: "The Lovers", symbol: "❤️", mean: "Love, harmony, relationships, values alignment.", rev: "Self-love, disharmony, imbalance."},
-        {name: "The Chariot", symbol: "🛒", mean: "Control, willpower, success, action.", rev: "Self-discipline, opposition, lack of direction."},
-        {name: "Strength", symbol: "🦁", mean: "Strength, courage, persuasion, influence.", rev: "Inner strength, self-doubt, low energy."},
-        {name: "The Hermit", symbol: "🕯️", mean: "Soul-searching, introspection, being alone.", rev: "Isolation, loneliness, withdrawal."},
-        {name: "Wheel of Fortune", symbol: "🎡", mean: "Good luck, karma, life cycles, destiny.", rev: "Bad luck, resistance to change, breaking cycles."},
-        {name: "Justice", symbol: "⚖️", mean: "Justice, fairness, truth, cause and effect.", rev: "Unfairness, lack of accountability, dishonesty."},
-        {name: "The Hanged Man", symbol: "🙃", mean: "Pause, surrender, letting go, new perspectives.", rev: "Delays, resistance, stalling."},
-        {name: "Death", symbol: "💀", mean: "Endings, change, transformation, transition.", rev: "Resistance to change, personal transformation."},
-        {name: "Temperance", symbol: "🍷", mean: "Balance, moderation, patience, purpose.", rev: "Imbalance, excess, self-healing."},
-        {name: "The Devil", symbol: "😈", mean: "Shadow self, attachment, addiction, restriction.", rev: "Releasing limiting beliefs, exploring dark thoughts."},
-        {name: "The Tower", symbol: "⚡", mean: "Sudden change, upheaval, chaos, revelation.", rev: "Personal transformation, fear of change."},
-        {name: "The Star", symbol: "⭐", mean: "Hope, faith, purpose, renewal, spirituality.", rev: "Lack of faith, despair, self-trust."},
-        {name: "The Moon", symbol: "🌕", mean: "Illusion, fear, anxiety, subconscious, intuition.", rev: "Release of fear, repressed emotion, confusion."},
-        {name: "The Sun", symbol: "☀️", mean: "Positivity, fun, warmth, success, vitality.", rev: "Inner child, feeling down, overly optimistic."},
-        {name: "Judgement", symbol: "🎺", mean: "Judgement, rebirth, inner calling, absolution.", rev: "Self-doubt, inner critic, ignoring the call."},
-        {name: "The World", symbol: "🌍", mean: "Completion, integration, accomplishment, travel.", rev: "Seeking personal closure, short-cuts, delays."}
+        {name: "0. The Fool", symbol: "🤡", mean: "Folly, mania, extravagance, intoxication, delirium, frenzy, bewrayment.", rev: "Negligence, absence, distribution, carelessness, apathy, nullity, vanity."},
+        {name: "I. The Magician", symbol: "🧙", mean: "Skill, diplomacy, address, sickness, pain, loss, disaster, self-confidence, will, the Querent himself (if male).", rev: "Physician, Magus, mental illness, disgrace, disquiet."},
+        {name: "II. The High Priestess", symbol: "🌙", mean: "Secrets, mystery, the future as yet unrevealed, the woman who interests the Querent (if male); the Querent (if female) silence, tenacity; wisdom, science.", rev: "Passion, moral or physical ardor, conceit, surface knowledge."},
+        {name: "III. The Empress", symbol: "👑", mean: "Fruitfulness, initiative, action, long days, clandestine, the unknown, difficulty, doubt, ignorance.", rev: "Light, truth, the unraveling of involved matters, public rejoice, also, according to another reading—vacillation."},
+        {name: "IV. The Emperor", symbol: "🏰", mean: "Stability, power, aid, protection, a great person, conviction, reason.", rev: "Benevolence, compassion, credit, also confusion to enemies, obstruction, immaturity."},
+        {name: "V. The Hierophant", symbol: "⛪", mean: "Marriage alliance, captivity, servitude, mercy and goodness, inspiration, the man to whom the Querent has recourse.", rev: "Society, good understanding, concord, over-kindness, weakness."},
+        {name: "VI. The Lovers", symbol: "❤️", mean: "Attraction, love, beauty, trials overcome.", rev: "Failure, foolish designs."},
+        {name: "VII. The Chariot", symbol: "🛒", mean: "Succor, providence, also war, triumph, presumption, vengeance, trouble.", rev: "Riot, quarrel, dispute, litigation, defeat."},
+        {name: "VIII. Strength", symbol: "🦁", mean: "Power, energy, action, courage, magnanimity.", rev: "Abuse of power, despotism, weakness, discord."},
+        {name: "IX. The Hermit", symbol: "🕯️", mean: "Prudence, also and especially treason, dissimulation, corruption, roguery.", rev: "Concealment, disguise, policy, fear, unreasoned caution."},
+        {name: "X. Wheel of Fortune", symbol: "🎡", mean: "Destiny, fortune, success, luck, felicity.", rev: "Increase, abundance, superfluity."},
+        {name: "XI. Justice", symbol: "⚖️", mean: "Equity, rightness, probity, executive.", rev: "Law in all departments, bigotry, bias, excessive severity."},
+        {name: "XII. The Hanged Man", symbol: "🙃", mean: "Wisdom, trials, circumspection, discernment, sacrifice, intuition, divination, prophecy.", rev: "Selfishness, the crowd, body politic."},
+        {name: "XIII. Death", symbol: "💀", mean: "End, mortality, destruction, corruption.", rev: "Inertia, sleep, lethargy, petrifaction, somnambulism."},
+        {name: "XIV. Temperance", symbol: "🍷", mean: "Economy, moderation, frugality, management, accommodation.", rev: "Things connected with churches, religions, sects, the priesthood, also unfortunate combinations, disunion, competing interests."},
+        {name: "XV. The Devil", symbol: "😈", mean: "Ravage, violence, force, vehemence, extraordinary efforts, fatality, that which is predestined but not for this reason evil.", rev: "Evil fatality, weakness, pettiness, blindness."},
+        {name: "XVI. The Tower", symbol: "⚡", mean: "Misery, distress, ruin, indigence, adversity, calamity, disgrace, deception.", rev: "According to one account, the same in a lesser degree, also oppression, imprisonment, tyranny."},
+        {name: "XVII. The Star", symbol: "⭐", mean: "Loss, theft, privation, abandonment, although another reading suggests hope and bright prospects in the future.", rev: "Arrogance, impotence, haughtiness."},
+        {name: "XVIII. The Moon", symbol: "🌕", mean: "Hidden enemies, danger, calumny, darkness, terror, deception, error.", rev: "Instability, inconstancy, silence, lesser degrees of deception and error."},
+        {name: "XIX. The Sun", symbol: "☀️", mean: "Material happiness, fortunate marriage, contentment.", rev: "The same in a lesser sense."},
+        {name: "XX. The Last Judgment", symbol: "🎺", mean: "Change of position, renewal, outcome.", rev: "Weakness, pusillanimity, simplicity, also deliberation, decision, sentence."},
+        {name: "XXI. The World", symbol: "🌍", mean: "Assured success, route, voyage, emigration, flight, change of place.", rev: "Inertia, fixity, stagnation, permanence."}
     ];
 
-    function generateDeck() {
-        let deck = [...majorArcana];
-        suits.forEach(suit => {
-            ranks.forEach(rank => {
-                let symbol = "🔹";
-                if(suit === "Wands") symbol = "🌿";
-                if(suit === "Cups") symbol = "🏆";
-                if(suit === "Swords") symbol = "⚔️";
-                if(suit === "Pentacles") symbol = "🪙";
+    // 2. MINOR ARCANA (Researched & Generated)
+    const minorArcana = [
+        // CUPS
+        {name: "Ace of Cups", symbol: "🏆", mean: "New love, emotional awakening, creativity.", rev: "Wasted emotions, blocked creativity, emptiness."},
+        {name: "Two of Cups", symbol: "🏆", mean: "Unified love, partnership, mutual attraction.", rev: "Breakup, imbalance, misunderstanding."},
+        {name: "Three of Cups", symbol: "🏆", mean: "Celebration, friendship, community.", rev: "Gossip, isolation, overindulgence."},
+        {name: "Four of Cups", symbol: "🏆", mean: "Apathy, contemplation, ignoring opportunities.", rev: "Awareness, seizing the moment, motivation."},
+        {name: "Five of Cups", symbol: "🏆", mean: "Loss, grief, disappointment, regret.", rev: "Acceptance, moving on, forgiveness."},
+        {name: "Six of Cups", symbol: "🏆", mean: "Nostalgia, childhood memories, innocence.", rev: "Stuck in the past, naivety, unrealistic expectations."},
+        {name: "Seven of Cups", symbol: "🏆", mean: "Choices, fantasy, illusion, wishful thinking.", rev: "Clarity, making a choice, reality check."},
+        {name: "Eight of Cups", symbol: "🏆", mean: "Walking away, disillusionment, leaving behind.", rev: "Fear of change, stagnation, fear of abandonment."},
+        {name: "Nine of Cups", symbol: "🏆", mean: "Contentment, satisfaction, gratitude.", rev: "Greed, dissatisfaction, smugness."},
+        {name: "Ten of Cups", symbol: "🏆", mean: "Divine love, blissful relationships, harmony.", rev: "Broken home, disharmony, disconnection."},
+        {name: "Page of Cups", symbol: "🏆", mean: "A messenger, birth of a child, new emotional experience, intuition.", rev: "Emotional immaturity, creative block, bad news."},
+        {name: "Knight of Cups", symbol: "🏆", mean: "Romance, charm, 'Knight in shining armor,' imagination.", rev: "Unrealistic expectations, jealousy, moodiness."},
+        {name: "Queen of Cups", symbol: "🏆", mean: "Compassion, calm, comfort, intuitive, emotional security.", rev: "Martyrdom, insecurity, dependence, smothering."},
+        {name: "King of Cups", symbol: "🏆", mean: "Emotional balance, compassion, diplomacy, a wise counselor.", rev: "Emotional manipulation, moodiness, volatility."},
 
-                deck.push({
-                    name: `${rank} of ${suit}`,
-                    symbol: symbol,
-                    mean: `Energy of ${suit.toLowerCase()} combined with ${rank.toLowerCase()}.`,
-                    rev: `Blocked energy of ${suit.toLowerCase()}.`
-                });
-            });
-        });
-        return deck;
-    }
+        // PENTACLES
+        {name: "Ace of Pentacles", symbol: "🪙", mean: "New financial opportunity, manifestation, abundance.", rev: "Missed opportunity, scarcity mindset, delay."},
+        {name: "Two of Pentacles", symbol: "🪙", mean: "Balancing priorities, adaptability, time management.", rev: "Overcommitted, disorganization, reprioritizing."},
+        {name: "Three of Pentacles", symbol: "🪙", mean: "Teamwork, collaboration, learning.", rev: "Disharmony, working alone, competition."},
+        {name: "Four of Pentacles", symbol: "🪙", mean: "Security, conservation, frugality.", rev: "Greed, self-protection, spending."},
+        {name: "Five of Pentacles", symbol: "🪙", mean: "Financial loss, poverty, isolation, worry.", rev: "Recovery from loss, spiritual poverty ending."},
+        {name: "Six of Pentacles", symbol: "🪙", mean: "Generosity, charity, giving and receiving.", rev: "Debt, selfishness, strings attached."},
+        {name: "Seven of Pentacles", symbol: "🪙", mean: "Patience, perseverance, long-term view.", rev: "Lack of reward, distraction, impatience."},
+        {name: "Eight of Pentacles", symbol: "🪙", mean: "Apprenticeship, repetition, mastery, skill.", rev: "Perfectionism, misdirected effort, lack of focus."},
+        {name: "Nine of Pentacles", symbol: "🪙", mean: "Abundance, luxury, self-sufficiency.", rev: "Over-investment in work, financial setbacks."},
+        {name: "Ten of Pentacles", symbol: "🪙", mean: "Wealth, family legacy, long-term success.", rev: "Financial failure, instability, family dispute."},
+        {name: "Page of Pentacles", symbol: "🪙", mean: "Manifestation, financial opportunity, new job, study.", rev: "Lack of progress, procrastination, short-term focus."},
+        {name: "Knight of Pentacles", symbol: "🪙", mean: "Efficiency, hard work, routine, conservatism.", rev: "Laziness, boredom, feeling stuck, perfectionism."},
+        {name: "Queen of Pentacles", symbol: "🪙", mean: "Nurturing, practical, working parent, providing financially.", rev: "Financial independence, self-care, work-home conflict."},
+        {name: "King of Pentacles", symbol: "🪙", mean: "Wealth, business acumen, abundance, discipline.", rev: "Financially inept, obsessed with wealth, stubborn."},
 
-    // --- APP LOGIC ---
+        // WANDS
+        {name: "Ace of Wands", symbol: "🌿", mean: "Inspiration, new opportunities, growth.", rev: "Delays, lack of motivation, weighed down."},
+        {name: "Two of Wands", symbol: "🌿", mean: "Future planning, progress, decisions.", rev: "Fear of unknown, lack of planning."},
+        {name: "Three of Wands", symbol: "🌿", mean: "Expansion, foresight, overseas opportunities.", rev: "Obstacles, delays, frustration."},
+        {name: "Four of Wands", symbol: "🌿", mean: "Celebration, joy, harmony, homecoming.", rev: "Lack of support, transience, home conflicts."},
+        {name: "Five of Wands", symbol: "🌿", mean: "Conflict, disagreements, competition.", rev: "Conflict avoidance, diversity, agreement."},
+        {name: "Six of Wands", symbol: "🌿", mean: "Success, public recognition, confidence.", rev: "Egotism, fall from grace, lack of recognition."},
+        {name: "Seven of Wands", symbol: "🌿", mean: "Challenge, competition, protection, perseverance.", rev: "Giving up, overwhelmed, defensiveness."},
+        {name: "Eight of Wands", symbol: "🌿", mean: "Movement, fast paced change, action.", rev: "Delays, frustration, panic."},
+        {name: "Nine of Wands", symbol: "🌿", mean: "Resilience, courage, persistence.", rev: "On edge, defensive, hesitant."},
+        {name: "Ten of Wands", symbol: "🌿", mean: "Burden, extra responsibility, hard work.", rev: "Burning out, carrying the burden, delegation."},
+        {name: "Page of Wands", symbol: "🌿", mean: "Discovery, enthusiasm, a messenger with good news.", rev: "Setbacks to new ideas, pessimism, lack of direction."},
+        {name: "Knight of Wands", symbol: "🌿", mean: "Energy, passion, inspired action, adventure.", rev: "Passion project, haste, scattered energy."},
+        {name: "Queen of Wands", symbol: "🌿", mean: "Courage, confidence, determination, social butterfly.", rev: "Shrinking violet, aggressive, demanding, jealous."},
+        {name: "King of Wands", symbol: "🌿", mean: "Natural leader, visionary, entrepreneur, honor.", rev: "Impulsiveness, haste, ruthless, high expectations."},
 
+        // SWORDS
+        {name: "Ace of Swords", symbol: "⚔️", mean: "Breakthrough, new idea, mental clarity.", rev: "Confusion, chaos, lack of clarity."},
+        {name: "Two of Swords", symbol: "⚔️", mean: "Difficult decisions, weighing options, impasse.", rev: "Indecision, confusion, overload."},
+        {name: "Three of Swords", symbol: "⚔️", mean: "Heartbreak, emotional pain, sorrow.", rev: "Negative self-talk, releasing pain, optimism."},
+        {name: "Four of Swords", symbol: "⚔️", mean: "Rest, relaxation, meditation.", rev: "Exhaustion, burnout, stress."},
+        {name: "Five of Swords", symbol: "⚔️", mean: "Conflict, tension, loss, defeat.", rev: "Open to change, past resentment, moving on."},
+        {name: "Six of Swords", symbol: "⚔️", mean: "Transition, change, rite of passage.", rev: "Emotional baggage, unresolved issues."},
+        {name: "Seven of Swords", symbol: "⚔️", mean: "Betrayal, deception, getting away with something.", rev: "Mental challenges, breaking free, coming clean."},
+        {name: "Eight of Swords", symbol: "⚔️", mean: "Negative thoughts, self-imposed restriction.", rev: "Self-acceptance, new perspectives, freedom."},
+        {name: "Nine of Swords", symbol: "⚔️", mean: "Anxiety, worry, fear, nightmares.", rev: "Hope, reaching out, despair."},
+        {name: "Ten of Swords", symbol: "⚔️", mean: "Betrayal, back-stabbing, defeat.", rev: "Reviving, rejuvenation, inevitable end."},
+        {name: "Page of Swords", symbol: "⚔️", mean: "Curiosity, mental energy, thirst for knowledge.", rev: "Deception, manipulation, all talk and no action."},
+        {name: "Knight of Swords", symbol: "⚔️", mean: "Ambition, action-oriented, driven to succeed.", rev: "Restless, unfocused, impulsive, burning out."},
+        {name: "Queen of Swords", symbol: "⚔️", mean: "Independent, unbiased judgement, clear boundaries.", rev: "Overly emotional, cold-hearted, bitter."},
+        {name: "King of Swords", symbol: "⚔️", mean: "Mental clarity, intellectual power, authority, truth.", rev: "Quiet power, inner truth, misuse of power."}
+    ];
+
+    const fullDeck = [...majorArcana, ...minorArcana];
+
+    // --- LOGIC ---
     function shuffle(array) {
         let currentIndex = array.length, randomIndex;
         while (currentIndex != 0) {
@@ -310,35 +343,21 @@
     }
 
     function dealCards() {
-        const spreadType = document.getElementById('spreadSelect').value;
         const container = document.getElementById('spreadContainer');
         
-        // Quick fade out old cards
+        // 1. Fade Out
         container.style.opacity = '0';
         
         setTimeout(() => {
+            // 2. Clear & Prepare
             container.innerHTML = '';
             container.style.opacity = '1';
 
-            const deck = shuffle(generateDeck());
-            let cardsToDraw = 0;
-            let labels = [];
+            const deck = shuffle([...fullDeck]); // Copy before shuffle
+            const labels = ["Past", "Present", "Future"];
 
-            if (spreadType === "1") {
-                cardsToDraw = 1;
-                labels = ["Insight"];
-            } else if (spreadType === "3") {
-                cardsToDraw = 3;
-                labels = ["Past", "Present", "Future"];
-            } else if (spreadType === "3b") {
-                cardsToDraw = 3;
-                labels = ["Mind", "Body", "Spirit"];
-            } else if (spreadType === "5") {
-                cardsToDraw = 5;
-                labels = ["Situation", "Challenge", "Advice", "Outcome", "Potential"];
-            }
-
-            for (let i = 0; i < cardsToDraw; i++) {
+            // 3. Create Cards
+            for (let i = 0; i < 3; i++) {
                 const cardData = deck[i];
                 const isReversed = Math.random() < 0.3; 
                 
@@ -347,43 +366,48 @@
 
                 const label = document.createElement('div');
                 label.className = 'slot-label';
-                label.innerText = labels[i] || "";
+                label.innerText = labels[i];
                 slot.appendChild(label);
 
                 const cardEl = document.createElement('div');
                 cardEl.className = `card ${isReversed ? 'is-reversed' : ''}`;
                 
-                // Use a standard function to handle flip
                 cardEl.onclick = function() {
-                    // Mobile haptic feedback if available (Navigator.vibrate)
-                    if (navigator.vibrate) navigator.vibrate(15);
+                    if (navigator.vibrate) navigator.vibrate(20);
                     this.classList.toggle('flipped');
                 };
 
+                // Front (Pattern)
                 const faceFront = document.createElement('div');
                 faceFront.className = 'card-face card-front';
                 
+                // Back (Content)
                 const faceBack = document.createElement('div');
                 faceBack.className = 'card-face card-back';
                 
                 const innerContent = document.createElement('div');
                 innerContent.className = 'inner-content';
                 
+                // Name
                 const nameEl = document.createElement('div');
                 nameEl.className = 'card-name';
                 nameEl.innerText = cardData.name;
 
+                // Symbol
                 const imgEl = document.createElement('div');
-                imgEl.className = 'card-img-placeholder';
+                imgEl.className = 'card-symbol';
                 imgEl.innerText = cardData.symbol;
 
-                const descEl = document.createElement('div');
-                descEl.className = 'card-desc';
-                descEl.innerText = isReversed ? cardData.rev : cardData.mean;
-
+                // Reversed Tag
                 const revTag = document.createElement('div');
                 revTag.className = 'reversed-tag';
                 revTag.innerText = "(Reversed)";
+
+                // Meaning
+                const descEl = document.createElement('div');
+                descEl.className = 'card-desc';
+                // Select specific text based on reversal
+                descEl.innerText = isReversed ? cardData.rev : cardData.mean;
 
                 innerContent.appendChild(nameEl);
                 innerContent.appendChild(revTag);
@@ -391,34 +415,33 @@
                 innerContent.appendChild(descEl);
                 
                 faceBack.appendChild(innerContent);
-                
                 cardEl.appendChild(faceFront);
                 cardEl.appendChild(faceBack);
                 slot.appendChild(cardEl);
                 container.appendChild(slot);
 
-                // Entrance Animation
+                // Animation
                 slot.style.opacity = 0;
                 slot.animate([
-                    { transform: 'translateY(30px) scale(0.95)', opacity: 0 },
-                    { transform: 'translateY(0) scale(1)', opacity: 1 }
+                    { transform: 'translateY(50px)', opacity: 0 },
+                    { transform: 'translateY(0)', opacity: 1 }
                 ], {
                     duration: 600,
-                    delay: i * 150, // Faster stagger for mobile
-                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    delay: i * 200,
+                    easing: 'ease-out',
                     fill: 'forwards'
                 });
                 slot.style.opacity = 1;
             }
-            
-            // Auto scroll to the first card if it's off screen
-            if(window.innerWidth < 600) {
+
+            // Auto-scroll on mobile
+            if(window.innerWidth < 768) {
                 setTimeout(() => {
                     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
             }
 
-        }, 200); // Wait for fade out
+        }, 300);
     }
 </script>
 
