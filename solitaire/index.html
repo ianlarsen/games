@@ -27,16 +27,14 @@
             background-color: var(--bg-color);
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* CHANGED: Allow scrolling, prevent horizontal scroll */
             overflow-x: hidden;
             overflow-y: auto;
-            /* CHANGED: Removed global touch-action: none so you can scroll the body */
             -webkit-user-select: none;
             user-select: none;
-            padding-bottom: 50px; /* Extra space at bottom */
+            padding-bottom: 50px;
         }
 
-        /* Top Bar: Controls */
+        /* Top Bar */
         #controls {
             display: flex;
             justify-content: space-between;
@@ -60,18 +58,16 @@
             color: #333;
         }
 
-        /* Game Board Layout */
+        /* Game Board */
         #game-board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: auto 1fr;
             gap: var(--spacing);
             padding: var(--spacing);
-            /* CHANGED: min-height instead of fixed height so it grows */
             min-height: calc(100vh - 60px); 
         }
 
-        /* Top Row: Stock, Waste, Gap, Foundations */
         .top-row {
             grid-column: 1 / -1;
             display: grid;
@@ -80,7 +76,6 @@
             height: var(--card-height);
         }
 
-        /* Bottom Row: Tableau */
         .tableau-row {
             grid-column: 1 / -1;
             display: grid;
@@ -90,7 +85,6 @@
             position: relative;
         }
 
-        /* Piles */
         .pile {
             width: var(--card-width);
             height: var(--card-height);
@@ -99,12 +93,10 @@
             position: relative;
         }
         
-        /* Specific pile styling */
         #stock { 
             grid-column: 1; 
             cursor: pointer; 
             background: url('data:image/svg+xml;utf8,<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="2" fill="white" opacity="0.5"/></svg>') center/4px 4px repeat;
-            /* CHANGED: Prevent scrolling when tapping stock fast */
             touch-action: none; 
         }
         #waste { grid-column: 2; }
@@ -132,7 +124,6 @@
             font-size: var(--font-size);
             font-weight: bold;
             z-index: 10;
-            /* CHANGED: This is crucial. It stops the browser from scrolling when you touch a CARD. */
             touch-action: none; 
         }
 
@@ -152,11 +143,7 @@
         
         .card-back * { display: none; }
 
-        /* Card Face Styles */
-        .top-corner { 
-            text-align: left; 
-            line-height: 1;
-        }
+        .top-corner { text-align: left; line-height: 1; }
         .center-suit { 
             position: absolute; 
             top: 50%; 
@@ -164,16 +151,11 @@
             transform: translate(-50%, -50%); 
             font-size: calc(var(--card-width) * 0.6);
         }
-        .bottom-corner { 
-            text-align: left; 
-            transform: rotate(180deg); 
-            line-height: 1;
-        }
+        .bottom-corner { text-align: left; transform: rotate(180deg); line-height: 1; }
 
         .tableau-pile {
             position: relative;
             height: 100%;
-            /* Ensure the pile itself takes up space so we can scroll past it */
             min-height: var(--card-height); 
         }
 
@@ -221,28 +203,18 @@
 </div>
 
 <script>
-    // --- Game Configuration & State ---
     const SUITS = ['h', 'd', 'c', 's']; 
     const SUIT_SYMBOLS = { 'h': '♥', 'd': '♦', 'c': '♣', 's': '♠' };
     const RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
     const RANK_SYMBOLS = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
 
-    let deck = [];
-    let stock = [];
-    let waste = [];
-    let foundations = [[], [], [], []];
-    let tableau = [[], [], [], [], [], [], []];
-    
+    let deck = [], stock = [], waste = [], foundations = [[], [], [], []], tableau = [[], [], [], [], [], [], []];
     let drawCount = 1;
     let dragOffset = { x: 0, y: 0 };
     let activeCard = null;
 
-    // --- Initialization ---
-
     function initGame() {
-        const diffSelect = document.getElementById('difficulty');
-        drawCount = parseInt(diffSelect.value);
-
+        drawCount = parseInt(document.getElementById('difficulty').value);
         createDeck();
         shuffleDeck();
         deal();
@@ -286,19 +258,11 @@
         }
     }
 
-    // --- Rendering ---
-
     function render() {
-        renderPile('stock', stock, true);
-        renderPile('waste', waste, true);
-        
-        foundations.forEach((pile, idx) => {
-            renderPile(`foundation-${idx}`, pile, true);
-        });
-
-        tableau.forEach((pile, idx) => {
-            renderTableau(`tableau-${idx}`, pile);
-        });
+        renderPile('stock', stock);
+        renderPile('waste', waste);
+        foundations.forEach((pile, idx) => renderPile(`foundation-${idx}`, pile));
+        tableau.forEach((pile, idx) => renderTableau(`tableau-${idx}`, pile));
     }
 
     function createCardElement(card) {
@@ -310,85 +274,67 @@
         
         if (card.faceUp) {
             const rankText = RANK_SYMBOLS[card.rank] || card.rank;
-            el.innerHTML = `
-                <div class="top-corner">${rankText}</div>
-                <div class="center-suit">${SUIT_SYMBOLS[card.suit]}</div>
-                <div class="bottom-corner">${rankText}</div>
-            `;
+            el.innerHTML = `<div class="top-corner">${rankText}</div><div class="center-suit">${SUIT_SYMBOLS[card.suit]}</div><div class="bottom-corner">${rankText}</div>`;
             el.draggable = false; 
             addInteraction(el);
         }
         return el;
     }
 
-    function renderPile(elementId, cards, stacked) {
+    function renderPile(elementId, cards) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
-        
         if (cards.length === 0) {
-            if(elementId === 'stock') {
-                 container.onclick = resetStock;
-            }
+            if(elementId === 'stock') container.onclick = resetStock;
             return;
         }
-        
+        // Only render top card for non-tableau piles
+        const topCard = cards[cards.length - 1];
+        const el = createCardElement(topCard);
         if (elementId === 'stock') {
-            const topCard = cards[cards.length - 1];
-            const el = createCardElement(topCard);
             el.className = 'card card-back';
             el.onclick = drawCard;
-            container.appendChild(el);
-        } else {
-            const topCard = cards[cards.length - 1];
-            const el = createCardElement(topCard);
-            container.appendChild(el);
         }
+        container.appendChild(el);
     }
 
     function renderTableau(elementId, cards) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
         
-        let topOffset = 0;
+        // --- FIXED SPACING LOGIC ---
+        const isMobile = window.innerWidth < 600;
+        const unit = isMobile ? 'vw' : 'px';
+        
+        // Define spacing values
+        const faceDownSpacing = isMobile ? 3 : 15; // 3vw mobile, 15px desktop
+        const faceUpSpacing = isMobile ? 6 : 30;   // 6vw mobile, 30px desktop
+
+        let currentTop = 0;
         
         cards.forEach((card, index) => {
             const el = createCardElement(card);
-            el.style.top = `${topOffset}%`;
+            // Apply Fixed Top Position
+            el.style.top = `${currentTop}${unit}`;
             el.style.position = 'absolute';
             el.dataset.index = index;
             el.dataset.pile = elementId;
             container.appendChild(el);
-            topOffset += (card.faceUp ? 25 : 15);
+            
+            // Increment logic
+            currentTop += (card.faceUp ? faceUpSpacing : faceDownSpacing);
         });
         
-        // Update pile container height based on content to allow scrolling
-        // Calculate approx height: card height + offset * count
-        // Since we use % for top, the container height needs to grow physically.
-        // For simplicity in this layout, we let the container overflow visually 
-        // but we rely on the body scrolling.
-        
-        // However, to make scrolling work perfectly, the container needs a physical height.
-        // We can estimate the required height:
+        // Force container height so scrolling works
+        // We add card height to the last card's top position
         if (cards.length > 0) {
-           const lastCardTop = topOffset; 
-           // If the last card is at 200%, the container needs to be roughly that tall
-           // But since cards are absolute, parent doesn't grow automatically.
-           // We will force a height on the container.
-           container.style.height = `calc(var(--card-height) + ${topOffset * 0.8}vw)`;
-           // Desktop adjustment
-           if(window.innerWidth > 600) {
-               container.style.height = `calc(var(--card-height) + ${topOffset * 2}px)`;
-           }
+             const cardHeightVar = getComputedStyle(document.documentElement).getPropertyValue('--card-height');
+             container.style.height = `calc(${cardHeightVar} + ${currentTop}${unit})`;
         } else {
-            container.style.height = '100%';
-        }
-        
-        if (cards.length === 0) {
-            container.dataset.pile = elementId;
+             container.style.height = '100%';
+             container.dataset.pile = elementId;
         }
     }
-
-    // --- Game Logic ---
 
     function resetStock() {
         if (stock.length === 0 && waste.length > 0) {
@@ -410,16 +356,11 @@
         render();
     }
 
-    // --- Interaction ---
-
     let lastClickTime = 0;
-
     function addInteraction(el) {
         el.addEventListener('pointerdown', (e) => {
             const now = new Date().getTime();
-            if (now - lastClickTime < 300) {
-                autoMove(el);
-            }
+            if (now - lastClickTime < 300) autoMove(el);
             lastClickTime = now;
             handleDragStart(e, el);
         });
@@ -428,7 +369,6 @@
     function autoMove(el) {
         const cardObj = getCardFromElement(el);
         if (!cardObj) return;
-
         for (let i = 0; i < 4; i++) {
             if (isValidFoundationMove(cardObj, i)) {
                 moveCardToPile(cardObj, `foundation-${i}`);
@@ -443,12 +383,7 @@
         if (!pileId) return;
 
         const isTableau = pileId.includes('tableau');
-        const isWaste = pileId === 'waste';
-        const isFoundation = pileId.includes('foundation');
-
-        if (isWaste || isFoundation) {
-            if (el.nextElementSibling) return; 
-        }
+        if ((pileId === 'waste' || pileId.includes('foundation')) && el.nextElementSibling) return;
         
         let draggingStack = [el];
         if (isTableau) {
@@ -460,23 +395,20 @@
         }
 
         e.preventDefault(); 
-        
         const touch = e.touches ? e.touches[0] : e;
         const rect = el.getBoundingClientRect();
         dragOffset.x = touch.clientX - rect.left;
         dragOffset.y = touch.clientY - rect.top;
         
-        activeCard = el;
-        activeCard.style.zIndex = 1000;
-        draggingStack.forEach(c => c.classList.add('dragging'));
+        draggingStack.forEach(c => {
+            c.classList.add('dragging');
+            c.style.zIndex = 1000;
+        });
 
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
-        
         function onMove(ev) {
             const t = ev.touches ? ev.touches[0] : ev;
             draggingStack.forEach((cardEl, idx) => {
-                const yOffset = idx * (cardEl.offsetHeight * 0.25);
+                const yOffset = idx * (cardEl.offsetHeight * 0.25); // visual offset while dragging
                 cardEl.style.position = 'fixed';
                 cardEl.style.left = (t.clientX - dragOffset.x) + 'px';
                 cardEl.style.top = (t.clientY - dragOffset.y + yOffset) + 'px';
@@ -488,62 +420,53 @@
             document.removeEventListener('pointermove', onMove);
             document.removeEventListener('pointerup', onUp);
             
-            draggingStack.forEach(c => c.classList.remove('dragging'));
+            draggingStack.forEach(c => {
+                c.classList.remove('dragging');
+                c.style.zIndex = '';
+            });
             
             draggingStack.forEach(c => c.style.display = 'none');
             const t = ev.changedTouches ? ev.changedTouches[0] : ev;
             const elemBelow = document.elementFromPoint(t.clientX, t.clientY);
             draggingStack.forEach(c => c.style.display = 'flex');
 
-            if (!elemBelow) {
-                render(); 
-                return;
+            if (elemBelow) {
+                let dropTarget = elemBelow.closest('.card') || elemBelow.closest('.pile') || elemBelow.closest('.tableau-pile');
+                if (dropTarget) {
+                    attemptDrop(draggingStack[0], dropTarget);
+                    return;
+                }
             }
-
-            let dropTarget = elemBelow.closest('.card') || elemBelow.closest('.pile') || elemBelow.closest('.tableau-pile');
-            
-            if (dropTarget) {
-                attemptDrop(draggingStack[0], dropTarget);
-            } else {
-                render(); 
-            }
+            render(); 
         }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
     }
 
     function attemptDrop(cardEl, targetEl) {
         const cardObj = getCardFromElement(cardEl);
-        const sourcePileId = cardEl.parentElement.id;
-        
         let targetPileId = targetEl.id;
-        if (targetEl.classList.contains('card')) {
-            targetPileId = targetEl.parentElement.id;
-        }
-
+        if (targetEl.classList.contains('card')) targetPileId = targetEl.parentElement.id;
+        
         if (!targetPileId) { render(); return; }
-
-        let success = false;
 
         if (targetPileId.includes('foundation')) {
             if (!cardEl.nextElementSibling) {
                 const fIndex = parseInt(targetPileId.split('-')[1]);
                 if (isValidFoundationMove(cardObj, fIndex)) {
                     moveCardToPile(cardObj, targetPileId);
-                    success = true;
+                    checkWin();
+                    return;
                 }
             }
         } else if (targetPileId.includes('tableau')) {
             const tIndex = parseInt(targetPileId.split('-')[1]);
             if (isValidTableauMove(cardObj, tIndex)) {
                 moveStackToTableau(cardObj, tIndex);
-                success = true;
+                return;
             }
         }
-
-        if (success) {
-            checkWin();
-        } else {
-            render(); 
-        }
+        render();
     }
 
     function getCardFromElement(el) {
@@ -554,18 +477,14 @@
 
     function isValidFoundationMove(card, fIndex) {
         const pile = foundations[fIndex];
-        if (pile.length === 0) {
-            return card.rank === 1; 
-        }
+        if (pile.length === 0) return card.rank === 1; 
         const top = pile[pile.length - 1];
         return card.suit === top.suit && card.rank === top.rank + 1;
     }
 
     function isValidTableauMove(card, tIndex) {
         const pile = tableau[tIndex];
-        if (pile.length === 0) {
-            return card.rank === 13; 
-        }
+        if (pile.length === 0) return card.rank === 13; 
         const top = pile[pile.length - 1];
         return card.color !== top.color && card.rank === top.rank - 1;
     }
@@ -573,59 +492,38 @@
     function findAndRemoveCard(cardId) {
         let idx = waste.findIndex(c => c.id === cardId);
         if (idx !== -1) return waste.splice(idx, 1)[0];
-
         for(let p of foundations) {
             idx = p.findIndex(c => c.id === cardId);
             if (idx !== -1) return p.splice(idx, 1)[0];
         }
-
         for(let p of tableau) {
             idx = p.findIndex(c => c.id === cardId);
-            if (idx !== -1) {
-                return p.splice(idx, 1)[0];
-            }
+            if (idx !== -1) return p.splice(idx, 1)[0];
         }
         return null;
     }
 
     function moveCardToPile(cardObj, targetPileId) {
         let moved = findAndRemoveCard(cardObj.id);
-        if (targetPileId.includes('foundation')) {
-            foundations[parseInt(targetPileId.split('-')[1])].push(moved);
-        }
+        if (targetPileId.includes('foundation')) foundations[parseInt(targetPileId.split('-')[1])].push(moved);
         revealNextCard();
         render();
     }
 
     function moveStackToTableau(headCardObj, targetTableauIndex) {
-        let sourceArray = null;
-        let splitIndex = -1;
-
+        let sourceArray = null, splitIndex = -1;
         let wIdx = waste.findIndex(c => c.id === headCardObj.id);
-        if (wIdx !== -1) {
-            sourceArray = waste;
-            splitIndex = wIdx;
-        }
-
-        if (!sourceArray) {
-            tableau.forEach(col => {
-                let tIdx = col.findIndex(c => c.id === headCardObj.id);
-                if (tIdx !== -1) {
-                    sourceArray = col;
-                    splitIndex = tIdx;
-                }
-            });
-        }
+        if (wIdx !== -1) { sourceArray = waste; splitIndex = wIdx; }
         
-        if (!sourceArray) {
-             foundations.forEach(col => {
-                let fIdx = col.findIndex(c => c.id === headCardObj.id);
-                if (fIdx !== -1) {
-                    sourceArray = col;
-                    splitIndex = fIdx;
-                }
-            });
-        }
+        if (!sourceArray) tableau.forEach(col => {
+            let tIdx = col.findIndex(c => c.id === headCardObj.id);
+            if (tIdx !== -1) { sourceArray = col; splitIndex = tIdx; }
+        });
+        
+        if (!sourceArray) foundations.forEach(col => {
+            let fIdx = col.findIndex(c => c.id === headCardObj.id);
+            if (fIdx !== -1) { sourceArray = col; splitIndex = fIdx; }
+        });
 
         if (sourceArray && splitIndex !== -1) {
             const movingStack = sourceArray.splice(splitIndex);
@@ -647,13 +545,10 @@
     function checkWin() {
         let total = 0;
         foundations.forEach(f => total += f.length);
-        if (total === 52) {
-            setTimeout(() => alert("You Win!"), 100);
-        }
+        if (total === 52) setTimeout(() => alert("You Win!"), 100);
     }
 
     initGame();
-
 </script>
 </body>
 </html>
