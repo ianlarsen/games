@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Tarot Reader</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-back: #2a2a40;
+            --card-face: #e0e0e0;
+            --accent: #bfa05f;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        select, button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover, select:hover {
+            background: var(--accent);
+            color: var(--bg-color);
+        }
+
+        /* Reading Area */
+        .spread-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .card-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 200px;
+            perspective: 1000px; /* For 3D flip effect */
+        }
+
+        .slot-label {
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            min-height: 1.2em;
+        }
+
+        /* The Card Itself */
+        .card {
+            width: 100%;
+            height: 320px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 2px solid var(--accent);
+        }
+
+        /* Back of card */
+        .card-front {
+            background-color: var(--card-back);
+            background-image: repeating-linear-gradient(
+                45deg,
+                var(--card-back),
+                var(--card-back) 10px,
+                #333350 10px,
+                #333350 20px
+            );
+        }
+
+        .card-front::after {
+            content: "✦";
+            font-size: 3rem;
+            color: var(--accent);
+        }
+
+        /* Front of card (The Reveal) */
+        .card-back {
+            background-color: var(--card-face);
+            color: #121212;
+            transform: rotateY(180deg);
+            text-align: center;
+        }
+
+        .card-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 5px;
+        }
+
+        .card-img-placeholder {
+            font-size: 3rem;
+            margin: 10px 0;
+            color: #444;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .reversed-tag {
+            color: #d32f2f;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Handling Reversal Rotation visually */
+        .card.is-reversed .card-back {
+            /* If the logic says reversed, we rotate the inner content or the container differently.
+               However, standard flip rotates Y. To show upside down, we rotate Z. */
+        }
+        
+        .card.is-reversed .card-back .inner-content {
+            transform: rotate(180deg);
+        }
+
+        .card.is-reversed .reversed-tag {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .card-slot {
+                width: 140px;
+            }
+            .card {
+                height: 220px;
+            }
+            .card-img-placeholder {
+                font-size: 2rem;
+            }
+            .card-desc {
+                font-size: 0.75rem;
+                display: none; /* Hide text on small screens until clicked? */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ Solaris Tarot ✨</h1>
+
+    <div class="controls">
+        <select id="spreadSelect">
+            <option value="1">Single Card (Daily Insight)</option>
+            <option value="3">Three Card Spread (Past, Present, Future)</option>
+            <option value="3b">Mind, Body, Spirit</option>
+            <option value="5">The Arrow (Situation, Challenge, Advice, Outcome, Potential)</option>
+        </select>
+        <button onclick="dealCards()">🔮 Draw Cards</button>
+    </div>
+
+    <div class="spread-container" id="spreadContainer">
+        <div style="color: var(--text-muted); font-style: italic;">Select a spread and click "Draw Cards" to begin...</div>
+    </div>
+
+<script>
+    // --- TAROT DATA ---
+    // A condensed dataset of the 78 cards
+    const suits = ['Wands', 'Cups', 'Swords', 'Pentacles'];
+    const ranks = ['Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Page', 'Knight', 'Queen', 'King'];
+    
+    const majorArcana = [
+        {name: "The Fool", symbol: "🤡", mean: "New beginnings, innocence, spontaneity.", rev: "Recklessness, risk-taking."},
+        {name: "The Magician", symbol: "🧙", mean: "Manifestation, resourcefulness, power.", rev: "Manipulation, poor planning."},
+        {name: "The High Priestess", symbol: "🌙", mean: "Intuition, sacred knowledge, divine feminine.", rev: "Secrets, disconnected from intuition."},
+        {name: "The Empress", symbol: "👑", mean: "Femininity, beauty, nature, nurturing.", rev: "Dependence, smothering."},
+        {name: "The Emperor", symbol: "🏰", mean: "Authority, establishment, structure.", rev: "Domination, excessive control."},
+        {name: "The Hierophant", symbol: "⛪", mean: "Spiritual wisdom, religious beliefs, tradition.", rev: "Personal beliefs, freedom, challenging status quo."},
+        {name: "The Lovers", symbol: "❤️", mean: "Love, harmony, relationships, values alignment.", rev: "Self-love, disharmony, imbalance."},
+        {name: "The Chariot", symbol: "🛒", mean: "Control, willpower, success, action.", rev: "Self-discipline, opposition, lack of direction."},
+        {name: "Strength", symbol: "🦁", mean: "Strength, courage, persuasion, influence.", rev: "Inner strength, self-doubt, low energy."},
+        {name: "The Hermit", symbol: "🕯️", mean: "Soul-searching, introspection, being alone.", rev: "Isolation, loneliness, withdrawal."},
+        {name: "Wheel of Fortune", symbol: "🎡", mean: "Good luck, karma, life cycles, destiny.", rev: "Bad luck, resistance to change, breaking cycles."},
+        {name: "Justice", symbol: "⚖️", mean: "Justice, fairness, truth, cause and effect.", rev: "Unfairness, lack of accountability, dishonesty."},
+        {name: "The Hanged Man", symbol: "🙃", mean: "Pause, surrender, letting go, new perspectives.", rev: "Delays, resistance, stalling."},
+        {name: "Death", symbol: "💀", mean: "Endings, change, transformation, transition.", rev: "Resistance to change, personal transformation."},
+        {name: "Temperance", symbol: "🍷", mean: "Balance, moderation, patience, purpose.", rev: "Imbalance, excess, self-healing."},
+        {name: "The Devil", symbol: "😈", mean: "Shadow self, attachment, addiction, restriction.", rev: "Releasing limiting beliefs, exploring dark thoughts."},
+        {name: "The Tower", symbol: "⚡", mean: "Sudden change, upheaval, chaos, revelation.", rev: "Personal transformation, fear of change."},
+        {name: "The Star", symbol: "⭐", mean: "Hope, faith, purpose, renewal, spirituality.", rev: "Lack of faith, despair, self-trust."},
+        {name: "The Moon", symbol: "🌕", mean: "Illusion, fear, anxiety, subconscious, intuition.", rev: "Release of fear, repressed emotion, confusion."},
+        {name: "The Sun", symbol: "☀️", mean: "Positivity, fun, warmth, success, vitality.", rev: "Inner child, feeling down, overly optimistic."},
+        {name: "Judgement", symbol: "🎺", mean: "Judgement, rebirth, inner calling, absolution.", rev: "Self-doubt, inner critic, ignoring the call."},
+        {name: "The World", symbol: "🌍", mean: "Completion, integration, accomplishment, travel.", rev: "Seeking personal closure, short-cuts, delays."}
+    ];
+
+    function generateDeck() {
+        let deck = [...majorArcana];
+        
+        // Generate Minor Arcana
+        suits.forEach(suit => {
+            ranks.forEach(rank => {
+                let symbol = "🔹";
+                if(suit === "Wands") symbol = "🌿";
+                if(suit === "Cups") symbol = "🏆";
+                if(suit === "Swords") symbol = "⚔️";
+                if(suit === "Pentacles") symbol = "🪙";
+
+                deck.push({
+                    name: `${rank} of ${suit}`,
+                    symbol: symbol,
+                    mean: `Energy of ${suit.toLowerCase()} combined with ${rank.toLowerCase()}.`,
+                    rev: `Blocked energy of ${suit.toLowerCase()}.`
+                });
+            });
+        });
+        return deck;
+    }
+
+    // --- APP LOGIC ---
+
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        // While there remain elements to shuffle.
+        while (currentIndex != 0) {
+            // Pick a remaining element.
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            // And swap it with the current element.
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function dealCards() {
+        const spreadType = document.getElementById('spreadSelect').value;
+        const container = document.getElementById('spreadContainer');
+        container.innerHTML = ''; // Clear previous
+
+        const deck = shuffle(generateDeck());
+        let cardsToDraw = 0;
+        let labels = [];
+
+        if (spreadType === "1") {
+            cardsToDraw = 1;
+            labels = ["Insight"];
+        } else if (spreadType === "3") {
+            cardsToDraw = 3;
+            labels = ["Past", "Present", "Future"];
+        } else if (spreadType === "3b") {
+            cardsToDraw = 3;
+            labels = ["Mind", "Body", "Spirit"];
+        } else if (spreadType === "5") {
+            cardsToDraw = 5;
+            labels = ["Situation", "Challenge", "Advice", "Outcome", "Potential"];
+        }
+
+        // Create HTML for cards
+        for (let i = 0; i < cardsToDraw; i++) {
+            const cardData = deck[i];
+            const isReversed = Math.random() < 0.3; // 30% chance of reversal
+            
+            // Create Slot
+            const slot = document.createElement('div');
+            slot.className = 'card-slot';
+
+            // Label
+            const label = document.createElement('div');
+            label.className = 'slot-label';
+            label.innerText = labels[i] || "";
+            slot.appendChild(label);
+
+            // Card Container
+            const cardEl = document.createElement('div');
+            cardEl.className = `card ${isReversed ? 'is-reversed' : ''}`;
+            
+            // Click to flip
+            cardEl.onclick = function() {
+                this.classList.toggle('flipped');
+            };
+
+            // Front (Back of card visually)
+            const faceFront = document.createElement('div');
+            faceFront.className = 'card-face card-front';
+            
+            // Back (The Reveal)
+            const faceBack = document.createElement('div');
+            faceBack.className = 'card-face card-back';
+            
+            const innerContent = document.createElement('div');
+            innerContent.className = 'inner-content';
+            
+            const nameEl = document.createElement('div');
+            nameEl.className = 'card-name';
+            nameEl.innerText = cardData.name;
+
+            const imgEl = document.createElement('div');
+            imgEl.className = 'card-img-placeholder';
+            imgEl.innerText = cardData.symbol;
+
+            const descEl = document.createElement('div');
+            descEl.className = 'card-desc';
+            descEl.innerText = isReversed ? cardData.rev : cardData.mean;
+
+            const revTag = document.createElement('div');
+            revTag.className = 'reversed-tag';
+            revTag.innerText = "(Reversed)";
+
+            innerContent.appendChild(nameEl);
+            innerContent.appendChild(revTag);
+            innerContent.appendChild(imgEl);
+            innerContent.appendChild(descEl);
+            
+            faceBack.appendChild(innerContent);
+            
+            cardEl.appendChild(faceFront);
+            cardEl.appendChild(faceBack);
+            slot.appendChild(cardEl);
+            container.appendChild(slot);
+
+            // Staggered Animation
+            setTimeout(() => {
+                slot.style.opacity = 0;
+                slot.animate([
+                    { transform: 'translateY(20px)', opacity: 0 },
+                    { transform: 'translateY(0)', opacity: 1 }
+                ], {
+                    duration: 500,
+                    fill: 'forwards'
+                });
+                slot.style.opacity = 1;
+            }, i * 200);
+        }
+    }
+</script>
+
+</body>
+</html>
