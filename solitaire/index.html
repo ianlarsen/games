@@ -91,14 +91,20 @@
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: var(--card-radius);
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
+        /* Stock Pile - Empty State Styling */
         #stock { 
             grid-column: 1; 
             cursor: pointer; 
-            background: url('data:image/svg+xml;utf8,<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5" r="2" fill="white" opacity="0.5"/></svg>') center/4px 4px repeat;
-            touch-action: none; 
+            color: rgba(255,255,255,0.5);
+            font-size: 24px;
+            font-weight: bold;
         }
+
         #waste { grid-column: 2; }
         
         #foundation-0 { grid-column: 4; }
@@ -277,11 +283,16 @@
             el.draggable = false; 
             addInteraction(el);
         } else {
-            // NEW: Allow clicking face-down cards to check if they can be flipped
-            el.onclick = (e) => {
-                e.stopPropagation();
-                tryFlipTopCard(el);
-            };
+            // FIX: Allow clicking face-down cards to check if they can be flipped
+            // But NOT if it's the stock pile (handled separately)
+            el.addEventListener('click', (e) => {
+                const pileId = el.parentElement.id || el.dataset.pile;
+                // Only allow click-to-flip in tableau
+                if (pileId && pileId.includes('tableau')) {
+                    e.stopPropagation();
+                    tryFlipTopCard(el);
+                }
+            });
         }
         return el;
     }
@@ -289,16 +300,37 @@
     function renderPile(elementId, cards) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
-        if (cards.length === 0) {
-            if(elementId === 'stock') container.onclick = resetStock;
-            return;
+        
+        // --- STOCK PILE LOGIC ---
+        if (elementId === 'stock') {
+            if (cards.length === 0) {
+                // Empty Stock: Show Reload Symbol
+                container.innerHTML = '⟳';
+                // Remove old listeners by cloning (simple reset)
+                const newContainer = container.cloneNode(true);
+                container.parentNode.replaceChild(newContainer, container);
+                newContainer.addEventListener('click', resetStock);
+                return;
+            } else {
+                // Full Stock: Show Top Card (Back)
+                const topCard = cards[cards.length - 1];
+                const el = createCardElement(topCard);
+                el.className = 'card card-back';
+                // Explicit click for drawing
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    drawCard();
+                });
+                container.appendChild(el);
+                return;
+            }
         }
+
+        // --- OTHER PILES ---
+        if (cards.length === 0) return;
+
         const topCard = cards[cards.length - 1];
         const el = createCardElement(topCard);
-        if (elementId === 'stock') {
-            el.className = 'card card-back';
-            el.onclick = drawCard;
-        }
         container.appendChild(el);
     }
 
@@ -317,7 +349,7 @@
             const el = createCardElement(card);
             el.style.top = `${currentTop}${unit}`;
             el.style.position = 'absolute';
-            el.style.zIndex = index; // Explicit Z-Index ensures stacking order is correct
+            el.style.zIndex = index; 
             el.dataset.index = index;
             el.dataset.pile = elementId;
             container.appendChild(el);
@@ -356,7 +388,6 @@
     }
 
     function tryFlipTopCard(el) {
-        // Find which pile this card is in
         const pileId = el.parentElement.id || el.dataset.pile;
         if (!pileId || !pileId.includes('tableau')) return;
         
@@ -364,7 +395,6 @@
         const pile = tableau[pileIndex];
         const cardIndex = parseInt(el.dataset.index);
         
-        // If this is the last card in the pile (topmost visually)
         if (cardIndex === pile.length - 1) {
             const cardObj = pile[cardIndex];
             cardObj.faceUp = true;
