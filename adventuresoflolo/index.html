@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adventures of Lolo</title>
+    <style>
+        body { background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: white; font-family: 'Courier New', Courier, monospace; }
+        canvas { border: 4px solid #555; background: #000; image-rendering: pixelated; }
+        .stats { margin-bottom: 10px; font-size: 24px; color: #f1c40f; text-shadow: 2px 2px #000; }
+        .controls { margin-top: 10px; color: #888; font-size: 14px; text-align: center; }
+        b { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="stats">LEVEL <span id="levelNum">1</span></div>
+    <div style="margin-bottom: 10px;">Hearts: <span id="heartCount">0</span> | Shots: <span id="shotCount">0</span></div>
+    <canvas id="gameCanvas" width="352" height="352"></canvas>
+    <div class="controls">
+        <b>Arrows</b>: Move | <b>Space</b>: Shoot | <b>R</b>: New Random Level<br>
+        <i>Snakes are now harmless obstacles!</i>
+    </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const heartDisplay = document.getElementById('heartCount');
+const shotDisplay = document.getElementById('shotCount');
+const levelDisplay = document.getElementById('levelNum');
+
+const TILE_SIZE = 32;
+const ROWS = 11;
+const COLS = 11;
+
+let currentLevelNum = 1;
+let map = [];
+let entities = []; // Combined blocks and enemies
+let projectiles = [];
+let player = { gridX: 5, gridY: 5, renderX: 160, renderY: 160, speed: 4, shots: 2, dx: 0, dy: 1 };
+
+function generateRandomLevel() {
+    // 1. Fill map with floor (0) and borders (1)
+    map = Array.from({ length: ROWS }, (_, y) => 
+        Array.from({ length: COLS }, (_, x) => 
+            (x === 0 || x === COLS-1 || y === 0 || y === ROWS-1) ? 1 : 0
+        )
+    );
+
+    entities = [];
+    projectiles = [];
+
+    // 2. Place Player (center-ish)
+    player.gridX = 5;
+    player.gridY = 9;
+    player.renderX = player.gridX * TILE_SIZE;
+    player.renderY = player.gridY * TILE_SIZE;
+
+    // 3. Place Goal (Chest) at the top
+    map[1][5] = 3; 
+
+    // 4. Randomly scatter obstacles and items
+    for(let y=1; y<ROWS-1; y++) {
+        for(let x=1; x<COLS-1; x++) {
+            if (x === 5 && (y === 9 || y === 1)) continue; // Keep player and chest clear
+
+            let rand = Math.random();
+            if (rand < 0.1) { // 10% Walls
+                map[y][x] = 1;
+            } else if (rand < 0.15) { // 5% Hearts
+                map[y][x] = 4;
+            } else if (rand < 0.20) { // 5% Stone Blocks
+                entities.push({ gridX: x, gridY: y, renderX: x*TILE_SIZE, renderY: y*TILE_SIZE, type: 'stone' });
+            } else if (rand < 0.25) { // 5% Snakes
+                entities.push({ gridX: x, gridY: y, renderX: x*TILE_SIZE, renderY: y*TILE_SIZE, type: 'snakey', isEgg: false });
+            }
+        }
+    }
+
+    // Ensure at least one heart exists
+    if (map.flat().filter(t => t === 4).length === 0) {
+        map[2][2] = 4;
+    }
+
+    player.shots = 3;
+    updateStats();
+}
+
+function updateStats() {
+    heartDisplay.innerText = map.flat().filter(t => t === 4).length;
+    shotDisplay.innerText = player.shots;
+    levelDisplay.innerText = currentLevelNum;
+}
+
+function updateProjectiles() {
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        let p = projectiles[i];
+        p.x += p.vx * 8;
+        p.y += p.vy * 8;
+        let gx = Math.floor((p.x + 16) / TILE_SIZE);
+        let gy = Math.floor((p.y + 16) / TILE_SIZE);
+
+        if (gx < 0 || gx >= COLS || gy < 0 || gy >= ROWS || map[gy][gx] === 1) {
+            projectiles.splice(i, 1); continue;
+        }
+
+        let target = entities.find(e => e.gridX === gx && e.gridY === gy && e.type === 'snakey');
+        if (target) {
+            if (target.isEgg) entities = entities.filter(e => e !== target);
+            else target.isEgg = true;
+            projectiles.splice(i, 1);
+        }
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Map
+    for(let y=0; y<ROWS; y++) {
+        for(let x=0; x<COLS; x++) {
+            let t = map[y][x];
+            ctx.fillStyle = (t===1)?'#2c3e50':(t===3)?'#7f8c8d':(t===4)?'#e74c3c':(t===5)?'#f1c40f':'#27ae60';
+            ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            if(t===1) { ctx.strokeStyle="#34495e"; ctx.strokeRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE); }
+        }
+    }
+
+    // Entities
+    entities.forEach(e => {
+        e.renderX += (e.gridX * TILE_SIZE - e.renderX) * 0.2;
+        e.renderY += (e.gridY * TILE_SIZE - e.renderY) * 0.2;
+
+        if (e.isEgg) {
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.ellipse(e.renderX+16, e.renderY+16, 10, 12, 0, 0, Math.PI*2); ctx.fill();
+        } else if (e.type === 'snakey') {
+            ctx.fillStyle = "#2ecc71"; ctx.fillRect(e.renderX+4, e.renderY+4, 24, 24);
+            ctx.fillStyle = "black"; ctx.fillRect(e.renderX+8, e.renderY+10, 4, 4); ctx.fillRect(e.renderX+20, e.renderY+10, 4, 4);
+        } else {
+            ctx.fillStyle = "#d35400"; ctx.fillRect(e.renderX+4, e.renderY+4, 24, 24);
+            ctx.strokeStyle = "white"; ctx.strokeRect(e.renderX+8, e.renderY+8, 16, 16);
+        }
+    });
+
+    // Projectiles
+    updateProjectiles();
+    ctx.fillStyle = "#3498db";
+    projectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x+16, p.y+16, 5, 0, Math.PI*2); ctx.fill(); });
+
+    // Player
+    player.renderX += (player.gridX * TILE_SIZE - player.renderX) * 0.2;
+    player.renderY += (player.gridY * TILE_SIZE - player.renderY) * 0.2;
+    ctx.fillStyle = "#3498db";
+    ctx.beginPath(); ctx.arc(player.renderX+16, player.renderY+16, 12, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "white";
+    ctx.fillRect(player.renderX+10+(player.dx*4), player.renderY+10+(player.dy*4), 4, 4);
+    ctx.fillRect(player.renderX+18+(player.dx*4), player.renderY+10+(player.dy*4), 4, 4);
+
+    requestAnimationFrame(draw);
+}
+
+window.addEventListener('keydown', e => {
+    if (e.key.toLowerCase() === 'r') { generateRandomLevel(); return; }
+    if (Math.abs(player.renderX - player.gridX*TILE_SIZE) > 1) return;
+
+    if (e.key === ' ') {
+        if (player.shots > 0) {
+            projectiles.push({ x: player.renderX, y: player.renderY, vx: player.dx, vy: player.dy });
+            player.shots--; updateStats();
+        }
+        return;
+    }
+
+    let dx = 0, dy = 0;
+    if(e.key === 'ArrowUp') dy = -1;
+    else if(e.key === 'ArrowDown') dy = 1;
+    else if(e.key === 'ArrowLeft') dx = -1;
+    else if(e.key === 'ArrowRight') dx = 1;
+
+    if (dx !== 0 || dy !== 0) {
+        player.dx = dx; player.dy = dy;
+        let nx = player.gridX + dx, ny = player.gridY + dy;
+        if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return;
+
+        let obstacle = entities.find(e => e.gridX === nx && e.gridY === ny);
+        if (obstacle) {
+            // Push logic for everything (Blocks, Snakes, Eggs)
+            let bx = nx + dx, by = ny + dy;
+            let isInside = bx > 0 && bx < COLS-1 && by > 0 && by < ROWS-1;
+            let isClear = isInside && map[by][bx] === 0 && !entities.some(e => e.gridX === bx && e.gridY === by);
+            if (isClear) {
+                obstacle.gridX = bx; obstacle.gridY = by;
+                player.gridX = nx; player.gridY = ny;
+            }
+        } else if (map[ny][nx] !== 1 && map[ny][nx] !== 3) {
+            if (map[ny][nx] === 4) {
+                map[ny][nx] = 0;
+                if (map.flat().filter(t => t === 4).length === 0) {
+                    map.forEach((r,y) => r.forEach((t,x) => { if(t===3) map[y][x]=5; }));
+                }
+            }
+            if (map[ny][nx] === 5) { currentLevelNum++; generateRandomLevel(); return; }
+            player.gridX = nx; player.gridY = ny;
+        }
+        updateStats();
+    }
+});
+
+generateRandomLevel();
+draw();
+</script>
+</body>
+</html>
