@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro-Chip Challenge: Overclocked</title>
+    <style>
+        body { 
+            background: #0a0a0a; 
+            color: #00ff41; 
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #game-wrapper {
+            position: relative;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
+        canvas { display: block; background: #000; }
+        .stats { margin: 15px; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        #game-wrapper::after {
+            content: " ";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stats">Level: <span id="lvl">1</span> | Chips: <span id="chip-count">3</span></div>
+    <div id="game-wrapper">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+    </div>
+    <p style="color: #666;">[Arrows] to Move | [Space] to Reboot</p>
+
+    <script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const chipDisplay = document.getElementById('chip-count');
+const lvlDisplay = document.getElementById('lvl');
+
+const TILE_SIZE = 40;
+const GRID_SIZE = 10;
+
+let player, chips, enemy, particles, frame, gameOver, level, portalActive, shake;
+
+function initGame(newLvl = 1) {
+    level = newLvl;
+    gameOver = false;
+    portalActive = false;
+    frame = 0;
+    particles = [];
+    shake = 0;
+    
+    player = { x: 1, y: 1, targetX: 1, targetY: 1, screenX: 40, screenY: 40 };
+    enemy = { x: 8, y: 8, targetX: 8, targetY: 8, screenX: 320, screenY: 320 };
+    
+    // Scaling difficulty: more chips per level
+    const possibleChips = [{x:8,y:1},{x:1,y:8},{x:8,y:8},{x:4,y:3},{x:5,y:6},{x:2,y:4},{x:7,y:4}];
+    chips = possibleChips.slice(0, Math.min(2 + level, possibleChips.length)); 
+
+    chipDisplay.innerText = chips.length;
+    lvlDisplay.innerText = level;
+}
+
+const map = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+];
+
+function createParticles(x, y, color) {
+    for(let i=0; i<10; i++) {
+        particles.push({
+            x: x * TILE_SIZE + 20,
+            y: y * TILE_SIZE + 20,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 1,
+            color: color
+        });
+    }
+}
+
+// IMPROVED AI: Better wall handling
+function moveEnemy() {
+    let dx = player.targetX - enemy.x;
+    let dy = player.targetY - enemy.y;
+
+    let moveX = Math.sign(dx);
+    let moveY = Math.sign(dy);
+
+    // Try primary move (axis with largest distance)
+    if (Math.abs(dx) >= Math.abs(dy)) {
+        if (map[enemy.y][enemy.x + moveX] === 0) {
+            enemy.x += moveX;
+        } else if (map[enemy.y + moveY][enemy.x] === 0) {
+            enemy.y += moveY; // Slide on Y if X is blocked
+        }
+    } else {
+        if (map[enemy.y + moveY][enemy.x] === 0) {
+            enemy.y += moveY;
+        } else if (map[enemy.y][enemy.x + moveX] === 0) {
+            enemy.x += moveX; // Slide on X if Y is blocked
+        }
+    }
+}
+
+function update() {
+    if (gameOver) {
+        shake = Math.random() * 4;
+        return;
+    }
+
+    // Smooth movement interpolation
+    player.screenX += (player.targetX * TILE_SIZE - player.screenX) * 0.2;
+    player.screenY += (player.targetY * TILE_SIZE - player.screenY) * 0.2;
+    enemy.screenX += (enemy.x * TILE_SIZE - enemy.screenX) * 0.15;
+    enemy.screenY += (enemy.y * TILE_SIZE - enemy.screenY) * 0.15;
+
+    particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+        if (p.life <= 0) particles.splice(i, 1);
+    });
+
+    chips = chips.filter(c => {
+        if (player.targetX === c.x && player.targetY === c.y) {
+            createParticles(c.x, c.y, '#0f0');
+            return false;
+        }
+        return true;
+    });
+    chipDisplay.innerText = chips.length;
+
+    if (chips.length === 0) portalActive = true;
+    if (portalActive && player.targetX === 5 && player.targetY === 1) {
+        initGame(level + 1);
+    }
+
+    let dist = Math.hypot(player.screenX - enemy.screenX, player.screenY - enemy.screenY);
+    if (dist < 28) gameOver = true;
+}
+
+function draw() {
+    ctx.save();
+    if (shake > 0) {
+        ctx.translate(Math.random() * shake, Math.random() * shake);
+        shake *= 0.9;
+    }
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    frame++;
+
+    // Draw Map
+    for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+            if (map[y][x] === 1) {
+                ctx.fillStyle = '#111';
+                ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = '#00ff4111';
+                ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+        }
+    }
+
+    // Portal
+    ctx.shadowBlur = portalActive ? 15 + Math.sin(frame*0.1)*5 : 0;
+    ctx.shadowColor = "#0f0";
+    ctx.fillStyle = portalActive ? "#0f0" : "#222";
+    ctx.beginPath();
+    ctx.arc(5 * TILE_SIZE + 20, 1 * TILE_SIZE + 20, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Chips
+    chips.forEach(c => {
+        ctx.fillStyle = '#0f0';
+        let bob = Math.sin(frame * 0.1) * 3;
+        ctx.fillRect(c.x * TILE_SIZE + 12, c.y * TILE_SIZE + 12 + bob, 16, 16);
+    });
+
+    // Particles
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.fillRect(p.x, p.y, 2, 2);
+    });
+    ctx.globalAlpha = 1;
+
+    // Enemy
+    ctx.fillStyle = '#f00';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = 'red';
+    ctx.fillRect(enemy.screenX + 10, enemy.screenY + 10, 20, 20);
+
+    // Player
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#0f0';
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(player.screenX + 8, player.screenY + 8, 24, 24);
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(player.screenX + 14, player.screenY + 14, 12, 12);
+    ctx.shadowBlur = 0;
+
+    if (gameOver) {
+        ctx.fillStyle = "rgba(20,0,0,0.8)";
+        ctx.fillRect(0,0,400,400);
+        ctx.fillStyle = "#f00";
+        ctx.font = "bold 22px 'Courier New'";
+        ctx.textAlign = "center";
+        ctx.fillText("CRITICAL SYSTEM FAILURE", 200, 190);
+        ctx.font = "14px 'Courier New'";
+        ctx.fillStyle = "#fff";
+        ctx.fillText("CORE OVERHEATED. REBOOT REQUIRED.", 200, 220);
+        ctx.fillText("PRESS SPACE TO REBOOT", 200, 260);
+    }
+
+    ctx.restore();
+    update();
+    requestAnimationFrame(draw);
+}
+
+window.addEventListener('keydown', (e) => {
+    if (gameOver && e.code === 'Space') {
+        initGame(1);
+        return;
+    }
+    
+    let nx = player.targetX;
+    let ny = player.targetY;
+
+    if (e.key === 'ArrowUp') ny--;
+    if (e.key === 'ArrowDown') ny++;
+    if (e.key === 'ArrowLeft') nx--;
+    if (e.key === 'ArrowRight') nx++;
+
+    if (map[ny] && map[ny][nx] === 0) {
+        player.targetX = nx;
+        player.targetY = ny;
+        moveEnemy(); // AI responds to movement
+    }
+});
+
+initGame();
+draw();
+    </script>
+</body>
+</html>
