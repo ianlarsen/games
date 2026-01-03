@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CySA+ Typing Train: Secure the Track</title>
+    <style>
+        :root {
+            --track-color: #5d4037; /* Dark brown */
+            --sky-color: #4CAF50; /* Green/Nature background */
+            --train-color: #e74c3c; /* Red train fallback */
+            --text-color: #333;
+            --container-width: 900px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #81c784 0%, var(--sky-color) 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        /* --- Game Container & UI --- */
+
+        #game-container {
+            width: var(--container-width);
+            max-width: 90vw;
+            height: 450px;
+            position: relative;
+            border: 5px solid #bdc3c7;
+            background-color: #9ccc65; /* Light green ground */
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* FIX: Adjusted position to prevent overlap */
+        #stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            z-index: 100;
+            font-size: 1.1em;
+            width: 150px;
+            text-align: left;
+        }
+        #stats span { display: block; margin-bottom: 5px; }
+        #wpm { font-weight: bold; color: #f1c40f; font-size: 1.2em; }
+
+        /* --- Train Track and Movement --- */
+
+        #track {
+            position: absolute;
+            bottom: 100px;
+            width: 300%; 
+            height: 10px;
+            background-color: var(--track-color);
+            z-index: 20;
+            transition: transform 0.05s linear;
+        }
+
+        /* Simple ties */
+        #track::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(90deg, 
+                #8d6e63 0, #8d6e63 10px, 
+                transparent 10px, transparent 100px
+            );
+        }
+
+        #train {
+            /* Adjusted size */
+            width: 300px;
+            height: 150px;
+            bottom: 80px; /* Lowered position to compensate for increased height (Track is at 100px) */
+            left: 20%; 
+            position: absolute;
+            /* Corrected image location */
+            background-image: url('images/train.png'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom;
+            z-index: 30;
+            transition: transform 0.1s; 
+        }
+        
+        .bump-effect {
+            animation: bump 0.2s 1;
+        }
+
+        @keyframes bump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px) rotate(-1deg); }
+            100% { transform: translateY(0); }
+        }
+
+        /* --- Text Display Area --- */
+
+        #sentence-container {
+            width: 80%;
+            min-height: 100px;
+            margin-top: 100px; /* PUSHED DOWN to clear the stats box */
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            font-size: 1.5em;
+            line-height: 1.6;
+            color: var(--text-color);
+            white-space: pre-wrap;
+            text-align: left;
+            user-select: none;
+            z-index: 50;
+        }
+
+        .correct { color: #2ecc71; font-weight: bold; }
+        .cursor { background-color: #3498db; color: white; padding: 0 1px; border-radius: 2px; }
+
+        /* --- Input Field --- */
+
+        #word-input {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            padding: 10px;
+            font-size: 1.5em;
+            text-align: center;
+            background-color: #f7f7f7;
+            border: 3px solid #3498db;
+            border-radius: 5px;
+            outline: none;
+            color: #333;
+            z-index: 50; 
+            opacity: 0; /* Hide the input, but keep it active for typing */
+        }
+        /* Style for the visual focus indicator (since the input is hidden) */
+        #word-input:focus + #sentence-container {
+            border: 3px solid #3498db;
+        }
+
+
+        /* --- Overlay (Start/End/Pause) --- */
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #overlay h1 { color: #f1c40f; font-size: 3em; margin-bottom: 0.5em; }
+        #overlay p { font-size: 1.2em; margin-bottom: 2em; max-width: 80%; line-height: 1.5; }
+
+        #start-button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            cursor: pointer;
+            background-color: #3498db; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #start-button:hover { background-color: #2980b9; }
+        #start-button:active { transform: scale(0.98); }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <div id="stats">
+            <span id="score">Words: 0</span>
+            <span id="accuracy">Accuracy: 100%</span>
+            <span id="missed">Errors: 0</span>
+            <hr style="border: 0; height: 1px; background: #fff3; margin: 5px 0;">
+            <span id="wpm">WPM: 0</span>
+        </div>
+
+        <div id="sentence-container">
+            <p id="sentence-text">Press Start to begin your journey...</p>
+        </div>
+
+        <div id="train"></div>
+        <div id="track"></div>
+        
+        <input type="text" id="word-input" autocomplete="off" placeholder="" disabled>
+
+        <div id="overlay">
+            <h1>CySA+ Typing Train</h1>
+            <p id="overlay-message">
+                **Objective:** Type the crucial CySA+ study statements quickly and accurately.
+                <br>Your WPM drives the train's speed. Any error results in a temporary "bump" slowdown.
+                <br><br>
+                Press **Start** to begin the security assessment!
+            </p>
+            <button id="start-button">Start Assessment</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- GAME CONFIGURATION ---
+        const SENTENCES_BASE = [
+            "A security information and event management system centralizes logs and alerts for analysis.",
+            "Threat intelligence platforms aggregate, analyze, and disseminate data on cyber threats.",
+            "Vulnerability scanning identifies potential security weaknesses in network assets.",
+            "Penetration testing simulates an attack to evaluate the security posture of a system.",
+            "The MITRE ATT&CK framework provides a knowledge base of adversary tactics and techniques.",
+            "The Diamond Model of Intrusion Analysis focuses on adversary, capability, infrastructure, and victim.",
+            "SOAR platforms automate responses to security events using playbooks.",
+            "Risk equals the probability of a threat multiplied by the impact of a vulnerability.",
+            "An incident response plan outlines procedures for handling security breaches.",
+            "Forensic duplication must utilize a write-blocker to ensure data integrity.",
+            "Chain of custody documentation is vital to maintain evidence admissibility in court.",
+            "SIEM systems often employ normalization and correlation engines to process data.",
+            "Configuration management tools ensure all systems adhere to a secure baseline.",
+            "Honeypots and honeynets are used for deception and collecting threat intelligence.",
+            "A zero-day exploit targets a vulnerability for which no patch is currently available.",
+            "The principle of least privilege dictates that users should only have necessary permissions.",
+            "Data loss prevention technology monitors data to prevent unauthorized exfiltration.",
+            "Egress filtering is used to monitor and restrict traffic leaving the network.",
+            "Continuous monitoring is essential for detecting changes in the security landscape.",
+            "A tabletop exercise is a discussion-based training session for incident response teams.",
+            "A business impact analysis identifies critical business functions and their necessary recovery time objectives."
+        ];
+        const CHARACTER_PER_WORD = 5; 
+        const TRAIN_SPEED_MULTIPLIER = 10; 
+        const ERROR_SLOWDOWN_TIME = 1000;
+        const PAUSE_INTERVAL = 120000; // 2 minutes in milliseconds
+
+        // --- DOM Elements ---
+        const wordInput = document.getElementById('word-input');
+        const sentenceContainer = document.getElementById('sentence-container');
+        const scoreDisplay = document.getElementById('score');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const missedDisplay = document.getElementById('missed');
+        const wpmDisplay = document.getElementById('wpm');
+        const overlay = document.getElementById('overlay');
+        const overlayMessage = document.getElementById('overlay-message');
+        const startButton = document.getElementById('start-button');
+        const trainElement = document.getElementById('train');
+        const trackElement = document.getElementById('track');
+
+        // --- GAME STATE ---
+        let gameState = {
+            isRunning: false,
+            score: 0, 
+            errors: 0, 
+            totalTypedCharacters: 0,
+            totalCorrectCharacters: 0,
+            sentenceIndex: 0,
+            shuffledSentences: [], // Holds the randomized list
+            currentSentence: '',
+            typedProgress: 0,
+            startTime: 0,
+            wpm: 0,
+            trackPosition: 0,
+            baseSpeed: 0,
+            slowdownTimer: 0,
+            pauseTimer: null,
+            lastFrameTime: Date.now(),
+        };
+
+        // --- UTILITY FUNCTIONS ---
+        // Fisher-Yates (Knuth) Shuffle for randomization
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- GAME CONTROL ---
+
+        function startGame() {
+            // Only shuffle if it's a true new game (i.e., not a resume from pause)
+            if (!gameState.shuffledSentences || gameState.shuffledSentences.length === 0) {
+                 gameState.shuffledSentences = shuffleArray([...SENTENCES_BASE]);
+            }
+            
+            // Reset state
+            gameState = {
+                ...gameState, // Keep shuffledSentences, index, and accumulated stats
+                isRunning: true,
+                startTime: gameState.startTime || Date.now(), // Keep existing start time if resuming
+                lastFrameTime: Date.now(),
+            };
+
+            updateStats();
+            wordInput.value = '';
+            wordInput.disabled = false;
+            wordInput.focus();
+            overlay.style.display = 'none';
+
+            // Start main loops
+            startPauseTimer();
+            if (!gameState.currentSentence) {
+                loadNextSentence();
+            }
+            gameState.animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+             // Full reset for a new campaign
+             gameState.shuffledSentences = shuffleArray([...SENTENCES_BASE]);
+             gameState.sentenceIndex = 0;
+             gameState.score = 0;
+             gameState.errors = 0;
+             gameState.totalTypedCharacters = 0;
+             gameState.totalCorrectCharacters = 0;
+             gameState.startTime = 0;
+
+             startGame();
+        }
+
+
+        function pauseGame(message, buttonText, buttonAction) {
+            gameState.isRunning = false;
+            wordInput.disabled = true;
+            clearTimeout(gameState.pauseTimer);
+            cancelAnimationFrame(gameState.animationFrame);
+            
+            overlayMessage.innerHTML = message;
+            startButton.textContent = buttonText;
+            startButton.onclick = buttonAction; // Set temporary button action
+            overlay.style.display = 'flex';
+        }
+
+        function startPauseTimer() {
+            clearTimeout(gameState.pauseTimer);
+            gameState.pauseTimer = setTimeout(() => {
+                pauseGame(
+                    `
+                    **PAUSE**
+                    <br>Two minutes have passed.
+                    <br><br>
+                    Current WPM: ${calculateWPM()}
+                    <br>Do you wish to continue your security assessment?
+                    `,
+                    'Continue Assessment',
+                    () => {
+                        // Restore button action and continue game
+                        startButton.onclick = null; 
+                        startGame();
+                    }
+                );
+            }, PAUSE_INTERVAL);
+        }
+
+        function endGame() {
+            clearTimeout(gameState.pauseTimer);
+            
+            pauseGame(
+                `
+                **ASSESSMENT COMPLETE!**
+                <br>You have reviewed all the CySA+ statements.
+                <br><br>
+                **Sentences Completed:** ${Math.max(0, gameState.sentenceIndex)}
+                <br>**Final Accuracy:** ${calculateAccuracy()}%
+                <br>**Avg. WPM:** **${calculateWPM()}**
+                `,
+                'Restart Assessment',
+                restartGame
+            );
+        }
+        
+        // --- CALCULATION FUNCTIONS ---
+
+        function calculateAccuracy() {
+            if (gameState.totalTypedCharacters === 0) return 100;
+            return Math.max(0, Math.floor((gameState.totalCorrectCharacters / gameState.totalTypedCharacters) * 100));
+        }
+
+        function calculateWPM() {
+            if (gameState.startTime === 0 || gameState.totalCorrectCharacters === 0) return 0;
+            
+            const elapsedTimeMinutes = (Date.now() - gameState.startTime) / 60000;
+            const wpm = (gameState.totalCorrectCharacters / CHARACTER_PER_WORD) / elapsedTimeMinutes;
+
+            return Math.floor(wpm);
+        }
+
+        function updateStats() {
+            gameState.wpm = calculateWPM();
+            const accuracy = calculateAccuracy();
+
+            scoreDisplay.textContent = `Sentences: ${gameState.score}`; 
+            accuracyDisplay.textContent = `Accuracy: ${accuracy}%`;
+            missedDisplay.textContent = `Errors: ${gameState.errors}`;
+            wpmDisplay.textContent = `WPM: ${gameState.wpm}`;
+
+            // Calculate base speed based on WPM
+            gameState.baseSpeed = gameState.wpm * TRAIN_SPEED_MULTIPLIER;
+        }
+        
+        function loadNextSentence() {
+            if (gameState.sentenceIndex >= gameState.shuffledSentences.length) {
+                endGame();
+                return;
+            }
+
+            gameState.currentSentence = gameState.shuffledSentences[gameState.sentenceIndex].toLowerCase();
+            gameState.typedProgress = 0;
+            wordInput.value = '';
+
+            renderCurrentSentence();
+            gameState.sentenceIndex++;
+            updateStats();
+        }
+
+
+        // --- UI FUNCTIONS ---
+
+        function renderCurrentSentence() {
+            const { currentSentence, typedProgress } = gameState;
+            const correctPart = currentSentence.substring(0, typedProgress);
+            let nextChar = currentSentence[typedProgress] || '';
+            const remainingPart = currentSentence.substring(typedProgress + 1);
+
+            let html = '';
+            
+            // 1. Correct Part
+            if (correctPart.length > 0) {
+                 html += `<span class="correct">${correctPart}</span>`;
+            }
+
+            // 2. Cursor/Next Character
+            if (nextChar) {
+                html += `<span class="cursor">${nextChar}</span>`;
+            } else if (typedProgress === currentSentence.length) {
+                // End of sentence - show a blinking block
+                html += `<span class="cursor">&nbsp;</span>`;
+            }
+
+            // 3. Remaining Part
+            html += remainingPart;
+
+            sentenceContainer.innerHTML = html;
+        }
+
+        function gameLoop() {
+            if (!gameState.isRunning) return;
+            
+            const now = Date.now();
+            const deltaTime = (now - gameState.lastFrameTime) / 1000; 
+            gameState.lastFrameTime = now;
+
+            // 1. Update Slowdown Timer
+            if (gameState.slowdownTimer > 0) {
+                gameState.slowdownTimer -= deltaTime * 1000;
+                if (gameState.slowdownTimer < 0) {
+                    gameState.slowdownTimer = 0;
+                    trainElement.classList.remove('bump-effect');
+                }
+            }
+            
+            // 2. Calculate Train Speed
+            let currentSpeed = gameState.baseSpeed;
+            if (gameState.slowdownTimer > 0) {
+                currentSpeed *= 0.1; 
+            }
+
+            // 3. Update Track Position
+            const trackWidth = trackElement.clientWidth;
+            const moveDistance = currentSpeed * deltaTime;
+
+            gameState.trackPosition -= moveDistance;
+
+            if (gameState.trackPosition <= -trackWidth / 3) {
+                 gameState.trackPosition = 0;
+            }
+
+            trackElement.style.transform = `translateX(${gameState.trackPosition}px)`;
+
+            // 4. Update Stats
+            updateStats();
+
+            // 5. Continue Loop
+            gameState.animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // --- EVENT HANDLERS ---
+
+        function handleInput(event) {
+            if (!gameState.isRunning || !gameState.currentSentence) {
+                wordInput.value = '';
+                return;
+            }
+
+            const currentInput = event.target.value.toLowerCase();
+            const targetSentence = gameState.currentSentence;
+            
+            let matchLength = 0;
+            let isMismatch = false;
+
+            // 1. Check for correct character match
+            for (let i = 0; i < currentInput.length; i++) {
+                if (currentInput[i] === targetSentence[i]) {
+                    matchLength++;
+                } else {
+                    isMismatch = true;
+                    break; 
+                }
+            }
+            
+            // 2. Update character stats
+            if (currentInput.length > gameState.typedProgress) {
+                 gameState.totalTypedCharacters++; 
+                if (!isMismatch) {
+                    gameState.totalCorrectCharacters++;
+                }
+            }
+            
+            // 3. Handle Mismatch (The Bump)
+            if (isMismatch) {
+                // Revert the input field to the last correct sequence
+                const correctPart = targetSentence.substring(0, matchLength);
+                wordInput.value = correctPart;
+                
+                // Trigger the slowdown and visual bump
+                gameState.errors++;
+                gameState.slowdownTimer = ERROR_SLOWDOWN_TIME;
+                trainElement.classList.add('bump-effect');
+            } 
+            
+            // 4. Update Progress and UI
+            gameState.typedProgress = matchLength;
+            renderCurrentSentence();
+
+            // 5. Check for completion
+            if (matchLength === targetSentence.length) {
+                gameState.score++; // Increment completed sentence count
+                loadNextSentence(); 
+            }
+            
+            // Keep input focused
+            wordInput.focus();
+        }
+        
+        // --- INITIALIZATION ---
+        startButton.addEventListener('click', restartGame); // Initially sets up the game
+        wordInput.addEventListener('input', handleInput);
+        
+        document.addEventListener('keydown', () => {
+             if (gameState.isRunning) {
+                wordInput.focus();
+            }
+        });
+        
+        // Initial setup
+        updateStats();
+
+    </script>
+</body>
+</html>
