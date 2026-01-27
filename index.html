@@ -70,16 +70,22 @@
         <div class="hint">Put the stories in order</div>
       </a>
 
-      <a class="tile" href="clock_time/index.html" data-say="Time Teacher. Learn to tell time." aria-label="Time Teacher. Learn to tell time.">
-        <div class="emoji" aria-hidden="true">🕒</div>
-        <div class="label">Time Teacher</div>
-        <div class="hint">Learn to tell time</div>
-      </a>
-
-      <a class="tile" href="color-code/index.html" data-say="Color Code. Stack layers to match the image." aria-label="Color Code. Stack layers to match the image.">
-        <div class="emoji" aria-hidden="true">🎨</div>
+      <a class="tile" href="color-code/index.html" data-say="Color Code. Stack the layers to match the image." aria-label="Color Code. Stack the layers to match the image.">
+        <div class="emoji" aria-hidden="true">🎨🧩</div>
         <div class="label">Color Code</div>
         <div class="hint">Stack layers to match the image</div>
+      </a>
+
+      <a class="tile" href="sudoku/index.html" data-say="Sudoku. Fill in the missing animals." aria-label="Sudoku. Fill in the missing animals.">
+        <div class="emoji" aria-hidden="true">🐶🐱</div>
+        <div class="label">Sudoku</div>
+        <div class="hint">Fill in the missing animals</div>
+      </a>
+
+      <a class="tile" href="clock_time/index.html" data-say="Time Teacher. Learn to tell time." aria-label="Time Teacher. Learn to tell time.">
+        <div class="emoji" aria-hidden="true">⏰🕰️</div>
+        <div class="label">Time Teacher</div>
+        <div class="hint">Learn to tell time</div>
       </a>
 
     </div>
@@ -101,38 +107,31 @@
 
   <script>
 window.addEventListener('load', () => {
-  // Preload the flip sound
   const flip = document.getElementById('flip-sound');
-  if(flip) flip.load();
+  flip.load();
 
-  // Prepare the unlock listener
   const unlockAudio = () => {
-    if(flip) {
-        flip.play().then(() => {
-        flip.pause();
-        flip.currentTime = 0;
-        settings.audioUnlocked = true;
-        console.log('Audio unlocked');
-        }).catch(err => {
-        console.warn('Autoplay blocked:', err);
-        });
-    }
+    flip.play().then(() => {
+      flip.pause();
+      flip.currentTime = 0;
+      settings.audioUnlocked = true;
+      console.log('Audio unlocked');
+    }).catch(err => {
+      console.warn('Autoplay blocked:', err);
+    });
 
-    // Remove listeners after first gesture
     document.removeEventListener('click', unlockAudio);
     document.removeEventListener('touchstart', unlockAudio);
   };
 
-  // Register unlock on first click/tap
   document.addEventListener('click', unlockAudio, { once: true });
   document.addEventListener('touchstart', unlockAudio, { once: true });
 });
 
     const settings = {
-      ttsEnabled: true, // Default to true
+      ttsEnabled: true,
       audioUnlocked: false,
       init() {
-        // Load saved preferences
         const saved = localStorage.getItem('otgames-settings');
         if (saved) {
           try {
@@ -156,10 +155,9 @@ window.addEventListener('load', () => {
       }
     };
 
-    // --- Audio Playback with Error Handling ---
     const audio = {
       flipSound: document.getElementById('flip-sound'),
-      backgroundMusic: document.getElementById('background-music'), 
+      backgroundMusic: document.getElementById('background-music'),
       statusEl: document.getElementById('sound-status'),
       
       unlock() {
@@ -173,8 +171,6 @@ window.addEventListener('load', () => {
               this.flipSound.pause();
               this.flipSound.currentTime = 0;
               settings.audioUnlocked = true;
-              
-              // Now that audio is unlocked, check if we should play background music
               this.updateBackgroundMusic(); 
             })
             .catch(e => {
@@ -191,7 +187,6 @@ window.addEventListener('load', () => {
       play(sound) {
         if (!sound || !settings.audioUnlocked) return;
         
-        // Check if sound is loaded
         if (sound.readyState >= 2) {
           sound.currentTime = 0;
           sound.play().catch(e => {
@@ -199,16 +194,13 @@ window.addEventListener('load', () => {
             this.showStatus('🔇', 'visual-only');
           });
         } else {
-          // Sound not ready, show visual feedback
           this.showStatus('🔊', 'visual-only');
         }
       },
 
-      // New function to control background music
       updateBackgroundMusic() {
         if (!this.backgroundMusic || !settings.audioUnlocked) return;
 
-        // Play only if sound is enabled (ttsEnabled flag) and the page is visible
         if (settings.ttsEnabled && !document.hidden) {
           this.backgroundMusic.play().catch(e => console.warn('Background music play failed:', e));
         } else {
@@ -229,35 +221,27 @@ window.addEventListener('load', () => {
       }
     };
 
-    // --- TTS (Text-to-Speech) with Error Handling ---
     const tts = {
       btn: document.getElementById('tts'),
       
-      // New function to apply the current state to the UI and music
       applyState() {
-        if (!this.btn) return; 
+        if (!this.btn) return;
         this.btn.setAttribute('aria-pressed', String(settings.ttsEnabled));
         this.btn.textContent = settings.ttsEnabled ? '🔊 Sound On' : '🔇 Sound Off';
-        
-        // Update background music state
         audio.updateBackgroundMusic();
       },
       
       init() {
         if (!this.btn) return;
-        
-        // Apply saved preference or default
         settings.init(); 
         this.applyState();
-        
         this.btn.addEventListener('click', () => this.toggle(true));
       },
       
       toggle(announce = true) {
         settings.ttsEnabled = !settings.ttsEnabled;
         settings.save();
-        
-        this.applyState(); 
+        this.applyState();
 
         if (announce) {
           if (settings.ttsEnabled) {
@@ -272,7 +256,6 @@ window.addEventListener('load', () => {
         if (!settings.ttsEnabled || !text) return;
         
         try {
-          // Check if speech synthesis is available
           if (!window.speechSynthesis) {
             console.warn('TTS not available');
             return;
@@ -289,7 +272,7 @@ window.addEventListener('load', () => {
             console.error(errorMsg, e);
           };
           
-          speechSynthesis.cancel(); // Stop previous speech
+          speechSynthesis.cancel();
           speechSynthesis.speak(utterance);
         } catch (e) {
           console.error('TTS failed:', e);
@@ -297,19 +280,13 @@ window.addEventListener('load', () => {
       }
     };
 
-    // --- Initialize on DOM Ready ---
     document.addEventListener('DOMContentLoaded', () => {
       tts.init();
-      
-      // Set up audio unlock listeners
       document.body.addEventListener('click', () => audio.unlock(), { once: true });
       document.body.addEventListener('touchstart', () => audio.unlock(), { once: true });
       
-      // --- Tile Interactions ---
       document.querySelectorAll('.tile').forEach(tile => {
         const textToSay = tile.dataset.say;
-        
-        // Play sound and speak on click 
         tile.addEventListener('click', (e) => {
           audio.play(audio.flipSound);
           tts.speak('Loading ' + textToSay);
@@ -317,12 +294,10 @@ window.addEventListener('load', () => {
       });
     });
 
-    // --- Handle Page Visibility for Audio ---
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
-      // Pause or resume background music when tab visibility changes
       audio.updateBackgroundMusic();
     });
   </script>
