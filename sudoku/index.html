@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+        <header class="flex flex-wrap items-center justify-start gap-4 mb-6 pb-4 border-b">
+     <link rel="stylesheet" href="../style/style.css">
+   <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Sudoku - Expert Mode</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #fdfdfd;
+            --grid-thick: #222;
+            --grid-thin: #dee2e6;
+            --cell-bg: #ffffff;
+            --error-bg: #ffe3e3;
+            --accent: #007bff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px; margin: 0;
+        }
+
+        /* Expert Mode Toggle */
+        .expert-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .expert-label { font-weight: 800; margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 1px; }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ff6b6b;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px; width: 22px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        input:checked + .slider { background-color: #51cf66; }
+        input:checked + .slider:before { transform: translateX(30px); }
+
+        .expert-on #sudoku-grid, .expert-on #palette { filter: grayscale(100%); }
+
+        /* Grid */
+        #game-container { position: relative; margin-top: 10px; }
+        #sudoku-grid {
+            display: grid;
+            background-color: var(--grid-thin);
+            border: 4px solid var(--grid-thick);
+            gap: 1px;
+        }
+        .blur { filter: blur(12px) !important; pointer-events: none; }
+
+        .cell {
+            background-color: var(--cell-bg);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; user-select: none; font-size: 1.8rem;
+        }
+        .cell.fixed { background-color: #f1f3f5; color: #495057; cursor: default; }
+        .cell.selected { outline: 3px solid var(--accent); z-index: 2; background-color: #e7f1ff; }
+        .cell.conflict { background-color: var(--error-bg) !important; box-shadow: inset 0 0 0 2px #ff8787; }
+
+        /* Palette */
+        #palette {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; margin-top: 20px; max-width: 400px;
+        }
+        .emoji-btn {
+            font-size: 1.8rem; border: 1px solid #ddd; border-radius: 12px;
+            background: white; cursor: pointer; width: 50px; height: 50px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Win Overlay - Clicking anywhere on this div closes it */
+        #win-overlay {
+            display: none; 
+            position: absolute;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            z-index: 100; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1); /* Subtle area to catch clicks */
+        }
+        #win-banner {
+            background: white; 
+            padding: 40px 80px; 
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4); 
+            text-align: center;
+            border: 6px solid #ffd700;
+            /* Prevents the banner click from "bubbling" up if you want only outside clicks, 
+               but usually, users expect clicking the sign to work too. 
+               This setup makes the WHOLE screen clear it. */
+        }
+
+        .controls { margin: 10px 0; display: flex; gap: 10px; }
+        button.action-btn { padding: 10px 20px; font-weight: bold; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer; }
+    </style>
+    <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+            <!-- Corrected back link to main index -->
+            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
+        </header>
+
+<body id="main-body">
+
+    <h1>Emoji Sudoku</h1>
+
+    <div class="controls">
+        <button class="action-btn" onclick="initGame(2, 4)">Easy (2x2)</button>
+        <button class="action-btn" onclick="initGame(3, 30)">Medium (3x3)</button>
+        <button class="action-btn" onclick="initGame(3, 55)">Hard (3x3)</button>
+    </div>
+
+    <div class="expert-container">
+        <span class="expert-label" id="expert-text">EXPERT MODE OFF</span>
+        <label class="switch">
+            <input type="checkbox" id="expert-knob" onchange="toggleExpert()">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div id="game-container">
+        <div id="win-overlay" onclick="closeWin()">
+            <div id="win-banner">
+                <h1 style="margin:0; color:#ff922b; font-size: 3.5rem; pointer-events: none;">You win!!!</h1>
+            </div>
+        </div>
+        <div id="sudoku-grid"></div>
+    </div>
+
+    <div id="palette"></div>
+
+    <div class="controls">
+        <button class="action-btn" onclick="undo()">↩ Undo</button>
+        <button class="action-btn" onclick="giveHint()">💡 Hint</button>
+    </div>
+
+    <script>
+        const ALL_EMOJIS = ["🐱", "🐶", "🦊", "🐸", "🐯", "🐨", "🦁", "🐷", "🐵"];
+        let currentSize = 3;
+        let gridDim = 9; 
+        let solution = [];
+        let history = [];
+        let selectedIdx = null;
+
+        function toggleExpert() {
+            const isChecked = document.getElementById('expert-knob').checked;
+            document.body.classList.toggle('expert-on', isChecked);
+            document.getElementById('expert-text').textContent = isChecked ? 'EXPERT MODE ON' : 'EXPERT MODE OFF';
+        }
+
+        function initGame(size, emptyCount) {
+            // FORCE CLOSE win screen if it was open from a previous game
+            closeWin();
+            
+            currentSize = size;
+            gridDim = size * size;
+            const emojis = ALL_EMOJIS.slice(0, gridDim);
+            
+            const grid = document.getElementById('sudoku-grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${gridDim}, 45px)`;
+            
+            for (let i = 0; i < gridDim * gridDim; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.width = '45px'; cell.style.height = '45px';
+                
+                const r = Math.floor(i / gridDim), c = i % gridDim;
+                if ((c + 1) % size === 0 && (c + 1) !== gridDim) cell.style.borderRight = "4px solid #222";
+                if ((r + 1) % size === 0 && (r + 1) !== gridDim) cell.style.borderBottom = "4px solid #222";
+                
+                cell.onclick = () => {
+                    if (cell.classList.contains('fixed')) return;
+                    document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+                    cell.classList.add('selected');
+                    selectedIdx = i;
+                };
+                grid.appendChild(cell);
+            }
+
+            const palette = document.getElementById('palette');
+            palette.innerHTML = '';
+            emojis.forEach(e => {
+                const b = document.createElement('button');
+                b.className = 'emoji-btn'; b.textContent = e;
+                b.onclick = () => fillCell(e);
+                palette.appendChild(b);
+            });
+            const trash = document.createElement('button');
+            trash.className = 'emoji-btn'; trash.textContent = '🗑️';
+            trash.onclick = () => fillCell('');
+            palette.appendChild(trash);
+
+            generatePuzzle(emptyCount);
+        }
+
+        function fillCell(val) {
+            if (selectedIdx === null) return;
+            const cells = document.querySelectorAll('.cell');
+            if (cells[selectedIdx].textContent === val) return;
+            history.push({ idx: selectedIdx, prev: cells[selectedIdx].textContent });
+            cells[selectedIdx].textContent = val;
+            validate();
+        }
+
+        function generatePuzzle(emptyCount) {
+            let board = Array.from({length: gridDim}, () => Array(gridDim).fill(''));
+            solveRecursive(board);
+            solution = board.flat();
+            
+            let puzzle = [...solution];
+            let removed = 0;
+            while (removed < emptyCount) {
+                let idx = Math.floor(Math.random() * puzzle.length);
+                if (puzzle[idx] !== '') { puzzle[idx] = ''; removed++; }
+            }
+
+            const cells = document.querySelectorAll('.cell');
+            puzzle.forEach((val, i) => {
+                cells[i].textContent = val;
+                cells[i].classList.remove('fixed', 'conflict', 'selected');
+                if (val !== '') cells[i].classList.add('fixed');
+            });
+            validate();
+        }
+
+        function solveRecursive(board) {
+            for (let r = 0; r < gridDim; r++) {
+                for (let c = 0; c < gridDim; c++) {
+                    if (board[r][c] === '') {
+                        let pool = ALL_EMOJIS.slice(0, gridDim).sort(() => Math.random() - 0.5);
+                        for (let e of pool) {
+                            if (isValid(board, r, c, e)) {
+                                board[r][c] = e;
+                                if (solveRecursive(board)) return true;
+                                board[r][c] = '';
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function isValid(board, r, c, e) {
+            for (let i = 0; i < gridDim; i++) {
+                if (board[r][i] === e || board[i][c] === e) return false;
+            }
+            let rs = r - r % currentSize, cs = c - c % currentSize;
+            for (let i = 0; i < currentSize; i++)
+                for (let j = 0; j < currentSize; j++)
+                    if (board[rs + i][cs + j] === e) return false;
+            return true;
+        }
+
+        function validate() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(c => c.classList.remove('conflict'));
+            
+            for (let i = 0; i < gridDim; i++) {
+                checkGroup(Array.from({length: gridDim}, (_, j) => i * gridDim + j)); 
+                checkGroup(Array.from({length: gridDim}, (_, j) => j * gridDim + i)); 
+            }
+            for (let r = 0; r < currentSize; r++) {
+                for (let c = 0; c < currentSize; c++) {
+                    let group = [];
+                    for (let i = 0; i < currentSize; i++) {
+                        for (let j = 0; j < currentSize; j++) {
+                            group.push((r * currentSize + i) * gridDim + (c * currentSize + j));
+                        }
+                    }
+                    checkGroup(group);
+                }
+            }
+
+            if ([...cells].every(c => c.textContent !== "") && !document.querySelector('.conflict')) {
+                confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+                document.getElementById('win-overlay').style.display = 'flex';
+                document.getElementById('sudoku-grid').classList.add('blur');
+            }
+        }
+
+        function checkGroup(indices) {
+            const cells = document.querySelectorAll('.cell');
+            let seen = {};
+            indices.forEach(idx => {
+                let val = cells[idx].textContent;
+                if (val) {
+                    if (!seen[val]) seen[val] = [];
+                    seen[val].push(idx);
+                }
+            });
+            Object.values(seen).forEach(g => {
+                if (g.length > 1) g.forEach(idx => cells[idx].classList.add('conflict'));
+            });
+        }
+
+        function undo() {
+            if (history.length === 0) return;
+            const last = history.pop();
+            document.querySelectorAll('.cell')[last.idx].textContent = last.prev;
+            validate();
+        }
+
+        function giveHint() {
+            const empties = [];
+            document.querySelectorAll('.cell').forEach((c, i) => { if (c.textContent === '') empties.push(i); });
+            if (empties.length > 0) {
+                const idx = empties[Math.floor(Math.random() * empties.length)];
+                document.querySelectorAll('.cell')[idx].textContent = solution[idx];
+                validate();
+            }
+        }
+
+        function closeWin() {
+            const overlay = document.getElementById('win-overlay');
+            const grid = document.getElementById('sudoku-grid');
+            if (overlay) overlay.style.display = 'none';
+            if (grid) grid.classList.remove('blur');
+        }
+
+        initGame(2, 4);
+    </script>
+</body>
+</html>
