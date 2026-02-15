@@ -1,201 +1,395 @@
 <!DOCTYPE html>
 <html lang="en">
-        <header class="flex flex-wrap items-center justify-start gap-4 mb-6 pb-4 border-b">
-     <link rel="stylesheet" href="../style/style.css">
-   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Sudoku - Expert Mode</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Emoji Sudoku</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="../style/style.css">
     <style>
-        :root {
-            --bg: #fdfdfd;
-            --grid-thick: #222;
-            --grid-thin: #dee2e6;
-            --cell-bg: #ffffff;
-            --error-bg: #ffe3e3;
-            --accent: #007bff;
+        html {
+            height: auto;
         }
-
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px; margin: 0;
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            height: auto;
+            overflow-y: auto;
         }
 
-        /* Expert Mode Toggle */
+        /* Expert Mode */
         .expert-container {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            margin: 15px 0;
+            gap: 12px;
         }
-        .expert-label { font-weight: 800; margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 1px; }
-        
+        .expert-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            color: #4a5568;
+        }
         .switch {
             position: relative;
             display: inline-block;
-            width: 60px;
-            height: 30px;
+            width: 52px;
+            height: 28px;
         }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ff6b6b;
-            transition: .4s;
+            background-color: #cbd5e0;
+            transition: .3s;
             border-radius: 34px;
         }
         .slider:before {
             position: absolute;
             content: "";
-            height: 22px; width: 22px;
+            height: 20px; width: 20px;
             left: 4px; bottom: 4px;
             background-color: white;
-            transition: .4s;
+            transition: .3s;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        input:checked + .slider { background-color: #51cf66; }
-        input:checked + .slider:before { transform: translateX(30px); }
+        input:checked + .slider { background-color: #48bb78; }
+        input:checked + .slider:before { transform: translateX(24px); }
 
-        .expert-on #sudoku-grid, .expert-on #palette { filter: grayscale(100%); }
+        .expert-on #sudoku-grid,
+        .expert-on #palette { filter: grayscale(100%); }
 
         /* Grid */
-        #game-container { position: relative; margin-top: 10px; }
+        #game-container { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
         #sudoku-grid {
             display: grid;
-            background-color: var(--grid-thin);
-            border: 4px solid var(--grid-thick);
+            background-color: #dee2e6;
+            border: 3px solid #222;
             gap: 1px;
+            border-radius: 8px;
+            overflow: hidden;
         }
         .blur { filter: blur(12px) !important; pointer-events: none; }
 
         .cell {
-            background-color: var(--cell-bg);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; user-select: none; font-size: 1.8rem;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            font-size: clamp(1.4rem, 6vw, 2rem);
+            transition: background-color 0.15s, transform 0.1s;
         }
-        .cell.fixed { background-color: #f1f3f5; color: #495057; cursor: default; }
-        .cell.selected { outline: 3px solid var(--accent); z-index: 2; background-color: #e7f1ff; }
-        .cell.conflict { background-color: var(--error-bg) !important; box-shadow: inset 0 0 0 2px #ff8787; }
+        .cell:active {
+            transform: scale(0.95);
+        }
+        .cell.fixed {
+            background-color: #f7fafc;
+            color: #4a5568;
+            cursor: default;
+        }
+        .cell.fixed:active {
+            transform: none;
+        }
+        .cell.selected {
+            outline: 3px solid #3182ce;
+            z-index: 2;
+            background-color: #ebf4ff;
+        }
+        .cell.conflict {
+            background-color: #fee2e2 !important;
+            box-shadow: inset 0 0 0 2px #fc8181;
+        }
+        .cell.hint-flash {
+            animation: hintPulse 0.6s ease-out;
+        }
+        @keyframes hintPulse {
+            0% { background-color: #fefcbf; transform: scale(1.1); }
+            100% { background-color: #ffffff; transform: scale(1); }
+        }
+        .cell.correct-flash {
+            animation: correctPop 0.3s ease-out;
+        }
+        @keyframes correctPop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
 
         /* Palette */
         #palette {
-            display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 10px; margin-top: 20px; max-width: 400px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            width: 100%;
+            max-width: 400px;
         }
         .emoji-btn {
-            font-size: 1.8rem; border: 1px solid #ddd; border-radius: 12px;
-            background: white; cursor: pointer; width: 50px; height: 50px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+            font-size: clamp(1.4rem, 6vw, 1.8rem);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            width: clamp(42px, 12vw, 54px);
+            height: clamp(42px, 12vw, 54px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            transition: transform 0.1s, border-color 0.15s;
+        }
+        .emoji-btn:active {
+            transform: scale(0.92);
+        }
+        .emoji-btn:hover {
+            border-color: #3182ce;
         }
 
-        /* Win Overlay - Clicking anywhere on this div closes it */
+        /* Win Overlay */
         #win-overlay {
-            display: none; 
-            position: absolute;
-            top: -20px; left: -20px; right: -20px; bottom: -20px;
-            z-index: 100; 
-            align-items: center; 
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            align-items: center;
             justify-content: center;
+            flex-direction: column;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.1); /* Subtle area to catch clicks */
+        }
+        #win-overlay.show {
+            display: flex;
         }
         #win-banner {
-            background: white; 
-            padding: 40px 80px; 
-            border-radius: 40px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4); 
+            background: white;
+            padding: 32px 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             text-align: center;
-            border: 6px solid #ffd700;
-            /* Prevents the banner click from "bubbling" up if you want only outside clicks, 
-               but usually, users expect clicking the sign to work too. 
-               This setup makes the WHOLE screen clear it. */
+            border: 4px solid #ffd700;
+        }
+        #win-banner h2 {
+            margin: 0 0 8px 0;
+            color: #ed8936;
+            font-size: clamp(2rem, 8vw, 3rem);
+            font-weight: 700;
+        }
+        #win-banner p {
+            margin: 0;
+            color: #718096;
+            font-size: 1rem;
         }
 
-        .controls { margin: 10px 0; display: flex; gap: 10px; }
-        button.action-btn { padding: 10px 20px; font-weight: bold; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer; }
+        /* Difficulty buttons */
+        .diff-btn {
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
+            color: #2d3748;
+        }
+        .diff-btn:hover {
+            border-color: #3182ce;
+            background-color: #ebf8ff;
+        }
+        .diff-btn:active {
+            transform: scale(0.96);
+        }
+        .diff-btn.active {
+            background-color: #3182ce;
+            color: white;
+            border-color: #3182ce;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+            color: #2d3748;
+        }
+        .action-btn:hover {
+            background-color: #f7fafc;
+        }
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            .cell, .emoji-btn, .diff-btn, .action-btn { transition: none; }
+            .cell:active, .emoji-btn:active { transform: none; }
+            .cell.hint-flash { animation: none; }
+            .cell.correct-flash { animation: none; }
+        }
     </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8" id="main-body">
+
     <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
-            <!-- Corrected back link to main index -->
+        <!-- Header -->
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b">
             <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
+            <div class="expert-container">
+                <span class="expert-label" id="expert-text">EXPERT</span>
+                <label class="switch">
+                    <input type="checkbox" id="expert-knob" onchange="toggleExpert()">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </header>
 
-<body id="main-body">
+        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-800">Emoji Sudoku</h1>
 
-    <h1>Emoji Sudoku</h1>
-
-    <div class="controls">
-        <button class="action-btn" onclick="initGame(2, 4)">Easy (2x2)</button>
-        <button class="action-btn" onclick="initGame(3, 30)">Medium (3x3)</button>
-        <button class="action-btn" onclick="initGame(3, 55)">Hard (3x3)</button>
-    </div>
-
-    <div class="expert-container">
-        <span class="expert-label" id="expert-text">EXPERT MODE OFF</span>
-        <label class="switch">
-            <input type="checkbox" id="expert-knob" onchange="toggleExpert()">
-            <span class="slider"></span>
-        </label>
-    </div>
-
-    <div id="game-container">
-        <div id="win-overlay" onclick="closeWin()">
-            <div id="win-banner">
-                <h1 style="margin:0; color:#ff922b; font-size: 3.5rem; pointer-events: none;">You win!!!</h1>
-            </div>
+        <!-- Difficulty -->
+        <div class="flex flex-wrap items-center justify-center gap-3 mb-4">
+            <button class="diff-btn active" id="diff-easy" onclick="selectDifficulty(2, 4, this)">Easy (2x2)</button>
+            <button class="diff-btn" id="diff-medium" onclick="selectDifficulty(3, 30, this)">Medium (3x3)</button>
+            <button class="diff-btn" id="diff-hard" onclick="selectDifficulty(3, 55, this)">Hard (3x3)</button>
         </div>
-        <div id="sudoku-grid"></div>
+
+        <!-- Game Area -->
+        <div id="game-container">
+            <div id="sudoku-grid"></div>
+        </div>
+
+        <!-- Emoji Palette -->
+        <div id="palette" class="mx-auto"></div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center justify-center gap-3 mt-4">
+            <button class="action-btn" onclick="undo()">&#8617; Undo</button>
+            <button class="action-btn" onclick="giveHint()">&#128161; Hint</button>
+        </div>
+    </main>
+
+    <!-- Win Overlay -->
+    <div id="win-overlay" onclick="closeWin()">
+        <div id="win-banner">
+            <h2>You Win!</h2>
+            <p>Tap anywhere to continue</p>
+        </div>
+        <div class="mt-6 flex flex-col sm:flex-row gap-3" onclick="event.stopPropagation()">
+            <button onclick="replayCurrentDifficulty()" class="px-6 py-3 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+            <a href="../index.html" class="px-6 py-3 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
+        </div>
     </div>
 
-    <div id="palette"></div>
-
-    <div class="controls">
-        <button class="action-btn" onclick="undo()">↩ Undo</button>
-        <button class="action-btn" onclick="giveHint()">💡 Hint</button>
-    </div>
+    <!-- Audio Elements -->
+    <audio id="place-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="match-sound" src="../sounds/match.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
-        const ALL_EMOJIS = ["🐱", "🐶", "🦊", "🐸", "🐯", "🐨", "🦁", "🐷", "🐵"];
-        let currentSize = 3;
-        let gridDim = 9; 
+        const ALL_EMOJIS = ["🐱","🐶","🦊","🐸","🐯","🐨","🦁","🐷","🐵"];
+        let currentSize = 2;
+        let currentEmpty = 4;
+        let gridDim = 4;
         let solution = [];
         let history = [];
         let selectedIdx = null;
+        let audioUnlocked = false;
 
+        // --- Audio ---
+        const placeSound = document.getElementById('place-sound');
+        const matchSound = document.getElementById('match-sound');
+        const winSound = document.getElementById('win-sound');
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            placeSound.play().then(() => {
+                placeSound.pause();
+                placeSound.currentTime = 0;
+                matchSound.play().then(() => { matchSound.pause(); matchSound.currentTime = 0; }).catch(() => {});
+                winSound.play().then(() => { winSound.pause(); winSound.currentTime = 0; }).catch(() => {});
+                audioUnlocked = true;
+            }).catch(() => {});
+        }
+
+        function playSound(sound) {
+            if (!sound || !audioUnlocked) return;
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("Sound play failed:", e));
+        }
+
+        // Unlock audio on first interaction
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+
+        // --- Expert Mode ---
         function toggleExpert() {
             const isChecked = document.getElementById('expert-knob').checked;
             document.body.classList.toggle('expert-on', isChecked);
-            document.getElementById('expert-text').textContent = isChecked ? 'EXPERT MODE ON' : 'EXPERT MODE OFF';
         }
 
-        function initGame(size, emptyCount) {
-            // FORCE CLOSE win screen if it was open from a previous game
-            closeWin();
-            
+        // --- Difficulty Selection ---
+        function selectDifficulty(size, emptyCount, btn) {
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             currentSize = size;
+            currentEmpty = emptyCount;
+            initGame(size, emptyCount);
+        }
+
+        function replayCurrentDifficulty() {
+            closeWin();
+            initGame(currentSize, currentEmpty);
+        }
+
+        // --- Cell Size Calculation ---
+        function getCellSize() {
+            const container = document.querySelector('main');
+            const containerWidth = container ? container.clientWidth - 32 : 320; // account for padding
+            const maxGridWidth = Math.min(containerWidth, 400);
+            const cellSize = Math.floor((maxGridWidth - gridDim - 6) / gridDim); // account for gaps and border
+            return Math.max(36, Math.min(cellSize, 52));
+        }
+
+        // --- Game Init ---
+        function initGame(size, emptyCount) {
+            closeWin();
+            currentSize = size;
+            currentEmpty = emptyCount;
             gridDim = size * size;
+            history = [];
+            selectedIdx = null;
             const emojis = ALL_EMOJIS.slice(0, gridDim);
-            
+            const cellSize = getCellSize();
+
             const grid = document.getElementById('sudoku-grid');
             grid.innerHTML = '';
-            grid.style.gridTemplateColumns = `repeat(${gridDim}, 45px)`;
-            
+            grid.style.gridTemplateColumns = `repeat(${gridDim}, ${cellSize}px)`;
+
             for (let i = 0; i < gridDim * gridDim; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
-                cell.style.width = '45px'; cell.style.height = '45px';
-                
+                cell.style.width = cellSize + 'px';
+                cell.style.height = cellSize + 'px';
+
                 const r = Math.floor(i / gridDim), c = i % gridDim;
-                if ((c + 1) % size === 0 && (c + 1) !== gridDim) cell.style.borderRight = "4px solid #222";
-                if ((r + 1) % size === 0 && (r + 1) !== gridDim) cell.style.borderBottom = "4px solid #222";
-                
+                if ((c + 1) % size === 0 && (c + 1) !== gridDim) cell.style.borderRight = "3px solid #222";
+                if ((r + 1) % size === 0 && (r + 1) !== gridDim) cell.style.borderBottom = "3px solid #222";
+
                 cell.onclick = () => {
                     if (cell.classList.contains('fixed')) return;
+                    if (!audioUnlocked) unlockAudio();
                     document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
                     cell.classList.add('selected');
                     selectedIdx = i;
@@ -207,32 +401,45 @@
             palette.innerHTML = '';
             emojis.forEach(e => {
                 const b = document.createElement('button');
-                b.className = 'emoji-btn'; b.textContent = e;
+                b.className = 'emoji-btn';
+                b.textContent = e;
                 b.onclick = () => fillCell(e);
                 palette.appendChild(b);
             });
             const trash = document.createElement('button');
-            trash.className = 'emoji-btn'; trash.textContent = '🗑️';
+            trash.className = 'emoji-btn';
+            trash.textContent = '🗑️';
             trash.onclick = () => fillCell('');
             palette.appendChild(trash);
 
             generatePuzzle(emptyCount);
         }
 
+        // --- Fill Cell ---
         function fillCell(val) {
             if (selectedIdx === null) return;
             const cells = document.querySelectorAll('.cell');
-            if (cells[selectedIdx].textContent === val) return;
-            history.push({ idx: selectedIdx, prev: cells[selectedIdx].textContent });
-            cells[selectedIdx].textContent = val;
+            const cell = cells[selectedIdx];
+            if (cell.textContent === val) return;
+
+            history.push({ idx: selectedIdx, prev: cell.textContent });
+            cell.textContent = val;
+
+            if (val !== '') {
+                playSound(placeSound);
+                cell.classList.add('correct-flash');
+                setTimeout(() => cell.classList.remove('correct-flash'), 300);
+            }
+
             validate();
         }
 
+        // --- Puzzle Generation ---
         function generatePuzzle(emptyCount) {
             let board = Array.from({length: gridDim}, () => Array(gridDim).fill(''));
             solveRecursive(board);
             solution = board.flat();
-            
+
             let puzzle = [...solution];
             let removed = 0;
             while (removed < emptyCount) {
@@ -279,30 +486,34 @@
             return true;
         }
 
+        // --- Validation ---
         function validate() {
             const cells = document.querySelectorAll('.cell');
             cells.forEach(c => c.classList.remove('conflict'));
-            
+
             for (let i = 0; i < gridDim; i++) {
-                checkGroup(Array.from({length: gridDim}, (_, j) => i * gridDim + j)); 
-                checkGroup(Array.from({length: gridDim}, (_, j) => j * gridDim + i)); 
+                checkGroup(Array.from({length: gridDim}, (_, j) => i * gridDim + j));
+                checkGroup(Array.from({length: gridDim}, (_, j) => j * gridDim + i));
             }
             for (let r = 0; r < currentSize; r++) {
                 for (let c = 0; c < currentSize; c++) {
                     let group = [];
-                    for (let i = 0; i < currentSize; i++) {
-                        for (let j = 0; j < currentSize; j++) {
+                    for (let i = 0; i < currentSize; i++)
+                        for (let j = 0; j < currentSize; j++)
                             group.push((r * currentSize + i) * gridDim + (c * currentSize + j));
-                        }
-                    }
                     checkGroup(group);
                 }
             }
 
-            if ([...cells].every(c => c.textContent !== "") && !document.querySelector('.conflict')) {
-                confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
-                document.getElementById('win-overlay').style.display = 'flex';
-                document.getElementById('sudoku-grid').classList.add('blur');
+            const allFilled = [...cells].every(c => c.textContent !== "");
+            const noConflicts = !document.querySelector('.conflict');
+            if (allFilled && noConflicts) {
+                setTimeout(() => {
+                    playSound(winSound);
+                    confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+                    document.getElementById('win-overlay').classList.add('show');
+                    document.getElementById('sudoku-grid').classList.add('blur');
+                }, 150);
             }
         }
 
@@ -321,30 +532,52 @@
             });
         }
 
+        // --- Undo ---
         function undo() {
             if (history.length === 0) return;
             const last = history.pop();
             document.querySelectorAll('.cell')[last.idx].textContent = last.prev;
+            playSound(placeSound);
             validate();
         }
 
+        // --- Hint ---
         function giveHint() {
             const empties = [];
-            document.querySelectorAll('.cell').forEach((c, i) => { if (c.textContent === '') empties.push(i); });
+            document.querySelectorAll('.cell').forEach((c, i) => {
+                if (c.textContent === '') empties.push(i);
+            });
             if (empties.length > 0) {
                 const idx = empties[Math.floor(Math.random() * empties.length)];
-                document.querySelectorAll('.cell')[idx].textContent = solution[idx];
+                const cell = document.querySelectorAll('.cell')[idx];
+                cell.textContent = solution[idx];
+                playSound(matchSound);
+                cell.classList.add('hint-flash');
+                setTimeout(() => cell.classList.remove('hint-flash'), 600);
                 validate();
             }
         }
 
+        // --- Win Close ---
         function closeWin() {
             const overlay = document.getElementById('win-overlay');
             const grid = document.getElementById('sudoku-grid');
-            if (overlay) overlay.style.display = 'none';
+            if (overlay) overlay.classList.remove('show');
             if (grid) grid.classList.remove('blur');
         }
 
+        // --- Responsive resize ---
+        window.addEventListener('resize', () => {
+            const cellSize = getCellSize();
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.style.width = cellSize + 'px';
+                cell.style.height = cellSize + 'px';
+            });
+            const grid = document.getElementById('sudoku-grid');
+            if (grid) grid.style.gridTemplateColumns = `repeat(${gridDim}, ${cellSize}px)`;
+        });
+
+        // --- Start ---
         initGame(2, 4);
     </script>
 </body>
