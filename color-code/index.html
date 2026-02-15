@@ -2,83 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Color Code: Puzzle Challenge</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="../style/style.css">
     <style>
+        html { height: auto; }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* bg-gray-100 */
+            touch-action: manipulation;
+            height: auto;
+            overflow-y: auto;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
         }
 
-        /* Game Board Area */
+        /* Display boxes */
         .display-box {
-            width: 40vw;
-            height: 40vw;
-            max-width: 250px;
-            max-height: 250px;
-            background-color: white;
-            border: 4px solid #e5e7eb; /* gray-200 */
+            width: min(40vw, 200px);
+            height: min(40vw, 200px);
+            background: white;
+            border: 3px solid #e2e8f0;
             border-radius: 12px;
             position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s;
         }
-
         .display-box.success {
-            border-color: #10B981; /* emerald-500 */
-            box-shadow: 0 0 20px #10B981;
+            border-color: #48bb78;
+            box-shadow: 0 0 16px rgba(72,187,120,0.4);
         }
-
-        canvas {
+        .display-box canvas {
             width: 100%;
             height: 100%;
             display: block;
         }
 
-        /* Tray & Tiles */
-        .tray-container {
-            min-height: 120px;
-        }
-
+        /* Tiles */
         .tile {
-            width: 65px;
-            height: 65px;
-            border: 2px solid #e5e7eb;
+            width: clamp(50px, 15vw, 65px);
+            height: clamp(50px, 15vw, 65px);
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
             cursor: pointer;
             position: relative;
-            background: rgba(255,255,255,0.8);
-            transition: transform 0.1s, border-color 0.2s;
+            background: rgba(255,255,255,0.9);
+            transition: transform 0.1s, border-color 0.15s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-
         .tile:active {
-            transform: scale(0.95);
-            border-color: #3b82f6;
+            transform: scale(0.93);
+            border-color: #3182ce;
         }
-        
         .tile canvas {
             pointer-events: none;
         }
 
-        /* Win Overlay (Matching Farm.html style) */
+        /* Win Overlay */
         .win-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 50;
+            z-index: 1000;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease-in-out;
@@ -87,142 +81,187 @@
             opacity: 1;
             pointer-events: auto;
         }
-        .win-message {
-            color: white;
-            font-size: 3rem;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
+        .win-banner {
+            background: white;
+            padding: 32px 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 4px solid #ffd700;
+        }
+        .win-banner h2 {
+            margin: 0;
+            color: #ed8936;
+            font-size: clamp(2rem, 8vw, 3rem);
+            font-weight: 700;
         }
 
-        /* Confetti Canvas */
-        #confetti-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 60;
+        /* Difficulty buttons */
+        .diff-btn {
+            padding: 6px 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+            color: #4a5568;
+        }
+        .diff-btn:active { transform: scale(0.96); }
+        .diff-btn.active {
+            background: #3182ce;
+            color: white;
+            border-color: #3182ce;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+            color: #2d3748;
+        }
+        .action-btn:active { transform: scale(0.96); }
+        .action-btn:hover { background: #f7fafc; }
+        .action-btn.orange { background: #ed8936; color: white; border-color: #ed8936; }
+        .action-btn.gray { background: #a0aec0; color: white; border-color: #a0aec0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tile, .diff-btn, .action-btn { transition: none; }
+            .tile:active, .diff-btn:active, .action-btn:active { transform: none; }
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center py-6">
+<body class="bg-gray-100 p-4 sm:p-8">
 
-    <header class="w-full max-w-4xl px-4 mb-4 flex justify-between items-center">
-        <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition">&larr; Back</a>
-        <h1 class="text-2xl font-bold text-gray-800">Color Code</h1>
-        <div class="w-[88px]"></div> </header>
+    <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b">
+            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
+        </header>
 
-    <div class="bg-white p-2 rounded-lg shadow-sm mb-6 flex gap-2">
-        <button onclick="setDifficulty('easy')" id="btn-easy" class="px-4 py-1 rounded-md font-semibold text-sm transition bg-blue-600 text-white">Easy</button>
-        <button onclick="setDifficulty('medium')" id="btn-medium" class="px-4 py-1 rounded-md font-semibold text-sm transition bg-gray-100 text-gray-600 hover:bg-gray-200">Medium</button>
-        <button onclick="setDifficulty('hard')" id="btn-hard" class="px-4 py-1 rounded-md font-semibold text-sm transition bg-gray-100 text-gray-600 hover:bg-gray-200">Hard</button>
-    </div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-800">Color Code</h1>
 
-    <div class="flex flex-col md:flex-row gap-8 items-center justify-center w-full max-w-4xl mb-8">
-        <div class="flex flex-col items-center">
-            <div class="text-gray-500 font-bold uppercase tracking-wide text-sm mb-2">Target Image</div>
-            <div class="display-box" id="target-box">
-                <canvas id="target-canvas" width="400" height="400"></canvas>
-            </div>
+        <!-- Difficulty -->
+        <div class="flex justify-center gap-2 mb-4">
+            <button onclick="setDifficulty('easy')" id="btn-easy" class="diff-btn active">Easy</button>
+            <button onclick="setDifficulty('medium')" id="btn-medium" class="diff-btn">Medium</button>
+            <button onclick="setDifficulty('hard')" id="btn-hard" class="diff-btn">Hard</button>
         </div>
 
-        <div class="flex flex-col items-center">
-            <div class="text-gray-500 font-bold uppercase tracking-wide text-sm mb-2">Your Stack</div>
-            <div class="display-box cursor-pointer hover:border-blue-400" id="stack-box" onclick="rotateTopTile()">
-                <canvas id="stack-canvas" width="400" height="400"></canvas>
-            </div>
-            <p class="text-xs text-gray-400 mt-2">(Tap stack to rotate top piece)</p>
-        </div>
-    </div>
-
-    <div class="flex gap-4 mb-4">
-        <button onclick="popStack()" class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg shadow transition">Undo</button>
-        <button onclick="resetStack()" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg shadow transition">Clear</button>
-    </div>
-
-    <div class="w-full max-w-4xl px-4">
-        <div class="bg-white rounded-xl shadow p-4">
-            <div class="text-center text-gray-400 text-xs font-bold uppercase mb-3">Tap tiles to add to stack</div>
-            <div class="tray-container flex flex-wrap justify-center gap-3" id="tray">
+        <!-- Target & Stack side by side -->
+        <div class="flex flex-wrap gap-6 items-center justify-center mb-4">
+            <div class="flex flex-col items-center">
+                <p class="text-xs font-bold uppercase text-gray-400 mb-2 tracking-wide">Target</p>
+                <div class="display-box" id="target-box">
+                    <canvas id="target-canvas" width="400" height="400"></canvas>
                 </div>
+            </div>
+            <div class="flex flex-col items-center">
+                <p class="text-xs font-bold uppercase text-gray-400 mb-2 tracking-wide">Your Stack</p>
+                <div class="display-box cursor-pointer hover:border-blue-400" id="stack-box" onclick="rotateTopTile()">
+                    <canvas id="stack-canvas" width="400" height="400"></canvas>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">(Tap to rotate top piece)</p>
+            </div>
         </div>
-    </div>
 
+        <!-- Actions -->
+        <div class="flex justify-center gap-3 mb-4">
+            <button onclick="popStack()" class="action-btn orange">Undo</button>
+            <button onclick="resetStack()" class="action-btn gray">Clear</button>
+        </div>
+
+        <!-- Tile Tray -->
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <p class="text-center text-xs font-bold uppercase text-gray-400 mb-3 tracking-wide">Tap tiles to add to stack</p>
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3" id="tray"></div>
+        </div>
+    </main>
+
+    <!-- Win Overlay -->
     <div id="win-overlay" class="win-overlay">
-        <div class="win-message">You Did It!</div>
-        <div class="flex gap-4">
-            <button onclick="initGame()" class="px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 transition">Play Again</button>
+        <div class="win-banner">
+            <h2>You Did It!</h2>
+        </div>
+        <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <button onclick="initGame()" class="px-6 py-3 bg-emerald-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-emerald-700 active:scale-95 transition">Play Again</button>
+            <a href="../index.html" class="px-6 py-3 bg-gray-200 text-gray-800 font-semibold text-lg rounded-lg shadow-sm hover:bg-gray-300 transition text-center">Back to Games</a>
         </div>
     </div>
 
-    <canvas id="confetti-canvas"></canvas>
-
+    <!-- Audio -->
     <audio id="click-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="match-sound" src="../sounds/match.mp3" preload="auto"></audio>
     <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
 <script>
-    // --- Audio ---
     const clickSound = document.getElementById('click-sound');
+    const matchSnd = document.getElementById('match-sound');
     const winSound = document.getElementById('win-sound');
     let audioUnlocked = false;
 
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        [clickSound, matchSnd, winSound].forEach(s => {
+            s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+        });
+        audioUnlocked = true;
+    }
+
     function playSound(sound) {
-        if(!audioUnlocked) {
-            clickSound.play().then(() => clickSound.pause()).catch(()=>{});
-            winSound.play().then(() => winSound.pause()).catch(()=>{});
-            audioUnlocked = true;
-        }
-        if (sound) {
+        if (sound && audioUnlocked) {
             sound.currentTime = 0;
             sound.play().catch(e => console.log(e));
         }
     }
 
+    document.addEventListener('click', unlockAudio, { once: true });
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+
     // --- Game Config ---
     const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#34495e'];
-    
-    // SHAPES with Symmetry Logic
-    // symmetry: 1 = exact match only
-    // symmetry: 2 = 180 degree match (0 is same as 180)
-    // symmetry: 4 = 90 degree match (0 same as 90, 180, 270)
+
     const SHAPES = [
         { name: 'corner-tri', symmetry: 1, draw: (ctx) => { ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(100,0); ctx.lineTo(0,100); ctx.fill(); } },
         { name: 'center-circle', symmetry: 4, draw: (ctx) => { ctx.beginPath(); ctx.arc(50,50, 28, 0, Math.PI*2); ctx.fill(); } },
-        { name: 'bar-h', symmetry: 2, draw: (ctx) => { ctx.fillRect(0, 32, 100, 36); } }, 
+        { name: 'bar-h', symmetry: 2, draw: (ctx) => { ctx.fillRect(0, 32, 100, 36); } },
         { name: 'half-diag', symmetry: 1, draw: (ctx) => { ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(100,100); ctx.lineTo(0,100); ctx.fill(); } },
         { name: 'quarter-pie', symmetry: 1, draw: (ctx) => { ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0, 90, 0, Math.PI/2); ctx.lineTo(0,0); ctx.fill(); } },
         { name: 'frame', symmetry: 4, draw: (ctx) => { ctx.fillRect(10,10,80,15); ctx.fillRect(10,10,15,80); ctx.fillRect(10,75,80,15); ctx.fillRect(75,10,15,80); } },
         { name: 'cross', symmetry: 4, draw: (ctx) => { ctx.fillRect(32, 0, 36, 100); ctx.fillRect(0, 32, 100, 36); } },
         { name: 'L-shape', symmetry: 1, draw: (ctx) => { ctx.fillRect(0,0,40,100); ctx.fillRect(0,60,100,40); } },
         { name: 'diamond', symmetry: 4, draw: (ctx) => { ctx.beginPath(); ctx.moveTo(50,10); ctx.lineTo(90,50); ctx.lineTo(50,90); ctx.lineTo(10,50); ctx.fill(); } },
-        { name: 'star', symmetry: 4, draw: (ctx) => { 
+        { name: 'star', symmetry: 4, draw: (ctx) => {
             ctx.beginPath();
             ctx.moveTo(50,0); ctx.quadraticCurveTo(50,50, 100,50);
             ctx.quadraticCurveTo(50,50, 50,100); ctx.quadraticCurveTo(50,50, 0,50);
             ctx.quadraticCurveTo(50,50, 50,0); ctx.fill();
         }},
-        { name: 'ring', symmetry: 4, draw: (ctx) => { 
-            ctx.beginPath(); ctx.arc(50,50, 40, 0, Math.PI*2); 
-            ctx.arc(50,50, 25, 0, Math.PI*2, true); 
-            ctx.fill(); 
+        { name: 'ring', symmetry: 4, draw: (ctx) => {
+            ctx.beginPath(); ctx.arc(50,50, 40, 0, Math.PI*2);
+            ctx.arc(50,50, 25, 0, Math.PI*2, true);
+            ctx.fill();
         }},
         { name: 'checkers', symmetry: 2, draw: (ctx) => { ctx.fillRect(0,0,50,50); ctx.fillRect(50,50,50,50); } }
     ];
 
     let allTiles = [];
     let currentStack = [];
-    let targetStack = []; 
-    let difficulty = 'easy'; 
+    let targetStack = [];
+    let difficulty = 'easy';
 
     function setDifficulty(level) {
         difficulty = level;
         ['easy','medium','hard'].forEach(l => {
             const btn = document.getElementById(`btn-${l}`);
-            if(l === level) {
-                btn.className = "px-4 py-1 rounded-md font-semibold text-sm transition bg-blue-600 text-white";
-            } else {
-                btn.className = "px-4 py-1 rounded-md font-semibold text-sm transition bg-gray-100 text-gray-600 hover:bg-gray-200";
-            }
+            btn.classList.toggle('active', l === level);
         });
         initGame();
     }
@@ -230,9 +269,8 @@
     function createTiles() {
         allTiles = [];
         let idCounter = 0;
-        for(let i=0; i<SHAPES.length; i++) {
-            let color = COLORS[i % COLORS.length];
-            allTiles.push({ id: idCounter++, shapeIdx: i, color: color, rotation: 0 });
+        for (let i = 0; i < SHAPES.length; i++) {
+            allTiles.push({ id: idCounter++, shapeIdx: i, color: COLORS[i % COLORS.length], rotation: 0 });
             allTiles.push({ id: idCounter++, shapeIdx: i, color: COLORS[(i+3) % COLORS.length], rotation: 0 });
         }
     }
@@ -259,26 +297,21 @@
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        stack.forEach(tile => {
-            drawTileToCtx(ctx, tile, canvas.width, canvas.height);
-        });
+        stack.forEach(tile => drawTileToCtx(ctx, tile, canvas.width, canvas.height));
     }
 
     function renderTray() {
         const tray = document.getElementById('tray');
         tray.innerHTML = '';
-        
         const availableTiles = allTiles.filter(t => !currentStack.includes(t));
 
         availableTiles.forEach(tile => {
             const div = document.createElement('div');
             div.className = 'tile';
-            
             const cvs = document.createElement('canvas');
             cvs.width = 100;
             cvs.height = 100;
             renderTileCanvas(cvs, tile);
-            
             div.appendChild(cvs);
             div.onclick = () => {
                 addToStack(tile);
@@ -286,80 +319,62 @@
             };
             tray.appendChild(div);
         });
-        
+
         renderStack('stack-canvas', currentStack);
         checkWinCondition();
     }
 
-    // --- Strict Visibility Check ---
-    // Ensure that every tile added to the puzzle is actually visible
     function validateStackVisibility(stack) {
         const size = 100;
         const fullCanvas = document.createElement('canvas');
         fullCanvas.width = size; fullCanvas.height = size;
         const fullCtx = fullCanvas.getContext('2d');
-
-        // Draw Full Stack
         stack.forEach(tile => drawTileToCtx(fullCtx, tile, size, size));
         const fullHash = getCanvasHash(fullCtx.getImageData(0,0,size,size).data);
 
-        // Check if removing any single layer changes the image
-        for(let i=0; i<stack.length; i++) {
+        for (let i = 0; i < stack.length; i++) {
             const testCanvas = document.createElement('canvas');
             testCanvas.width = size; testCanvas.height = size;
             const testCtx = testCanvas.getContext('2d');
-            
             stack.forEach((tile, idx) => {
-                if(i !== idx) drawTileToCtx(testCtx, tile, size, size);
+                if (i !== idx) drawTileToCtx(testCtx, tile, size, size);
             });
-            
-            const testHash = getCanvasHash(testCtx.getImageData(0,0,size,size).data);
-            if(fullHash === testHash) return false; // Layer was hidden
+            if (fullHash === getCanvasHash(testCtx.getImageData(0,0,size,size).data)) return false;
         }
         return true;
     }
 
     function getCanvasHash(data) {
         let hash = 0;
-        for (let i = 0; i < data.length; i+=4) { 
-             if(data[i+3] > 0) { // If visible pixel
-                 hash = (hash + data[i] + data[i+1] + data[i+2]) | 0;
-             }
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i+3] > 0) hash = (hash + data[i] + data[i+1] + data[i+2]) | 0;
         }
         return hash;
     }
 
     function generateChallenge() {
-        let layers = 2;
-        if(difficulty === 'medium') layers = 3;
-        if(difficulty === 'hard') layers = 4;
-
+        let layers = difficulty === 'hard' ? 4 : difficulty === 'medium' ? 3 : 2;
         targetStack = [];
         let valid = false;
         let attempts = 0;
 
-        while(!valid && attempts < 200) {
+        while (!valid && attempts < 200) {
             attempts++;
             targetStack = [];
             let pool = [...allTiles];
-            
-            for(let i=0; i<layers; i++) {
-                if(pool.length === 0) break;
+            for (let i = 0; i < layers; i++) {
+                if (pool.length === 0) break;
                 const idx = Math.floor(Math.random() * pool.length);
                 const tile = pool.splice(idx, 1)[0];
                 tile.rotation = Math.floor(Math.random() * 4) * 90;
                 targetStack.push({ ...tile });
             }
-            
-            if(validateStackVisibility(targetStack)) {
-                valid = true;
-            }
+            if (validateStackVisibility(targetStack)) valid = true;
         }
 
-        // Reset rotations in source so user has to solve it
         targetStack.forEach(t => {
             const original = allTiles.find(x => x.id === t.id);
-            if(original) original.rotation = 0;
+            if (original) original.rotation = 0;
         });
 
         renderStack('target-canvas', targetStack);
@@ -368,49 +383,33 @@
     function checkWinCondition() {
         const stackBox = document.getElementById('stack-box');
         const overlay = document.getElementById('win-overlay');
-        
+
         if (currentStack.length !== targetStack.length) {
             stackBox.classList.remove('success');
             return;
         }
 
         let match = true;
-        for(let i=0; i<targetStack.length; i++) {
-            // ID Check
-            if (currentStack[i].id !== targetStack[i].id) {
-                match = false; break;
-            }
+        for (let i = 0; i < targetStack.length; i++) {
+            if (currentStack[i].id !== targetStack[i].id) { match = false; break; }
 
-            // Symmetry-aware Rotation Check
             const shape = SHAPES[currentStack[i].shapeIdx];
-            const r1 = currentStack[i].rotation % 360;
-            const r2 = targetStack[i].rotation % 360;
-            
-            // Normalize negative rotations
-            const userRot = r1 < 0 ? r1 + 360 : r1;
-            const targetRot = r2 < 0 ? r2 + 360 : r2;
+            const userRot = ((currentStack[i].rotation % 360) + 360) % 360;
+            const targetRot = ((targetStack[i].rotation % 360) + 360) % 360;
 
             if (shape.symmetry === 4) {
-                // Circle/Star: Rotation doesn't matter (or matters in 90 increments which look same)
-                // Actually, since we only rotate in 90 steps, any 90 step is fine for full symmetry
-                // Valid if true.
+                // Any rotation matches
             } else if (shape.symmetry === 2) {
-                // Bar: 0 == 180, 90 == 270
-                if (userRot % 180 !== targetRot % 180) {
-                    match = false; break;
-                }
+                if (userRot % 180 !== targetRot % 180) { match = false; break; }
             } else {
-                // Default: Exact match needed
-                if (userRot !== targetRot) {
-                    match = false; break;
-                }
+                if (userRot !== targetRot) { match = false; break; }
             }
         }
-        
+
         if (match) {
             stackBox.classList.add('success');
             playSound(winSound);
-            fireConfetti();
+            confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
             overlay.classList.add('show');
         } else {
             stackBox.classList.remove('success');
@@ -418,13 +417,10 @@
         }
     }
 
-    function addToStack(tile) {
-        currentStack.push(tile);
-        renderTray();
-    }
+    function addToStack(tile) { currentStack.push(tile); renderTray(); }
 
     function popStack() {
-        if(currentStack.length > 0) {
+        if (currentStack.length > 0) {
             currentStack.pop();
             renderTray();
             playSound(clickSound);
@@ -438,9 +434,8 @@
     }
 
     function rotateTopTile() {
-        if(currentStack.length > 0) {
-            const topTile = currentStack[currentStack.length - 1];
-            topTile.rotation += 90;
+        if (currentStack.length > 0) {
+            currentStack[currentStack.length - 1].rotation += 90;
             renderTray();
             playSound(clickSound);
         }
@@ -453,45 +448,6 @@
         document.getElementById('win-overlay').classList.remove('show');
         generateChallenge();
         renderTray();
-    }
-
-    function fireConfetti() {
-        const c = document.getElementById('confetti-canvas');
-        c.width = window.innerWidth;
-        c.height = window.innerHeight;
-        const ctx = c.getContext('2d');
-        const pieces = [];
-        const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'];
-
-        for(let i=0; i<150; i++) {
-            pieces.push({
-                x: c.width/2,
-                y: c.height/2,
-                vx: (Math.random() - 0.5) * 20,
-                vy: (Math.random() - 0.5) * 20 - 5,
-                color: colors[Math.floor(Math.random()*colors.length)],
-                size: Math.random() * 8 + 4
-            });
-        }
-
-        function animate() {
-            ctx.clearRect(0,0,c.width, c.height);
-            let active = false;
-            pieces.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.5; 
-                p.vx *= 0.95; 
-                if(p.y < c.height) {
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x, p.y, p.size, p.size);
-                    active = true;
-                }
-            });
-            if(active) requestAnimationFrame(animate);
-            else ctx.clearRect(0,0,c.width,c.height);
-        }
-        animate();
     }
 
     initGame();
