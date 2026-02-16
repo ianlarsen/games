@@ -2,132 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Time Teacher: Learn & Play</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="../style/style.css">
     <style>
-        :root {
-            --bg-color: #f3f4f6; /* Matching gray-100 from attached */
-            --clock-face: #ffffff;
-            --clock-border: #4a90e2;
-            --hour-number: #1f2937; /* Gray-800 */
-            --minute-number: #2563eb; /* Blue-600 */
-            --hour-hand: #ef4444; /* Red-500 */
-            --minute-hand: #2563eb; /* Blue-600 */
-            --digital-bg: #1f2937;
-            --digital-text: #22c55e; /* Green-500 */
-            --success-color: #059669; /* Emerald-600 */
-            --error-color: #dc2626; /* Red-600 */
-        }
-
+        html { height: auto; }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            user-select: none;
-            overflow-x: hidden;
+            touch-action: manipulation;
+            height: auto;
+            overflow-y: auto;
         }
 
-        /* --- NAVIGATION / HEADER --- */
-        .nav-bar {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: #4b5563;
-            background: #e5e7eb;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .back-link:hover { background: #d1d5db; }
-
-        /* --- CLOCK COMPONENT --- */
+        /* Clock */
         .clock-container {
             position: relative;
-            width: 380px; 
-            height: 380px;
-            margin-bottom: 20px;
-            touch-action: none; /* Critical for dragging on mobile */
+            width: min(80vw, 340px);
+            height: min(80vw, 340px);
+            margin: 0 auto 16px;
+            touch-action: none;
         }
-
         .clock {
             width: 100%;
             height: 100%;
-            background-color: var(--clock-face);
-            border: 12px solid var(--clock-border);
+            background: white;
+            border: 8px solid #3182ce;
             border-radius: 50%;
             position: relative;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-lg */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: border-color 0.3s;
         }
-
         .center-dot {
             position: absolute;
             top: 50%; left: 50%;
-            width: 16px; height: 16px;
-            background-color: #1f2937;
+            width: 14px; height: 14px;
+            background: #1a202c;
             border-radius: 50%;
             transform: translate(-50%, -50%);
             z-index: 10;
         }
 
-        /* Markings */
+        /* Numbers & ticks use percentages for responsive sizing */
+        .number-hour, .number-minute, .tick {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            transition: opacity 0.3s;
+        }
         .number-hour {
-            position: absolute;
-            width: 30px; height: 30px;
-            text-align: center; line-height: 30px;
-            font-size: 28px; font-weight: 700;
-            color: var(--hour-number);
-            transform: translate(-50%, -50%);
-            z-index: 2;
-            transition: opacity 0.3s;
+            font-size: clamp(16px, 5vw, 24px);
+            font-weight: 700;
+            color: #1a202c;
         }
-
         .number-minute {
-            position: absolute;
-            width: 30px; height: 30px;
-            text-align: center; line-height: 30px;
-            font-size: 14px; font-weight: 600;
-            color: var(--minute-number);
-            transform: translate(-50%, -50%);
-            z-index: 2;
-            transition: opacity 0.3s;
+            font-size: clamp(10px, 3vw, 13px);
+            font-weight: 600;
+            color: #3182ce;
         }
-        
-        .hidden { opacity: 0 !important; pointer-events: none; }
-
         .tick {
-            position: absolute;
-            background-color: #9ca3af; /* Gray-400 */
+            background: #a0aec0;
             transform-origin: bottom center;
-            bottom: 50%; left: 50%;
-            width: 2px; height: 8px;
-            z-index: 1;
+            width: 2px; height: 6px;
         }
         .tick.heavy {
-            background-color: #4b5563; /* Gray-600 */
-            width: 4px; height: 12px;
+            background: #4a5568;
+            width: 3px; height: 10px;
         }
+        .hidden { opacity: 0 !important; pointer-events: none; }
 
         /* Hands */
         .hand {
@@ -139,590 +86,433 @@
             pointer-events: none;
             transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .hour-hand {
-            width: 12px; height: 22%;
-            background-color: var(--hour-hand);
+            width: 10px; height: 22%;
+            background: #e53e3e;
+            margin-left: -5px;
         }
         .minute-hand {
-            width: 6px; height: 40%;
-            background-color: var(--minute-hand);
+            width: 5px; height: 38%;
+            background: #3182ce;
+            margin-left: -2.5px;
         }
 
-        /* --- CONTROLS UI --- */
-        .controls {
-            width: 90%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .panel {
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
+        /* Digital display */
         .digital-display {
-            background-color: var(--digital-bg);
-            color: var(--digital-text);
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 48px;
-            padding: 10px 30px;
+            background: #1a202c;
+            color: #48bb78;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(2rem, 8vw, 3rem);
+            padding: 8px 24px;
             border-radius: 8px;
             display: inline-block;
-            margin-bottom: 15px;
-            border: 4px solid #374151;
-            min-width: 180px;
+            border: 3px solid #2d3748;
+            min-width: 140px;
+            text-align: center;
         }
-        
         .digital-display.blur {
-             color: transparent;
-             text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+            color: transparent;
+            text-shadow: 0 0 15px rgba(72, 187, 120, 0.5);
         }
 
-        /* Buttons */
-        .btn-row {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-family: 'Inter', sans-serif;
-        }
-        button:active { transform: translateY(1px); }
-        
-        .btn-primary { background-color: #2563eb; } /* Blue */
-        .btn-primary:hover { background-color: #1d4ed8; }
-
-        .btn-secondary { background-color: #f59e0b; color: #fff; } /* Amber */
-        .btn-secondary:hover { background-color: #d97706; }
-
-        .btn-tertiary { background-color: #10b981; } /* Emerald */
-        .btn-tertiary:hover { background-color: #059669; }
-        
-        .btn-neutral { background-color: #9ca3af; }
-        .btn-neutral:hover { background-color: #6b7280; }
-
-        /* Game Mode Specifics */
-        .game-panel {
-            display: none;
-            border: 3px solid #f59e0b;
-        }
-        .game-panel.active { display: block; }
-
-        .challenge-text { font-size: 1.25rem; color: #374151; margin-bottom: 0.5rem; }
-        .target-time { font-size: 2.5rem; font-weight: 800; color: #111827; margin: 0.5rem 0; }
-        
-        .feedback { height: 24px; font-weight: bold; margin-top: 10px; min-height: 24px;}
-        .feedback.success { color: var(--success-color); }
-        .feedback.error { color: var(--error-color); }
-
-        /* Tab Switcher */
-        .tab-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        /* Tabs */
         .tab-btn {
-            background: #e5e7eb;
-            color: #4b5563;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
             border-radius: 9999px;
-            padding: 8px 24px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+            color: #4a5568;
         }
+        .tab-btn:active { transform: scale(0.96); }
         .tab-btn.active {
-            background: #2563eb;
+            background: #3182ce;
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+            border-color: #3182ce;
         }
 
-        /* --- ANIMATIONS (From Concentration) --- */
-        .confetti-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1001;
+        /* Game panel */
+        .game-panel { display: none; }
+        .game-panel.active { display: block; }
+        .target-time {
+            font-size: clamp(2rem, 8vw, 2.8rem);
+            font-weight: 800;
+            color: #1a202c;
         }
-        .confetti {
-            position: absolute; width: 10px; height: 10px;
-            background-color: #f00; opacity: 0.8;
-            animation: fall 3s linear forwards;
-        }
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
+        .feedback { min-height: 24px; font-weight: 700; margin-top: 8px; }
+        .feedback.success { color: #059669; }
+        .feedback.error { color: #dc2626; }
 
-        .shake { animation: shakeRed 0.4s ease-in-out; border-color: var(--error-color) !important; }
-        @keyframes shakeRed {
+        /* Control buttons */
+        .ctrl-btn {
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+            color: #2d3748;
+        }
+        .ctrl-btn:active { transform: scale(0.96); }
+        .ctrl-btn:hover { background: #f7fafc; }
+        .ctrl-btn.primary { background: #3182ce; color: white; border-color: #3182ce; }
+        .ctrl-btn.primary:hover { background: #2b6cb0; }
+        .ctrl-btn.amber { background: #ed8936; color: white; border-color: #ed8936; }
+        .ctrl-btn.amber:hover { background: #dd6b20; }
+        .ctrl-btn.green { background: #48bb78; color: white; border-color: #48bb78; }
+        .ctrl-btn.green:hover { background: #38a169; }
+
+        /* Animations */
+        .shake { animation: shakeAnim 0.4s ease-in-out; border-color: #e53e3e !important; }
+        @keyframes shakeAnim {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-
-        .pulse { animation: pulseGreen 0.5s ease-in-out; border-color: var(--success-color) !important; }
-        @keyframes pulseGreen {
+        .pulse { animation: pulseAnim 0.5s ease-in-out; border-color: #48bb78 !important; }
+        @keyframes pulseAnim {
             0% { transform: scale(1); }
             50% { transform: scale(1.02); }
             100% { transform: scale(1); }
         }
-        
-        .mute-btn {
-            background: none; border: none; font-size: 1.5rem; color: #4b5563; cursor: pointer;
-            box-shadow: none; padding: 5px;
-        }
 
+        @media (prefers-reduced-motion: reduce) {
+            .hand { transition: none; }
+            .shake, .pulse { animation: none; }
+            .tab-btn:active, .ctrl-btn:active { transform: none; }
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 p-4 sm:p-8">
 
+    <main class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b">
+            <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
+        </header>
+
+        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-800">Time Teacher</h1>
+
+        <!-- Mode tabs -->
+        <div class="flex justify-center gap-3 mb-4">
+            <button id="modePractice" class="tab-btn active">Free Play</button>
+            <button id="modeGame" class="tab-btn">Challenge</button>
+        </div>
+
+        <!-- Clock -->
+        <div class="clock-container" id="clockArea">
+            <div class="clock" id="clockFace">
+                <div class="hand hour-hand" id="hourHand"></div>
+                <div class="hand minute-hand" id="minuteHand"></div>
+                <div class="center-dot"></div>
+                <div id="faceContainer"></div>
+            </div>
+        </div>
+
+        <!-- Practice Panel -->
+        <div id="practicePanel" class="text-center">
+            <div id="digitalClock" class="digital-display mb-4">12:00</div>
+
+            <div class="flex flex-wrap justify-center gap-2 mb-3">
+                <button id="toggleDigitalBtn" class="ctrl-btn">Hide Answer</button>
+                <button id="randomBtn" class="ctrl-btn amber">Random Time</button>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-2">
+                <button id="toggleMinutesBtn" class="ctrl-btn green">Hide Minutes</button>
+                <button id="toggleHoursBtn" class="ctrl-btn green">Hide Hours</button>
+            </div>
+        </div>
+
+        <!-- Game Panel -->
+        <div id="gamePanel" class="game-panel text-center">
+            <p class="text-base text-gray-600 font-semibold mb-1">Set the clock to:</p>
+            <div class="target-time" id="targetTimeDisplay">--:--</div>
+            <div class="feedback" id="feedbackMsg"></div>
+
+            <div class="flex flex-wrap justify-center gap-2 mt-3">
+                <button id="checkAnswerBtn" class="ctrl-btn primary w-full max-w-xs text-base py-3">Check Answer</button>
+                <button id="newChallengeBtn" class="ctrl-btn amber w-full max-w-xs text-base py-3" style="display:none">Next Question &rarr;</button>
+            </div>
+
+            <p class="mt-3 text-sm text-gray-500">
+                Streak: <span id="streakCount" class="font-bold text-blue-600">0</span>
+            </p>
+        </div>
+    </main>
+
+    <!-- Audio -->
     <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
     <audio id="match-sound" src="../sounds/match.mp3" preload="auto"></audio>
     <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
-    <audio id="bg-music" src="../main_theme.mp3" loop preload="auto"></audio>
 
-    <div id="confetti-container" class="confetti-container"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const clockFace = document.getElementById('clockFace');
+            const faceContainer = document.getElementById('faceContainer');
+            const clockArea = document.getElementById('clockArea');
 
-    <div class="nav-bar">
-        <a href="../index.html" class="back-link">&larr; Back to Games</a>
-        <button id="muteBtn" class="mute-btn" aria-label="Toggle Sound">🔇</button>
-    </div>
+            const practicePanel = document.getElementById('practicePanel');
+            const gamePanel = document.getElementById('gamePanel');
+            const modePracticeBtn = document.getElementById('modePractice');
+            const modeGameBtn = document.getElementById('modeGame');
+            const streakDisplay = document.getElementById('streakCount');
 
-    <div class="tab-container">
-        <button id="modePractice" class="tab-btn active">Free Play</button>
-        <button id="modeGame" class="tab-btn">Challenge Mode 🎮</button>
-    </div>
+            const digitalClock = document.getElementById('digitalClock');
+            const toggleDigitalBtn = document.getElementById('toggleDigitalBtn');
+            const toggleMinutesBtn = document.getElementById('toggleMinutesBtn');
+            const toggleHoursBtn = document.getElementById('toggleHoursBtn');
+            const randomBtn = document.getElementById('randomBtn');
 
-    <div class="clock-container" id="clockArea">
-        <div class="clock" id="clockFace">
-            <div class="hand hour-hand" id="hourHand"></div>
-            <div class="hand minute-hand" id="minuteHand"></div>
-            <div class="center-dot"></div>
-            <div id="faceContainer"></div>
-        </div>
-    </div>
+            const targetTimeDisplay = document.getElementById('targetTimeDisplay');
+            const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+            const newChallengeBtn = document.getElementById('newChallengeBtn');
+            const feedbackMsg = document.getElementById('feedbackMsg');
 
-    <div class="controls">
-        
-        <div id="practicePanel" class="panel">
-            <div id="digitalClock" class="digital-display">12:00</div>
-            
-            <div class="btn-row" style="margin-bottom: 15px;">
-                <button id="toggleDigitalBtn" class="btn-neutral">Hide Answer</button>
-                <button id="randomBtn" class="btn-secondary">Random Time</button>
-            </div>
-            
-            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 15px 0;">
-            
-            <div class="btn-row">
-                <button id="toggleMinutesBtn" class="btn-tertiary">Hide Blue Minutes</button>
-                <button id="toggleHoursBtn" class="btn-tertiary">Hide Hours</button>
-            </div>
-        </div>
+            const flipSound = document.getElementById('flip-sound');
+            const matchSound = document.getElementById('match-sound');
+            const winSound = document.getElementById('win-sound');
 
-        <div id="gamePanel" class="panel game-panel">
-            <div class="challenge-text">Set the clock to:</div>
-            <div class="target-time" id="targetTimeDisplay">--:--</div>
-            
-            <div class="feedback" id="feedbackMsg"></div>
+            let totalMinutes = 720;
+            let isDragging = false;
+            let isDigitalVisible = true;
+            let areMinutesVisible = true;
+            let areHoursVisible = true;
+            let targetMinutesGame = 0;
+            let isGameMode = false;
+            let streak = 0;
+            let audioUnlocked = false;
 
-            <div class="btn-row" style="margin-top: 10px;">
-                <button id="checkAnswerBtn" class="btn-primary" style="width: 100%; font-size: 1.1rem; padding: 12px;">Check Answer</button>
-                <button id="newChallengeBtn" class="btn-secondary" style="display:none; width: 100%; font-size: 1.1rem; padding: 12px;">Next Question ➡</button>
-            </div>
-            
-            <div style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
-                Streak: <span id="streakCount" style="font-weight: bold; color: #2563eb;">0</span>
-            </div>
-        </div>
-
-    </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- Elements ---
-        const hourHand = document.getElementById('hourHand');
-        const minuteHand = document.getElementById('minuteHand');
-        const clockFace = document.getElementById('clockFace');
-        const faceContainer = document.getElementById('faceContainer');
-        const clockArea = document.getElementById('clockArea');
-        const confettiContainer = document.getElementById('confetti-container');
-
-        // Panels & Mode Buttons
-        const practicePanel = document.getElementById('practicePanel');
-        const gamePanel = document.getElementById('gamePanel');
-        const modePracticeBtn = document.getElementById('modePractice');
-        const modeGameBtn = document.getElementById('modeGame');
-        const streakDisplay = document.getElementById('streakCount');
-
-        // Practice Controls
-        const digitalClock = document.getElementById('digitalClock');
-        const toggleDigitalBtn = document.getElementById('toggleDigitalBtn');
-        const toggleMinutesBtn = document.getElementById('toggleMinutesBtn');
-        const toggleHoursBtn = document.getElementById('toggleHoursBtn');
-        const randomBtn = document.getElementById('randomBtn');
-
-        // Game Controls
-        const targetTimeDisplay = document.getElementById('targetTimeDisplay');
-        const checkAnswerBtn = document.getElementById('checkAnswerBtn');
-        const newChallengeBtn = document.getElementById('newChallengeBtn');
-        const feedbackMsg = document.getElementById('feedbackMsg');
-
-        // Audio Elements
-        const flipSound = document.getElementById('flip-sound');
-        const matchSound = document.getElementById('match-sound');
-        const winSound = document.getElementById('win-sound');
-        const bgMusic = document.getElementById('bg-music');
-        const muteBtn = document.getElementById('muteBtn');
-
-        // --- State ---
-        let totalMinutes = 720; 
-        let isDragging = false;
-        let isDigitalVisible = true;
-        let areMinutesVisible = true;
-        let areHoursVisible = true;
-        
-        let targetMinutesGame = 0;
-        let isGameMode = false;
-        let streak = 0;
-        let audioUnlocked = false;
-        let soundEnabled = false; // Default off until interaction
-
-        // --- AUDIO ENGINE ---
-        function unlockAudio() {
-            if (audioUnlocked) return;
-            
-            // Silent play to unlock AudioContext
-            [flipSound, matchSound, winSound].forEach(s => {
-                s.play().then(() => {
-                    s.pause();
-                    s.currentTime = 0;
-                }).catch(() => {});
-            });
-
-            audioUnlocked = true;
-            soundEnabled = true;
-            updateMuteIcon();
-            
-            // Start BG music if desired
-            bgMusic.volume = 0.2; // Lower volume for background
-            bgMusic.play().catch(() => {});
-        }
-
-        function playSound(sound) {
-            if (sound && audioUnlocked && soundEnabled) {
-                sound.currentTime = 0;
-                sound.play().catch(e => console.log("Sound play error", e));
-            }
-        }
-
-        function toggleMute() {
-            soundEnabled = !soundEnabled;
-            updateMuteIcon();
-            if (soundEnabled) {
-                if (audioUnlocked) bgMusic.play().catch(()=>{});
-            } else {
-                bgMusic.pause();
-            }
-        }
-
-        function updateMuteIcon() {
-            muteBtn.textContent = soundEnabled ? '🔊' : '🔇';
-        }
-
-        // --- INITIALIZATION ---
-        function init() {
-            generateClockFace();
-            updateClockDisplay();
-            
-            // Interaction Events
-            clockArea.addEventListener('mousedown', startDrag);
-            window.addEventListener('mousemove', drag);
-            window.addEventListener('mouseup', endDrag);
-
-            clockArea.addEventListener('touchstart', startDrag, {passive: false});
-            window.addEventListener('touchmove', drag, {passive: false});
-            window.addEventListener('touchend', endDrag);
-
-            // Click unlocks audio
-            document.body.addEventListener('click', unlockAudio, { once: true });
-            document.body.addEventListener('touchstart', unlockAudio, { once: true });
-
-            // Button Listeners
-            muteBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMute(); });
-            
-            modePracticeBtn.addEventListener('click', () => { playSound(flipSound); setMode('practice'); });
-            modeGameBtn.addEventListener('click', () => { playSound(flipSound); setMode('game'); });
-
-            toggleDigitalBtn.addEventListener('click', () => { playSound(flipSound); toggleDigital(); });
-            toggleMinutesBtn.addEventListener('click', () => { playSound(flipSound); toggleMinutes(); });
-            toggleHoursBtn.addEventListener('click', () => { playSound(flipSound); toggleHours(); });
-            randomBtn.addEventListener('click', () => { playSound(flipSound); setRandomTime(); });
-
-            checkAnswerBtn.addEventListener('click', checkAnswer);
-            newChallengeBtn.addEventListener('click', () => { playSound(flipSound); startNewChallenge(); });
-        }
-
-        // --- CLOCK FACE GENERATION ---
-        function generateClockFace() {
-            const centerX = 190; // Half of 380
-            const centerY = 190;
-            const radiusMinutes = 95;
-            const radiusTicks = 135;
-            const radiusHours = 165;
-
-            // Ticks
-            for (let i = 0; i < 60; i++) {
-                const tick = document.createElement('div');
-                tick.className = (i % 5 === 0) ? 'tick heavy' : 'tick';
-                const angleDeg = i * 6;
-                const angleRad = (i * 6 - 90) * (Math.PI / 180);
-                const x = centerX + radiusTicks * Math.cos(angleRad);
-                const y = centerY + radiusTicks * Math.sin(angleRad);
-                tick.style.left = `${x}px`;
-                tick.style.top = `${y}px`;
-                tick.style.transform = `translate(-50%, -50%) rotate(${angleDeg}deg)`;
-                faceContainer.appendChild(tick);
+            // --- Audio ---
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                [flipSound, matchSound, winSound].forEach(s => {
+                    s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+                });
+                audioUnlocked = true;
             }
 
-            // Hour Numbers
-            for (let i = 1; i <= 12; i++) {
-                const num = document.createElement('div');
-                num.className = 'number-hour';
-                num.textContent = i;
-                const angle = (i * 30 - 90) * (Math.PI / 180);
-                const x = centerX + radiusHours * Math.cos(angle);
-                const y = centerY + radiusHours * Math.sin(angle);
-                num.style.left = `${x}px`;
-                num.style.top = `${y}px`;
-                faceContainer.appendChild(num);
+            function playSound(sound) {
+                if (sound && audioUnlocked) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.log("Sound play error", e));
+                }
             }
 
-            // Minute Numbers
-            for (let i = 5; i <= 60; i += 5) {
-                const num = document.createElement('div');
-                num.className = 'number-minute';
-                num.textContent = (i === 60) ? '60' : i;
-                const angle = (i * 6 - 90) * (Math.PI / 180);
-                const x = centerX + radiusMinutes * Math.cos(angle);
-                const y = centerY + radiusMinutes * Math.sin(angle);
-                num.style.left = `${x}px`;
-                num.style.top = `${y}px`;
-                faceContainer.appendChild(num);
-            }
-        }
+            document.addEventListener('click', unlockAudio, { once: true });
+            document.addEventListener('touchstart', unlockAudio, { once: true });
 
-        // --- DRAG LOGIC ---
-        function startDrag(e) {
-            isDragging = true;
-            updateFromInput(e);
-            e.preventDefault();
-        }
+            // --- Clock Face (responsive using percentages) ---
+            function generateClockFace() {
+                const cx = 50, cy = 50; // percent
 
-        function drag(e) {
-            if (!isDragging) return;
-            updateFromInput(e);
-            e.preventDefault();
-        }
-
-        function endDrag() {
-            isDragging = false;
-        }
-
-        function updateFromInput(e) {
-            const rect = clockArea.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-            const dx = clientX - centerX;
-            const dy = clientY - centerY;
-
-            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-            angle += 90; 
-            if (angle < 0) angle += 360;
-
-            let minutes = Math.round(angle / 6);
-            
-            const currentMinuteOfHour = totalMinutes % 60;
-            let diff = minutes - currentMinuteOfHour;
-
-            if (diff > 30) diff -= 60;
-            if (diff < -30) diff += 60;
-
-            totalMinutes += diff;
-            if (totalMinutes < 0) totalMinutes += 720;
-            
-            updateClockDisplay();
-
-            if(isGameMode) {
-                // Clear animations/feedback if moving hands
-                clockFace.classList.remove('pulse', 'shake');
-                feedbackMsg.textContent = "";
-            }
-        }
-
-        function updateClockDisplay() {
-            let h = Math.floor(totalMinutes / 60);
-            let m = totalMinutes % 60;
-            let displayH = h % 12;
-            if (displayH === 0) displayH = 12;
-            const displayM = m.toString().padStart(2, '0');
-
-            digitalClock.textContent = `${displayH}:${displayM}`;
-
-            const minuteDeg = m * 6;
-            const hourDeg = (totalMinutes % 720) * 0.5;
-
-            minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
-            hourHand.style.transform = `rotate(${hourDeg}deg)`;
-        }
-
-        // --- GAME LOGIC ---
-        function setMode(mode) {
-            isGameMode = (mode === 'game');
-            if (isGameMode) {
-                modeGameBtn.classList.add('active');
-                modePracticeBtn.classList.remove('active');
-                gamePanel.classList.add('active');
-                practicePanel.style.display = 'none';
-                startNewChallenge();
-            } else {
-                modeGameBtn.classList.remove('active');
-                modePracticeBtn.classList.add('active');
-                gamePanel.classList.remove('active');
-                practicePanel.style.display = 'block';
-                streak = 0;
-                streakDisplay.textContent = streak;
-            }
-        }
-
-        function startNewChallenge() {
-            checkAnswerBtn.style.display = 'inline-block';
-            newChallengeBtn.style.display = 'none';
-            feedbackMsg.textContent = "";
-            clockFace.classList.remove('pulse', 'shake');
-            
-            targetMinutesGame = Math.floor(Math.random() * 720);
-            
-            let h = Math.floor(targetMinutesGame / 60);
-            let m = targetMinutesGame % 60;
-            let displayH = h % 12;
-            if (displayH === 0) displayH = 12;
-            let displayM = m.toString().padStart(2, '0');
-            
-            targetTimeDisplay.textContent = `${displayH}:${displayM}`;
-            
-            // Reset hands to 12:00
-            totalMinutes = 720;
-            updateClockDisplay();
-        }
-
-        function checkAnswer() {
-            // Compare current to target
-            let currentNorm = totalMinutes % 720;
-            if (currentNorm < 0) currentNorm += 720;
-            let targetNorm = targetMinutesGame % 720;
-
-            if (currentNorm === targetNorm) {
-                // SUCCESS
-                streak++;
-                streakDisplay.textContent = streak;
-                clockFace.classList.add('pulse');
-                feedbackMsg.textContent = "CORRECT!";
-                feedbackMsg.className = "feedback success";
-                
-                checkAnswerBtn.style.display = 'none';
-                newChallengeBtn.style.display = 'inline-block';
-                
-                triggerConfetti();
-                
-                // Play Sound: Win sound if streak is 3, else Match sound
-                if (streak > 0 && streak % 3 === 0) {
-                    playSound(winSound);
-                } else {
-                    playSound(matchSound);
+                // Ticks
+                for (let i = 0; i < 60; i++) {
+                    const tick = document.createElement('div');
+                    tick.className = (i % 5 === 0) ? 'tick heavy' : 'tick';
+                    const angleRad = (i * 6 - 90) * (Math.PI / 180);
+                    const r = 40;
+                    const x = cx + r * Math.cos(angleRad);
+                    const y = cy + r * Math.sin(angleRad);
+                    tick.style.left = `${x}%`;
+                    tick.style.top = `${y}%`;
+                    tick.style.transform = `translate(-50%, -50%) rotate(${i * 6}deg)`;
+                    faceContainer.appendChild(tick);
                 }
 
-            } else {
-                // FAILURE
-                // Reset streak? Optional. Let's keep it friendly and not reset.
-                clockFace.classList.remove('shake');
-                void clockFace.offsetWidth; // Trigger reflow
-                clockFace.classList.add('shake');
-                
-                feedbackMsg.textContent = "Not quite. Try again!";
-                feedbackMsg.className = "feedback error";
-                
-                // No sound for error in source file, we stick to visual
+                // Hour numbers
+                for (let i = 1; i <= 12; i++) {
+                    const num = document.createElement('div');
+                    num.className = 'number-hour';
+                    num.textContent = i;
+                    const angle = (i * 30 - 90) * (Math.PI / 180);
+                    const r = 46;
+                    num.style.left = `${cx + r * Math.cos(angle)}%`;
+                    num.style.top = `${cy + r * Math.sin(angle)}%`;
+                    faceContainer.appendChild(num);
+                }
+
+                // Minute numbers
+                for (let i = 5; i <= 60; i += 5) {
+                    const num = document.createElement('div');
+                    num.className = 'number-minute';
+                    num.textContent = i === 60 ? '60' : i;
+                    const angle = (i * 6 - 90) * (Math.PI / 180);
+                    const r = 28;
+                    num.style.left = `${cx + r * Math.cos(angle)}%`;
+                    num.style.top = `${cy + r * Math.sin(angle)}%`;
+                    faceContainer.appendChild(num);
+                }
             }
-        }
 
-        // --- UTILS (Visuals) ---
-        function toggleDigital() {
-            isDigitalVisible = !isDigitalVisible;
-            if (isDigitalVisible) {
-                digitalClock.classList.remove('blur');
-                toggleDigitalBtn.textContent = "Hide Answer";
-            } else {
-                digitalClock.classList.add('blur');
-                toggleDigitalBtn.textContent = "Show Answer";
+            // --- Drag ---
+            function startDrag(e) {
+                isDragging = true;
+                updateFromInput(e);
+                e.preventDefault();
             }
-        }
-
-        function toggleMinutes() {
-            areMinutesVisible = !areMinutesVisible;
-            const minNums = document.querySelectorAll('.number-minute');
-            minNums.forEach(el => el.classList.toggle('hidden', !areMinutesVisible));
-            toggleMinutesBtn.textContent = areMinutesVisible ? "Hide Blue Minutes" : "Show Blue Minutes";
-        }
-
-        function toggleHours() {
-            areHoursVisible = !areHoursVisible;
-            const hourNums = document.querySelectorAll('.number-hour');
-            hourNums.forEach(el => el.classList.toggle('hidden', !areHoursVisible));
-            toggleHoursBtn.textContent = areHoursVisible ? "Hide Hours" : "Show Hours";
-        }
-
-        function setRandomTime() {
-            totalMinutes = Math.floor(Math.random() * 720);
-            updateClockDisplay();
-        }
-
-        function triggerConfetti() {
-            confettiContainer.innerHTML = '';
-            const colors = ['#2563eb', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
-            
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.classList.add('confetti');
-                confetti.style.left = `${Math.random() * 100}vw`;
-                confetti.style.top = `${Math.random() * -20}vh`; // Start slightly above
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDuration = `${Math.random() * 2 + 1}s`;
-                confettiContainer.appendChild(confetti);
+            function drag(e) {
+                if (!isDragging) return;
+                updateFromInput(e);
+                e.preventDefault();
             }
-        }
+            function endDrag() { isDragging = false; }
 
-        // Start
-        init();
-    });
-</script>
+            function updateFromInput(e) {
+                const rect = clockArea.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                let angle = Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI) + 90;
+                if (angle < 0) angle += 360;
+
+                let minutes = Math.round(angle / 6);
+                const currentMin = totalMinutes % 60;
+                let diff = minutes - currentMin;
+                if (diff > 30) diff -= 60;
+                if (diff < -30) diff += 60;
+
+                totalMinutes += diff;
+                if (totalMinutes < 0) totalMinutes += 720;
+                updateClockDisplay();
+
+                if (isGameMode) {
+                    clockFace.classList.remove('pulse', 'shake');
+                    feedbackMsg.textContent = "";
+                }
+            }
+
+            function updateClockDisplay() {
+                let h = Math.floor(totalMinutes / 60) % 12;
+                if (h === 0) h = 12;
+                const m = (totalMinutes % 60).toString().padStart(2, '0');
+                digitalClock.textContent = `${h}:${m}`;
+
+                const minuteDeg = (totalMinutes % 60) * 6;
+                const hourDeg = (totalMinutes % 720) * 0.5;
+                minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+                hourHand.style.transform = `rotate(${hourDeg}deg)`;
+            }
+
+            // --- Mode ---
+            function setMode(mode) {
+                isGameMode = (mode === 'game');
+                if (isGameMode) {
+                    modeGameBtn.classList.add('active');
+                    modePracticeBtn.classList.remove('active');
+                    gamePanel.classList.add('active');
+                    practicePanel.style.display = 'none';
+                    startNewChallenge();
+                } else {
+                    modeGameBtn.classList.remove('active');
+                    modePracticeBtn.classList.add('active');
+                    gamePanel.classList.remove('active');
+                    practicePanel.style.display = 'block';
+                    streak = 0;
+                    streakDisplay.textContent = streak;
+                }
+            }
+
+            function startNewChallenge() {
+                checkAnswerBtn.style.display = 'inline-block';
+                newChallengeBtn.style.display = 'none';
+                feedbackMsg.textContent = "";
+                clockFace.classList.remove('pulse', 'shake');
+
+                targetMinutesGame = Math.floor(Math.random() * 720);
+                let h = Math.floor(targetMinutesGame / 60) % 12;
+                if (h === 0) h = 12;
+                const m = (targetMinutesGame % 60).toString().padStart(2, '0');
+                targetTimeDisplay.textContent = `${h}:${m}`;
+
+                totalMinutes = 720;
+                updateClockDisplay();
+            }
+
+            function checkAnswer() {
+                let currentNorm = totalMinutes % 720;
+                if (currentNorm < 0) currentNorm += 720;
+
+                if (currentNorm === targetMinutesGame % 720) {
+                    streak++;
+                    streakDisplay.textContent = streak;
+                    clockFace.classList.add('pulse');
+                    feedbackMsg.textContent = "Correct!";
+                    feedbackMsg.className = "feedback success";
+                    checkAnswerBtn.style.display = 'none';
+                    newChallengeBtn.style.display = 'inline-block';
+
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+                    if (streak > 0 && streak % 3 === 0) {
+                        playSound(winSound);
+                    } else {
+                        playSound(matchSound);
+                    }
+                } else {
+                    clockFace.classList.remove('shake');
+                    void clockFace.offsetWidth;
+                    clockFace.classList.add('shake');
+                    feedbackMsg.textContent = "Not quite. Try again!";
+                    feedbackMsg.className = "feedback error";
+                    playSound(flipSound);
+                }
+            }
+
+            // --- Toggle helpers ---
+            function toggleDigital() {
+                isDigitalVisible = !isDigitalVisible;
+                digitalClock.classList.toggle('blur', !isDigitalVisible);
+                toggleDigitalBtn.textContent = isDigitalVisible ? "Hide Answer" : "Show Answer";
+            }
+            function toggleMinutes() {
+                areMinutesVisible = !areMinutesVisible;
+                document.querySelectorAll('.number-minute').forEach(el => el.classList.toggle('hidden', !areMinutesVisible));
+                toggleMinutesBtn.textContent = areMinutesVisible ? "Hide Minutes" : "Show Minutes";
+            }
+            function toggleHours() {
+                areHoursVisible = !areHoursVisible;
+                document.querySelectorAll('.number-hour').forEach(el => el.classList.toggle('hidden', !areHoursVisible));
+                toggleHoursBtn.textContent = areHoursVisible ? "Hide Hours" : "Show Hours";
+            }
+            function setRandomTime() {
+                totalMinutes = Math.floor(Math.random() * 720);
+                updateClockDisplay();
+            }
+
+            // --- Init ---
+            function init() {
+                generateClockFace();
+                updateClockDisplay();
+
+                clockArea.addEventListener('mousedown', startDrag);
+                window.addEventListener('mousemove', drag);
+                window.addEventListener('mouseup', endDrag);
+                clockArea.addEventListener('touchstart', startDrag, { passive: false });
+                window.addEventListener('touchmove', drag, { passive: false });
+                window.addEventListener('touchend', endDrag);
+
+                modePracticeBtn.addEventListener('click', () => { playSound(flipSound); setMode('practice'); });
+                modeGameBtn.addEventListener('click', () => { playSound(flipSound); setMode('game'); });
+                toggleDigitalBtn.addEventListener('click', () => { playSound(flipSound); toggleDigital(); });
+                toggleMinutesBtn.addEventListener('click', () => { playSound(flipSound); toggleMinutes(); });
+                toggleHoursBtn.addEventListener('click', () => { playSound(flipSound); toggleHours(); });
+                randomBtn.addEventListener('click', () => { playSound(flipSound); setRandomTime(); });
+                checkAnswerBtn.addEventListener('click', checkAnswer);
+                newChallengeBtn.addEventListener('click', () => { playSound(flipSound); startNewChallenge(); });
+            }
+
+            init();
+        });
+    </script>
 </body>
 </html>
