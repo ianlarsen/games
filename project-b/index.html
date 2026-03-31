@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Project-B</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="ui-layer">
+        <div class="ui-title">Project-B</div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="label">🌬️ Ox</span>
+                <span id="ox-val">100</span><span>%</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">🪵 Wood</span>
+                <span id="wood-val">80</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">💰 Gold</span>
+                <span id="gold-val">0</span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="label">👷 Pop</span>
+                <span id="pop-val">1</span>/<span id="cap-val">5</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">⏳ Queue</span>
+                <span id="queue-val">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">🏛️ Halls</span>
+                <span id="hall-val">0</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-move" onclick="setTool('move')">🖐️ Move Map</button>
+            <button id="btn-chopping" onclick="setTool('chopping')">🪓 Chop Tree</button>
+            <button id="btn-mining" onclick="setTool('mining')">⛏️ Mine Gold</button>
+            <button id="btn-catch" onclick="setTool('catch')">🕸️ Catch Chicken</button>
+            <button id="btn-building" onclick="setTool('building')">🏠 House (25🪵 + 5💰)</button>
+            <button id="btn-townhall" onclick="setTool('townhall')">🏛️ Town Hall (100🪵)</button>
+            <button id="btn-coop" onclick="setTool('coop')">🛖 Coop (40🪵)</button>
+            <button id="btn-training" onclick="setTool('training')">🎓 Train (50🪵)</button>
+        </div>
+
+        <div class="hint">
+            Drag to move in <strong>Move Map</strong> mode. Click tiles to queue actions.
+        </div>
+    </div>
+
+    <div id="game-viewport" class="move-mode">
+        <div id="isometric-grid"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
