@@ -347,6 +347,11 @@
   const jumpVel = -950;
   const moveSpeed = 250;
   const maxVelX = 350;
+  const COYOTE_TIME = 0.1;
+  const JUMP_BUFFER_TIME = 0.12;
+  const COINS_PER_EXTRA_LIFE = 220;
+  const MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL = 2;
+  const MAX_EXTRA_LIVES_FROM_HEARTS_PER_LEVEL = 2;
 
   // ============ GAME STATE ============
   let gameState = 'start'; // start, playing, bossIntro, levelComplete, gameOver
@@ -360,10 +365,10 @@
   let camera = { x: 0, y: 0 };
   let shake = { x: 0, y: 0, intensity: 0 };
   let bossIntroTimer = 0;
-  // Track coins towards an extra life. Every 127 coins collected grants a bonus life
-  // and the counter resets by subtracting 127. This allows accumulating multiple
-  // extra lives if many coins are collected at once.
+  // Track coins towards extra life conversion with tighter pacing.
   let coinsForExtraLife = 0;
+  let extraLivesFromCoinsThisLevel = 0;
+  let extraLivesFromHeartsThisLevel = 0;
   // Difficulty scaling for bosses. After each boss defeat, this factor
   // increases by 20% (multiplicative), making subsequent bosses tougher.
   let bossDifficultyFactor = 1.0;
@@ -389,6 +394,8 @@
     x: 100, y: GROUND_Y - 72, w: 48, h: 64,
     vx: 0, vy: 0,
     onGround: false,
+    coyoteTimer: 0,
+    jumpBufferTimer: 0,
     facing: 1,
     shootCooldown: 0,
     invincible: false,
@@ -403,6 +410,7 @@
   // ============ INPUT ============
   const keys = {};
   let wantShoot = false;
+  let wantJumpPress = false;
 
   // ============ ENTITIES ============
   const lasers = [];
@@ -540,10 +548,10 @@
           y: currentY - (type === 'flyer' ? 80 : 32),
           w: type === 'flyer' ? 60 : (type === 'walker' ? 35 : 40),
           h: type === 'flyer' ? 40 : 32,
-          vx: type === 'walker' ? 80 : 100,
+          vx: (type === 'walker' ? 80 : 100) * (1 + Math.max(0, currentLevel - 2) * 0.03),
           vy: 0,
-          health: 1 + Math.floor(currentLevel / 4),
-          maxHealth: 1 + Math.floor(currentLevel / 4),
+          health: 1 + Math.floor(currentLevel / 3),
+          maxHealth: 1 + Math.floor(currentLevel / 3),
           dir: Math.random() > 0.5 ? 1 : -1,
           animTimer: 0,
           rotateAngle: 0,
@@ -567,7 +575,7 @@
         }
       }
       // Powerups
-      if (Math.random() < 0.08) {
+      if (Math.random() < 0.025) {
         segment.powerups.push({ type: 'extraLife', x: currentX + rand(20, platformW - 40), y: currentY - rand(60, 100), w: 32, h: 32 });
       }
       currentX += platformW;
@@ -600,7 +608,9 @@
         dir: -1,
         animTimer: 0,
         fireCooldown: 3.0,
-        barrelAngle: 0
+        barrelAngle: 0,
+        windupTimer: 0,
+        windingUp: false
       };
       segment.enemies.push(tankEnemy);
       tankSpawned = true;
@@ -653,6 +663,8 @@
       w: bossSize,
       h: bossSize,
       fireCooldown: baseFireInterval,
+      fireWindupTimer: 0,
+      fireWindingUp: false,
       vx: 0,
       vy: 0,
       health: scaledHealth,
@@ -727,6 +739,9 @@
     player.y = GROUND_Y - player.h - 20;
     player.vx = 0; player.vy = 0;
     player.sessionCoins = 0;
+    extraLivesFromCoinsThisLevel = 0;
+    extraLivesFromHeartsThisLevel = 0;
+    coinsForExtraLife = 0;
     camera.x = 0;
     resetCombo();
     for (let i = 0; i < 3; i++) loadNextSegment();
@@ -789,10 +804,15 @@
     if (player.invincibleTimer > 0) player.invincibleTimer -= dt;
     if (player.invincibleTimer <= 0) player.invincible = false;
     if (player.shootCooldown > 0) player.shootCooldown -= dt;
+    player.coyoteTimer = Math.max(0, player.coyoteTimer - dt);
+    player.jumpBufferTimer = Math.max(0, player.jumpBufferTimer - dt);
+    if (wantJumpPress) {
+      player.jumpBufferTimer = JUMP_BUFFER_TIME;
+      wantJumpPress = false;
+    }
 
     const moveLeft = keys.ArrowLeft || keys.KeyA;
     const moveRight = keys.ArrowRight || keys.KeyD;
-    const wantJump = keys.Space || keys.ArrowUp || keys.KeyW;
 
     if (moveLeft) { player.vx -= moveSpeed * dt * 8; player.facing = -1; }
     if (moveRight) { player.vx += moveSpeed * dt * 8; player.facing = 1; }
@@ -800,9 +820,11 @@
 
     player.vx = clamp(player.vx, -maxVelX, maxVelX);
 
-    if (wantJump && player.onGround) {
+    if (player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0)) {
       player.vy = jumpVel;
       player.onGround = false;
+      player.coyoteTimer = 0;
+      player.jumpBufferTimer = 0;
       // Play jump sound when the player jumps
       playSfx('jump', 0.7);
     }
@@ -828,7 +850,7 @@
       for (const plat of segment.platforms) {
         if (rectsOverlap(player.x, player.y, player.w, player.h, plat.x, plat.y, plat.w, plat.h)) {
           if (player.vy > 0 && (player.y + player.h - player.vy * dt) <= plat.y) {
-            player.y = plat.y - player.h; player.vy = 0; player.onGround = true;
+            player.y = plat.y - player.h; player.vy = 0; player.onGround = true; player.coyoteTimer = COYOTE_TIME;
           } else if (player.vy < 0 && (player.y - player.vy * dt) >= (plat.y + plat.h)) {
             player.y = plat.y + plat.h; player.vy = 0;
           }
@@ -941,22 +963,31 @@
           const dx = playerCx - pivotX;
           const dy = playerCy - pivotY;
           enemy.barrelAngle = Math.atan2(dy, dx);
-          enemy.fireCooldown -= dt;
-          if (enemy.fireCooldown <= 0) {
-            // Determine the spawn position at the tip of the barrel. Use 60% of the tank width as barrel length.
-            const barrelLen = enemy.w * 0.6;
-            const fbW = 40;
-            const fbH = 40;
-            const spawnX = pivotX + Math.cos(enemy.barrelAngle) * barrelLen - fbW / 2;
-            const spawnY = pivotY + Math.sin(enemy.barrelAngle) * barrelLen - fbH / 2;
-            const speed = 300;
-            const vx = Math.cos(enemy.barrelAngle) * speed;
-            const vy = Math.sin(enemy.barrelAngle) * speed;
-            // Fireballs carry hit points so lasers can shoot them down.
-            fireballs.push({ x: spawnX, y: spawnY, w: fbW, h: fbH, vx: vx, vy: vy, hp: 5 });
-            playSfx('fireballSfx', 0.8);
-            // Reset tank firing cooldown to 3 seconds.
-            enemy.fireCooldown = 3.0;
+          if (enemy.windingUp) {
+            enemy.windupTimer -= dt;
+            if (enemy.windupTimer <= 0) {
+              enemy.windingUp = false;
+              // Determine the spawn position at the tip of the barrel. Use 60% of the tank width as barrel length.
+              const barrelLen = enemy.w * 0.6;
+              const fbW = 40;
+              const fbH = 40;
+              const spawnX = pivotX + Math.cos(enemy.barrelAngle) * barrelLen - fbW / 2;
+              const spawnY = pivotY + Math.sin(enemy.barrelAngle) * barrelLen - fbH / 2;
+              const speed = 300;
+              const vx = Math.cos(enemy.barrelAngle) * speed;
+              const vy = Math.sin(enemy.barrelAngle) * speed;
+              // Fireballs carry hit points so lasers can shoot them down.
+              fireballs.push({ x: spawnX, y: spawnY, w: fbW, h: fbH, vx: vx, vy: vy, hp: 5 });
+              playSfx('fireballSfx', 0.8);
+              enemy.fireCooldown = 3.0;
+            }
+          } else {
+            enemy.fireCooldown -= dt;
+          }
+          if (enemy.fireCooldown <= 0 && !enemy.windingUp) {
+            enemy.windingUp = true;
+            enemy.windupTimer = 0.35;
+            playSfx('hit', 0.28);
           }
         }
         if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
@@ -985,30 +1016,40 @@
       // Boss fireball attack. Fireballs now aim directly at the player rather than
       // travelling horizontally. Compute a normalized vector from the boss towards
       // the player's centre, then scale to a fixed speed.
-      boss.fireCooldown -= dt;
-      if (boss.fireCooldown <= 0) {
-        const fbW = 40;
-        const fbH = 40;
-        // Spawn the fireball roughly from the boss's chest/centre.
-        const spawnX = boss.x + boss.w * 0.5 - fbW * 0.5;
-        const spawnY = boss.y + boss.h * 0.5 - fbH * 0.5;
-        // Calculate direction to the player's centre.
-        const playerCx = player.x + player.w * 0.5;
-        const playerCy = player.y + player.h * 0.5;
-        const fireballCx = spawnX + fbW * 0.5;
-        const fireballCy = spawnY + fbH * 0.5;
-        let dx = playerCx - fireballCx;
-        let dy = playerCy - fireballCy;
-        const len = Math.hypot(dx, dy) || 1.0;
-        // Normalise and multiply by speed.
-        const speed = 350;
-        const vx = (dx / len) * speed;
-        const vy = (dy / len) * speed;
-        // Each fireball has a small amount of health so the player can shoot it down with lasers.
-        fireballs.push({ x: spawnX, y: spawnY, w: fbW, h: fbH, vx: vx, vy: vy, hp: 5 });
-        playSfx('fireballSfx', 0.8);
-        // Reset cooldown; bosses now fire twice as often as the previously reduced rate.
-        boss.fireCooldown = (2.0 / 0.3) / 2;
+      if (boss.fireWindingUp) {
+        boss.fireWindupTimer -= dt;
+        if (boss.fireWindupTimer <= 0) {
+          boss.fireWindingUp = false;
+          const fbW = 40;
+          const fbH = 40;
+          // Spawn the fireball roughly from the boss's chest/centre.
+          const spawnX = boss.x + boss.w * 0.5 - fbW * 0.5;
+          const spawnY = boss.y + boss.h * 0.5 - fbH * 0.5;
+          // Calculate direction to the player's centre.
+          const playerCx = player.x + player.w * 0.5;
+          const playerCy = player.y + player.h * 0.5;
+          const fireballCx = spawnX + fbW * 0.5;
+          const fireballCy = spawnY + fbH * 0.5;
+          let dx = playerCx - fireballCx;
+          let dy = playerCy - fireballCy;
+          const len = Math.hypot(dx, dy) || 1.0;
+          // Normalise and multiply by speed.
+          const speed = 350;
+          const vx = (dx / len) * speed;
+          const vy = (dy / len) * speed;
+          // Each fireball has a small amount of health so the player can shoot it down with lasers.
+          fireballs.push({ x: spawnX, y: spawnY, w: fbW, h: fbH, vx: vx, vy: vy, hp: 5 });
+          playSfx('fireballSfx', 0.8);
+          // Reset cooldown; bosses now fire twice as often as the previously reduced rate.
+          boss.fireCooldown = (2.0 / 0.3) / 2;
+        }
+      } else {
+        boss.fireCooldown -= dt;
+      }
+      if (boss.fireCooldown <= 0 && !boss.fireWindingUp) {
+        boss.fireWindingUp = true;
+        boss.fireWindupTimer = 0.32;
+        playSfx('hit', 0.3);
       }
       if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h)) loseLife();
     }
@@ -1036,17 +1077,21 @@
         if (rectsOverlap(player.x, player.y, player.w, player.h, c.x - c.size/2, c.y - c.size/2, c.size * 2, c.size * 2)) {
           segment.coins.splice(i, 1);
           player.sessionCoins++; score += 10;
-          // Track coins towards extra life. Every 127 coins collected awards an extra life.
+          // Track coins towards extra life conversion with a per-level cap.
           coinsForExtraLife++;
-          // When enough coins have been collected, grant the corresponding number of extra lives.
-          if (coinsForExtraLife >= 127) {
-            const livesToAdd = Math.floor(coinsForExtraLife / 127);
-            coinsForExtraLife = coinsForExtraLife % 127;
-            player.lives += livesToAdd;
-            player.maxLives = Math.max(player.maxLives, player.lives);
-            // Show damage number to indicate extra life gained. Use pluralised value if multiple.
-            createDamageNumber(c.x, c.y, `+${livesToAdd} LIFE`, '#f00');
-            playSfx('life', 0.8);
+          // Convert only while the per-level coin life cap has room.
+          if (coinsForExtraLife >= COINS_PER_EXTRA_LIFE && extraLivesFromCoinsThisLevel < MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL) {
+            let available = MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL - extraLivesFromCoinsThisLevel;
+            let conversion = Math.floor(coinsForExtraLife / COINS_PER_EXTRA_LIFE);
+            conversion = Math.min(conversion, available);
+            if (conversion > 0) {
+              coinsForExtraLife -= conversion * COINS_PER_EXTRA_LIFE;
+              extraLivesFromCoinsThisLevel += conversion;
+              player.lives += conversion;
+              player.maxLives = Math.max(player.maxLives, player.lives);
+              createDamageNumber(c.x, c.y, `+${conversion} LIFE`, '#f00');
+              playSfx('life', 0.8);
+            }
           }
           createParticle(c.x, c.y, '#FFD700', 5, 8);
           // Play coin collection sound
@@ -1057,13 +1102,16 @@
         const p = segment.powerups[i];
         if (rectsOverlap(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
           segment.powerups.splice(i, 1);
-          // Grant an extra life whenever a heart power-up is collected, regardless of the current number
-          // of lives. Also update maxLives to reflect the new maximum so the value stays in sync.
-          player.lives++;
-          player.maxLives = Math.max(player.maxLives, player.lives);
-          createDamageNumber(p.x, p.y, '+1 LIFE', '#f00');
-          // Play extra life sound
-          playSfx('life', 0.8);
+          if (extraLivesFromHeartsThisLevel < MAX_EXTRA_LIVES_FROM_HEARTS_PER_LEVEL) {
+            extraLivesFromHeartsThisLevel++;
+            player.lives++;
+            player.maxLives = Math.max(player.maxLives, player.lives);
+            createDamageNumber(p.x, p.y, '+1 LIFE', '#f00');
+            // Play extra life sound
+            playSfx('life', 0.8);
+          } else {
+            createDamageNumber(p.x, p.y, 'MAXED', '#ff9f43');
+          }
         }
       }
     }
@@ -1266,6 +1314,13 @@
           ctx.fillStyle = '#333';
           ctx.fillRect(0, -barrelH / 2, barrelLen, barrelH);
           ctx.restore();
+          if (enemy.windingUp) {
+            ctx.strokeStyle = '#ffcc55';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, localPivotY, enemy.w * 0.42, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         } else if (enemy.type === 'walker') {
           ctx.rotate(enemy.rotateAngle);
           ctx.fillStyle = '#a890d0'; ctx.beginPath(); ctx.arc(0,0,enemy.w/2, 0, Math.PI*2); ctx.fill();
@@ -1309,6 +1364,16 @@
         ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
       }
       ctx.restore();
+
+      if (boss.fireWindingUp) {
+        ctx.save();
+        ctx.strokeStyle = '#ffcc55';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(boss.x + boss.w * 0.5, boss.y + boss.h * 0.5, boss.w * 0.38, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
       // HP bar
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(boss.x, boss.y - 20, boss.w, 10);
@@ -1401,6 +1466,7 @@
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     keys[e.code] = true;
     if (e.code === 'KeyX') wantShoot = true;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') wantJumpPress = true;
     if (e.code === 'KeyQ') cyclePerformanceMode();
     if (e.code === 'Escape') paused = !paused;
   });
@@ -1409,6 +1475,7 @@
   function clearInputState() {
     for (const key in keys) keys[key] = false;
     wantShoot = false;
+    wantJumpPress = false;
   }
   window.addEventListener('blur', clearInputState);
   document.addEventListener('visibilitychange', () => {
@@ -1423,7 +1490,12 @@
   };
   const bindTouch = (btn, code) => {
     if (!btn) return;
-    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[code]=true; if(code==='KeyX') wantShoot=true; }, { passive: false });
+    btn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      keys[code] = true;
+      if (code === 'KeyX') wantShoot = true;
+      if (code === 'Space') wantJumpPress = true;
+    }, { passive: false });
     btn.addEventListener('touchend', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
     btn.addEventListener('touchcancel', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
   };
