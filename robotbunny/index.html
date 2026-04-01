@@ -36,6 +36,7 @@
     font-size: 13px; max-width: 90vw;
   }
   .hud-item { display: flex; align-items: center; gap: 5px; padding: 3px 8px; background: rgba(16,22,32,0.85); border-radius: 5px; border: 1px solid rgba(123,226,255,0.25); }
+  .hud-item.button { cursor: pointer; user-select: none; -webkit-user-select: none; }
   .combo-display {
     position: fixed; top: 100px; right: 20px;
     font-size: 32px; font-weight: 900; color: #FFD700;
@@ -123,9 +124,11 @@
   <div class="hud-item"><span>🎯</span><span id="score">0</span></div>
   <div class="hud-item"><span>🪙</span><span id="coins">0</span></div>
   <div class="hud-item"><span>⭐</span><span id="upgrades">Upgrades: 0</span></div>
+  <div class="hud-item button" id="perf-toggle"><span>⚙️</span><span id="perf-mode">Perf: Balanced</span></div>
+  <div class="hud-item"><span>FPS</span><span id="fps">--</span></div>
 </div>
 <div class="combo-display" id="combo-display">COMBO ×0</div>
-<div class="hint" id="hint-text">Move: ←→ • Jump: Space • Shoot: X • Pause: ESC</div>
+<div class="hint" id="hint-text">Move: Arrow Keys / A,D • Jump: Space / W • Shoot: X • Pause: ESC • Perf: Q</div>
 <div class="badge">Image Edition</div>
 
 <!-- Start Screen -->
@@ -149,6 +152,56 @@
   const ctx = canvas.getContext('2d', { alpha: false });
   let audioCtx; // created on first user gesture
   let currentMusic = null;
+  const isMobileDevice = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+  let particleDensity = isMobileDevice ? 0.65 : 1.0;
+  let maxParticles = isMobileDevice ? 120 : 260;
+  let uiShadowBlur = isMobileDevice ? 1 : 2;
+  let introShadowBlur = isMobileDevice ? 5 : 10;
+  let groundPattern = null;
+  let smoothedFps = 60;
+  let fpsDisplayValue = 60;
+  let fpsUpdateTimer = 0;
+  const performanceProfiles = {
+    low: { particleDensity: 0.45, maxParticles: 90, uiShadowBlur: 0, introShadowBlur: 3 },
+    balanced: isMobileDevice
+      ? { particleDensity: 0.65, maxParticles: 120, uiShadowBlur: 1, introShadowBlur: 5 }
+      : { particleDensity: 1.0, maxParticles: 260, uiShadowBlur: 2, introShadowBlur: 10 },
+    high: isMobileDevice
+      ? { particleDensity: 0.9, maxParticles: 180, uiShadowBlur: 2, introShadowBlur: 8 }
+      : { particleDensity: 1.25, maxParticles: 360, uiShadowBlur: 3, introShadowBlur: 12 }
+  };
+  const performanceModeOrder = ['low', 'balanced', 'high'];
+  let performanceMode = localStorage.getItem('rb_perf_mode') || 'balanced';
+  if (!performanceProfiles[performanceMode]) performanceMode = 'balanced';
+
+  function getPerformanceModeLabel(mode) {
+    if (mode === 'low') return 'Low';
+    if (mode === 'high') return 'High';
+    return 'Balanced';
+  }
+
+  function applyPerformanceMode(mode) {
+    const profile = performanceProfiles[mode] || performanceProfiles.balanced;
+    performanceMode = performanceProfiles[mode] ? mode : 'balanced';
+    particleDensity = profile.particleDensity;
+    maxParticles = profile.maxParticles;
+    uiShadowBlur = profile.uiShadowBlur;
+    introShadowBlur = profile.introShadowBlur;
+    localStorage.setItem('rb_perf_mode', performanceMode);
+    if (particles.length > maxParticles) {
+      particles.length = maxParticles;
+    }
+    const perfModeEl = document.getElementById('perf-mode');
+    if (perfModeEl) {
+      perfModeEl.textContent = `Perf: ${getPerformanceModeLabel(performanceMode)}`;
+    }
+  }
+
+  function cyclePerformanceMode() {
+    const currentIndex = performanceModeOrder.indexOf(performanceMode);
+    const nextIndex = (currentIndex + 1) % performanceModeOrder.length;
+    applyPerformanceMode(performanceModeOrder[nextIndex]);
+  }
 
   // ============ ASSET LOADING ============
   const assets = {};
@@ -257,14 +310,24 @@
 
   function fit() {
     const maxW = Math.min(window.innerWidth, 960);
-    const maxH = Math.min(window.innerHeight * 0.62, 560);
+    const reservedBottom = isMobileDevice ? 200 : 0;
+    const availableH = Math.max(220, window.innerHeight - reservedBottom);
+    const maxH = isMobileDevice ? Math.min(availableH, 600) : Math.min(window.innerHeight * 0.68, 560);
     const ar = canvas.width / canvas.height;
     let w = maxW, h = w / ar;
     if (h > maxH) { h = maxH; w = h * ar; }
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
   }
-  window.addEventListener('resize', fit); fit();
+  let resizeRaf = 0;
+  window.addEventListener('resize', () => {
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      fit();
+      resizeRaf = 0;
+    });
+  });
+  fit();
 
   // ============ UTILITY FUNCTIONS ============
   function rand(a, b) { return a + Math.random() * (b - a); }
@@ -272,6 +335,10 @@
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function rectsOverlap(x1, y1, w1, h1, x2, y2, w2, h2) {
     return !(x1 + w1 < x2 || x1 > x2 + w2 || y1 + h1 < y2 || y1 > y2 + h2);
+  }
+  function inView(x, y, w, h, pad = 120) {
+    return x + w >= camera.x - pad && x <= camera.x + canvas.width + pad &&
+           y + h >= camera.y - pad && y <= camera.y + canvas.height + pad;
   }
 
   // ============ CONSTANTS ============
@@ -400,8 +467,13 @@
 
   // ============ PARTICLES ============
   function createParticle(x, y, color, count = 8, size = 5) {
-    for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count + rand(-0.3, 0.3);
+    const scaledCount = Math.max(1, Math.floor(count * particleDensity));
+    if (particles.length >= maxParticles) return;
+    const availableSlots = Math.max(0, maxParticles - particles.length);
+    const emitCount = Math.min(scaledCount, availableSlots);
+    if (emitCount <= 0) return;
+    for (let i = 0; i < emitCount; i++) {
+      const angle = (Math.PI * 2 * i) / emitCount + rand(-0.3, 0.3);
       const speed = rand(100, 250);
       particles.push({
         x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - rand(50, 150),
@@ -611,6 +683,9 @@
     resetCombo();
     if (player.lives <= 0) {
       gameState = 'gameOver';
+      // Bank collected run coins on death so progression persists between runs.
+      totalCoins += player.sessionCoins;
+      player.sessionCoins = 0;
       if (score > highScore) highScore = score;
       saveProgress();
       stopMusic();
@@ -629,6 +704,7 @@
     stopMusic();
     playMusic('victory');
     totalCoins += player.sessionCoins;
+    player.sessionCoins = 0;
     if (currentLevel > highestLevel) highestLevel = currentLevel;
     if (score > highScore) highScore = score;
     saveProgress();
@@ -663,10 +739,14 @@
     const livesEl = document.getElementById('lives');
     const scoreEl = document.getElementById('score');
     const coinsEl = document.getElementById('coins');
+    const fpsEl = document.getElementById('fps');
     if (levelEl) levelEl.textContent = `Level ${currentLevel}`;
     if (livesEl) livesEl.textContent = `×${player.lives}`;
     if (scoreEl) scoreEl.textContent = Math.floor(score);
     if (coinsEl) coinsEl.textContent = player.sessionCoins + totalCoins;
+    if (fpsEl) fpsEl.textContent = `${fpsDisplayValue}`;
+    const perfModeEl = document.getElementById('perf-mode');
+    if (perfModeEl) perfModeEl.textContent = `Perf: ${getPerformanceModeLabel(performanceMode)}`;
   }
 
   function update(dt) {
@@ -710,9 +790,9 @@
     if (player.invincibleTimer <= 0) player.invincible = false;
     if (player.shootCooldown > 0) player.shootCooldown -= dt;
 
-    const moveLeft = keys.ArrowLeft;
-    const moveRight = keys.ArrowRight;
-    const wantJump = keys.Space || keys.ArrowUp;
+    const moveLeft = keys.ArrowLeft || keys.KeyA;
+    const moveRight = keys.ArrowRight || keys.KeyD;
+    const wantJump = keys.Space || keys.ArrowUp || keys.KeyW;
 
     if (moveLeft) { player.vx -= moveSpeed * dt * 8; player.facing = -1; }
     if (moveRight) { player.vx += moveSpeed * dt * 8; player.facing = 1; }
@@ -1023,9 +1103,13 @@
     // Platforms
     for (const segment of segments) {
       for (const plat of segment.platforms) {
+        if (!inView(plat.x, plat.y, plat.w, plat.h)) continue;
         if (plat.type === 'ground') {
           if (assets.ground && assets.ground.width > 0) {
-            const pat = ctx.createPattern(assets.ground, 'repeat');
+            if (!groundPattern) {
+              groundPattern = ctx.createPattern(assets.ground, 'repeat');
+            }
+            const pat = groundPattern;
             if (pat) {
               ctx.fillStyle = pat; ctx.save(); ctx.translate(plat.x, plat.y); ctx.fillRect(0, 0, plat.w, plat.h); ctx.restore();
             } else {
@@ -1045,6 +1129,7 @@
     for (const segment of segments) {
       if (assets.coin && assets.coin.complete && assets.coin.naturalWidth > 0) {
         for (const c of segment.coins) {
+          if (!inView(c.x - c.size, c.y - c.size, c.size * 2, c.size * 2)) continue;
           const pulse = 1.0 + Math.sin(c.sparkleT) * 0.1;
           const w = (c.size * 2) * pulse;
           const h = (c.size * 2) * pulse;
@@ -1053,6 +1138,7 @@
       }
       if (assets.heart && assets.heart.complete && assets.heart.naturalWidth > 0) {
         for (const p of segment.powerups) {
+          if (!inView(p.x, p.y, p.w, p.h)) continue;
           const pulse = 1.0 + Math.sin(time * 5) * 0.1;
           const w = p.w * pulse;
           const h = p.h * pulse;
@@ -1072,6 +1158,7 @@
     // Enemies
     for (const segment of segments) {
       for (const enemy of segment.enemies) {
+        if (!inView(enemy.x, enemy.y, enemy.w, enemy.h)) continue;
         ctx.save();
         ctx.translate(enemy.x + enemy.w/2, enemy.y + enemy.h/2);
         if (enemy.type === 'hopper') {
@@ -1231,20 +1318,22 @@
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'center';
       ctx.shadowColor = '#000';
-      ctx.shadowBlur = 2;
+      ctx.shadowBlur = uiShadowBlur;
       ctx.fillText(boss.name, boss.x + boss.w / 2, boss.y - 25);
       ctx.shadowBlur = 0;
     }
 
     // Lasers
     for (const laser of lasers) {
+      if (!inView(laser.x, laser.y, laser.w, laser.h)) continue;
       ctx.fillStyle = '#7be2ff'; ctx.fillRect(laser.x, laser.y, laser.w, laser.h);
     }
 
     // Fireballs
     for (const fb of fireballs) {
+      if (!inView(fb.x, fb.y, fb.w, fb.h)) continue;
       // Always use the fireball image if available. Fall back to a coloured rectangle if not.
-      if (assets.fireball) {
+      if (assets.fireball && assets.fireball.complete && assets.fireball.naturalWidth > 0) {
         ctx.drawImage(assets.fireball, fb.x, fb.y, fb.w, fb.h);
       } else {
         ctx.fillStyle = '#ff4500';
@@ -1268,7 +1357,7 @@
     ctx.globalAlpha = 1;
     for (const dn of damageNumbers) {
       ctx.globalAlpha = dn.life; ctx.fillStyle = dn.color; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
-      ctx.shadowColor = '#000'; ctx.shadowBlur = 2; ctx.fillText(dn.value, dn.x, dn.y);
+      ctx.shadowColor = '#000'; ctx.shadowBlur = uiShadowBlur; ctx.fillText(dn.value, dn.x, dn.y);
     }
     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 
@@ -1278,7 +1367,7 @@
     if (gameState === 'bossIntro') {
       ctx.fillStyle = 'rgba(0,0,0, 0.3)'; ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.font = 'bold 80px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'red';
-      ctx.shadowColor = '#000'; ctx.shadowBlur = 10; ctx.fillText('Boss Approaching', canvas.width/2, canvas.height/2); ctx.shadowBlur = 0;
+      ctx.shadowColor = '#000'; ctx.shadowBlur = introShadowBlur; ctx.fillText('Boss Approaching', canvas.width/2, canvas.height/2); ctx.shadowBlur = 0;
     }
     if (gameState === 'levelComplete') {
       ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -1307,14 +1396,24 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     keys[e.code] = true;
     if (e.code === 'KeyX') wantShoot = true;
+    if (e.code === 'KeyQ') cyclePerformanceMode();
     if (e.code === 'Escape') paused = !paused;
   });
   window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function clearInputState() {
+    for (const key in keys) keys[key] = false;
+    wantShoot = false;
+  }
+  window.addEventListener('blur', clearInputState);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearInputState();
+  });
 
   const btns = {
     left: document.getElementById('mobile-left'),
@@ -1330,6 +1429,15 @@
   };
   bindTouch(btns.left, 'ArrowLeft'); bindTouch(btns.right, 'ArrowRight');
   bindTouch(btns.jump, 'Space'); bindTouch(btns.shoot, 'KeyX');
+
+  const perfToggle = document.getElementById('perf-toggle');
+  if (perfToggle) {
+    perfToggle.addEventListener('click', cyclePerformanceMode);
+    perfToggle.addEventListener('touchstart', e => {
+      e.preventDefault();
+      cyclePerformanceMode();
+    }, { passive: false });
+  }
 
   // Start Game Logic
   function startGame() {
@@ -1363,12 +1471,23 @@
   function frame(now) {
     const dt = Math.min(1/30, (now - last)/1000);
     last = now;
+
+    // Smooth FPS to reduce UI flicker while keeping updates responsive.
+    const instantFps = dt > 0 ? (1 / dt) : 60;
+    smoothedFps += (instantFps - smoothedFps) * 0.08;
+    fpsUpdateTimer += dt;
+    if (fpsUpdateTimer >= 0.2) {
+      fpsDisplayValue = Math.max(1, Math.round(smoothedFps));
+      fpsUpdateTimer = 0;
+    }
+
     if (gameStarted) update(dt);
     draw();
     requestAnimationFrame(frame);
   }
 
   // INITIALIZE
+  applyPerformanceMode(performanceMode);
   loadAssets();
   fit();
   for (let i = 0; i < 3; i++) loadNextSegment();

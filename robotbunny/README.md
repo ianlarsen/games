@@ -13,14 +13,9 @@ Transform from a fixed 3-level platformer into an infinite, self-scaling platfor
 - **Boss Encounters**: Epic boss battles every 6-8 segments with phase-based mechanics
 
 ### Meta Progression
-- **XP System**: Earn experience from coins, enemies, bosses, and segment completion
-- **Level Up**: Unlock new abilities and earn rewards as you progress
-- **Persistent Progression**: Coins and Moon Fragments carry between runs
-- **Unlockable Abilities**:
-  - **Dash** (Level 3): Quick burst of speed with temporary invincibility
-  - **Double Jump** (Level 5): Jump again while airborne
-  - **Shield** (Level 7): Absorb up to 3 hits with a protective barrier
-  - **Magnet** (Level 10): Automatically attract coins from a distance
+- **Persistent Coins**: Coins now carry between runs, including game-over runs
+- **Looping Progression**: Complete levels, fight bosses, and cycle through 10-level loops
+- **Stat Tracking**: High score and highest level are saved in LocalStorage
 
 ### Dynamic Music Engine
 - **Multi-Stem System**: 8 independent audio layers (melody, bass, chords, arp, percussion, FX)
@@ -53,17 +48,9 @@ Transform from a fixed 3-level platformer into an infinite, self-scaling platfor
 
 ## 📁 Architecture
 
-### Modular JavaScript Files
-
-#### Core Systems
-- **`game.js`**: Main game orchestration and loop
-- **`player.js`**: Player logic with ability system
-- **`music-engine.js`**: Dynamic multi-stem music system
-- **`threat-system.js`**: Difficulty scaling and intensity management
-- **`segment-generator.js`**: Procedural level generation
-- **`boss-system.js`**: Boss spawning and AI
-- **`meta-progression.js`**: XP, leveling, and persistent progression
-- **`utils.js`**: Shared utility functions
+### Current Runtime Build
+- **`index.html`**: Primary shipped game runtime (canvas renderer, loop, input, audio, enemies, bosses)
+- **`boss-system.js`** and **`game.js`**: Experimental modular systems not currently wired into the shipped page
 
 ### Configuration Files (JSON)
 
@@ -95,18 +82,20 @@ Defines procedural generation parameters:
 ## 🎹 Controls
 
 ### Keyboard
-- **Arrow Keys / WASD**: Move left/right
-- **Space / ↑**: Jump (double jump when unlocked)
+- **Arrow Keys / A,D**: Move left/right
+- **Space / ↑ / W**: Jump
 - **X**: Shoot laser
-- **C**: Dash (when unlocked)
-- **V**: Activate shield (when unlocked)
-- **M**: Toggle sound
-- **ESC / P**: Pause
+- **Q**: Cycle performance mode (Low / Balanced / High)
+- **ESC**: Pause
 - **R**: Restart (when game over)
 
 ### Mobile
-- **Touch Buttons**: On-screen controls for movement, jumping, shooting, and abilities
-- **Double-tap Top**: Pause/resume
+- **Touch Buttons**: On-screen controls for movement, jumping, and shooting
+- **Perf HUD Button**: Tap the performance chip to cycle Low / Balanced / High
+- **Tap Canvas**: Start game, continue after level complete, restart after game over
+
+### Diagnostics
+- **Live FPS Meter**: Displays smoothed frame rate in the HUD to help tune performance mode
 
 ## 🔧 How It Works
 
@@ -140,24 +129,22 @@ Defines procedural generation parameters:
 
 ## 🚀 Running the Game
 
-Simply open `index.html` in a modern web browser. All modules are loaded via ES6 imports, and configurations are fetched as JSON.
+Simply open `index.html` in a modern web browser.
 
 **Requirements**:
-- Modern browser with ES6 module support
+- Modern browser with Canvas and Audio support
 - Web Audio API support
 - LocalStorage enabled
 
 ## 📊 Statistics Tracked
 
 - Distance traveled (meters)
-- Threat level reached
 - Enemies defeated
 - Bosses defeated
 - Coins collected
-- Moon Fragments earned
-- XP gained
 - Highest combo
-- Abilities unlocked
+- High score
+- Highest level reached
 
 ## 🎨 Biome Themes
 
