@@ -88,6 +88,11 @@ const AudioManager = {
     this.playSound(this.sfxClue);
   },
 
+  // Backward-compatible alias used by older runtime tests.
+  playClueFound() {
+    this.playClue();
+  },
+
   // Play correct sound
   playCorrect() {
     this.playSound(this.sfxCorrect);

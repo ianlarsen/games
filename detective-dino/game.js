@@ -10,6 +10,23 @@ const Game = {
   currentMystery: null, // Current mystery scenario
   currentMysteryData: null, // Mystery data from mysteriesData
   readingLevel: null, // beginner, intermediate, or advanced
+  recentTouchTime: 0,
+  tutorialSeen: false,
+  tutorialStep: 0,
+  tutorialSteps: [
+    {
+      title: 'Welcome, Detective!',
+      body: 'Visit every location and look closely for clues.'
+    },
+    {
+      title: 'Talk and Investigate',
+      body: 'Tap or click each suspect and object to collect information.'
+    },
+    {
+      title: 'Solve the Case',
+      body: 'Open your notebook, review clues, and accuse the culprit when ready.'
+    }
+  ],
 
   // DOM elements
   elements: {
@@ -30,7 +47,13 @@ const Game = {
     clueCount: null,
     accusationScreen: null,
     winScreen: null,
-    tryAgainScreen: null
+    tryAgainScreen: null,
+    tutorialOverlay: null,
+    tutorialTitle: null,
+    tutorialBody: null,
+    tutorialProgress: null,
+    tutorialBack: null,
+    tutorialNext: null
   },
 
   // Adapt text to reading level
@@ -112,6 +135,15 @@ const Game = {
     this.elements.accusationScreen = document.getElementById('accusation-screen');
     this.elements.winScreen = document.getElementById('win-screen');
     this.elements.tryAgainScreen = document.getElementById('try-again-screen');
+    this.elements.tutorialOverlay = document.getElementById('tutorial-overlay');
+    this.elements.tutorialTitle = document.getElementById('tutorial-title');
+    this.elements.tutorialBody = document.getElementById('tutorial-body');
+    this.elements.tutorialProgress = document.getElementById('tutorial-progress');
+    this.elements.tutorialBack = document.getElementById('tutorial-back');
+    this.elements.tutorialNext = document.getElementById('tutorial-next');
+
+    this.initKeyboardAccessibility();
+    this.loadTutorialPreference();
 
     // Mobile optimizations
     this.initMobileOptimizations();
@@ -175,9 +207,47 @@ const Game = {
     window.addEventListener('resize', setViewportHeight);
   },
 
+  initKeyboardAccessibility() {
+    const clickableCards = document.querySelectorAll('.level-card, .suspect-card');
+    clickableCards.forEach((card) => {
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+  },
+
+  loadTutorialPreference() {
+    try {
+      this.tutorialSeen = localStorage.getItem('detective_dino_tutorial_seen') === 'true';
+    } catch (err) {
+      this.tutorialSeen = false;
+    }
+  },
+
+  saveTutorialPreference() {
+    try {
+      localStorage.setItem('detective_dino_tutorial_seen', 'true');
+    } catch (err) {
+      // Ignore storage errors in restricted browser environments.
+    }
+  },
+
   // Start game
   start() {
     AudioManager.playClick();
+
+    // Ensure mystery data exists even if start is called directly.
+    if (!this.currentMysteryData) {
+      this.selectRandomMystery();
+    }
+
+    if (!this.readingLevel) {
+      this.readingLevel = 'advanced';
+    }
+
     this.gameStarted = true;
 
     // Hide title and reading level screen, show game
@@ -188,12 +258,20 @@ const Game = {
     // Render navigation buttons for this mystery
     this.renderNavigation();
 
+    // Render the current location after mystery selection.
+    this.renderLocation();
+    this.updateClueCount();
+
     // Start background music
     AudioManager.playMusic();
 
     // Show intro dialogue from current mystery
     const intro = this.currentMysteryData.intro;
     this.showDialogue(intro.speaker, intro.text, intro.choices);
+
+    if (!this.tutorialSeen) {
+      this.showTutorial();
+    }
   },
 
   // Render navigation buttons based on current mystery locations
@@ -212,7 +290,13 @@ const Game = {
       bedroom: { name: '🛏️ Bedroom', emoji: '🛏️' },
       garage: { name: '🚗 Garage', emoji: '🚗' },
       beach: { name: '🏖️ Beach', emoji: '🏖️' },
-      sports_field: { name: '⚽ Sports Field', emoji: '⚽' }
+      sports_field: { name: '⚽ Sports Field', emoji: '⚽' },
+      art_room: { name: '🎨 Art Room', emoji: '🎨' },
+      hallway: { name: '🚪 Hallway', emoji: '🚪' },
+      bathroom: { name: '🛁 Bathroom', emoji: '🛁' },
+      closet: { name: '🧥 Closet', emoji: '🧥' },
+      attic: { name: '📦 Attic', emoji: '📦' },
+      basement: { name: '🧰 Basement', emoji: '🧰' }
     };
 
     // Create button for each location in this mystery
@@ -221,6 +305,7 @@ const Game = {
       const btn = document.createElement('button');
       btn.className = 'nav-btn';
       btn.textContent = locationInfo.name;
+      btn.dataset.locationId = locationId;
       btn.onclick = () => changeLocation(locationId);
       nav.appendChild(btn);
     });
@@ -231,6 +316,82 @@ const Game = {
     accuseBtn.textContent = '⚖️ Make Accusation!';
     accuseBtn.onclick = () => showAccusationScreen();
     nav.appendChild(accuseBtn);
+
+    this.updateNavigationState();
+  },
+
+  updateNavigationState() {
+    const locationButtons = this.elements.navigation.querySelectorAll('.nav-btn[data-location-id]');
+    locationButtons.forEach((btn) => {
+      const isCurrent = btn.dataset.locationId === this.currentLocation;
+      btn.classList.toggle('active-location', isCurrent);
+      btn.setAttribute('aria-current', isCurrent ? 'true' : 'false');
+    });
+  },
+
+  showTutorial() {
+    this.tutorialStep = 0;
+    this.updateTutorialStep();
+    this.elements.tutorialOverlay.classList.remove('hidden');
+  },
+
+  hideTutorial(markSeen = true) {
+    this.elements.tutorialOverlay.classList.add('hidden');
+    if (markSeen) {
+      this.tutorialSeen = true;
+      this.saveTutorialPreference();
+    }
+  },
+
+  updateTutorialStep() {
+    const stepData = this.tutorialSteps[this.tutorialStep];
+    this.elements.tutorialTitle.textContent = stepData.title;
+    this.elements.tutorialBody.textContent = stepData.body;
+    this.elements.tutorialProgress.textContent = `Step ${this.tutorialStep + 1} of ${this.tutorialSteps.length}`;
+    this.elements.tutorialBack.disabled = this.tutorialStep === 0;
+    this.elements.tutorialNext.textContent = this.tutorialStep === this.tutorialSteps.length - 1 ? 'Start Case!' : 'Next';
+  },
+
+  nextTutorialStep() {
+    if (this.tutorialStep >= this.tutorialSteps.length - 1) {
+      this.hideTutorial(true);
+      return;
+    }
+
+    this.tutorialStep += 1;
+    this.updateTutorialStep();
+  },
+
+  previousTutorialStep() {
+    if (this.tutorialStep === 0) {
+      return;
+    }
+
+    this.tutorialStep -= 1;
+    this.updateTutorialStep();
+  },
+
+  skipTutorial() {
+    this.hideTutorial(true);
+  },
+
+  bindTapInteraction(element, handler) {
+    const wrappedHandler = (e) => {
+      e.preventDefault();
+      handler(e);
+    };
+
+    element.addEventListener('touchend', (e) => {
+      this.recentTouchTime = Date.now();
+      wrappedHandler(e);
+    }, { passive: false });
+
+    element.addEventListener('click', (e) => {
+      if (Date.now() - this.recentTouchTime < 500) {
+        return;
+      }
+      wrappedHandler(e);
+    });
   },
 
   // Change location
@@ -238,6 +399,7 @@ const Game = {
     AudioManager.playClick();
     this.currentLocation = locationId;
     this.renderLocation();
+    this.updateNavigationState();
     this.hideDialogue();
   },
 
@@ -297,22 +459,27 @@ const Game = {
     charEl.style.bottom = char.position.bottom;
     charEl.style.left = char.position.left;
     charEl.title = char.name;
+    charEl.tabIndex = 0;
+    charEl.setAttribute('role', 'button');
+    charEl.setAttribute('aria-label', `Talk to ${char.name}`);
 
     // Use actual character image instead of emoji
+    const mood = this.getSuspectMood(char.id);
     const img = document.createElement('img');
-    img.src = `images/characters/${char.id}_happy.png`;
+    img.src = `images/characters/${char.id}_${mood}.png`;
+    img.onerror = () => {
+      img.src = `images/characters/${char.id}_happy.png`;
+    };
     img.alt = char.name;
     img.className = char.id;
     charEl.appendChild(img);
 
-    const handleInteraction = (e) => {
-      e.preventDefault();
+    const handleInteraction = () => {
       AudioManager.playClick();
       this.interactWithCharacter(char);
     };
 
-    charEl.addEventListener('click', handleInteraction);
-    charEl.addEventListener('touchend', handleInteraction, { passive: false });
+    this.bindTapInteraction(charEl, handleInteraction);
 
     this.elements.charactersLayer.appendChild(charEl);
   },
@@ -324,6 +491,9 @@ const Game = {
     objEl.style.bottom = obj.position.bottom;
     objEl.style.left = obj.position.left;
     objEl.title = obj.name;
+    objEl.tabIndex = 0;
+    objEl.setAttribute('role', 'button');
+    objEl.setAttribute('aria-label', `Inspect ${obj.name}`);
 
     // Object image mapping - add more as you create images
     const objectImages = {
@@ -348,14 +518,12 @@ const Game = {
       objEl.appendChild(emojiSpan);
     }
 
-    const handleInteraction = (e) => {
-      e.preventDefault();
+    const handleInteraction = () => {
       AudioManager.playClick();
       this.interactWithObject(obj);
     };
 
-    objEl.addEventListener('click', handleInteraction);
-    objEl.addEventListener('touchend', handleInteraction, { passive: false });
+    this.bindTapInteraction(objEl, handleInteraction);
 
     this.elements.objectsLayer.appendChild(objEl);
   },
@@ -367,6 +535,9 @@ const Game = {
     clueEl.style.bottom = clue.position.bottom;
     clueEl.style.left = clue.position.left;
     clueEl.title = clue.name;
+    clueEl.tabIndex = 0;
+    clueEl.setAttribute('role', 'button');
+    clueEl.setAttribute('aria-label', `Collect clue: ${clue.name}`);
 
     // Use clue image (with fallback if image not available yet)
     const img = document.createElement('img');
@@ -378,17 +549,34 @@ const Game = {
     img.style.objectFit = 'contain';
     clueEl.appendChild(img);
 
-    const handleClueInteraction = (e) => {
-      e.preventDefault();
+    const handleClueInteraction = () => {
       AudioManager.playClue();
       AudioManager.playClueBeep(); // Backup sound
       this.collectClue(clue);
     };
 
-    clueEl.addEventListener('click', handleClueInteraction);
-    clueEl.addEventListener('touchend', handleClueInteraction, { passive: false });
+    this.bindTapInteraction(clueEl, handleClueInteraction);
 
     this.elements.objectsLayer.appendChild(clueEl);
+  },
+
+  getSuspectMood(suspectId) {
+    const totalClues = this.currentMysteryData ? this.currentMysteryData.locations.length : 4;
+    const clueCount = this.cluesFound.length;
+
+    if (suspectId === this.guiltySuspect) {
+      if (clueCount >= totalClues - 1) {
+        return 'guilty';
+      }
+
+      if (clueCount >= 2) {
+        return 'nervous';
+      }
+
+      return 'happy';
+    }
+
+    return clueCount >= totalClues - 1 ? 'nervous' : 'happy';
   },
 
   // Interact with character
@@ -432,9 +620,15 @@ const Game = {
     this.cluesFound.push(clue.id);
     this.updateClueCount();
 
+    const totalClues = this.currentMysteryData.locations.length;
+    const remainingClues = totalClues - this.cluesFound.length;
+    const progressLine = remainingClues === 0
+      ? 'You found all the clues! Time to solve the mystery!'
+      : `${remainingClues} clue${remainingClues === 1 ? '' : 's'} left to find.`;
+
     // Show clue dialogue
-    this.showDialogue('🔍 Clue Found!', clue.description, [
-      { text: 'Add to notebook! 📓', action: 'close' }
+    this.showDialogue('🔍 Clue Found!', `${clue.description} ${progressLine}`, [
+      { text: remainingClues === 0 ? 'Make an accusation! ⚖️' : 'Add to notebook! 📓', action: 'close' }
     ]);
 
     // Re-render location to hide collected clue
@@ -452,8 +646,7 @@ const Game = {
       btn.className = 'choice-btn';
       btn.textContent = this.adaptText(choice.text);
 
-      const handleChoice = (e) => {
-        e.preventDefault();
+      const handleChoice = () => {
         AudioManager.playClick();
         if (choice.action === 'close') {
           this.hideDialogue();
@@ -462,8 +655,7 @@ const Game = {
         }
       };
 
-      btn.addEventListener('click', handleChoice);
-      btn.addEventListener('touchend', handleChoice, { passive: false });
+      this.bindTapInteraction(btn, handleChoice);
 
       this.elements.dialogueChoices.appendChild(btn);
     });
@@ -535,12 +727,15 @@ const Game = {
 
     // Check if player has found at least 2 clues
     if (this.cluesFound.length < 2) {
+      const cluesNeeded = 2 - this.cluesFound.length;
       this.showDialogue('Detective Dino', 'We need more clues before we can make an accusation! Keep investigating! 🔍', [
-        { text: 'Keep looking! 👍', action: 'close' }
+        { text: `Find ${cluesNeeded} more clue${cluesNeeded === 1 ? '' : 's'}!`, action: 'close' }
       ]);
       return;
     }
 
+    this.hideDialogue();
+    this.hideNotebook();
     this.elements.gameScreen.classList.remove('active');
     this.elements.accusationScreen.classList.add('active');
   },
@@ -661,8 +856,19 @@ function hideTryAgainScreen() {
   Game.hideTryAgainScreen();
 }
 
+function nextTutorialStep() {
+  Game.nextTutorialStep();
+}
+
+function previousTutorialStep() {
+  Game.previousTutorialStep();
+}
+
+function skipTutorial() {
+  Game.skipTutorial();
+}
+
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
   Game.init();
-  Game.renderLocation(); // Render initial location
 });
