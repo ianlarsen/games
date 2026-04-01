@@ -12,6 +12,7 @@ const Game = {
   readingLevel: null, // beginner, intermediate, or advanced
   recentTouchTime: 0,
   tutorialSeen: false,
+  debugLayoutEnabled: false,
   tutorialStep: 0,
   tutorialSteps: [
     {
@@ -27,6 +28,7 @@ const Game = {
       body: 'Open your notebook, review clues, and accuse the culprit when ready.'
     }
   ],
+  imageFallbackCache: {},
 
   // DOM elements
   elements: {
@@ -144,6 +146,7 @@ const Game = {
 
     this.initKeyboardAccessibility();
     this.loadTutorialPreference();
+    this.initLayoutDebugToggle();
 
     // Mobile optimizations
     this.initMobileOptimizations();
@@ -204,7 +207,29 @@ const Game = {
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
     setViewportHeight();
-    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('resize', () => {
+      setViewportHeight();
+      if (this.gameStarted) {
+        this.renderLocation();
+      }
+    });
+  },
+
+  initLayoutDebugToggle() {
+    const params = new URLSearchParams(window.location.search);
+    this.debugLayoutEnabled = params.get('debugLayout') === '1';
+    this.applyDebugLayoutClass();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key && e.key.toLowerCase() === 'd') {
+        this.debugLayoutEnabled = !this.debugLayoutEnabled;
+        this.applyDebugLayoutClass();
+      }
+    });
+  },
+
+  applyDebugLayoutClass() {
+    document.body.classList.toggle('debug-layout', this.debugLayoutEnabled);
   },
 
   initKeyboardAccessibility() {
@@ -410,8 +435,9 @@ const Game = {
     this.elements.objectsLayer.innerHTML = '';
 
     // Set background from mystery data
+    // Set background image with runtime fallback in case an asset is missing.
     const background = this.currentMysteryData.backgrounds[this.currentLocation];
-    this.elements.background.className = background;
+    this.setBackground(background);
 
     // Render all suspects as characters (they appear in all locations for now)
     const suspects = Object.keys(this.currentMysteryData.suspects);
@@ -443,25 +469,68 @@ const Game = {
 
   // Get character position based on index (spread them out)
   getCharacterPosition(index, total) {
-    const positions = [
-      { bottom: "8%", left: "20%" },
-      { bottom: "8%", left: "40%" },
-      { bottom: "8%", left: "60%" },
-      { bottom: "8%", left: "75%" }
-    ];
-    return positions[index] || { bottom: "8%", left: "50%" };
+    const isCompactMobile = this.isSmallPhoneViewport();
+    const minLeft = isCompactMobile ? 2 : (this.isMobileViewport() ? 6 : 12);
+    const maxLeft = isCompactMobile ? 74 : (this.isMobileViewport() ? 76 : 78);
+    const bottom = this.isMobileViewport() ? '6%' : '8%';
+
+    if (total <= 1) {
+      return { bottom, left: `${Math.round((minLeft + maxLeft) / 2)}%` };
+    }
+
+    const step = (maxLeft - minLeft) / (total - 1);
+    const left = minLeft + (step * index);
+    return { bottom, left: `${Math.round(left)}%` };
+  },
+
+  setBackground(backgroundId) {
+    const backgroundEl = this.elements.background;
+    const imagePath = `images/backgrounds/${backgroundId}.png`;
+
+    backgroundEl.className = '';
+    backgroundEl.style.backgroundImage = `url('${imagePath}')`;
+    backgroundEl.style.backgroundRepeat = 'no-repeat';
+    backgroundEl.style.backgroundPosition = 'center center';
+    backgroundEl.style.backgroundSize = this.isMobileViewport() ? 'contain' : 'cover';
+    backgroundEl.style.backgroundColor = '#b9e6ff';
+
+    if (this.imageFallbackCache[imagePath] === false) {
+      backgroundEl.style.backgroundImage = 'none';
+      return;
+    }
+
+    const probe = new Image();
+    probe.onload = () => {
+      this.imageFallbackCache[imagePath] = true;
+    };
+    probe.onerror = () => {
+      this.imageFallbackCache[imagePath] = false;
+      if (this.currentMysteryData && this.currentMysteryData.backgrounds[this.currentLocation] === backgroundId) {
+        backgroundEl.style.backgroundImage = 'none';
+      }
+    };
+    probe.src = imagePath;
+  },
+
+  isMobileViewport() {
+    return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+  },
+
+  isSmallPhoneViewport() {
+    return window.matchMedia('(max-width: 480px)').matches;
   },
 
   // Render character
   renderCharacter(char) {
     const charEl = document.createElement('div');
-    charEl.className = char.id;
+    charEl.className = `character ${char.id}`;
     charEl.style.bottom = char.position.bottom;
     charEl.style.left = char.position.left;
     charEl.title = char.name;
     charEl.tabIndex = 0;
     charEl.setAttribute('role', 'button');
     charEl.setAttribute('aria-label', `Talk to ${char.name}`);
+    charEl.dataset.debugLabel = `character: ${char.name}`;
 
     // Use actual character image instead of emoji
     const mood = this.getSuspectMood(char.id);
@@ -494,6 +563,7 @@ const Game = {
     objEl.tabIndex = 0;
     objEl.setAttribute('role', 'button');
     objEl.setAttribute('aria-label', `Inspect ${obj.name}`);
+    objEl.dataset.debugLabel = `object: ${obj.name}`;
 
     // Object image mapping - add more as you create images
     const objectImages = {
@@ -538,15 +608,21 @@ const Game = {
     clueEl.tabIndex = 0;
     clueEl.setAttribute('role', 'button');
     clueEl.setAttribute('aria-label', `Collect clue: ${clue.name}`);
+    clueEl.dataset.debugLabel = `clue: ${clue.name}`;
 
     // Use clue image (with fallback if image not available yet)
     const img = document.createElement('img');
     const imageName = clue.imageFallback || clue.image;
-    img.src = `images/clues/${imageName}`;
+    const primarySrc = `images/clues/${imageName}`;
+    img.src = primarySrc;
     img.alt = clue.name;
     img.style.width = '100%';
     img.style.height = '100%';
     img.style.objectFit = 'contain';
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = 'images/clues/question_mark.png';
+    };
     clueEl.appendChild(img);
 
     const handleClueInteraction = () => {
