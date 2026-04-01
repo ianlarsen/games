@@ -223,6 +223,56 @@ body {
         drop-shadow(0 4px 3px rgba(0,0,0,0.4));
 }
 
+.queue-marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(12, 12, 12, 0.85);
+    border: 1px solid rgba(255, 233, 140, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+.queue-marker span {
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffe88f;
+    transform: rotateZ(-45deg) rotateX(-50deg);
+}
+
+.floating-text {
+    position: absolute;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    animation: float-fade 900ms ease-out forwards;
+}
+
+.floating-text span {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    transform: rotateZ(-45deg) rotateX(-50deg);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.55);
+}
+
+.floating-text.positive span {
+    color: #bcf8c7;
+}
+
+.floating-text.negative span {
+    color: #ffb8b8;
+}
+
 @keyframes bob {
     0%, 100% {
         transform: rotateZ(-45deg) rotateX(-50deg) translateY(0);
@@ -256,6 +306,25 @@ body {
         0 10px 24px rgba(0,0,0,0.28),
         inset 0 1px 0 rgba(255,255,255,0.03);
     backdrop-filter: blur(6px);
+}
+
+#mobile-menu-toggle,
+#mobile-close-btn,
+#menu-backdrop {
+    display: none;
+}
+
+.ui-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#mobile-close-btn {
+    min-height: 36px;
+    min-width: 36px;
+    padding: 6px 10px;
+    font-size: 14px;
 }
 
 .ui-title {
@@ -348,14 +417,73 @@ button.active {
     line-height: 1.4;
 }
 
+.status-message {
+    margin-top: 10px;
+    min-height: 20px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: #a9c3ff;
+}
+
+.status-message.error {
+    color: #ffb7b7;
+}
+
+.status-message.success {
+    color: #b8f2bf;
+}
+
 strong {
     color: #fff;
 }
 
 @media (max-width: 780px) {
+    #mobile-menu-toggle {
+        display: block;
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 2201;
+        min-height: 42px;
+        padding: 10px 12px;
+    }
+
+    #menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 2199;
+        background: rgba(0,0,0,0.42);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease;
+        display: block;
+    }
+
+    #menu-backdrop.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
     #ui-layer {
         width: calc(100vw - 24px);
         max-width: 340px;
+        z-index: 2200;
+        transform: translateX(0);
+        transition: transform 0.18s ease;
+    }
+
+    #ui-layer .ui-header {
+        margin-bottom: 8px;
+    }
+
+    #ui-layer.collapsed {
+        transform: translateX(calc(-100% - 24px));
+    }
+
+    #mobile-close-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .stats {
@@ -364,5 +492,16 @@ strong {
 
     .controls {
         grid-template-columns: 1fr;
+    }
+}
+
+@keyframes float-fade {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 45px);
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(0, -22px, 55px);
     }
 }

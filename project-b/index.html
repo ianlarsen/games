@@ -27,7 +27,7 @@
                 <span id="wood-val">80</span>
             </div>
             <div class="stat-card">
-                <span class="label">💰 Gold</span>
+                <span class="label">🪙 Gold</span>
                 <span id="gold-val">0</span>
             </div>
         </div>
@@ -52,7 +52,7 @@
             <button id="btn-chopping" onclick="setTool('chopping')">🪓 Chop Tree</button>
             <button id="btn-mining" onclick="setTool('mining')">⛏️ Mine Gold</button>
             <button id="btn-catch" onclick="setTool('catch')">🕸️ Catch Chicken</button>
-            <button id="btn-building" onclick="setTool('building')">🏠 House (25🪵 + 5💰)</button>
+            <button id="btn-building" onclick="setTool('building')">🏡 House (25🪵 + 5🪙)</button>
             <button id="btn-townhall" onclick="setTool('townhall')">🏛️ Town Hall (100🪵)</button>
             <button id="btn-coop" onclick="setTool('coop')">🛖 Coop (40🪵)</button>
             <button id="btn-training" onclick="setTool('training')">🎓 Train (50🪵)</button>
@@ -61,6 +61,8 @@
         <div class="hint">
             Drag to move in <strong>Move Map</strong> mode. Tap tiles to queue actions.
         </div>
+
+        <div id="status-msg" class="status-message" aria-live="polite"></div>
     </div>
 
     <div id="menu-backdrop"></div>
