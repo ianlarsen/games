@@ -1,0 +1,819 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color By Letter Match</title>
+    <link rel="stylesheet" href="../_ios_compat.css">
+    <style>
+        :root {
+            --bg: #f7fbff;
+            --panel: #ffffff;
+            --ink: #1f2937;
+            --muted: #667085;
+            --line: #d5def0;
+            --accent: #2563eb;
+            --good: #059669;
+            --bad: #dc2626;
+            --letter-font: "Times New Roman", Georgia, serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            padding: calc(12px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            background: radial-gradient(circle at top, #eef5ff 0%, var(--bg) 58%, #f7fbff 100%);
+            color: var(--ink);
+            font-family: Tahoma, "Segoe UI", sans-serif;
+        }
+
+        .root-back {
+            position: fixed;
+            top: max(10px, env(safe-area-inset-top));
+            left: max(10px, env(safe-area-inset-left));
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.94);
+            color: #111;
+            padding: 10px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid #d1d5db;
+        }
+
+        main {
+            width: min(920px, 100%);
+            margin: 52px auto 0;
+            background: var(--panel);
+            border-radius: 24px;
+            box-shadow: 0 18px 42px rgba(35, 62, 110, 0.12);
+            padding: 16px;
+        }
+
+        h1 {
+            margin: 4px 0 8px;
+            text-align: center;
+            font-size: clamp(1.5rem, 5vw, 2.1rem);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .control {
+            display: grid;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        select,
+        button {
+            min-height: 48px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-size: 1rem;
+            padding: 0 12px;
+            color: var(--ink);
+        }
+
+        button {
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .triplet-controls {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #f8fbff;
+            padding: 10px;
+            display: grid;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .triplet-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .triplet-title {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        .letter-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .letter-input {
+            width: 64px;
+            min-height: 64px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 900;
+            font-family: var(--letter-font);
+            border-radius: 14px;
+            border: 2px solid #b8c8eb;
+            text-transform: none;
+        }
+
+        .mode-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #cbd5e1;
+            transition: 0.2s;
+            border-radius: 999px;
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            top: 4px;
+            background: #fff;
+            transition: 0.2s;
+            border-radius: 999px;
+        }
+
+        .switch input:checked + .slider {
+            background: var(--accent);
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .prompt {
+            display: grid;
+            justify-items: center;
+            gap: 10px;
+            text-align: center;
+            margin: 0 0 14px;
+        }
+
+        .prompt-text {
+            font-size: clamp(1.2rem, 4.4vw, 1.8rem);
+            font-weight: 800;
+            line-height: 1.3;
+            font-family: var(--letter-font);
+        }
+
+        .prompt-target {
+            display: inline-grid;
+            place-items: center;
+            min-width: 42px;
+            min-height: 42px;
+            padding: 0 10px;
+            margin: 0 4px;
+            border-radius: 12px;
+            border: 4px solid currentColor;
+            background: #fff;
+            font-weight: 900;
+            line-height: 1;
+            font-family: var(--letter-font);
+        }
+
+        .status {
+            min-height: 1.5em;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .status.good { color: var(--good); }
+        .status.bad { color: var(--bad); }
+
+        .layout {
+            display: grid;
+            gap: 14px;
+        }
+
+        .panel {
+            border: 2px solid var(--line);
+            border-radius: 18px;
+            padding: 14px;
+            background: #fbfdff;
+        }
+
+        .palette-block {
+            display: grid;
+            gap: 10px;
+        }
+
+        .palette-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .selector-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            justify-items: start;
+        }
+
+        .color-btn {
+            width: 64px;
+            aspect-ratio: 1 / 1;
+            min-height: 64px;
+            border-radius: 16px;
+            border: 4px solid rgba(15, 23, 42, 0.12);
+            background: #fff;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .color-btn.active {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .cell {
+            aspect-ratio: 1 / 1;
+            min-height: 64px;
+            border-radius: 16px;
+            border: 2px solid #b8c8eb;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            font-size: clamp(1.6rem, 7vw, 2.3rem);
+            font-weight: 900;
+            font-family: var(--letter-font);
+            user-select: none;
+            cursor: pointer;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+
+        .cell.colored {
+            color: #fff;
+            border-color: rgba(0, 0, 0, 0.12);
+        }
+
+        .cell.bad {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .cell.good-bump {
+            transform: scale(1.04);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .actions button {
+            flex: 1 1 180px;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.56);
+            z-index: 1000;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .overlay-card {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 20px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .overlay-card h2 {
+            margin: 0 0 8px;
+            color: var(--good);
+            font-size: 1.8rem;
+        }
+
+        .overlay-card p {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        @media (max-width: 560px) {
+            .root-back {
+                padding: 9px 10px;
+                font-size: 0.9rem;
+            }
+
+            main {
+                margin-top: 58px;
+                border-radius: 16px;
+                padding: 12px;
+            }
+
+            select,
+            button {
+                font-size: 16px;
+            }
+
+            .panel {
+                padding: 10px;
+                border-radius: 14px;
+            }
+
+            .triplet-controls {
+                padding: 8px;
+            }
+
+            .letter-inputs {
+                gap: 8px;
+            }
+
+            .letter-input {
+                width: 56px;
+                min-height: 56px;
+                font-size: 1.8rem;
+                border-radius: 12px;
+            }
+
+            .color-btn {
+                width: 56px;
+                min-height: 56px;
+                border-radius: 14px;
+            }
+
+            .grid {
+                gap: 8px;
+            }
+
+            .cell {
+                min-height: 56px;
+                border-radius: 12px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions button {
+                flex-basis: auto;
+            }
+        }
+
+        @media (min-width: 820px) {
+            .controls {
+                grid-template-columns: 2fr 1fr;
+                align-items: end;
+            }
+
+            .layout {
+                grid-template-columns: 320px 1fr;
+                align-items: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="root-back" href="../index.html">&larr; All Games</a>
+
+    <main>
+        <h1>Color By Letter Match</h1>
+
+        <section class="controls" aria-label="Game controls">
+            <div class="control">
+                <label for="difficulty-select">Board size</label>
+                <select id="difficulty-select">
+                    <option value="12">Easy - 12 spaces</option>
+                    <option value="16" selected>Medium - 16 spaces</option>
+                    <option value="20">Hard - 20 spaces</option>
+                </select>
+            </div>
+            <button id="new-round" class="primary">New Round</button>
+        </section>
+
+        <section class="triplet-controls" aria-label="Letter and direction controls">
+            <div class="triplet-head">
+                <p class="triplet-title">Letter triplet</p>
+                <div class="mode-wrap">
+                    <span id="mode-label" class="mode-label">lower to upper</span>
+                    <label class="switch" aria-label="Toggle case direction">
+                        <input id="direction-toggle" type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="letter-inputs">
+                <input id="letter-1" class="letter-input" type="text" inputmode="text" maxlength="1" aria-label="Letter 1">
+                <input id="letter-2" class="letter-input" type="text" inputmode="text" maxlength="1" aria-label="Letter 2">
+                <input id="letter-3" class="letter-input" type="text" inputmode="text" maxlength="1" aria-label="Letter 3">
+            </div>
+        </section>
+
+        <div class="prompt">
+            <div class="prompt-text" id="prompt-text">Color all the <span class="prompt-target" style="color:#ef4444">a</span> letters red.</div>
+        </div>
+
+        <div id="status" class="status" aria-live="polite"></div>
+
+        <section class="layout">
+            <div class="panel">
+                <div class="palette-block">
+                    <p class="palette-title">Choose a color</p>
+                    <div id="color-buttons" class="selector-row" aria-label="Color choices"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div id="letter-grid" class="grid" aria-label="Letter board"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="win-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Round complete">
+        <div class="overlay-card">
+            <h2>Nice Work</h2>
+            <p id="win-text">You colored all the matching letters.</p>
+            <button id="next-btn" class="primary">Next Round</button>
+        </div>
+    </div>
+
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+
+    <script>
+        const COLORS = [
+            { name: "red", value: "#ef4444" },
+            { name: "blue", value: "#3b82f6" },
+            { name: "green", value: "#22c55e" }
+        ];
+        const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+
+        const difficultySelect = document.getElementById("difficulty-select");
+        const newRoundBtn = document.getElementById("new-round");
+        const directionToggle = document.getElementById("direction-toggle");
+        const modeLabel = document.getElementById("mode-label");
+        const letterInputs = [
+            document.getElementById("letter-1"),
+            document.getElementById("letter-2"),
+            document.getElementById("letter-3")
+        ];
+        const colorButtonsEl = document.getElementById("color-buttons");
+        const letterGridEl = document.getElementById("letter-grid");
+        const promptTextEl = document.getElementById("prompt-text");
+        const statusEl = document.getElementById("status");
+        const winOverlay = document.getElementById("win-overlay");
+        const winText = document.getElementById("win-text");
+        const nextBtn = document.getElementById("next-btn");
+        const flipSound = document.getElementById("flip-sound");
+        const winSound = document.getElementById("win-sound");
+
+        let currentLetters = [];
+        let currentTarget = null;
+        let cells = [];
+        let inputLocked = false;
+        let audioUnlocked = false;
+        let directionMode = "lower-to-upper";
+
+        function shuffle(array) {
+            const copy = [...array];
+            for (let index = copy.length - 1; index > 0; index -= 1) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                const temp = copy[index];
+                copy[index] = copy[swapIndex];
+                copy[swapIndex] = temp;
+            }
+            return copy;
+        }
+
+        function setStatus(text, type) {
+            statusEl.textContent = text;
+            statusEl.className = "status" + (type ? " " + type : "");
+        }
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            flipSound.play().then(() => {
+                flipSound.pause();
+                winSound.play().then(() => winSound.pause()).catch(() => {});
+                audioUnlocked = true;
+            }).catch(() => {});
+            audioUnlocked = true;
+        }
+
+        function playSound(sound) {
+            if (!audioUnlocked || !sound) return;
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        function getSourceCase() {
+            return directionMode === "lower-to-upper" ? "lower" : "upper";
+        }
+
+        function getBoardCase() {
+            return getSourceCase() === "lower" ? "upper" : "lower";
+        }
+
+        function formatByCase(letter, caseType) {
+            return caseType === "upper" ? letter.toUpperCase() : letter.toLowerCase();
+        }
+
+        function sanitizeLetter(value) {
+            const match = String(value || "").match(/[a-z]/i);
+            return match ? match[0].toLowerCase() : "";
+        }
+
+        function syncModeLabel() {
+            modeLabel.textContent = directionMode === "lower-to-upper" ? "lower to upper" : "upper to lower";
+        }
+
+        function normalizeInputsToMode() {
+            const sourceCase = getSourceCase();
+            letterInputs.forEach((input) => {
+                const sanitized = sanitizeLetter(input.value);
+                input.value = sanitized ? formatByCase(sanitized, sourceCase) : "";
+            });
+        }
+
+        function getTypedLetters() {
+            const letters = [];
+            const seen = new Set();
+            letterInputs.forEach((input) => {
+                const sanitized = sanitizeLetter(input.value);
+                if (!sanitized || seen.has(sanitized)) {
+                    return;
+                }
+                seen.add(sanitized);
+                letters.push(sanitized);
+            });
+            return letters;
+        }
+
+        function setInputLetters(baseLetters) {
+            const sourceCase = getSourceCase();
+            letterInputs.forEach((input, index) => {
+                const letter = baseLetters[index] || "";
+                input.value = letter ? formatByCase(letter, sourceCase) : "";
+            });
+        }
+
+        function chooseLetters(forceRandom) {
+            let baseLetters = [];
+            if (!forceRandom) {
+                baseLetters = getTypedLetters();
+            }
+
+            if (forceRandom || baseLetters.length < 3) {
+                const pool = shuffle(LETTERS.filter((letter) => !baseLetters.includes(letter)));
+                while (baseLetters.length < 3 && pool.length) {
+                    baseLetters.push(pool.pop());
+                }
+            }
+
+            if (baseLetters.length < 3) {
+                baseLetters = shuffle(LETTERS).slice(0, 3);
+            }
+
+            baseLetters = baseLetters.slice(0, 3).sort();
+            setInputLetters(baseLetters);
+
+            currentLetters = baseLetters.map((letter, index) => ({
+                source: formatByCase(letter, getSourceCase()),
+                board: formatByCase(letter, getBoardCase()),
+                color: COLORS[index].value,
+                colorName: COLORS[index].name
+            }));
+        }
+
+        function buildCells() {
+            const total = Number(difficultySelect.value);
+            const perLetter = Math.max(3, Math.floor(total / currentLetters.length));
+            const boardLetters = [];
+
+            currentLetters.forEach((entry) => {
+                for (let count = 0; count < perLetter; count += 1) {
+                    boardLetters.push(entry.board);
+                }
+            });
+
+            while (boardLetters.length < total) {
+                const entry = currentLetters[Math.floor(Math.random() * currentLetters.length)];
+                boardLetters.push(entry.board);
+            }
+
+            cells = shuffle(boardLetters).map((letter, index) => ({
+                id: index,
+                letter,
+                colored: false
+            }));
+        }
+
+        function getGridColumnCount() {
+            const narrow = window.matchMedia("(max-width: 560px)").matches;
+            return narrow ? 3 : 4;
+        }
+
+        function renderColorButtons() {
+            colorButtonsEl.innerHTML = "";
+            currentLetters.forEach((entry) => {
+                const button = document.createElement("button");
+                button.className = "color-btn" + (currentTarget && currentTarget.source === entry.source ? " active" : "");
+                button.style.background = entry.color;
+                button.setAttribute("aria-label", entry.colorName + " for letter " + entry.source);
+                button.addEventListener("click", () => {
+                    currentTarget = entry;
+                    renderColorButtons();
+                    updatePrompt();
+                    setStatus("", "");
+                });
+                colorButtonsEl.appendChild(button);
+            });
+        }
+
+        function updatePrompt() {
+            promptTextEl.innerHTML = 'Color all the <span class="prompt-target" style="color:' + currentTarget.color + '">' + currentTarget.source + '</span> letters ' + currentTarget.colorName + '.';
+        }
+
+        function renderGrid() {
+            letterGridEl.innerHTML = "";
+            letterGridEl.style.gridTemplateColumns = "repeat(" + getGridColumnCount() + ", minmax(0, 1fr))";
+            cells.forEach((cell) => {
+                const button = document.createElement("button");
+                button.className = "cell" + (cell.colored ? " colored" : "");
+                button.textContent = cell.letter;
+                if (cell.colored) {
+                    const match = currentLetters.find((entry) => entry.board === cell.letter);
+                    button.style.background = match ? match.color : "#94a3b8";
+                }
+                button.addEventListener("click", () => handleCellTap(cell.id, button));
+                letterGridEl.appendChild(button);
+            });
+        }
+
+        function getNextAvailableTarget() {
+            return currentLetters.find((entry) => cells.some((cell) => !cell.colored && cell.letter === entry.board)) || null;
+        }
+
+        function handleCellTap(id, button) {
+            if (inputLocked || !currentTarget) return;
+            unlockAudio();
+            const cell = cells.find((item) => item.id === id);
+            if (!cell || cell.colored) return;
+
+            if (cell.letter === currentTarget.board) {
+                cell.colored = true;
+                button.classList.add("colored", "good-bump");
+                button.style.background = currentTarget.color;
+                playSound(flipSound);
+                setTimeout(() => button.classList.remove("good-bump"), 180);
+
+                const nextTarget = getNextAvailableTarget();
+                if (!nextTarget) {
+                    playSound(winSound);
+                    setStatus("Correct!", "good");
+                    winText.textContent = "You matched all three letters.";
+                    winOverlay.classList.add("show");
+                    return;
+                }
+
+                const targetDone = !cells.some((item) => !item.colored && item.letter === currentTarget.board);
+                if (targetDone) {
+                    currentTarget = nextTarget;
+                    renderColorButtons();
+                    updatePrompt();
+                    setStatus("Correct!", "good");
+                } else {
+                    setStatus("Correct!", "good");
+                }
+                return;
+            }
+
+            inputLocked = true;
+            button.classList.add("bad");
+            setStatus("Sorry, please try again.", "bad");
+            if (navigator.vibrate) {
+                navigator.vibrate(120);
+            }
+            setTimeout(() => {
+                button.classList.remove("bad");
+                inputLocked = false;
+            }, 360);
+        }
+
+        function startRound(forceRandom) {
+            chooseLetters(forceRandom);
+            buildCells();
+            currentTarget = currentLetters[0];
+            winOverlay.classList.remove("show");
+            renderColorButtons();
+            updatePrompt();
+            renderGrid();
+            setStatus("", "");
+        }
+
+        function init() {
+            directionMode = directionToggle.checked ? "upper-to-lower" : "lower-to-upper";
+            syncModeLabel();
+            startRound(true);
+
+            newRoundBtn.addEventListener("click", () => startRound(true));
+            difficultySelect.addEventListener("change", () => startRound(false));
+            directionToggle.addEventListener("change", () => {
+                directionMode = directionToggle.checked ? "upper-to-lower" : "lower-to-upper";
+                syncModeLabel();
+                normalizeInputsToMode();
+                startRound(false);
+            });
+            letterInputs.forEach((input) => {
+                input.addEventListener("input", () => {
+                    const sanitized = sanitizeLetter(input.value);
+                    input.value = sanitized ? formatByCase(sanitized, getSourceCase()) : "";
+                    startRound(false);
+                });
+            });
+            window.addEventListener("resize", () => {
+                if (cells.length) {
+                    renderGrid();
+                }
+            });
+            nextBtn.addEventListener("click", () => startRound(true));
+            winOverlay.addEventListener("click", (event) => {
+                if (event.target === winOverlay) {
+                    winOverlay.classList.remove("show");
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
