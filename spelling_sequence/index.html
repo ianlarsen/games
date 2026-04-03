@@ -1,0 +1,628 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Spelling Sequence</title>
+    <link rel="stylesheet" href="../_ios_compat.css">
+    <style>
+        :root {
+            --bg: #f6f8ff;
+            --panel: #ffffff;
+            --ink: #1f2937;
+            --muted: #6b7280;
+            --line: #dbe2f2;
+            --accent: #2563eb;
+            --good: #059669;
+            --bad: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #eef3ff 0%, var(--bg) 60%);
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--ink);
+            padding: calc(12px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            min-height: 100dvh;
+        }
+
+        .root-back {
+            position: fixed;
+            top: max(10px, env(safe-area-inset-top));
+            left: max(10px, env(safe-area-inset-left));
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.94);
+            color: #111;
+            padding: 10px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid #d1d5db;
+        }
+
+        main {
+            width: min(920px, 100%);
+            margin: 52px auto 0;
+            background: var(--panel);
+            border-radius: 20px;
+            box-shadow: 0 18px 40px rgba(28, 51, 84, 0.12);
+            padding: 16px;
+        }
+
+        h1 {
+            margin: 6px 0 6px;
+            text-align: center;
+            font-size: clamp(1.4rem, 5vw, 2rem);
+        }
+
+        .subtitle {
+            margin: 0 0 14px;
+            text-align: center;
+            color: var(--muted);
+            font-size: clamp(0.95rem, 3vw, 1.05rem);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .control {
+            display: grid;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        select,
+        button {
+            min-height: 48px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-size: 1rem;
+            padding: 0 12px;
+            color: var(--ink);
+        }
+
+        button {
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            min-height: 1.4em;
+            margin: 4px 0 12px;
+        }
+
+        .status.good { color: var(--good); }
+        .status.bad { color: var(--bad); }
+
+        .card {
+            border: 2px solid var(--line);
+            border-radius: 16px;
+            padding: 12px;
+            background: #fbfcff;
+        }
+
+        .picture-wrap {
+            display: grid;
+            justify-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .picture {
+            font-size: clamp(3rem, 12vw, 5rem);
+            line-height: 1;
+        }
+
+        .hint-word {
+            color: var(--muted);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+            gap: 8px;
+            margin: 8px 0 14px;
+        }
+
+        .slot {
+            min-height: 56px;
+            border-radius: 12px;
+            border: 2px solid #b9c7e8;
+            background: #fff;
+            font-size: clamp(1.3rem, 5vw, 2rem);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+        }
+
+        .slot.drop-target {
+            border-style: dashed;
+            border-color: #2563eb;
+            background: #eef4ff;
+        }
+
+        .letter-bank {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+            gap: 10px;
+        }
+
+        .letter-btn {
+            min-height: 64px;
+            border-radius: 14px;
+            border: 2px solid #b9c7e8;
+            background: #fff;
+            font-size: clamp(1.4rem, 6vw, 2.1rem);
+            font-weight: 800;
+        }
+
+        .letter-btn.used {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .letter-btn.good {
+            background: #def7ec;
+            border-color: #5ac9a5;
+            color: #065f46;
+        }
+
+        .letter-btn.dragging {
+            opacity: 0.55;
+        }
+
+        .letter-btn.bad {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .actions button { flex: 1; }
+
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            padding: 14px;
+        }
+
+        .overlay.show { display: flex; }
+
+        .overlay-card {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 18px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .overlay-card h2 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+            color: var(--good);
+        }
+
+        .overlay-card p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        @media (max-width: 560px) {
+            .root-back {
+                padding: 9px 10px;
+                font-size: 0.9rem;
+            }
+
+            main {
+                margin-top: 58px;
+                border-radius: 16px;
+                padding: 12px;
+            }
+
+            select,
+            button {
+                font-size: 16px;
+            }
+
+            .card { padding: 10px; }
+
+            .slots {
+                grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+                gap: 7px;
+            }
+
+            .slot { min-height: 52px; }
+
+            .letter-bank {
+                grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+                gap: 8px;
+            }
+
+            .letter-btn { min-height: 58px; }
+
+            .actions { flex-direction: column; }
+        }
+
+        @media (min-width: 760px) {
+            .controls {
+                grid-template-columns: 2fr 1fr 1fr;
+                align-items: end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="root-back" href="../index.html">&larr; All Games</a>
+
+    <main>
+        <h1>Picture Spelling Sequence</h1>
+        <p class="subtitle">Tap letters in the correct order.</p>
+
+        <section class="controls" aria-label="Game controls">
+            <div class="control">
+                <label for="word-select">Picture List</label>
+                <select id="word-select"></select>
+            </div>
+            <div class="control">
+                <label for="input-mode">Input mode</label>
+                <select id="input-mode">
+                    <option value="tap">Tap</option>
+                    <option value="drag">Drag</option>
+                </select>
+            </div>
+            <button id="new-round" class="primary">New Round</button>
+        </section>
+
+        <div id="status" class="status" aria-live="polite"></div>
+
+        <section class="card" id="game-card">
+            <div class="picture-wrap">
+                <div id="picture" class="picture" aria-hidden="true">🐦</div>
+                <div id="hint-word" class="hint-word">Spell this picture</div>
+            </div>
+
+            <div id="slots" class="slots" aria-label="Letter slots"></div>
+            <div id="bank" class="letter-bank" aria-label="Letter choices"></div>
+
+            <div class="actions">
+                <button id="undo-btn">Undo</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="win-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Round complete">
+        <div class="overlay-card">
+            <h2>Great Work</h2>
+            <p id="win-text">You spelled it in the right order.</p>
+            <button id="next-btn" class="primary">Next Word</button>
+        </div>
+    </div>
+
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+
+    <script>
+        const WORDS = [
+            { id: "bird", picture: "🐦", word: "BIRD" },
+            { id: "fish", picture: "🐟", word: "FISH" },
+            { id: "duck", picture: "🦆", word: "DUCK" },
+            { id: "frog", picture: "🐸", word: "FROG" },
+            { id: "lion", picture: "🦁", word: "LION" },
+            { id: "bear", picture: "🐻", word: "BEAR" },
+            { id: "wolf", picture: "🐺", word: "WOLF" },
+            { id: "goat", picture: "🐐", word: "GOAT" },
+            { id: "deer", picture: "🦌", word: "DEER" },
+            { id: "crab", picture: "🦀", word: "CRAB" },
+            { id: "star", picture: "⭐", word: "STAR" },
+            { id: "moon", picture: "🌙", word: "MOON" },
+            { id: "tree", picture: "🌳", word: "TREE" },
+            { id: "rose", picture: "🌹", word: "ROSE" },
+            { id: "leaf", picture: "🍃", word: "LEAF" },
+            { id: "book", picture: "📘", word: "BOOK" },
+            { id: "cake", picture: "🍰", word: "CAKE" },
+            { id: "milk", picture: "🥛", word: "MILK" },
+            { id: "corn", picture: "🌽", word: "CORN" },
+            { id: "pear", picture: "🍐", word: "PEAR" },
+            { id: "kiwi", picture: "🥝", word: "KIWI" },
+            { id: "soup", picture: "🥣", word: "SOUP" },
+            { id: "rice", picture: "🍚", word: "RICE" },
+            { id: "bowl", picture: "🥣", word: "BOWL" },
+            { id: "fork", picture: "🍴", word: "FORK" },
+            { id: "ship", picture: "🚢", word: "SHIP" },
+            { id: "boat", picture: "⛵", word: "BOAT" },
+            { id: "bike", picture: "🚲", word: "BIKE" },
+            { id: "cart", picture: "🛒", word: "CART" },
+            { id: "bell", picture: "🔔", word: "BELL" },
+            { id: "drum", picture: "🥁", word: "DRUM" },
+            { id: "kite", picture: "🪁", word: "KITE" },
+            { id: "ball", picture: "🏀", word: "BALL" },
+            { id: "dice", picture: "🎲", word: "DICE" },
+            { id: "cube", picture: "🧊", word: "CUBE" },
+            { id: "gift", picture: "🎁", word: "GIFT" },
+            { id: "coat", picture: "🧥", word: "COAT" },
+            { id: "sock", picture: "🧦", word: "SOCK" },
+            { id: "shoe", picture: "👟", word: "SHOE" },
+            { id: "hand", picture: "✋", word: "HAND" },
+            { id: "foot", picture: "🦶", word: "FOOT" },
+            { id: "eyes", picture: "👀", word: "EYES" },
+            { id: "nose", picture: "👃", word: "NOSE" },
+            { id: "lips", picture: "👄", word: "LIPS" },
+            { id: "ears", picture: "👂", word: "EARS" },
+            { id: "ring", picture: "💍", word: "RING" },
+            { id: "keys", picture: "🔑", word: "KEYS" },
+            { id: "door", picture: "🚪", word: "DOOR" },
+            { id: "lamp", picture: "💡", word: "LAMP" },
+            { id: "lock", picture: "🔒", word: "LOCK" }
+        ];
+
+        const wordSelect = document.getElementById("word-select");
+        const inputModeEl = document.getElementById("input-mode");
+        const newRoundBtn = document.getElementById("new-round");
+        const undoBtn = document.getElementById("undo-btn");
+        const pictureEl = document.getElementById("picture");
+        const hintWordEl = document.getElementById("hint-word");
+        const slotsEl = document.getElementById("slots");
+        const bankEl = document.getElementById("bank");
+        const statusEl = document.getElementById("status");
+        const gameCardEl = document.getElementById("game-card");
+        const winOverlay = document.getElementById("win-overlay");
+        const winText = document.getElementById("win-text");
+        const nextBtn = document.getElementById("next-btn");
+        const flipSound = document.getElementById("flip-sound");
+        const winSound = document.getElementById("win-sound");
+
+        let currentWord = WORDS[0];
+        let answer = [];
+        let entries = [];
+        let usedButtons = new Set();
+        let audioUnlocked = false;
+        let inputLocked = false;
+        let inputMode = "tap";
+        let lastInputTime = 0;
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            flipSound.play().then(() => {
+                flipSound.pause();
+                winSound.play().then(() => winSound.pause()).catch(() => {});
+                audioUnlocked = true;
+            }).catch(() => {});
+            audioUnlocked = true;
+        }
+
+        function playSound(sound) {
+            if (!audioUnlocked || !sound) return;
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        function shuffle(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = copy[i];
+                copy[i] = copy[j];
+                copy[j] = tmp;
+            }
+            return copy;
+        }
+
+        function setStatus(text, type) {
+            statusEl.textContent = text;
+            statusEl.className = "status" + (type ? " " + type : "");
+        }
+
+        function renderWordOptions() {
+            wordSelect.innerHTML = "";
+            WORDS.forEach((item, index) => {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.picture + " Picture " + (index + 1);
+                wordSelect.appendChild(option);
+            });
+        }
+
+        function getLetterPool(word) {
+            return shuffle(word.split(""));
+        }
+
+        function startRound(randomizeWord) {
+            inputMode = inputModeEl.value;
+
+            if (randomizeWord) {
+                currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+                wordSelect.value = currentWord.id;
+            } else {
+                const chosen = WORDS.find((w) => w.id === wordSelect.value);
+                currentWord = chosen || WORDS[0];
+            }
+
+            answer = [];
+            entries = [];
+            usedButtons = new Set();
+            inputLocked = false;
+
+            pictureEl.textContent = currentWord.picture;
+            hintWordEl.textContent = "Spell this picture";
+
+            renderSlots(currentWord.word.split(""));
+            renderBank(getLetterPool(currentWord.word));
+            setStatus("Find letter 1", "");
+            winOverlay.classList.remove("show");
+        }
+
+        function renderSlots(chars) {
+            slotsEl.innerHTML = "";
+            chars.forEach((ch, idx) => {
+                const slot = document.createElement("div");
+                slot.className = "slot";
+                if (inputMode === "drag" && idx === answer.length) {
+                    slot.classList.add("drop-target");
+                    slot.addEventListener("dragover", (event) => event.preventDefault());
+                    slot.addEventListener("drop", handleDrop);
+                }
+                slot.textContent = answer[idx] || "_";
+                slotsEl.appendChild(slot);
+            });
+        }
+
+        function renderBank(pool) {
+            bankEl.innerHTML = "";
+            pool.forEach((ch, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "letter-btn";
+                btn.textContent = ch;
+                btn.dataset.index = String(idx);
+                btn.draggable = inputMode === "drag";
+                btn.addEventListener("click", () => {
+                    if (inputMode === "tap") {
+                        chooseLetter(ch, btn.dataset.index);
+                    }
+                });
+                btn.addEventListener("dragstart", (event) => {
+                    if (inputMode !== "drag") {
+                        event.preventDefault();
+                        return;
+                    }
+                    btn.classList.add("dragging");
+                    event.dataTransfer.setData("text/plain", JSON.stringify({ letter: ch, buttonIndex: btn.dataset.index }));
+                });
+                btn.addEventListener("dragend", () => btn.classList.remove("dragging"));
+                bankEl.appendChild(btn);
+            });
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const raw = event.dataTransfer.getData("text/plain");
+            if (!raw) return;
+            try {
+                const payload = JSON.parse(raw);
+                chooseLetter(payload.letter, payload.buttonIndex);
+            } catch {
+                return;
+            }
+        }
+
+        function chooseLetter(ch, buttonIndex) {
+            if (inputLocked) return;
+            unlockAudio();
+            const now = Date.now();
+            lastInputTime = now;
+
+            const btn = bankEl.querySelector('[data-index="' + buttonIndex + '"]');
+            if (!btn) return;
+
+            const targetChars = currentWord.word.split("");
+            const expected = targetChars[answer.length];
+
+            if (ch === expected) {
+                answer.push(ch);
+                entries.push({ letter: ch, buttonIndex: buttonIndex });
+                usedButtons.add(buttonIndex);
+                btn.classList.add("used", "good");
+                playSound(flipSound);
+                setStatus("Correct!", "good");
+
+                renderSlots(targetChars);
+
+                if (answer.length === targetChars.length) {
+                    playSound(winSound);
+                    winText.textContent = "You got it in the right order.";
+                    winOverlay.classList.add("show");
+                } else {
+                    setStatus("Find letter " + (answer.length + 1), "good");
+                }
+                return;
+            }
+
+            btn.classList.add("bad");
+            gameCardEl.classList.add("shake");
+            setStatus("Sorry, please try again.", "bad");
+            if (navigator.vibrate) {
+                navigator.vibrate(120);
+            }
+            inputLocked = true;
+            setTimeout(() => {
+                btn.classList.remove("bad");
+                gameCardEl.classList.remove("shake");
+                inputLocked = false;
+            }, 450);
+        }
+
+        function undoLast() {
+            if (!entries.length || inputLocked) return;
+            const targetChars = currentWord.word.split("");
+            const last = entries.pop();
+            answer.pop();
+            usedButtons.delete(last.buttonIndex);
+            const btn = bankEl.querySelector('[data-index="' + last.buttonIndex + '"]');
+            if (btn) {
+                btn.classList.remove("used", "good", "bad");
+            }
+            renderSlots(targetChars);
+            setStatus("Undid last letter", "");
+        }
+
+        function init() {
+            renderWordOptions();
+            wordSelect.value = WORDS[0].id;
+            startRound(true);
+
+            newRoundBtn.addEventListener("click", () => startRound(true));
+            undoBtn.addEventListener("click", undoLast);
+            wordSelect.addEventListener("change", () => startRound(false));
+            inputModeEl.addEventListener("change", () => startRound(false));
+            nextBtn.addEventListener("click", () => startRound(true));
+            winOverlay.addEventListener("click", (e) => {
+                if (e.target === winOverlay) {
+                    winOverlay.classList.remove("show");
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
