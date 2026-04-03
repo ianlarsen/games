@@ -1,0 +1,604 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missing Letter Match</title>
+    <link rel="stylesheet" href="../_ios_compat.css">
+    <style>
+        :root {
+            --bg: #f8fbff;
+            --panel: #ffffff;
+            --ink: #1f2937;
+            --muted: #667085;
+            --line: #d5def0;
+            --accent: #2563eb;
+            --good: #059669;
+            --bad: #dc2626;
+            --good-bg: #def7ec;
+            --bad-bg: #fee2e2;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            padding: calc(12px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 52%, #f7fbff 100%);
+            color: var(--ink);
+            font-family: Verdana, "Segoe UI", sans-serif;
+        }
+
+        .root-back {
+            position: fixed;
+            top: max(10px, env(safe-area-inset-top));
+            left: max(10px, env(safe-area-inset-left));
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.94);
+            color: #111;
+            padding: 10px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid #d1d5db;
+        }
+
+        main {
+            width: min(920px, 100%);
+            margin: 52px auto 0;
+            background: var(--panel);
+            border-radius: 24px;
+            box-shadow: 0 18px 42px rgba(35, 62, 110, 0.12);
+            padding: 16px;
+        }
+
+        h1 {
+            margin: 4px 0 8px;
+            text-align: center;
+            font-size: clamp(1.5rem, 5vw, 2.1rem);
+        }
+
+        .subtitle {
+            margin: 0 0 14px;
+            text-align: center;
+            color: var(--muted);
+            font-size: clamp(0.95rem, 3vw, 1.05rem);
+            line-height: 1.45;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .control {
+            display: grid;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        select,
+        button {
+            min-height: 48px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-size: 1rem;
+            padding: 0 12px;
+            color: var(--ink);
+        }
+
+        button {
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .status {
+            min-height: 1.5em;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .status.good { color: var(--good); }
+        .status.bad { color: var(--bad); }
+
+        .card {
+            border: 2px solid var(--line);
+            border-radius: 18px;
+            padding: 14px;
+            background: #fbfdff;
+        }
+
+        .picture-wrap {
+            display: grid;
+            justify-items: center;
+            gap: 6px;
+        }
+
+        .picture {
+            font-size: clamp(3.2rem, 14vw, 5.4rem);
+            line-height: 1;
+        }
+
+        .category-chip {
+            width: fit-content;
+            margin: 0 auto 14px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #eef4ff;
+            color: #315baa;
+            font-size: 0.92rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .pattern {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .pattern-slot {
+            min-width: 58px;
+            min-height: 58px;
+            padding: 8px;
+            border-radius: 14px;
+            border: 2px solid #aabde6;
+            display: grid;
+            place-items: center;
+            font-size: clamp(1.35rem, 6vw, 2.1rem);
+            font-weight: 800;
+            background: #fff;
+        }
+
+        .pattern-slot.blank {
+            background: #eaf1ff;
+            border-color: #5b87df;
+            color: #1d4ed8;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .option-btn {
+            min-height: 72px;
+            border-radius: 16px;
+            border: 2px solid #b8c8eb;
+            background: #fff;
+            font-size: clamp(1.5rem, 7vw, 2.2rem);
+            font-weight: 800;
+        }
+
+        .option-btn.good {
+            background: var(--good-bg);
+            border-color: #4ec49d;
+            color: #065f46;
+        }
+
+        .option-btn.bad {
+            background: var(--bad-bg);
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .option-btn.used {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.56);
+            z-index: 1000;
+        }
+
+        .overlay.show { display: flex; }
+
+        .overlay-card {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 20px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .overlay-card h2 {
+            margin: 0 0 8px;
+            color: var(--good);
+            font-size: 1.8rem;
+        }
+
+        .overlay-card p {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        @media (max-width: 560px) {
+            .root-back {
+                padding: 9px 10px;
+                font-size: 0.9rem;
+            }
+
+            main {
+                margin-top: 58px;
+                border-radius: 16px;
+                padding: 12px;
+            }
+
+            select,
+            button {
+                font-size: 16px;
+            }
+
+            .card { padding: 10px; }
+
+            .pattern { gap: 7px; }
+
+            .pattern-slot {
+                min-width: 48px;
+                min-height: 52px;
+                border-radius: 12px;
+            }
+
+            .options {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .option-btn { min-height: 64px; }
+        }
+
+        @media (min-width: 760px) {
+            .controls {
+                grid-template-columns: 2fr 2fr 1fr;
+                align-items: end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="root-back" href="../index.html">&larr; All Games</a>
+
+    <main>
+        <h1>Missing Letter Match</h1>
+        <p class="subtitle"></p>
+
+        <section class="controls" aria-label="Game controls">
+            <div class="control">
+                <label for="word-select">Picture list</label>
+                <select id="word-select"></select>
+            </div>
+            <div class="control">
+                <label for="mode-select">Missing letter type</label>
+                <select id="mode-select">
+                    <option value="all">Mixed</option>
+                    <option value="vowel">Vowel only</option>
+                    <option value="consonant">Consonant only</option>
+                </select>
+            </div>
+            <button id="new-round" class="primary">New Round</button>
+        </section>
+
+        <div id="status" class="status" aria-live="polite"></div>
+
+        <section id="game-card" class="card">
+            <div class="picture-wrap">
+                <div id="picture" class="picture" aria-hidden="true">🐦</div>
+            </div>
+
+            <div id="letter-group" class="category-chip">Find the missing letter</div>
+            <div id="pattern" class="pattern" aria-label="Word pattern"></div>
+            <div id="options" class="options" aria-label="Letter choices"></div>
+        </section>
+    </main>
+
+    <div id="win-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Correct answer">
+        <div class="overlay-card">
+            <h2>That Was Right</h2>
+            <p id="win-text">You found the missing letter.</p>
+            <button id="next-btn" class="primary">Next Word</button>
+        </div>
+    </div>
+
+    <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
+
+    <script>
+        const VOWELS = ["A", "E", "I", "O", "U"];
+        const CONSONANTS = ["B", "C", "D", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"];
+        const WORDS = [
+            { id: "bird", picture: "🐦", word: "BIRD" },
+            { id: "fish", picture: "🐟", word: "FISH" },
+            { id: "duck", picture: "🦆", word: "DUCK" },
+            { id: "frog", picture: "🐸", word: "FROG" },
+            { id: "lion", picture: "🦁", word: "LION" },
+            { id: "bear", picture: "🐻", word: "BEAR" },
+            { id: "wolf", picture: "🐺", word: "WOLF" },
+            { id: "goat", picture: "🐐", word: "GOAT" },
+            { id: "deer", picture: "🦌", word: "DEER" },
+            { id: "crab", picture: "🦀", word: "CRAB" },
+            { id: "star", picture: "⭐", word: "STAR" },
+            { id: "moon", picture: "🌙", word: "MOON" },
+            { id: "tree", picture: "🌳", word: "TREE" },
+            { id: "rose", picture: "🌹", word: "ROSE" },
+            { id: "leaf", picture: "🍃", word: "LEAF" },
+            { id: "book", picture: "📘", word: "BOOK" },
+            { id: "cake", picture: "🍰", word: "CAKE" },
+            { id: "milk", picture: "🥛", word: "MILK" },
+            { id: "corn", picture: "🌽", word: "CORN" },
+            { id: "pear", picture: "🍐", word: "PEAR" },
+            { id: "kiwi", picture: "🥝", word: "KIWI" },
+            { id: "soup", picture: "🥣", word: "SOUP" },
+            { id: "rice", picture: "🍚", word: "RICE" },
+            { id: "bowl", picture: "🥣", word: "BOWL" },
+            { id: "fork", picture: "🍴", word: "FORK" },
+            { id: "ship", picture: "🚢", word: "SHIP" },
+            { id: "boat", picture: "⛵", word: "BOAT" },
+            { id: "bike", picture: "🚲", word: "BIKE" },
+            { id: "cart", picture: "🛒", word: "CART" },
+            { id: "bell", picture: "🔔", word: "BELL" },
+            { id: "drum", picture: "🥁", word: "DRUM" },
+            { id: "kite", picture: "🪁", word: "KITE" },
+            { id: "ball", picture: "🏀", word: "BALL" },
+            { id: "dice", picture: "🎲", word: "DICE" },
+            { id: "cube", picture: "🧊", word: "CUBE" },
+            { id: "gift", picture: "🎁", word: "GIFT" },
+            { id: "coat", picture: "🧥", word: "COAT" },
+            { id: "sock", picture: "🧦", word: "SOCK" },
+            { id: "shoe", picture: "👟", word: "SHOE" },
+            { id: "hand", picture: "✋", word: "HAND" },
+            { id: "foot", picture: "🦶", word: "FOOT" },
+            { id: "eyes", picture: "👀", word: "EYES" },
+            { id: "nose", picture: "👃", word: "NOSE" },
+            { id: "lips", picture: "👄", word: "LIPS" },
+            { id: "ears", picture: "👂", word: "EARS" },
+            { id: "ring", picture: "💍", word: "RING" },
+            { id: "keys", picture: "🔑", word: "KEYS" },
+            { id: "door", picture: "🚪", word: "DOOR" },
+            { id: "lamp", picture: "💡", word: "LAMP" },
+            { id: "lock", picture: "🔒", word: "LOCK" }
+        ];
+
+        const wordSelect = document.getElementById("word-select");
+        const modeSelect = document.getElementById("mode-select");
+        const newRoundBtn = document.getElementById("new-round");
+        const pictureEl = document.getElementById("picture");
+        const letterGroupEl = document.getElementById("letter-group");
+        const patternEl = document.getElementById("pattern");
+        const optionsEl = document.getElementById("options");
+        const statusEl = document.getElementById("status");
+        const gameCardEl = document.getElementById("game-card");
+        const winOverlay = document.getElementById("win-overlay");
+        const winText = document.getElementById("win-text");
+        const nextBtn = document.getElementById("next-btn");
+        const flipSound = document.getElementById("flip-sound");
+        const winSound = document.getElementById("win-sound");
+
+        let currentWord = WORDS[0];
+        let currentMode = "all";
+        let correctLetter = "";
+        let correctType = "consonant";
+        let currentMissingIndex = 0;
+        let audioUnlocked = false;
+        let inputLocked = false;
+        let lastInputTime = 0;
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            flipSound.play().then(() => {
+                flipSound.pause();
+                winSound.play().then(() => winSound.pause()).catch(() => {});
+                audioUnlocked = true;
+            }).catch(() => {});
+            audioUnlocked = true;
+        }
+
+        function playSound(sound) {
+            if (!audioUnlocked || !sound) return;
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        function shuffle(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const temp = copy[i];
+                copy[i] = copy[j];
+                copy[j] = temp;
+            }
+            return copy;
+        }
+
+        function isVowel(letter) {
+            return VOWELS.includes(letter);
+        }
+
+        function setStatus(text, type) {
+            statusEl.textContent = text;
+            statusEl.className = "status" + (type ? " " + type : "");
+        }
+
+        function populateWordSelect() {
+            wordSelect.innerHTML = "";
+            WORDS.forEach((item, index) => {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.picture + " Picture " + (index + 1);
+                wordSelect.appendChild(option);
+            });
+        }
+
+        function getMissingIndex(word, mode) {
+            const letters = word.split("");
+            const candidates = [];
+            letters.forEach((letter, index) => {
+                if (mode === "all") {
+                    candidates.push(index);
+                    return;
+                }
+                if (mode === "vowel" && isVowel(letter)) {
+                    candidates.push(index);
+                    return;
+                }
+                if (mode === "consonant" && !isVowel(letter)) {
+                    candidates.push(index);
+                }
+            });
+
+            if (!candidates.length) {
+                return Math.floor(Math.random() * letters.length);
+            }
+            return candidates[Math.floor(Math.random() * candidates.length)];
+        }
+
+        function buildPattern(word, blankIndex) {
+            patternEl.innerHTML = "";
+            word.split("").forEach((letter, index) => {
+                const slot = document.createElement("div");
+                slot.className = "pattern-slot" + (index === blankIndex ? " blank" : "");
+                slot.textContent = index === blankIndex ? "_" : letter;
+                patternEl.appendChild(slot);
+            });
+        }
+
+        function getOptionSet() {
+            const pool = correctType === "vowel" ? VOWELS : CONSONANTS;
+            const distractors = shuffle(pool.filter((letter) => letter !== correctLetter)).slice(0, 3);
+            return shuffle([correctLetter, ...distractors]);
+        }
+
+        function renderOptions() {
+            optionsEl.innerHTML = "";
+            getOptionSet().forEach((letter) => {
+                const button = document.createElement("button");
+                button.className = "option-btn";
+                button.textContent = letter;
+                button.addEventListener("click", () => chooseOption(letter, button));
+                optionsEl.appendChild(button);
+            });
+        }
+
+        function getFilteredWords(mode) {
+            if (mode === "all") return WORDS;
+            return WORDS.filter((item) => {
+                const letters = item.word.split("");
+                return letters.some((letter) => mode === "vowel" ? isVowel(letter) : !isVowel(letter));
+            });
+        }
+
+        function startRound(randomizeWord) {
+            currentMode = modeSelect.value;
+            const filtered = getFilteredWords(currentMode);
+            const pool = filtered.length ? filtered : WORDS;
+
+            if (randomizeWord) {
+                currentWord = pool[Math.floor(Math.random() * pool.length)];
+                wordSelect.value = currentWord.id;
+            } else {
+                const selected = pool.find((item) => item.id === wordSelect.value);
+                currentWord = selected || pool[0];
+                wordSelect.value = currentWord.id;
+            }
+
+            currentMissingIndex = getMissingIndex(currentWord.word, currentMode);
+            correctLetter = currentWord.word[currentMissingIndex];
+            correctType = isVowel(correctLetter) ? "vowel" : "consonant";
+            inputLocked = false;
+            winOverlay.classList.remove("show");
+
+            pictureEl.textContent = currentWord.picture;
+            letterGroupEl.textContent = "Find the missing " + correctType;
+            buildPattern(currentWord.word, currentMissingIndex);
+            renderOptions();
+            setStatus("", "");
+        }
+
+        function chooseOption(letter, button) {
+            if (inputLocked) return;
+            unlockAudio();
+            const now = Date.now();
+            lastInputTime = now;
+
+            if (letter === correctLetter) {
+                button.classList.add("good", "used");
+                playSound(winSound);
+                setStatus("Correct!", "good");
+                const blankSlot = patternEl.children[currentMissingIndex];
+                if (blankSlot) {
+                    blankSlot.textContent = letter;
+                    blankSlot.classList.remove("blank");
+                }
+                winText.textContent = "You found the missing letter.";
+                setTimeout(() => winOverlay.classList.add("show"), 220);
+                return;
+            }
+
+            inputLocked = true;
+            button.classList.add("bad");
+            gameCardEl.classList.add("shake");
+            setStatus("Sorry, please try again.", "bad");
+            if (navigator.vibrate) {
+                navigator.vibrate(120);
+            }
+            setTimeout(() => {
+                button.classList.remove("bad");
+                gameCardEl.classList.remove("shake");
+                inputLocked = false;
+            }, 360);
+        }
+
+        function init() {
+            populateWordSelect();
+            wordSelect.value = WORDS[0].id;
+            startRound(true);
+
+            newRoundBtn.addEventListener("click", () => startRound(true));
+            wordSelect.addEventListener("change", () => startRound(false));
+            modeSelect.addEventListener("change", () => startRound(true));
+            nextBtn.addEventListener("click", () => startRound(true));
+            winOverlay.addEventListener("click", (event) => {
+                if (event.target === winOverlay) {
+                    winOverlay.classList.remove("show");
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
