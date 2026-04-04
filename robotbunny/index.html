@@ -112,6 +112,52 @@
   #mobile-right { left: 110px; bottom: 15px; width: 80px; height: 80px; }
   #mobile-jump { right: 110px; bottom: 15px; width: 90px; height: 90px; font-size: 16px; }
   #mobile-shoot { right: 15px; bottom: 15px; width: 80px; height: 80px; font-size: 28px; }
+
+  .perk-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 8, 16, 0.88);
+    z-index: 1100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+  }
+  .perk-overlay.active { display: flex; }
+  .perk-panel {
+    width: min(980px, 96vw);
+    background: linear-gradient(180deg, rgba(15,23,38,0.96), rgba(8,13,24,0.96));
+    border: 1px solid rgba(123,226,255,0.35);
+    border-radius: 14px;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.5);
+    padding: 18px;
+  }
+  .perk-title { font-size: 28px; font-weight: 900; color: #d9ecff; margin-bottom: 6px; text-align: center; }
+  .perk-subtitle { font-size: 13px; color: #9db6d1; text-align: center; margin-bottom: 14px; }
+  .perk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .perk-card {
+    border: 1px solid rgba(123,226,255,0.35);
+    border-radius: 10px;
+    background: rgba(20, 31, 52, 0.8);
+    color: #e6edf3;
+    text-align: left;
+    padding: 12px;
+    cursor: pointer;
+    min-height: 164px;
+  }
+  .perk-card:active { transform: scale(0.99); }
+  .perk-index { font-size: 11px; opacity: 0.8; margin-bottom: 6px; color: #9db6d1; }
+  .perk-name { font-size: 20px; font-weight: 800; color: #7be2ff; margin-bottom: 6px; }
+  .perk-desc { font-size: 13px; color: #c4d4e7; line-height: 1.3; }
+  @media (max-width: 880px), (pointer: coarse) {
+    .perk-grid { grid-template-columns: 1fr; }
+    .perk-title { font-size: 22px; }
+    .perk-card { min-height: 120px; }
+  }
 </style>
 </head>
 <body>
@@ -144,6 +190,14 @@
   <div class="mobile-btn" id="mobile-right">→</div>
   <div class="mobile-btn" id="mobile-jump">JUMP</div>
   <div class="mobile-btn" id="mobile-shoot">✦</div>
+</div>
+
+<div class="perk-overlay" id="perk-overlay" aria-hidden="true">
+  <div class="perk-panel">
+    <div class="perk-title">Choose A Perk</div>
+    <div class="perk-subtitle">Pick 1 of 3. Press 1, 2, or 3, or tap a card.</div>
+    <div class="perk-grid" id="perk-grid"></div>
+  </div>
 </div>
 
 <script>
@@ -349,9 +403,48 @@
   const maxVelX = 350;
   const COYOTE_TIME = 0.1;
   const JUMP_BUFFER_TIME = 0.12;
+  const LANDING_FORGIVENESS_TIME = 0.08;
   const COINS_PER_EXTRA_LIFE = 220;
   const MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL = 2;
   const MAX_EXTRA_LIVES_FROM_HEARTS_PER_LEVEL = 2;
+  const ENEMY_LEVEL_SPEED_SCALAR = 0.025;
+  const SEGMENT_ENEMY_BUDGET = 8; // max enemies per generated segment
+  const PACK_B_CHANCE = 0.10;      // Sniper + Hopper synergy
+  const PACK_C_CHANCE = 0.08;      // Heavy Walker + Fast Hopper synergy
+  const LOW_G_PERIOD = 10.0;       // seconds between low-gravity windows
+  const LOW_G_DURATION = 4.0;      // seconds each low-gravity window lasts
+  const LOW_G_GRAVITY_MULT = 0.45; // gravity scale during low-G window
+  const CRUMBLE_SHAKE_TIME = 0.55;  // seconds of shake before a platform falls
+  const CRUMBLE_FALL_SPEED = 320;   // px/s the platform drops
+  const CAVERNS_FOG_PERIOD = 8.0;   // seconds between caverns darkness pulses
+  const CAVERNS_FOG_DURATION = 3.5; // seconds each darkness pulse lasts
+  const CAMP_PATIENCE = 2.8;        // seconds player can hover in same zone before boss rushes
+  const CAMP_ZONE_W = 120;          // pixel width that counts as "same zone"
+  const BOSS_RUSH_SPEED = 195;      // px/s boss charges during anti-camp rush
+
+  // -------- Daily Contract & Mastery Badge (Day 9) --------
+  const CONTRACT_REWARD_COINS = 50; // bonus coins awarded on daily contract completion
+  const CONTRACT_POOL = [
+    { type: 'reach_level',  label: 'Reach level 3',              target: 3    },
+    { type: 'reach_level',  label: 'Reach level 4',              target: 4    },
+    { type: 'kill_enemies', label: 'Defeat 20 enemies',          target: 20   },
+    { type: 'kill_enemies', label: 'Defeat 30 enemies',          target: 30   },
+    { type: 'boss_kill',    label: 'Defeat a boss',              target: 1    },
+    { type: 'boss_kill',    label: 'Defeat 2 bosses',            target: 2    },
+    { type: 'deathless',    label: 'Complete a level untouched', target: 1    },
+    { type: 'score',        label: 'Earn 2000 score',            target: 2000 },
+  ];
+  const BOSS_SLAYER_TIERS = [
+    { label: 'Bronze ★',         req: 1  },
+    { label: 'Silver ★★',       req: 5  },
+    { label: 'Gold ★★★',         req: 10 },
+  ];
+
+  // ============ ENCOUNTER DEBUG ============
+  // Browser console: window.rbForceEncounterPack = 'A'  → forces Pack A every eligible slot.
+  // Browser console: window.rbDebugEncounters = true     → logs encounter spawns.
+  if (window.rbForceEncounterPack === undefined) window.rbForceEncounterPack = null;
+  if (window.rbDebugEncounters === undefined) window.rbDebugEncounters = false;
 
   // ============ GAME STATE ============
   let gameState = 'start'; // start, playing, bossIntro, levelComplete, gameOver
@@ -373,6 +466,33 @@
   // increases by 20% (multiplicative), making subsequent bosses tougher.
   let bossDifficultyFactor = 1.0;
 
+  // Biome modifier state
+  let lowGTimer = 0;
+  let lowGActive = false;
+  let cavFogTimer = 0;
+  let cavFogActive = false;
+  let ruinsShakeActive = false;  // true when any crumble platform is shaking this frame (for dust SFX)
+  // Anti-camping: track how long player stays in same horizontal zone during boss fight
+  let campZoneX = -9999;
+  let campTimer = 0;
+  let bossRushing = false;
+
+  // Run-tracking for contracts and badges (persist across level transitions; reset to 0 on page reload)
+  let enemiesKilledThisRun = 0;
+  let bossesKilledThisRun  = 0;
+  let livesLostThisRun     = 0;
+  let livesLostThisLevel   = 0;    // resets each level start (used for deathless contract)
+  let contractJustCompletedThisRun = false;
+  let badgeNewTierThisRun  = null; // string label of newly earned badge tier, or null
+
+  function getBiomeForLevel(level) {
+    const p = (level - 1) % 10;
+    if (p <= 1) return 'crater';
+    if (p <= 4) return 'lowG';
+    if (p === 5 || p === 6) return 'ruins';
+    return 'caverns';
+  }
+
   // ============ PERSISTENT DATA ============
   let totalCoins = parseInt(localStorage.getItem('rb_endless_coins') || '0', 10);
   let highestLevel = parseInt(localStorage.getItem('rb_endless_highest') || '1', 10);
@@ -389,6 +509,65 @@
     localStorage.setItem('rb_high_score', highScore);
   }
 
+  // ============ DAILY CONTRACT ============
+  function getTodayContract() {
+    const dateStr = new Date().toDateString();
+    let stored = null;
+    try { stored = JSON.parse(localStorage.getItem('rb_contract_v1') || 'null'); } catch(e) {}
+    if (stored && stored.date === dateStr) return stored;
+    let h = 0;
+    for (let i = 0; i < dateStr.length; i++) h = (h * 31 + dateStr.charCodeAt(i)) >>> 0;
+    const c = { ...CONTRACT_POOL[h % CONTRACT_POOL.length], date: dateStr, completed: false };
+    try { localStorage.setItem('rb_contract_v1', JSON.stringify(c)); } catch(e) {}
+    return c;
+  }
+
+  let todayContract = getTodayContract();
+
+  function checkContractProgress() {
+    if (!todayContract || todayContract.completed) return;
+    const c = todayContract;
+    let met = false;
+    if (c.type === 'reach_level'  && currentLevel >= c.target)         met = true;
+    if (c.type === 'kill_enemies' && enemiesKilledThisRun >= c.target)  met = true;
+    if (c.type === 'boss_kill'    && bossesKilledThisRun  >= c.target)  met = true;
+    if (c.type === 'score'        && score >= c.target)                 met = true;
+    if (!met) return;
+    todayContract.completed = true;
+    contractJustCompletedThisRun = true;
+    totalCoins += CONTRACT_REWARD_COINS;
+    try { localStorage.setItem('rb_contract_v1', JSON.stringify(todayContract)); } catch(e) {}
+    saveProgress();
+    recordEvent('contract_complete', { type: c.type, target: c.target, reward: CONTRACT_REWARD_COINS });
+  }
+
+  // ============ MASTERY BADGE: BOSS SLAYER ============
+  // Tracks cumulative boss kills across all runs. Bronze (1), Silver (5), Gold (10).
+  function checkBossSlayerBadge() {
+    if (bossesKilledThisRun === 0) return;
+    let data = {};
+    try { data = JSON.parse(localStorage.getItem('rb_badges_v1') || '{}'); } catch(e) {}
+    const prev = data.boss_slayer || { total: 0, tier: 0 };
+    const newTotal = prev.total + bossesKilledThisRun;
+    let newTier = 0;
+    for (let i = BOSS_SLAYER_TIERS.length - 1; i >= 0; i--) {
+      if (newTotal >= BOSS_SLAYER_TIERS[i].req) { newTier = i + 1; break; }
+    }
+    if (newTier > prev.tier) badgeNewTierThisRun = BOSS_SLAYER_TIERS[newTier - 1].label;
+    data.boss_slayer = { total: newTotal, tier: newTier };
+    try { localStorage.setItem('rb_badges_v1', JSON.stringify(data)); } catch(e) {}
+  }
+
+  function contractProgressText() {
+    if (!todayContract) return '';
+    const c = todayContract;
+    if (c.completed) return '\u2713 ' + c.label + ' (+' + CONTRACT_REWARD_COINS + ' coins)';
+    if (c.type === 'kill_enemies') return c.label + ' [' + enemiesKilledThisRun + '/' + c.target + ']';
+    if (c.type === 'boss_kill')    return c.label + ' [' + bossesKilledThisRun  + '/' + c.target + ']';
+    if (c.type === 'score')        return c.label + ' [' + Math.floor(score)    + '/' + c.target + ']';
+    return c.label;
+  }
+
   // ============ PLAYER ============
   const player = {
     x: 100, y: GROUND_Y - 72, w: 48, h: 64,
@@ -396,6 +575,7 @@
     onGround: false,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
+    landingForgivenessTimer: 0,
     facing: 1,
     shootCooldown: 0,
     invincible: false,
@@ -424,6 +604,251 @@
   let levelFlag = null;
   // Track whether a tank has been spawned in the current level. Resets when a new level starts.
   let tankSpawned = false;
+
+  const PERK_OFFER_INTERVAL_SEGMENTS = 2;
+  const SHIELD_RECHARGE_TIME = 40;
+
+  // ============ TELEMETRY (LIGHTWEIGHT LOCAL BUFFER) ============
+  let runStartAt = Date.now();
+  let hitTakenBySource = { enemyBody: 0, fireball: 0, bossBody: 0, fall: 0, unknown: 0 };
+
+  function recordEvent(name, payload = {}) {
+    if (!window.rbTelemetry) window.rbTelemetry = [];
+    const event = {
+      name,
+      at: Date.now(),
+      level: currentLevel,
+      score: Math.floor(score),
+      lives: player.lives,
+      ...payload
+    };
+    window.rbTelemetry.push(event);
+    // Keep a bounded buffer so localStorage writes stay small and predictable.
+    if (window.rbTelemetry.length > 200) window.rbTelemetry.shift();
+    try {
+      localStorage.setItem('rb_telemetry_buffer', JSON.stringify(window.rbTelemetry));
+    } catch (e) {
+      // Ignore telemetry storage failures.
+    }
+  }
+
+  function resetRunTelemetry() {
+    runStartAt = Date.now();
+    hitTakenBySource = { enemyBody: 0, fireball: 0, bossBody: 0, fall: 0, unknown: 0 };
+    recordEvent('run_start', { loop: loopNumber });
+  }
+
+  function saveRunSummary(summary) {
+    let runs = [];
+    try {
+      runs = JSON.parse(localStorage.getItem('rb_run_summaries_v1') || '[]');
+      if (!Array.isArray(runs)) runs = [];
+    } catch (e) {
+      runs = [];
+    }
+    runs.push(summary);
+    if (runs.length > 40) runs = runs.slice(runs.length - 40);
+    localStorage.setItem('rb_run_summaries_v1', JSON.stringify(runs));
+
+    const completed = runs.length;
+    const meanLevelReached = completed > 0
+      ? (runs.reduce((acc, r) => acc + (r.level_reached || 0), 0) / completed)
+      : 0;
+    const meanRunSeconds = completed > 0
+      ? (runs.reduce((acc, r) => acc + (r.run_seconds || 0), 0) / completed)
+      : 0;
+    const deathsBySource = { enemyBody: 0, fireball: 0, bossBody: 0, fall: 0, unknown: 0 };
+    for (const r of runs) {
+      const src = r.death_cause || 'unknown';
+      if (deathsBySource[src] == null) deathsBySource[src] = 0;
+      deathsBySource[src]++;
+    }
+    const baseline = {
+      sampleSize: completed,
+      meanLevelReached: Number(meanLevelReached.toFixed(2)),
+      meanRunSeconds: Number(meanRunSeconds.toFixed(1)),
+      deathsBySource
+    };
+    localStorage.setItem('rb_run_baseline_v1', JSON.stringify(baseline));
+    window.rbTelemetryBaseline = baseline;
+  }
+
+  // Debug helper for quick balancing checks in the browser console.
+  window.getRobotBunnyBaseline = function getRobotBunnyBaseline() {
+    try {
+      return JSON.parse(localStorage.getItem('rb_run_baseline_v1') || '{}');
+    } catch (e) {
+      return {};
+    }
+  };
+
+  // ============ PERK SYSTEM ============
+  const perkDefinitions = [
+    {
+      id: 'thruster_boots',
+      name: 'Thruster Boots',
+      description: '+10% air control, -5% max HP',
+      apply: () => {
+        airControlMultiplier *= 1.1;
+        player.maxLives = Math.max(1, Math.floor(player.maxLives * 0.95));
+        player.lives = Math.min(player.lives, player.maxLives);
+      }
+    },
+    {
+      id: 'overclocked_blaster',
+      name: 'Overclocked Blaster',
+      description: '+25% laser speed, +15% laser cooldown',
+      apply: () => {
+        laserSpeedMultiplier *= 1.25;
+        shootCooldownMultiplier *= 1.15;
+      }
+    },
+    {
+      id: 'shield_capacitor',
+      name: 'Shield Capacitor',
+      description: '+1 shield every 40s, -10% move speed',
+      apply: () => {
+        moveSpeedMultiplier *= 0.9;
+        shieldRechargeTimer = SHIELD_RECHARGE_TIME;
+      }
+    },
+    {
+      id: 'magnet_core',
+      name: 'Magnet Core',
+      description: 'Coin pull radius +40%, enemies +5% speed',
+      apply: () => {
+        coinMagnetMultiplier *= 1.4;
+        enemyGlobalSpeedMultiplier *= 1.05;
+      }
+    },
+    {
+      id: 'adrenal_loop',
+      name: 'Adrenal Loop',
+      description: 'Combo decay slower by 35%, incoming damage +1',
+      apply: () => {
+        comboDecayMultiplier *= 0.65;
+        adrenalLoopActive = true;
+      }
+    },
+    {
+      id: 'precision_lens',
+      name: 'Precision Lens',
+      description: 'Weak-point hits +2 score and stagger bonus',
+      apply: () => {
+        precisionLensActive = true;
+      }
+    }
+  ];
+
+  let airControlMultiplier = 1;
+  let moveSpeedMultiplier = 1;
+  let shootCooldownMultiplier = 1;
+  let laserSpeedMultiplier = 1;
+  let coinMagnetMultiplier = 1;
+  let enemyGlobalSpeedMultiplier = 1;
+  let comboDecayMultiplier = 1;
+  let adrenalLoopActive = false;
+  let precisionLensActive = false;
+  let shieldCharges = 0;
+  let shieldRechargeTimer = SHIELD_RECHARGE_TIME;
+
+  const activePerks = [];
+  let pendingPerkChoices = [];
+  const completedSegmentIds = new Set();
+  let completedSegmentCount = 0;
+
+  function renderPerkChoices() {
+    const perkGrid = document.getElementById('perk-grid');
+    if (!perkGrid) return;
+    perkGrid.innerHTML = '';
+    pendingPerkChoices.forEach((perk, index) => {
+      const card = document.createElement('button');
+      card.className = 'perk-card';
+      card.type = 'button';
+      card.innerHTML = `<div class="perk-index">OPTION ${index + 1}</div><div class="perk-name">${perk.name}</div><div class="perk-desc">${perk.description}</div>`;
+      card.addEventListener('click', () => selectPerkChoice(index));
+      perkGrid.appendChild(card);
+    });
+  }
+
+  function openPerkChoice() {
+    const available = perkDefinitions.filter(p => !activePerks.includes(p.id));
+    if (available.length === 0) return;
+    const pool = [...available];
+    pendingPerkChoices = [];
+    const picks = Math.min(3, pool.length);
+    for (let i = 0; i < picks; i++) {
+      const idx = randInt(0, pool.length - 1);
+      pendingPerkChoices.push(pool.splice(idx, 1)[0]);
+    }
+    renderPerkChoices();
+    const overlay = document.getElementById('perk-overlay');
+    if (overlay) {
+      overlay.classList.add('active');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    gameState = 'perkChoice';
+    clearInputState();
+    recordEvent('perk_offered', { offered: pendingPerkChoices.map(p => p.id) });
+  }
+
+  function selectPerkChoice(index) {
+    if (gameState !== 'perkChoice') return;
+    const picked = pendingPerkChoices[index];
+    if (!picked) return;
+    activePerks.push(picked.id);
+    picked.apply();
+    recordEvent('perk_selected', { perk_id: picked.id, active_perks: activePerks.slice() });
+    pendingPerkChoices = [];
+    const overlay = document.getElementById('perk-overlay');
+    if (overlay) {
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    gameState = 'playing';
+  }
+
+  function maybeOfferPerkFromProgress() {
+    if (gameState !== 'playing' || boss || levelFlag) return;
+    for (const segment of segments) {
+      if (completedSegmentIds.has(segment.id)) continue;
+      if (player.x > segment.startX + segment.width) {
+        completedSegmentIds.add(segment.id);
+        completedSegmentCount++;
+        if (
+          completedSegmentCount > 0 &&
+          completedSegmentCount % PERK_OFFER_INTERVAL_SEGMENTS === 0 &&
+          activePerks.length < perkDefinitions.length
+        ) {
+          openPerkChoice();
+          return;
+        }
+      }
+    }
+  }
+
+  function resetRunPerks() {
+    activePerks.length = 0;
+    pendingPerkChoices = [];
+    completedSegmentIds.clear();
+    completedSegmentCount = 0;
+    airControlMultiplier = 1;
+    moveSpeedMultiplier = 1;
+    shootCooldownMultiplier = 1;
+    laserSpeedMultiplier = 1;
+    coinMagnetMultiplier = 1;
+    enemyGlobalSpeedMultiplier = 1;
+    comboDecayMultiplier = 1;
+    adrenalLoopActive = false;
+    precisionLensActive = false;
+    shieldCharges = 0;
+    shieldRechargeTimer = SHIELD_RECHARGE_TIME;
+    const overlay = document.getElementById('perk-overlay');
+    if (overlay) {
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+  }
 
   // ============ MUSIC FUNCTIONS (FIXED) ============
   function stopMusic() {
@@ -524,41 +949,177 @@
     // Ground
     segment.platforms.push({ x: segment.startX, y: GROUND_Y, w: width, h: 200, type: 'ground' });
 
-    const gapMax = 180;
+    const levelGapBonus = Math.max(0, currentLevel - 3) * 10;
+    const gapMin = Math.min(145, 100 + Math.max(0, currentLevel - 4) * 2);
+    const gapMax = 180 + Math.min(70, levelGapBonus);
+    const verticalVariance = Math.max(28, 50 - Math.max(0, currentLevel - 3) * 2);
     const platformCount = Math.floor(width / 200);
     let currentX = segment.startX + 150;
     let currentY = GROUND_Y - 100;
+    let segEnemyCount = 0;
+    let packAFlyerAt = -1;
+    let packBSniperAt = -1;
+    let packCFastAt = -1;
 
     for (let i = 0; i < platformCount; i++) {
-      const gap = rand(100, gapMax);
+      const gap = rand(gapMin, gapMax);
       const platformW = randInt(120, 140);
       currentX += gap;
-      currentY = clamp(currentY + rand(-50, 50), GROUND_Y - 300, GROUND_Y - 60);
+      currentY = clamp(currentY + rand(-verticalVariance, verticalVariance), GROUND_Y - 300, GROUND_Y - 60);
 
       segment.platforms.push({ x: currentX, y: currentY, w: platformW, h: 40, type: 'platform' });
 
-      // Enemies
-      if (Math.random() < 0.4) {
-        const enemyTypes = ['hopper', 'walker'];
-        if (currentLevel >= 3) enemyTypes.push('flyer');
-        const type = enemyTypes[randInt(0, enemyTypes.length - 1)];
-        const enemy = {
-          type,
+      // Ruins biome: mark ~20% of elevated platforms as crumble platforms
+      if (getBiomeForLevel(currentLevel) === 'ruins' && Math.random() < 0.20) {
+        const last = segment.platforms[segment.platforms.length - 1];
+        last.crumble = true;
+        last.crumbleTimer = 0;
+        last.crumbleFalling = false;
+        last.crumbleVy = 0;
+      }
+      if (i === packAFlyerAt && segEnemyCount < SEGMENT_ENEMY_BUDGET) {
+        // Pack A follow-up: flyer on the promised platform.
+        const flyerE = {
+          type: 'flyer',
           x: currentX + rand(10, platformW - 50),
-          y: currentY - (type === 'flyer' ? 80 : 32),
-          w: type === 'flyer' ? 60 : (type === 'walker' ? 35 : 40),
-          h: type === 'flyer' ? 40 : 32,
-          vx: (type === 'walker' ? 80 : 100) * (1 + Math.max(0, currentLevel - 2) * 0.03),
+          y: currentY - 80,
+          w: 60, h: 40,
+          vx: 100 * (1 + Math.max(0, currentLevel - 2) * ENEMY_LEVEL_SPEED_SCALAR),
           vy: 0,
           health: 1 + Math.floor(currentLevel / 3),
           maxHealth: 1 + Math.floor(currentLevel / 3),
           dir: Math.random() > 0.5 ? 1 : -1,
-          animTimer: 0,
-          rotateAngle: 0,
-          bobT: rand(0, Math.PI * 2),
-          jumpTimer: type === 'hopper' ? rand(1, 3) : 0
+          animTimer: 0, rotateAngle: 0,
+          bobT: rand(0, Math.PI * 2), jumpTimer: 0
         };
-        segment.enemies.push(enemy);
+        segment.enemies.push(flyerE);
+        segEnemyCount++;
+        if (window.rbDebugEncounters) console.log('[Encounter] Pack A flyer at platform', i);
+      } else if (i === packBSniperAt && segEnemyCount < SEGMENT_ENEMY_BUDGET) {
+        // Pack B follow-up: sniper on the promised platform.
+        const sniperE = {
+          type: 'sniper',
+          x: currentX + rand(10, platformW - 20),
+          y: currentY - 36,
+          w: 28, h: 36,
+          vx: 0, vy: 0,
+          health: 2 + Math.floor(currentLevel / 4),
+          maxHealth: 2 + Math.floor(currentLevel / 4),
+          dir: -1,
+          animTimer: 0, rotateAngle: 0, bobT: 0, jumpTimer: 0,
+          fireCooldown: 4.5,
+          windupTimer: 0,
+          windingUp: false,
+          aimAngle: Math.PI
+        };
+        segment.enemies.push(sniperE);
+        segEnemyCount++;
+        if (window.rbDebugEncounters) console.log('[Encounter] Pack B sniper at platform', i);
+      } else if (i === packCFastAt && segEnemyCount < SEGMENT_ENEMY_BUDGET) {
+        // Pack C follow-up: fast hopper.
+        const fastHopperE = {
+          type: 'hopper',
+          x: currentX + rand(10, platformW - 50),
+          y: currentY - 32,
+          w: 40, h: 32,
+          vx: 155 * (1 + Math.max(0, currentLevel - 2) * ENEMY_LEVEL_SPEED_SCALAR),
+          vy: 0,
+          health: 1 + Math.floor(currentLevel / 3),
+          maxHealth: 1 + Math.floor(currentLevel / 3),
+          dir: Math.random() > 0.5 ? 1 : -1,
+          animTimer: 0, rotateAngle: 0,
+          bobT: rand(0, Math.PI * 2), jumpTimer: rand(0.5, 1.5)
+        };
+        segment.enemies.push(fastHopperE);
+        segEnemyCount++;
+        if (window.rbDebugEncounters) console.log('[Encounter] Pack C fast hopper at platform', i);
+      } else if (Math.random() < 0.4 && segEnemyCount < SEGMENT_ENEMY_BUDGET) {
+        const forcePackA = window.rbForceEncounterPack === 'A';
+        const forcePackB = window.rbForceEncounterPack === 'B';
+        const forcePackC = window.rbForceEncounterPack === 'C';
+        const canPackA = currentLevel >= 3 && segEnemyCount + 2 <= SEGMENT_ENEMY_BUDGET && i < platformCount - 1;
+        const canPackB = currentLevel >= 4 && segEnemyCount + 2 <= SEGMENT_ENEMY_BUDGET && i < platformCount - 2;
+        const canPackC = currentLevel >= 5 && segEnemyCount + 2 <= SEGMENT_ENEMY_BUDGET && i < platformCount - 1;
+        if (canPackA && (forcePackA || Math.random() < 0.12)) {
+          // Pack A anchor: shielded walker + flyer next platform.
+          const walkerE = {
+            type: 'walker',
+            x: currentX + rand(10, platformW - 50),
+            y: currentY - 32,
+            w: 35, h: 32,
+            vx: 80 * (1 + Math.max(0, currentLevel - 2) * ENEMY_LEVEL_SPEED_SCALAR),
+            vy: 0,
+            health: 1 + Math.floor(currentLevel / 3),
+            maxHealth: 1 + Math.floor(currentLevel / 3),
+            dir: Math.random() > 0.5 ? 1 : -1,
+            animTimer: 0, rotateAngle: 0, bobT: 0, jumpTimer: 0,
+            shielded: true
+          };
+          segment.enemies.push(walkerE);
+          segEnemyCount++;
+          packAFlyerAt = i + 1;
+          if (window.rbDebugEncounters) console.log('[Encounter] Pack A shield walker at platform', i);
+        } else if (canPackB && (forcePackB || Math.random() < PACK_B_CHANCE)) {
+          // Pack B anchor: hopper pressure. Sniper 2 platforms ahead.
+          const bHopper = {
+            type: 'hopper',
+            x: currentX + rand(10, platformW - 50),
+            y: currentY - 32,
+            w: 40, h: 32,
+            vx: 100 * (1 + Math.max(0, currentLevel - 2) * ENEMY_LEVEL_SPEED_SCALAR),
+            vy: 0,
+            health: 1 + Math.floor(currentLevel / 3),
+            maxHealth: 1 + Math.floor(currentLevel / 3),
+            dir: Math.random() > 0.5 ? 1 : -1,
+            animTimer: 0, rotateAngle: 0,
+            bobT: rand(0, Math.PI * 2), jumpTimer: rand(1, 3)
+          };
+          segment.enemies.push(bHopper);
+          segEnemyCount++;
+          packBSniperAt = i + 2;
+          if (window.rbDebugEncounters) console.log('[Encounter] Pack B hopper anchor at platform', i);
+        } else if (canPackC && (forcePackC || Math.random() < PACK_C_CHANCE)) {
+          // Pack C anchor: heavy walker. Fast hopper next platform.
+          const heavyE = {
+            type: 'walker',
+            heavy: true,
+            x: currentX + rand(10, platformW - 50),
+            y: currentY - 32,
+            w: 35, h: 32,
+            vx: 55 * (1 + Math.max(0, currentLevel - 2) * ENEMY_LEVEL_SPEED_SCALAR),
+            vy: 0,
+            health: 3 + Math.floor(currentLevel / 3),
+            maxHealth: 3 + Math.floor(currentLevel / 3),
+            dir: Math.random() > 0.5 ? 1 : -1,
+            animTimer: 0, rotateAngle: 0, bobT: 0, jumpTimer: 0
+          };
+          segment.enemies.push(heavyE);
+          segEnemyCount++;
+          packCFastAt = i + 1;
+          if (window.rbDebugEncounters) console.log('[Encounter] Pack C heavy walker at platform', i);
+        } else {
+          const enemyTypes = ['hopper', 'walker'];
+          if (currentLevel >= 3) enemyTypes.push('flyer');
+          const type = enemyTypes[randInt(0, enemyTypes.length - 1)];
+          const enemy = {
+            type,
+            x: currentX + rand(10, platformW - 50),
+            y: currentY - (type === 'flyer' ? 80 : 32),
+            w: type === 'flyer' ? 60 : (type === 'walker' ? 35 : 40),
+            h: type === 'flyer' ? 40 : 32,
+            vx: (type === 'walker' ? 80 : 100) * (1 + Math.max(0, currentLevel - 2) * ENEMY_LEVEL_SPEED_SCALAR),
+            vy: 0,
+            health: 1 + Math.floor(currentLevel / 3),
+            maxHealth: 1 + Math.floor(currentLevel / 3),
+            dir: Math.random() > 0.5 ? 1 : -1,
+            animTimer: 0,
+            rotateAngle: 0,
+            bobT: rand(0, Math.PI * 2),
+            jumpTimer: type === 'hopper' ? rand(1, 3) : 0
+          };
+          segment.enemies.push(enemy);
+          segEnemyCount++;
+        }
       }
 
       // Coins
@@ -657,8 +1218,6 @@
     const scaledHealth = Math.floor(baseHealth * bossDifficultyFactor);
     boss = {
       x: nextSegmentX + 400,
-      // Position the boss so its feet rest on the ground. The bottom of the boss (y + h)
-      // should align with GROUND_Y.
       y: GROUND_Y - bossSize,
       w: bossSize,
       h: bossSize,
@@ -676,7 +1235,12 @@
       name: config.name,
       dir: -1,
       hitFlash: 0,
-      animTimer: 0
+      animTimer: 0,
+      slamDone: false,
+      slammingPhase: null,
+      slamTimer: 0,
+      slamTargetX: 0,
+      slamOriginY: 0
     };
     gameState = 'bossIntro';
     bossIntroTimer = 0;
@@ -690,11 +1254,39 @@
   }
 
   // ============ GAME LOGIC ============
-  function loseLife() {
-    player.lives--;
+  function loseLife(source = 'unknown') {
+    let lifeDamage = 1;
+    if (adrenalLoopActive) lifeDamage += 1;
+    if (shieldCharges > 0) {
+      shieldCharges--;
+      createDamageNumber(player.x + player.w * 0.5, player.y - 8, 'SHIELD', '#7be2ff');
+      return;
+    }
+    if (!hitTakenBySource[source]) hitTakenBySource[source] = 0;
+    hitTakenBySource[source]++;
+    recordEvent('hit_taken', {
+      source,
+      playerX: Math.floor(player.x),
+      playerY: Math.floor(player.y),
+      onGround: player.onGround
+    });
+    player.lives -= lifeDamage;
+    livesLostThisRun++;
+    livesLostThisLevel++;
     resetCombo();
     if (player.lives <= 0) {
       gameState = 'gameOver';
+      const runSummary = {
+        death_cause: source,
+        level_reached: currentLevel,
+        lives_remaining: 0,
+        active_perks: activePerks.slice(),
+        run_seconds: Math.round((Date.now() - runStartAt) / 1000),
+        hit_sources: hitTakenBySource
+      };
+      recordEvent('run_end', runSummary);
+      saveRunSummary(runSummary);
+      checkBossSlayerBadge();
       // Bank collected run coins on death so progression persists between runs.
       totalCoins += player.sessionCoins;
       player.sessionCoins = 0;
@@ -712,6 +1304,15 @@
   }
 
   function completeLevel() {
+    // Check deathless contract before any resets; livesLostThisLevel is still valid here.
+    if (todayContract && !todayContract.completed && todayContract.type === 'deathless' && livesLostThisLevel === 0) {
+      todayContract.completed = true;
+      contractJustCompletedThisRun = true;
+      totalCoins += CONTRACT_REWARD_COINS;
+      try { localStorage.setItem('rb_contract_v1', JSON.stringify(todayContract)); } catch(e) {}
+      recordEvent('contract_complete', { type: 'deathless', target: 1, reward: CONTRACT_REWARD_COINS });
+    }
+    checkContractProgress(); // handles reach_level, kill_enemies, boss_kill, score
     gameState = 'levelComplete';
     stopMusic();
     playMusic('victory');
@@ -739,11 +1340,23 @@
     player.y = GROUND_Y - player.h - 20;
     player.vx = 0; player.vy = 0;
     player.sessionCoins = 0;
+    player.landingForgivenessTimer = 0;
     extraLivesFromCoinsThisLevel = 0;
     extraLivesFromHeartsThisLevel = 0;
     coinsForExtraLife = 0;
+    lowGTimer = 0;
+    lowGActive = false;
+    cavFogTimer = 0;
+    cavFogActive = false;
+    campZoneX = -9999;
+    campTimer = 0;
+    bossRushing = false;
+    livesLostThisLevel = 0;
+    contractJustCompletedThisRun = false;
+    badgeNewTierThisRun = null;
     camera.x = 0;
     resetCombo();
+    resetRunTelemetry();
     for (let i = 0; i < 3; i++) loadNextSegment();
     gameState = 'playing';
     playMusic(`level${currentLevel}`);
@@ -755,11 +1368,19 @@
     const scoreEl = document.getElementById('score');
     const coinsEl = document.getElementById('coins');
     const fpsEl = document.getElementById('fps');
+    const upgradesEl = document.getElementById('upgrades');
     if (levelEl) levelEl.textContent = `Level ${currentLevel}`;
     if (livesEl) livesEl.textContent = `×${player.lives}`;
     if (scoreEl) scoreEl.textContent = Math.floor(score);
     if (coinsEl) coinsEl.textContent = player.sessionCoins + totalCoins;
     if (fpsEl) fpsEl.textContent = `${fpsDisplayValue}`;
+    if (upgradesEl) {
+      const perkNames = activePerks
+        .map(id => perkDefinitions.find(p => p.id === id)?.name)
+        .filter(Boolean)
+        .map(name => name.split(' ')[0]);
+      upgradesEl.textContent = perkNames.length > 0 ? `Perks: ${perkNames.join(', ')}` : 'Perks: 0';
+    }
     const perfModeEl = document.getElementById('perf-mode');
     if (perfModeEl) perfModeEl.textContent = `Perf: ${getPerformanceModeLabel(performanceMode)}`;
   }
@@ -769,7 +1390,7 @@
     time += dt;
 
     if (player.comboTimer > 0) {
-      player.comboTimer -= dt;
+      player.comboTimer -= dt * comboDecayMultiplier;
       if (player.comboTimer <= 0) resetCombo();
     }
 
@@ -806,24 +1427,98 @@
     if (player.shootCooldown > 0) player.shootCooldown -= dt;
     player.coyoteTimer = Math.max(0, player.coyoteTimer - dt);
     player.jumpBufferTimer = Math.max(0, player.jumpBufferTimer - dt);
+    player.landingForgivenessTimer = Math.max(0, player.landingForgivenessTimer - dt);
     if (wantJumpPress) {
       player.jumpBufferTimer = JUMP_BUFFER_TIME;
       wantJumpPress = false;
     }
 
+    // Biome modifier: Low-G periodic windows
+    if (getBiomeForLevel(currentLevel) === 'lowG') {
+      lowGTimer += dt;
+      if (!lowGActive && lowGTimer >= LOW_G_PERIOD) {
+        lowGActive = true;
+        lowGTimer = 0;
+      } else if (lowGActive && lowGTimer >= LOW_G_DURATION) {
+        lowGActive = false;
+        lowGTimer = 0;
+      }
+    } else {
+      lowGActive = false;
+    }
+
+    // Biome modifier: Caverns darkness pulses
+    if (getBiomeForLevel(currentLevel) === 'caverns') {
+      cavFogTimer += dt;
+      if (!cavFogActive && cavFogTimer >= CAVERNS_FOG_PERIOD) {
+        cavFogActive = true;
+        cavFogTimer = 0;
+      } else if (cavFogActive && cavFogTimer >= CAVERNS_FOG_DURATION) {
+        cavFogActive = false;
+        cavFogTimer = 0;
+      }
+    } else {
+      cavFogActive = false;
+    }
+
+    // Biome modifier: Ruins crumble platforms
+    if (getBiomeForLevel(currentLevel) === 'ruins') {
+      ruinsShakeActive = false;
+      for (const segment of segments) {
+        for (let pi = segment.platforms.length - 1; pi >= 0; pi--) {
+          const plat = segment.platforms[pi];
+          if (!plat.crumble) continue;
+          if (plat.crumbleFalling) {
+            plat.crumbleVy += gravity * 0.6 * dt;
+            plat.y += plat.crumbleVy * dt;
+            if (plat.y > canvas.height + 120) segment.platforms.splice(pi, 1);
+          } else {
+            // Check if player is standing on it
+            const onIt = player.onGround &&
+              player.x + player.w > plat.x &&
+              player.x < plat.x + plat.w &&
+              Math.abs((player.y + player.h) - plat.y) < 8;
+            if (onIt) {
+              plat.crumbleTimer += dt;
+              ruinsShakeActive = true;
+              if (plat.crumbleTimer >= CRUMBLE_SHAKE_TIME) {
+                plat.crumbleFalling = true;
+                plat.crumbleVy = 0;
+              }
+            } else {
+              plat.crumbleTimer = Math.max(0, plat.crumbleTimer - dt * 0.5);
+            }
+          }
+        }
+      }
+    }
+
+    if (activePerks.includes('shield_capacitor')) {
+      shieldRechargeTimer -= dt;
+      if (shieldRechargeTimer <= 0) {
+        shieldRechargeTimer = SHIELD_RECHARGE_TIME;
+        shieldCharges = Math.min(1, shieldCharges + 1);
+        if (shieldCharges > 0) createDamageNumber(player.x + player.w * 0.5, player.y - 12, '+SHIELD', '#7be2ff');
+      }
+    }
+
     const moveLeft = keys.ArrowLeft || keys.KeyA;
     const moveRight = keys.ArrowRight || keys.KeyD;
+    const airControl = player.onGround ? 1 : airControlMultiplier;
+    const effectiveMoveSpeed = moveSpeed * moveSpeedMultiplier * airControl;
+    const groundTraction = (player.onGround && getBiomeForLevel(currentLevel) === 'crater') ? 0.80 : 0.85;
 
-    if (moveLeft) { player.vx -= moveSpeed * dt * 8; player.facing = -1; }
-    if (moveRight) { player.vx += moveSpeed * dt * 8; player.facing = 1; }
-    if (!moveLeft && !moveRight) player.vx *= 0.85;
+    if (moveLeft) { player.vx -= effectiveMoveSpeed * dt * 8; player.facing = -1; }
+    if (moveRight) { player.vx += effectiveMoveSpeed * dt * 8; player.facing = 1; }
+    if (!moveLeft && !moveRight) player.vx *= groundTraction;
 
     player.vx = clamp(player.vx, -maxVelX, maxVelX);
 
-    if (player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0)) {
+    if (player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
       player.vy = jumpVel;
       player.onGround = false;
       player.coyoteTimer = 0;
+      player.landingForgivenessTimer = 0;
       player.jumpBufferTimer = 0;
       // Play jump sound when the player jumps
       playSfx('jump', 0.7);
@@ -833,15 +1528,15 @@
       lasers.push({
         x: player.x + (player.facing > 0 ? player.w : 0),
         y: player.y + player.h / 2 - 2,
-        w: 20, h: 4, vx: player.facing * 500, dir: player.facing
+        w: 20, h: 4, vx: player.facing * 500 * laserSpeedMultiplier, dir: player.facing
       });
-      player.shootCooldown = 0.3;
+      player.shootCooldown = 0.3 * shootCooldownMultiplier;
       // Play shooting sound when firing a laser
       playSfx('laser', 0.6);
     }
     wantShoot = false;
 
-    player.vy += gravity * dt;
+    player.vy += gravity * (lowGActive ? LOW_G_GRAVITY_MULT : 1.0) * dt;
     player.x += player.vx * dt;
     player.y += player.vy * dt;
 
@@ -850,7 +1545,7 @@
       for (const plat of segment.platforms) {
         if (rectsOverlap(player.x, player.y, player.w, player.h, plat.x, plat.y, plat.w, plat.h)) {
           if (player.vy > 0 && (player.y + player.h - player.vy * dt) <= plat.y) {
-            player.y = plat.y - player.h; player.vy = 0; player.onGround = true; player.coyoteTimer = COYOTE_TIME;
+            player.y = plat.y - player.h; player.vy = 0; player.onGround = true; player.coyoteTimer = COYOTE_TIME; player.landingForgivenessTimer = LANDING_FORGIVENESS_TIME;
           } else if (player.vy < 0 && (player.y - player.vy * dt) >= (plat.y + plat.h)) {
             player.y = plat.y + plat.h; player.vy = 0;
           }
@@ -858,7 +1553,7 @@
       }
     }
 
-    if (player.y > canvas.height + 100) loseLife();
+    if (player.y > canvas.height + 100) loseLife('fall');
 
     camera.x = Math.max(0, player.x - canvas.width / 3);
 
@@ -867,6 +1562,8 @@
       else loadNextSegment();
     }
     unloadOldSegments();
+    maybeOfferPerkFromProgress();
+    checkContractProgress();
 
     if (levelFlag && rectsOverlap(player.x, player.y, player.w, player.h, levelFlag.x, levelFlag.y, levelFlag.w, levelFlag.h)) {
       // Play flag touch sound and complete the level
@@ -884,6 +1581,13 @@
         for (let j = segment.enemies.length - 1; j >= 0; j--) {
           const enemy = segment.enemies[j];
           if (rectsOverlap(laser.x, laser.y, laser.w, laser.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
+            // Shield deflection: a shielded walker blocks frontal hits (laser and enemy facing each other).
+            if (enemy.shielded && laser.dir * enemy.dir < 0) {
+              lasers.splice(i, 1);
+              createParticle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, '#7be2ff', 4);
+              playSfx('hit', 0.4);
+              break;
+            }
             enemy.health--;
             lasers.splice(i, 1);
             // Play sound when a laser hits an enemy
@@ -891,8 +1595,12 @@
             createParticle(enemy.x + enemy.w/2, enemy.y + enemy.h/2, '#fff', 5);
             createDamageNumber(enemy.x + enemy.w/2, enemy.y, 1);
             score += 10;
+            if (precisionLensActive) {
+              score += 2;
+              enemy.staggerTimer = 0.25;
+            }
             addCombo();
-            if (enemy.health <= 0) { segment.enemies.splice(j, 1); score += 50; }
+            if (enemy.health <= 0) { segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
             break;
           }
         }
@@ -905,6 +1613,9 @@
         score += 20; addCombo();
         if (boss.health <= 0) {
           score += 1000;
+          bossesKilledThisRun++;
+          checkContractProgress();
+          recordEvent('boss_defeat', { level: currentLevel, bosses_total: bossesKilledThisRun });
           levelFlag = { x: boss.x + boss.w / 2 - 30, y: GROUND_Y - 120, w: 60, h: 100 };
           // Increase boss difficulty factor so the next boss has 20% more health.
           bossDifficultyFactor *= 1.2;
@@ -934,6 +1645,8 @@
     for (const segment of segments) {
       for (let i = segment.enemies.length - 1; i >= 0; i--) {
         const enemy = segment.enemies[i];
+        enemy.staggerTimer = Math.max(0, (enemy.staggerTimer || 0) - dt);
+        if (enemy.staggerTimer > 0) continue;
         enemy.animTimer += dt;
         if (enemy.type === 'hopper') {
           enemy.jumpTimer -= dt;
@@ -945,12 +1658,12 @@
               if (enemy.vy > 0 && (enemy.y + enemy.h - enemy.vy*dt) <= plat.y) { enemy.y = plat.y - enemy.h; enemy.vy = 0; onGround = true; }
             }
           }
-          if (!onGround) { enemy.x += enemy.dir * (enemy.vx * 0.5) * dt; }
+          if (!onGround) { enemy.x += enemy.dir * (enemy.vx * enemyGlobalSpeedMultiplier * 0.5) * dt; }
         } else if (enemy.type === 'walker') {
-          enemy.x += enemy.dir * enemy.vx * dt; enemy.rotateAngle += 0.15 * enemy.dir;
+          enemy.x += enemy.dir * enemy.vx * enemyGlobalSpeedMultiplier * dt; enemy.rotateAngle += 0.15 * enemy.dir;
           if (enemy.x < segment.startX || enemy.x > segment.startX + segment.width - enemy.w) enemy.dir *= -1;
         } else if (enemy.type === 'flyer') {
-          enemy.x += enemy.dir * enemy.vx * dt;
+          enemy.x += enemy.dir * enemy.vx * enemyGlobalSpeedMultiplier * dt;
           if (enemy.x < camera.x || enemy.x > camera.x + canvas.width - enemy.w) enemy.dir *= -1;
         } else if (enemy.type === 'tank') {
           // Tanks remain stationary but aim their barrel at the player and fire. Compute a pivot
@@ -989,6 +1702,30 @@
             enemy.windupTimer = 0.35;
             playSfx('hit', 0.28);
           }
+        } else if (enemy.type === 'sniper') {
+          // Stationary — aims at player and fires a slow purple projectile.
+          const dxSn = player.x + player.w * 0.5 - (enemy.x + enemy.w * 0.5);
+          const dySn = player.y + player.h * 0.5 - (enemy.y + enemy.h * 0.5);
+          enemy.aimAngle = Math.atan2(dySn, dxSn);
+          enemy.dir = dxSn > 0 ? 1 : -1;
+          if (enemy.windingUp) {
+            enemy.windupTimer -= dt;
+            if (enemy.windupTimer <= 0) {
+              enemy.windingUp = false;
+              const spd = 220;
+              const bx = enemy.x + enemy.w * 0.5 + Math.cos(enemy.aimAngle) * enemy.w * 0.5 - 6;
+              const by = enemy.y + enemy.h * 0.5 + Math.sin(enemy.aimAngle) * enemy.h * 0.5 - 6;
+              fireballs.push({ x: bx, y: by, w: 12, h: 12, vx: Math.cos(enemy.aimAngle) * spd, vy: Math.sin(enemy.aimAngle) * spd, hp: 1, color: '#cc44ff' });
+              playSfx('hit', 0.22);
+              enemy.fireCooldown = 4.5;
+            }
+          } else {
+            enemy.fireCooldown -= dt;
+          }
+          if (enemy.fireCooldown <= 0 && !enemy.windingUp) {
+            enemy.windingUp = true;
+            enemy.windupTimer = 0.45;
+          }
         }
         if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
           // Determine if the player is above the enemy
@@ -998,11 +1735,15 @@
             // Player squishes enemy by landing on top
             enemy.health--;
             player.vy = jumpVel * 0.6;
+            if (precisionLensActive) {
+              score += 2;
+              enemy.staggerTimer = 0.3;
+            }
             // Play squish sound
             playSfx('squish', 0.8);
             if (enemy.health <= 0) segment.enemies.splice(i, 1);
           } else {
-            loseLife();
+            loseLife('enemyBody');
           }
         }
       }
@@ -1011,14 +1752,72 @@
     if (boss) {
       boss.animTimer += dt;
       if (boss.hitFlash > 0) boss.hitFlash -= dt * 5;
-      if (boss.x > player.x + 100) boss.x -= 40 * dt;
-      else if (boss.x < player.x - 100) boss.x += 40 * dt;
+
+      // Anti-camping: if player lingers in the same horizontal zone, boss rushes.
+      if (Math.abs(player.x - campZoneX) > CAMP_ZONE_W) {
+        campZoneX = player.x;
+        campTimer = 0;
+        bossRushing = false;
+      } else {
+        campTimer += dt;
+        if (campTimer >= CAMP_PATIENCE) bossRushing = true;
+      }
+
+      // Ground-slam move: triggers once per boss at <=50% health.
+      if (!boss.slamDone && boss.health <= boss.maxHealth * 0.5) {
+        boss.slamDone = true;
+        boss.slammingPhase = 'rising';
+        boss.slamTimer = 0;
+        boss.slamTargetX = player.x - boss.w / 2;
+        boss.slamOriginY = boss.y;
+      }
+      if (boss.slammingPhase === 'rising') {
+        boss.slamTimer += dt;
+        // Telegraph: 0.5s of large orange ring
+        if (boss.slamTimer >= 0.5) {
+          boss.slammingPhase = 'airborne';
+          boss.slamTimer = 0;
+          boss.slamOriginY = boss.y;
+        }
+      } else if (boss.slammingPhase === 'airborne') {
+        boss.slamTimer += dt;
+        // Rise for 0.4s then fall
+        const riseDur = 0.4;
+        if (boss.slamTimer < riseDur) {
+          boss.y -= 340 * dt;
+        } else {
+          boss.y += 580 * dt;
+          // Snap to ground and create shockwave
+          if (boss.y >= boss.slamOriginY + boss.h * 0.15) {
+            boss.y = GROUND_Y - boss.h;
+            boss.slammingPhase = 'impact';
+            boss.slamTimer = 0;
+            shake.intensity = 22;
+            // Shockwave fireballs left + right
+            const sY = boss.y + boss.h - 20;
+            for (const dir of [-1, 1]) {
+              fireballs.push({ x: boss.x + boss.w / 2, y: sY, w: 20, h: 20, vx: dir * 280, vy: -80, hp: 1, color: '#ff8800', shockwave: true });
+              fireballs.push({ x: boss.x + boss.w / 2, y: sY, w: 20, h: 20, vx: dir * 180, vy: -60, hp: 1, color: '#ff8800', shockwave: true });
+            }
+            playSfx('fireballSfx', 0.9);
+          }
+        }
+      } else if (boss.slammingPhase === 'impact') {
+        boss.slamTimer += dt;
+        if (boss.slamTimer > 0.7) boss.slammingPhase = null;
+      }
+
+      const rushSpeed = bossRushing ? BOSS_RUSH_SPEED : 40;
+      if (!boss.slammingPhase || boss.slammingPhase === 'impact') {
+        if (boss.x > player.x + 100) boss.x -= rushSpeed * dt;
+        else if (boss.x < player.x - 100) boss.x += rushSpeed * dt;
+      }
       // Boss fireball attack. Fireballs now aim directly at the player rather than
       // travelling horizontally. Compute a normalized vector from the boss towards
       // the player's centre, then scale to a fixed speed.
       if (boss.fireWindingUp) {
         boss.fireWindupTimer -= dt;
-        if (boss.fireWindupTimer <= 0) {
+        if (boss.fireWindupTimer <= 0 && !boss.slammingPhase) {
           boss.fireWindingUp = false;
           const fbW = 40;
           const fbH = 40;
@@ -1046,12 +1845,12 @@
       } else {
         boss.fireCooldown -= dt;
       }
-      if (boss.fireCooldown <= 0 && !boss.fireWindingUp) {
+      if (boss.fireCooldown <= 0 && !boss.fireWindingUp && !boss.slammingPhase) {
         boss.fireWindingUp = true;
         boss.fireWindupTimer = 0.32;
         playSfx('hit', 0.3);
       }
-      if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h)) loseLife();
+      if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h)) loseLife('bossBody');
     }
 
     // Update fireballs
@@ -1064,7 +1863,7 @@
         continue;
       }
       if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, fb.x, fb.y, fb.w, fb.h)) {
-        loseLife();
+        loseLife('fireball');
         fireballs.splice(fi, 1);
         continue;
       }
@@ -1074,6 +1873,15 @@
       for (let i = segment.coins.length - 1; i >= 0; i--) {
         const c = segment.coins[i];
         c.sparkleT += dt * 8;
+        const coinDx = (player.x + player.w * 0.5) - c.x;
+        const coinDy = (player.y + player.h * 0.5) - c.y;
+        const coinDist = Math.hypot(coinDx, coinDy);
+        const pullRadius = 95 * coinMagnetMultiplier;
+        if (coinDist < pullRadius && coinDist > 0.001) {
+          const pull = (220 * coinMagnetMultiplier) * dt;
+          c.x += (coinDx / coinDist) * pull;
+          c.y += (coinDy / coinDist) * pull;
+        }
         if (rectsOverlap(player.x, player.y, player.w, player.h, c.x - c.size/2, c.y - c.size/2, c.size * 2, c.size * 2)) {
           segment.coins.splice(i, 1);
           player.sessionCoins++; score += 10;
@@ -1323,8 +2131,67 @@
           }
         } else if (enemy.type === 'walker') {
           ctx.rotate(enemy.rotateAngle);
-          ctx.fillStyle = '#a890d0'; ctx.beginPath(); ctx.arc(0,0,enemy.w/2, 0, Math.PI*2); ctx.fill();
-          ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(enemy.w/2, 0); ctx.stroke();
+          const wRadius = enemy.heavy ? enemy.w / 2 * 1.3 : enemy.w / 2;
+          ctx.fillStyle = enemy.shielded ? '#5888c8' : (enemy.heavy ? '#6850a8' : '#a890d0');
+          ctx.beginPath(); ctx.arc(0, 0, wRadius, 0, Math.PI * 2); ctx.fill();
+          if (enemy.heavy) {
+            ctx.fillStyle = '#9966cc';
+            for (let sp = 0; sp < 4; sp++) {
+              const sAng = (sp / 4) * Math.PI * 2;
+              ctx.beginPath();
+              ctx.moveTo(Math.cos(sAng) * wRadius, Math.sin(sAng) * wRadius);
+              ctx.lineTo(Math.cos(sAng) * (wRadius + 8), Math.sin(sAng) * (wRadius + 8));
+              ctx.lineTo(Math.cos(sAng + 0.3) * (wRadius + 3), Math.sin(sAng + 0.3) * (wRadius + 3));
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(wRadius, 0); ctx.stroke();
+          if (enemy.shielded) {
+            ctx.rotate(-enemy.rotateAngle);
+            const shieldAngle = enemy.dir > 0 ? 0 : Math.PI;
+            ctx.strokeStyle = 'rgba(100,180,255,0.9)';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#7be2ff';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(0, 0, enemy.w / 2 + 5, shieldAngle - Math.PI * 0.45, shieldAngle + Math.PI * 0.45);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+        } else if (enemy.type === 'sniper') {
+          // Body: tall, thin rectangle
+          ctx.fillStyle = '#7744aa';
+          ctx.fillRect(-enemy.w / 2, -enemy.h / 2, enemy.w, enemy.h);
+          // Scope lens
+          ctx.fillStyle = '#cc44ff';
+          ctx.beginPath();
+          ctx.arc(enemy.dir * (enemy.w / 2 - 3), -enemy.h * 0.18, 5, 0, Math.PI * 2);
+          ctx.fill();
+          // Barrel pointing in aim direction
+          const barrelLen = 22;
+          ctx.save();
+          ctx.translate(
+            Math.cos(enemy.aimAngle) * enemy.w * 0.5,
+            Math.sin(enemy.aimAngle) * enemy.h * 0.25
+          );
+          ctx.rotate(enemy.aimAngle);
+          ctx.fillStyle = '#553377';
+          ctx.fillRect(0, -3, barrelLen, 6);
+          ctx.restore();
+          // Windup targeting line
+          if (enemy.windingUp) {
+            const ox = Math.cos(enemy.aimAngle) * (enemy.w * 0.5 + barrelLen);
+            const oy = Math.sin(enemy.aimAngle) * (enemy.h * 0.25 + barrelLen);
+            ctx.strokeStyle = 'rgba(204,68,255,0.65)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(ox + Math.cos(enemy.aimAngle) * 180, oy + Math.sin(enemy.aimAngle) * 180);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
         }
         ctx.restore();
       }
@@ -1365,6 +2232,35 @@
       }
       ctx.restore();
 
+      // Ground-slam telegraph ring (rising phase)
+      if (boss.slammingPhase === 'rising' || boss.slammingPhase === 'airborne') {
+        ctx.save();
+        const prog = boss.slammingPhase === 'rising' ? Math.min(1, boss.slamTimer / 0.5) : 1;
+        ctx.strokeStyle = `rgba(255,140,0,${0.55 + prog * 0.4})`;
+        ctx.lineWidth = 4 + prog * 4;
+        ctx.shadowColor = '#ff8800';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(boss.x + boss.w * 0.5, boss.y + boss.h * 0.5, boss.w * 0.55 + prog * boss.w * 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+      // Shockwave impact — briefly tint the ground area
+      if (boss.slammingPhase === 'impact') {
+        ctx.save();
+        const fade = 1 - boss.slamTimer / 0.7;
+        ctx.strokeStyle = `rgba(255,120,0,${fade * 0.8})`;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath();
+        ctx.moveTo(boss.x + boss.w * 0.5 - boss.w * 0.9, boss.y + boss.h - 4);
+        ctx.lineTo(boss.x + boss.w * 0.5 + boss.w * 0.9, boss.y + boss.h - 4);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
       if (boss.fireWindingUp) {
         ctx.save();
         ctx.strokeStyle = '#ffcc55';
@@ -1397,8 +2293,16 @@
     // Fireballs
     for (const fb of fireballs) {
       if (!inView(fb.x, fb.y, fb.w, fb.h)) continue;
-      // Always use the fireball image if available. Fall back to a coloured rectangle if not.
-      if (assets.fireball && assets.fireball.complete && assets.fireball.naturalWidth > 0) {
+      if (fb.color) {
+        // Colored projectile (sniper shot)
+        ctx.fillStyle = fb.color;
+        ctx.beginPath();
+        ctx.arc(fb.x + fb.w / 2, fb.y + fb.h / 2, fb.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else if (assets.fireball && assets.fireball.complete && assets.fireball.naturalWidth > 0) {
         ctx.drawImage(assets.fireball, fb.x, fb.y, fb.w, fb.h);
       } else {
         ctx.fillStyle = '#ff4500';
@@ -1429,6 +2333,66 @@
     ctx.restore();
 
     // Overlays
+    // Caverns fog overlay (drawn after world, before fixed HUD)
+    if (cavFogActive) {
+      const fogProgress = Math.min(1, cavFogTimer / 0.6);
+      ctx.save();
+      ctx.fillStyle = `rgba(2,4,12,${0.72 * fogProgress})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Glow cue: draw a small halo around the player so they can still orient.
+      const px = player.x - camera.x + player.w / 2;
+      const py = player.y - camera.y + player.h / 2;
+      const grd = ctx.createRadialGradient(px, py, 20, px, py, 160);
+      grd.addColorStop(0, 'rgba(123,226,255,0.18)');
+      grd.addColorStop(1, 'rgba(123,226,255,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    // Ruins crumble shake visual — tint crumbling platforms
+    if (getBiomeForLevel(currentLevel) === 'ruins') {
+      ctx.save();
+      ctx.translate(-camera.x, -camera.y);
+      for (const segment of segments) {
+        for (const plat of segment.platforms) {
+          if (!plat.crumble || plat.crumbleFalling) continue;
+          if (plat.crumbleTimer > 0) {
+            const shakeX = (Math.random() - 0.5) * 4 * (plat.crumbleTimer / CRUMBLE_SHAKE_TIME);
+            ctx.save();
+            ctx.globalAlpha = 0.55;
+            ctx.fillStyle = '#cc6633';
+            ctx.fillRect(plat.x + shakeX, plat.y, plat.w, plat.h);
+            ctx.restore();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    // Low-G biome window indicator
+    if (lowGActive) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,210,255,0.88)';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#00eeff';
+      ctx.shadowBlur = uiShadowBlur * 3;
+      ctx.fillText('↑ LOW GRAVITY', canvas.width / 2, 30);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    // Daily contract status — small persistent bottom-right indicator during play
+    if (todayContract && (gameState === 'playing' || gameState === 'bossIntro')) {
+      ctx.save();
+      ctx.textAlign = 'right';
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = todayContract.completed ? '#FFD700' : 'rgba(200,200,200,0.75)';
+      ctx.fillText('CONTRACT: ' + contractProgressText(), canvas.width - 8, canvas.height - 8);
+      ctx.restore();
+    }
+
     if (gameState === 'bossIntro') {
       ctx.fillStyle = 'rgba(0,0,0, 0.3)'; ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.font = 'bold 80px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'red';
@@ -1439,10 +2403,32 @@
       ctx.fillStyle = '#FFD700'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('LEVEL COMPLETE!', canvas.width/2, canvas.height/2 - 20);
       ctx.font = '20px sans-serif'; ctx.fillText('Press ENTER or TAP to continue', canvas.width/2, canvas.height/2 + 40);
+      if (todayContract) {
+        if (contractJustCompletedThisRun) {
+          ctx.fillStyle = '#FFD700'; ctx.font = 'bold 17px sans-serif';
+          ctx.fillText('\u2713 CONTRACT: ' + todayContract.label + ' +' + CONTRACT_REWARD_COINS + ' coins', canvas.width/2, canvas.height/2 + 78);
+        } else {
+          ctx.fillStyle = '#aaa'; ctx.font = '14px sans-serif';
+          ctx.fillText('Contract: ' + contractProgressText(), canvas.width/2, canvas.height/2 + 78);
+        }
+      }
+      if (badgeNewTierThisRun) {
+        ctx.fillStyle = '#FFD700'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', canvas.width/2, canvas.height/2 + 104);
+      }
     } else if (gameState === 'gameOver') {
       ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.fillStyle = '#f00'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
       ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.fillText('Press R or TAP to Restart', canvas.width/2, canvas.height/2 + 40);
+      if (todayContract) {
+        ctx.fillStyle = todayContract.completed ? '#FFD700' : '#888';
+        ctx.font = todayContract.completed ? 'bold 17px sans-serif' : '14px sans-serif';
+        ctx.fillText('Contract: ' + contractProgressText(), canvas.width/2, canvas.height/2 + 75);
+      }
+      if (badgeNewTierThisRun) {
+        ctx.fillStyle = '#FFD700'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', canvas.width/2, canvas.height/2 + 103);
+      }
     }
   }
 
@@ -1461,7 +2447,13 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape','Digit1','Digit2','Digit3'].includes(e.code)) e.preventDefault();
+    if (gameState === 'perkChoice') {
+      if (e.code === 'Digit1') selectPerkChoice(0);
+      if (e.code === 'Digit2') selectPerkChoice(1);
+      if (e.code === 'Digit3') selectPerkChoice(2);
+      return;
+    }
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     keys[e.code] = true;
@@ -1521,6 +2513,8 @@
     gameStarted = true;
     document.getElementById('start-screen').classList.add('hidden');
     gameState = 'playing';
+    resetRunPerks();
+    resetRunTelemetry();
     playMusic(`level${currentLevel}`);
 
     // --- automated test hook ---
