@@ -160,6 +160,47 @@
     .perk-title { font-size: 22px; }
     .perk-card { min-height: 120px; }
   }
+
+  /* Coin Shop Overlay */
+  .shop-overlay {
+    position: fixed; inset: 0;
+    background: rgba(3,8,16,0.92);
+    z-index: 1200; display: none;
+    align-items: center; justify-content: center; padding: 18px;
+  }
+  .shop-overlay.active { display: flex; }
+  .shop-panel {
+    width: min(600px, 94vw);
+    background: linear-gradient(180deg,rgba(15,23,38,0.97),rgba(8,13,24,0.97));
+    border: 1px solid rgba(255,215,0,0.4); border-radius: 14px;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.6); padding: 22px;
+  }
+  .shop-title { font-size: 26px; font-weight: 900; color: #FFD700; text-align: center; margin-bottom: 4px; }
+  .shop-coins { font-size: 14px; color: #aaa; text-align: center; margin-bottom: 16px; }
+  .shop-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; margin-bottom: 8px;
+    border: 1px solid rgba(123,226,255,0.25); border-radius: 9px;
+    background: rgba(20,31,52,0.8);
+  }
+  .shop-item-info { flex: 1; }
+  .shop-item-name { font-size: 16px; font-weight: 800; color: #7be2ff; }
+  .shop-item-desc { font-size: 12px; color: #9db6d1; margin-top: 2px; }
+  .shop-item-level { font-size: 11px; color: #FFD700; margin-top: 2px; }
+  .shop-btn {
+    padding: 7px 18px; border-radius: 7px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 700; background: rgba(123,226,255,0.15);
+    color: #7be2ff; border: 1px solid rgba(123,226,255,0.5);
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .shop-btn:disabled { opacity: 0.35; cursor: default; }
+  .shop-btn.maxed { background: rgba(255,215,0,0.1); color: #FFD700; border-color: rgba(255,215,0,0.4); }
+  .shop-close {
+    display: block; width: 100%; margin-top: 14px; padding: 10px;
+    border-radius: 8px; border: 1px solid rgba(123,226,255,0.3);
+    background: transparent; color: #9db6d1; font-size: 14px;
+    cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
 </style>
 </head>
 <body>
@@ -199,6 +240,15 @@
     <div class="perk-title">Choose A Perk</div>
     <div class="perk-subtitle">Pick 1 of 3. Press 1, 2, or 3, or tap a card.</div>
     <div class="perk-grid" id="perk-grid"></div>
+  </div>
+</div>
+
+<div class="shop-overlay" id="shop-overlay">
+  <div class="shop-panel">
+    <div class="shop-title">🛒 Upgrade Shop</div>
+    <div class="shop-coins" id="shop-coins-display"></div>
+    <div id="shop-items"></div>
+    <button class="shop-close" id="shop-close">Close &amp; Restart</button>
   </div>
 </div>
 
@@ -424,6 +474,9 @@
   const CAMP_PATIENCE = 2.8;        // seconds player can hover in same zone before boss rushes
   const CAMP_ZONE_W = 120;          // pixel width that counts as "same zone"
   const BOSS_RUSH_SPEED = 195;      // px/s boss charges during anti-camp rush
+  const MOON_BURST_DURATION = 3.2;  // seconds of extreme low-G burst
+  const MOON_BURST_GRAVITY = 0.08;  // gravity multiplier during burst
+  const MOON_BURST_LAUNCH_VY = -520;// upward velocity blasted onto enemies
 
   // -------- Daily Contract & Mastery Badge (Day 9) --------
   const CONTRACT_REWARD_COINS = 50; // bonus coins awarded on daily contract completion
@@ -502,14 +555,80 @@
   let highScore = parseInt(localStorage.getItem('rb_high_score') || '0', 10);
   let loopNumber = 0;
 
+  // Shop upgrade definitions: id, label, desc, costs[level], maxLevel
+  const SHOP_UPGRADES = [
+    { id: 'maxHealth',   name: 'Extra Life',     desc: '+1 starting life',          costs: [120, 200, 300], maxLevel: 3 },
+    { id: 'quickShot',   name: 'Quick Shot',      desc: '-20% shoot cooldown',       costs: [80,  160],      maxLevel: 2 },
+    { id: 'magnetField', name: 'Magnet Field',    desc: '+30% coin attraction',      costs: [60,  130],      maxLevel: 2 },
+  ];
+
   const permanentUpgrades = {
-    maxHealth: parseInt(localStorage.getItem('rb_upg_health') || '5', 10),
+    maxHealth:   parseInt(localStorage.getItem('rb_upg_health')   || '5', 10),
+    quickShot:   parseInt(localStorage.getItem('rb_upg_quick')    || '0', 10),
+    magnetField: parseInt(localStorage.getItem('rb_upg_magnet')   || '0', 10),
   };
 
   function saveProgress() {
-    localStorage.setItem('rb_endless_coins', totalCoins);
+    localStorage.setItem('rb_endless_coins',  totalCoins);
     localStorage.setItem('rb_endless_highest', highestLevel);
-    localStorage.setItem('rb_high_score', highScore);
+    localStorage.setItem('rb_high_score',     highScore);
+    localStorage.setItem('rb_upg_health',     permanentUpgrades.maxHealth);
+    localStorage.setItem('rb_upg_quick',      permanentUpgrades.quickShot);
+    localStorage.setItem('rb_upg_magnet',     permanentUpgrades.magnetField);
+  }
+
+  // ============ COIN SHOP ============
+  function renderShop() {
+    const display = document.getElementById('shop-coins-display');
+    const container = document.getElementById('shop-items');
+    if (!display || !container) return;
+    display.textContent = '\ud83e\ude99 ' + totalCoins + ' coins';
+    container.innerHTML = '';
+    for (const upg of SHOP_UPGRADES) {
+      const currentLevel = upg.id === 'maxHealth' ? (permanentUpgrades.maxHealth - 5) : permanentUpgrades[upg.id];
+      const isMaxed = currentLevel >= upg.maxLevel;
+      const cost = isMaxed ? 0 : upg.costs[currentLevel];
+      const canAfford = !isMaxed && totalCoins >= cost;
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `<div class="shop-item-info"><div class="shop-item-name">${upg.name}</div><div class="shop-item-desc">${upg.desc}</div><div class="shop-item-level">${isMaxed ? 'MAX' : 'Level ' + currentLevel + '/' + upg.maxLevel + ' \u2022 Cost: ' + cost + ' coins'}</div></div>`;
+      const btn = document.createElement('button');
+      btn.className = 'shop-btn' + (isMaxed ? ' maxed' : '');
+      btn.textContent = isMaxed ? '\u2713 Maxed' : 'Buy';
+      btn.disabled = isMaxed || !canAfford;
+      if (!isMaxed && canAfford) {
+        btn.addEventListener('click', () => { buyUpgrade(upg.id); renderShop(); });
+        btn.addEventListener('touchend', e => { e.preventDefault(); buyUpgrade(upg.id); renderShop(); }, { passive: false });
+      }
+      div.appendChild(btn);
+      container.appendChild(div);
+    }
+  }
+
+  function buyUpgrade(id) {
+    const upg = SHOP_UPGRADES.find(u => u.id === id);
+    if (!upg) return;
+    const lvl = id === 'maxHealth' ? (permanentUpgrades.maxHealth - 5) : permanentUpgrades[id];
+    if (lvl >= upg.maxLevel) return;
+    const cost = upg.costs[lvl];
+    if (totalCoins < cost) return;
+    totalCoins -= cost;
+    if (id === 'maxHealth') permanentUpgrades.maxHealth++;
+    else permanentUpgrades[id]++;
+    saveProgress();
+  }
+
+  function openShop() {
+    renderShop();
+    const overlay = document.getElementById('shop-overlay');
+    if (overlay) overlay.classList.add('active');
+  }
+
+  const shopClose = document.getElementById('shop-close');
+  if (shopClose) {
+    const doClose = e => { e.preventDefault(); const o = document.getElementById('shop-overlay'); if (o) o.classList.remove('active'); location.reload(); };
+    shopClose.addEventListener('click', doClose);
+    shopClose.addEventListener('touchend', doClose, { passive: false });
   }
 
   // ============ DAILY CONTRACT ============
@@ -745,15 +864,20 @@
 
   let airControlMultiplier = 1;
   let moveSpeedMultiplier = 1;
-  let shootCooldownMultiplier = 1;
+  let shootCooldownMultiplier = 1 * Math.pow(0.8, permanentUpgrades.quickShot);
   let laserSpeedMultiplier = 1;
-  let coinMagnetMultiplier = 1;
+  let coinMagnetMultiplier = 1 * Math.pow(1.3, permanentUpgrades.magnetField);
   let enemyGlobalSpeedMultiplier = 1;
   let comboDecayMultiplier = 1;
   let adrenalLoopActive = false;
   let precisionLensActive = false;
   let shieldCharges = 0;
   let shieldRechargeTimer = SHIELD_RECHARGE_TIME;
+
+  // Moon Burst state
+  let moonBurstActive = false;
+  let moonBurstTimer = 0;
+  let player_moonBursts = 0; // charges held by player
 
   const activePerks = [];
   const completedSegmentIds = new Set();
@@ -765,9 +889,20 @@
     if (available.length === 0) return;
     const picked = available[randInt(0, available.length - 1)];
     activePerks.push(picked.id);
+    // Show penalty in red if the perk has a downside
+    const penaltyText = getPerkPenaltyText(picked.id);
     picked.apply();
-    perkToast = { name: picked.name, desc: picked.description, timer: 2.8 };
+    perkToast = { name: picked.name, desc: picked.description, penalty: penaltyText, timer: 3.2 };
     recordEvent('perk_selected', { perk_id: picked.id, active_perks: activePerks.slice() });
+  }
+
+  function getPerkPenaltyText(id) {
+    if (id === 'thruster_boots')  return '-5% max HP';
+    if (id === 'overclocked_blaster') return '+15% cooldown';
+    if (id === 'shield_capacitor') return '-10% speed';
+    if (id === 'magnet_core')     return 'enemies +5% speed';
+    if (id === 'adrenal_loop')    return '+1 damage taken on hit';
+    return null;
   }
 
   function maybeOfferPerkFromProgress() {
@@ -796,9 +931,9 @@
     perkToast = null;
     airControlMultiplier = 1;
     moveSpeedMultiplier = 1;
-    shootCooldownMultiplier = 1;
+    shootCooldownMultiplier = 1 * Math.pow(0.8, permanentUpgrades.quickShot);
     laserSpeedMultiplier = 1;
-    coinMagnetMultiplier = 1;
+    coinMagnetMultiplier = 1 * Math.pow(1.3, permanentUpgrades.magnetField);
     enemyGlobalSpeedMultiplier = 1;
     comboDecayMultiplier = 1;
     adrenalLoopActive = false;
@@ -1095,6 +1230,10 @@
       // Powerups
       if (Math.random() < 0.025) {
         segment.powerups.push({ type: 'extraLife', x: currentX + rand(20, platformW - 40), y: currentY - rand(60, 100), w: 32, h: 32 });
+      }
+      // Moon Burst star pickup (rare)
+      if (Math.random() < 0.04) {
+        segment.powerups.push({ type: 'moonBurst', x: currentX + rand(20, platformW - 40), y: currentY - rand(70, 110), w: 28, h: 28 });
       }
       currentX += platformW;
     }
@@ -1493,7 +1632,7 @@
     }
     wantShoot = false;
 
-    player.vy += gravity * (lowGActive ? LOW_G_GRAVITY_MULT : 1.0) * dt;
+    player.vy += gravity * (moonBurstActive ? MOON_BURST_GRAVITY : (lowGActive ? LOW_G_GRAVITY_MULT : 1.0)) * dt;
     player.x += player.vx * dt;
     player.y += player.vy * dt;
 
@@ -1510,6 +1649,19 @@
       }
     }
 
+    // Moon Burst powerup pickup
+    for (const segment of segments) {
+      for (let i = segment.powerups.length - 1; i >= 0; i--) {
+        const pu = segment.powerups[i];
+        if (pu.type === 'moonBurst' && rectsOverlap(player.x, player.y, player.w, player.h, pu.x, pu.y, pu.w, pu.h)) {
+          segment.powerups.splice(i, 1);
+          player_moonBursts = Math.min(3, player_moonBursts + 1);
+          createDamageNumber(player.x + player.w/2, player.y - 10, '\u2605 BURST', '#FFD700');
+          playSfx('coin', 0.9);
+        }
+      }
+    }
+
     if (player.y > canvas.height + 100) loseLife('fall');
 
     camera.x = Math.max(0, player.x - canvas.width / 3);
@@ -1522,6 +1674,12 @@
     maybeOfferPerkFromProgress();
     checkContractProgress();
     if (perkToast) { perkToast.timer -= dt; if (perkToast.timer <= 0) perkToast = null; }
+
+    // Moon Burst tick
+    if (moonBurstActive) {
+      moonBurstTimer -= dt;
+      if (moonBurstTimer <= 0) { moonBurstActive = false; moonBurstTimer = 0; }
+    }
 
     if (levelFlag && rectsOverlap(player.x, player.y, player.w, player.h, levelFlag.x, levelFlag.y, levelFlag.w, levelFlag.h)) {
       // Play flag touch sound and complete the level
@@ -1897,16 +2055,21 @@
     if (assets[bgKey] && assets[bgKey].complete && assets[bgKey].naturalWidth > 0) {
       bgAsset = assets[bgKey];
     }
-    if (bgAsset && bgAsset.width > 0) {
-      const bgW = bgAsset.width;
-      const bgH = bgAsset.height;
-      const scale = canvas.height / bgH;
+    if (bgAsset && bgAsset.naturalWidth > 0) {
+      const bgW = bgAsset.naturalWidth;
+      const bgH = bgAsset.naturalHeight;
+      // Cover: scale so the image fills the full canvas in both dimensions.
+      const scale = Math.max(canvas.width / bgW, canvas.height / bgH);
       const scaledW = bgW * scale;
-      const scaledH = canvas.height;
+      const scaledH = bgH * scale;
+      // Vertical centre-crop if taller than canvas.
+      const dy = (canvas.height - scaledH) / 2;
       const totalScroll = camera.x * 0.2;
-      const offset = totalScroll % scaledW;
-      ctx.drawImage(bgAsset, -offset, 0, scaledW, scaledH);
-      ctx.drawImage(bgAsset, -offset + scaledW, 0, scaledW, scaledH);
+      const offset = ((totalScroll % scaledW) + scaledW) % scaledW;
+      // Draw enough tiles to always cover the full canvas width.
+      for (let tx = -offset; tx < canvas.width; tx += scaledW) {
+        ctx.drawImage(bgAsset, tx, dy, scaledW, scaledH);
+      }
     } else {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2344,8 +2507,53 @@
       ctx.fillStyle = '#c4d4e7';
       ctx.shadowBlur = 0;
       ctx.fillText(perkToast.desc, canvas.width / 2, canvas.height / 2 - 118);
+      if (perkToast.penalty) {
+        ctx.fillStyle = '#ff7055';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('\u26a0 ' + perkToast.penalty, canvas.width / 2, canvas.height / 2 - 100);
+      }
       ctx.restore();
     }
+
+    // Moon Burst active indicator + burst star pickups
+    if (moonBurstActive) {
+      ctx.save();
+      const pulse = 0.55 + 0.45 * Math.abs(Math.sin(time * 5));
+      ctx.fillStyle = `rgba(255,215,0,${0.13 * pulse})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.textAlign = 'center'; ctx.font = 'bold 15px sans-serif';
+      ctx.fillStyle = '#FFD700'; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = uiShadowBlur * 4;
+      ctx.fillText('\u2605 MOON BURST \u2605  ' + moonBurstTimer.toFixed(1) + 's', canvas.width / 2, 50);
+      ctx.shadowBlur = 0; ctx.restore();
+    }
+    // Moon burst charge counter (top-right, only when holding at least 1)
+    if (player_moonBursts > 0 && !moonBurstActive) {
+      ctx.save(); ctx.textAlign = 'right'; ctx.font = 'bold 13px sans-serif';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('\u2605'.repeat(player_moonBursts) + ' [Q]', canvas.width - 8, 20);
+      ctx.restore();
+    }
+    // Draw moon burst star pickups
+    ctx.save(); ctx.translate(-camera.x, -camera.y);
+    for (const seg of segments) {
+      for (const pu of seg.powerups) {
+        if (pu.type !== 'moonBurst') continue;
+        if (!inView(pu.x, pu.y, pu.w, pu.h)) continue;
+        const cx = pu.x + pu.w / 2, cy = pu.y + pu.h / 2;
+        const r = pu.w / 2 * (0.85 + 0.15 * Math.sin(time * 3 + cx));
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(time * 1.2);
+        ctx.fillStyle = '#FFD700'; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 12;
+        ctx.beginPath();
+        for (let s = 0; s < 5; s++) {
+          const a = (s * Math.PI * 2 / 5) - Math.PI / 2;
+          const b = a + Math.PI / 5;
+          ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          ctx.lineTo(Math.cos(b) * r * 0.45, Math.sin(b) * r * 0.45);
+        }
+        ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.restore();
+      }
+    }
+    ctx.restore();
 
     // Low-G biome window indicator
     if (lowGActive) {
@@ -2396,7 +2604,7 @@
     } else if (gameState === 'gameOver') {
       ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.fillStyle = '#f00'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
-      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.fillText('Press R or TAP to Restart', canvas.width/2, canvas.height/2 + 40);
+      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.fillText('Tap to open shop or tap anywhere to restart', canvas.width/2, canvas.height/2 + 40);
       if (todayContract) {
         ctx.fillStyle = todayContract.completed ? '#FFD700' : '#888';
         ctx.font = todayContract.completed ? 'bold 17px sans-serif' : '14px sans-serif';
@@ -2406,6 +2614,16 @@
         ctx.fillStyle = '#FFD700'; ctx.font = 'bold 15px sans-serif';
         ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', canvas.width/2, canvas.height/2 + 103);
       }
+      // Score share line
+      const perkCount = activePerks.length;
+      const badgeData = (() => { try { return JSON.parse(localStorage.getItem('rb_badges_v1') || '{}'); } catch(e) { return {}; } })();
+      const slayerTier = (badgeData.boss_slayer || {}).tier || 0;
+      const tierLabel = slayerTier > 0 ? BOSS_SLAYER_TIERS[slayerTier-1].label : null;
+      const shareText = '\ud83d\udc30 Robot Bunny: Lv' + currentLevel + ' \u2022 Score ' + Math.floor(score) + ' \u2022 ' + perkCount + ' perks' + (tierLabel ? ' \u2022 ' + tierLabel : '') + (todayContract && todayContract.completed ? ' \u2022 Daily \u2713' : '');
+      ctx.fillStyle = 'rgba(123,226,255,0.7)'; ctx.font = '12px sans-serif';
+      ctx.fillText(shareText, canvas.width/2, canvas.height/2 + (badgeNewTierThisRun ? 128 : 115));
+      ctx.fillStyle = '#7be2ff'; ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('[ S ] Copy Score  \u2022  [ U ] Shop', canvas.width/2, canvas.height/2 + (badgeNewTierThisRun ? 148 : 135));
     }
   }
 
@@ -2427,10 +2645,34 @@
     if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
+    if (gameState === 'gameOver' && e.code === 'KeyU') { openShop(); return; }
+    if (gameState === 'gameOver' && e.code === 'KeyS') {
+      const badgeData = (() => { try { return JSON.parse(localStorage.getItem('rb_badges_v1') || '{}'); } catch(e) { return {}; } })();
+      const slayerTier = (badgeData.boss_slayer || {}).tier || 0;
+      const tierLabel = slayerTier > 0 ? BOSS_SLAYER_TIERS[slayerTier-1].label : null;
+      const shareText = '\ud83d\udc30 Robot Bunny: Lv' + currentLevel + ' \u2022 Score ' + Math.floor(score) + ' \u2022 ' + activePerks.length + ' perks' + (tierLabel ? ' \u2022 ' + tierLabel : '') + (todayContract && todayContract.completed ? ' \u2022 Daily \u2713' : '');
+      try { navigator.clipboard.writeText(shareText).then(() => {}); } catch(e) {}
+      return;
+    }
     keys[e.code] = true;
     if (e.code === 'KeyX') wantShoot = true;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') wantJumpPress = true;
     if (e.code === 'KeyQ') cyclePerformanceMode();
+    // KeyQ now also handled for moon burst via separate check below
+    if (e.code === 'KeyQ' && gameState === 'playing' && player_moonBursts > 0 && !moonBurstActive) {
+      player_moonBursts--;
+      moonBurstActive = true;
+      moonBurstTimer = MOON_BURST_DURATION;
+      shake.intensity = 14;
+      // Launch all on-screen enemies upward
+      for (const seg of segments) {
+        for (const enemy of seg.enemies) {
+          enemy.vy = MOON_BURST_LAUNCH_VY;
+        }
+      }
+      createParticle(player.x + player.w/2, player.y + player.h/2, '#FFD700', 20, 8);
+      createParticle(player.x + player.w/2, player.y + player.h/2, '#7be2ff', 14, 6);
+    }
     if (e.code === 'Escape') paused = !paused;
   });
   window.addEventListener('keyup', e => { keys[e.code] = false; });
