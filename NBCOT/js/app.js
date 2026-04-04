@@ -637,14 +637,6 @@ const App = (() => {
 
           <div class="settings-section-label">Account</div>
           <div class="settings-section">
-            <div class="settings-row" onclick="App.exportProgress()">
-              <span class="settings-icon">${iconUpload()}</span>
-              <div class="info">
-                <div class="title">Export Progress</div>
-                <div class="sub">Download your study data as JSON</div>
-              </div>
-              <span class="right">›</span>
-            </div>
             <div class="settings-row" onclick="App.confirmReset()">
               <span class="settings-icon">${iconTrash()}</span>
               <div class="info" style="color:var(--color-error)">
@@ -656,19 +648,21 @@ const App = (() => {
 
           <div class="settings-section-label">About</div>
           <div class="settings-section">
-            <div class="settings-row" style="cursor:default">
+            <div class="settings-row" onclick="App.showAboutApp()">
               <span class="settings-icon">${iconInfo()}</span>
               <div class="info">
                 <div class="title">NBCOT Prep</div>
                 <div class="sub">Version 1.0.0 · 75 curated questions</div>
               </div>
+              <span class="right">›</span>
             </div>
-            <div class="settings-row" style="cursor:default">
+            <div class="settings-row" onclick="App.showAboutMethod()">
               <span class="settings-icon">${iconBook()}</span>
               <div class="info">
                 <div class="title">Study Method</div>
                 <div class="sub">Leitner spaced repetition + adaptive review</div>
               </div>
+              <span class="right">›</span>
             </div>
           </div>
 
@@ -1116,23 +1110,24 @@ const App = (() => {
     renderOnboarding();
   }
 
-  function exportProgress() {
-    const data = {
-      user:       state.user,
-      cardStates: state.cardStates,
-      sessions:   state.sessions,
-      badges:     state.badges,
-      mastery:    state.mastery,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob   = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url    = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href     = url;
-    anchor.download = `nbcot-progress-${Date.now()}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    showToast('Progress exported!');
+  function showAboutApp() {
+    showModal(
+      'About NBCOT Prep',
+      `<p style="margin-bottom:var(--space-3)">NBCOT Prep was designed in partnership with <strong>Ruby Cai, M.S. OTR/L</strong>, a licensed Occupational Therapist and Authorized Trainer with over 20 years of professional experience. Her clinical expertise shaped every question, rationale, and study pathway in this app.</p>
+       <p style="margin-bottom:var(--space-3)">The app uses proven spaced-repetition techniques to help OT candidates build lasting mastery across all core exam domains — not just memorize answers.</p>
+       <p style="font-size:var(--font-size-sm);color:var(--color-text-2);line-height:1.5">This app is an <strong>independent study tool</strong> and is <strong>not affiliated with, endorsed by, or sponsored by</strong> the National Board for Certification in Occupational Therapy, Inc. (NBCOT®). NBCOT® is a registered trademark of NBCOT, Inc. All content is independently curated for educational purposes only.</p>`,
+      [{ label: 'Close', action: 'App.closeModal()', primary: true }]
+    );
+  }
+
+  function showAboutMethod() {
+    showModal(
+      'Study Method',
+      `<p style="margin-bottom:var(--space-3)">This app uses the <strong>Leitner Spaced Repetition System</strong> — a research-backed method that schedules each question based on how well you know it.</p>
+       <p style="margin-bottom:var(--space-3)">Cards are organized into 5 boxes. Answer correctly and a card moves to the next box, where it won't appear again for a longer interval (1 day, 3 days, 7 days, 14 days). Answer incorrectly and it returns to box 1 for immediate review.</p>
+       <p>This means you spend more time on concepts you find difficult and less time on what you already know — making every study session as efficient as possible.</p>`,
+      [{ label: 'Close', action: 'App.closeModal()', primary: true }]
+    );
   }
 
   // ──────────────────────────────────────────────────────────
@@ -1333,7 +1328,8 @@ const App = (() => {
     saveEditedName,
     confirmReset,
     resetAll,
-    exportProgress,
+    showAboutApp,
+    showAboutMethod,
     // Modal
     showModal,
     closeModal,
