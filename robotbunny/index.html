@@ -1138,7 +1138,7 @@
     // Ground — ruins/caverns split ground into sections with lava pits
     {
       const _biomeSeg = getBiomeForLevel(currentLevel);
-      const hasPits = (_biomeSeg === 'ruins' || _biomeSeg === 'caverns') && currentLevel >= 4;
+      const hasPits = (_biomeSeg === 'ruins' || _biomeSeg === 'caverns' || (_biomeSeg === 'crater' && currentLevel >= 2)) && currentLevel >= 2;
       if (hasPits) {
         const numPits = _biomeSeg === 'caverns' ? randInt(1, 3) : randInt(1, 2);
         const safeStart = segment.startX + 360;
@@ -1566,6 +1566,7 @@
     currentSegmentIndex = 0;
     nextSegmentX = 0;
     player.x = 100;
+    player.h = 64; // ensure not stuck ducked between levels
     player.y = GROUND_Y - player.h - 20;
     player.vx = 0; player.vy = 0;
     player.sessionCoins = 0;
@@ -1750,12 +1751,38 @@
       }
     }
 
-    const moveLeft = keys.ArrowLeft || keys.KeyA;
+    const moveLeft  = keys.ArrowLeft  || keys.KeyA;
     const moveRight = keys.ArrowRight || keys.KeyD;
+    const wantDuck  = (keys.ArrowDown || keys.KeyS) && player.onGround;
+
+    // Ducking — halve height, anchor feet to the floor
+    const DUCK_H = 32;
+    const STAND_H = 64;
+    if (wantDuck && player.h !== DUCK_H) {
+      player.y += STAND_H - DUCK_H; // shift down so feet stay put
+      player.h = DUCK_H;
+    } else if (!wantDuck && player.h !== STAND_H) {
+      // Restore only if there is room above (check ceiling clearance)
+      const hasRoom = (() => {
+        for (const seg of segments) {
+          for (const plat of seg.platforms) {
+            const wouldY = player.y - (STAND_H - DUCK_H);
+            if (rectsOverlap(player.x, wouldY, player.w, STAND_H, plat.x, plat.y, plat.w, plat.h)) return false;
+          }
+        }
+        return true;
+      })();
+      if (hasRoom) {
+        player.y -= STAND_H - DUCK_H;
+        player.h = STAND_H;
+      }
+    }
+
     const airControl = player.onGround ? 1 : airControlMultiplier;
     const effectiveMoveSpeed = moveSpeed * moveSpeedMultiplier * airControl;
     const _biome = getBiomeForLevel(currentLevel);
-    const onIce = player.onGround && _biome === 'crater';
+    // Level 1 has normal grip; ice starts from level 2 (second crater loop)
+    const onIce = player.onGround && _biome === 'crater' && currentLevel !== 1;
     const accelMult = onIce ? ICE_ACCEL_MULT : 1;
 
     if (moveLeft)  { player.vx -= effectiveMoveSpeed * dt * 8 * accelMult; player.facing = -1; }
@@ -1773,7 +1800,7 @@
       createParticle(player.x + (player.vx < 0 ? player.w : 0), player.y + player.h, '#cce8ff', 2, 3);
     }
 
-    if (player.jumpBufferTimer > 0 && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
+    if (player.jumpBufferTimer > 0 && !wantDuck && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
       player.vy = jumpVel;
       player.onGround = false;
       player.coyoteTimer = 0;
@@ -2634,6 +2661,7 @@
     if (player.invincible) ctx.globalAlpha = 0.5 + Math.sin(time*20)*0.4;
     ctx.save();
     ctx.translate(player.w/2, 0); ctx.scale(player.facing, 1); ctx.translate(-player.w/2, 0);
+    // When ducking, squash the sprite vertically by drawing it into the reduced rect
     if (assets.player && assets.player.complete && assets.player.naturalWidth > 0) ctx.drawImage(assets.player, 0, 0, player.w, player.h);
     else { ctx.fillStyle = '#ccc'; ctx.fillRect(0, 0, player.w, player.h); }
     ctx.restore();
@@ -2842,7 +2870,7 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     if (gameState === 'gameOver' && e.code === 'KeyU') { openShop(); return; }
