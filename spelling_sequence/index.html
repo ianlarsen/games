@@ -176,6 +176,9 @@
             background: #fff;
             font-size: clamp(1.4rem, 6vw, 2.1rem);
             font-weight: 800;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .letter-btn.used {
@@ -191,6 +194,31 @@
 
         .letter-btn.dragging {
             opacity: 0.55;
+        }
+
+        .slot.touch-hover {
+            border-color: #1d4ed8;
+            background: #dbeafe;
+        }
+
+        .touch-drag-ghost {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            border: 2px solid #2563eb;
+            background: rgba(255, 255, 255, 0.96);
+            display: grid;
+            place-items: center;
+            font-size: clamp(1.4rem, 6vw, 2.1rem);
+            font-weight: 800;
+            color: #12306b;
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.2);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 1200;
         }
 
         .letter-btn.bad {
@@ -420,6 +448,7 @@
         let inputLocked = false;
         let inputMode = "tap";
         let lastInputTime = 0;
+        let activePointerDrag = null;
 
         function unlockAudio() {
             if (audioUnlocked) return;
@@ -469,6 +498,7 @@
 
         function startRound(randomizeWord) {
             inputMode = inputModeEl.value;
+            clearPointerDrag();
 
             if (randomizeWord) {
                 currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
@@ -529,8 +559,91 @@
                     event.dataTransfer.setData("text/plain", JSON.stringify({ letter: ch, buttonIndex: btn.dataset.index }));
                 });
                 btn.addEventListener("dragend", () => btn.classList.remove("dragging"));
+                btn.addEventListener("pointerdown", (event) => beginPointerDrag(event, ch, btn.dataset.index, btn));
                 bankEl.appendChild(btn);
             });
+        }
+
+        function updatePointerGhost(clientX, clientY) {
+            if (!activePointerDrag) return;
+            activePointerDrag.ghost.style.left = clientX + "px";
+            activePointerDrag.ghost.style.top = clientY + "px";
+        }
+
+        function updatePointerDropTarget(clientX, clientY) {
+            const currentHover = slotsEl.querySelector(".slot.touch-hover");
+            if (currentHover) {
+                currentHover.classList.remove("touch-hover");
+            }
+
+            const hovered = document.elementFromPoint(clientX, clientY);
+            const slot = hovered ? hovered.closest(".slot.drop-target") : null;
+            if (slot) {
+                slot.classList.add("touch-hover");
+            }
+            return slot;
+        }
+
+        function clearPointerDrag() {
+            const currentHover = slotsEl.querySelector(".slot.touch-hover");
+            if (currentHover) {
+                currentHover.classList.remove("touch-hover");
+            }
+
+            if (!activePointerDrag) return;
+
+            activePointerDrag.button.classList.remove("dragging");
+            if (activePointerDrag.ghost && activePointerDrag.ghost.isConnected) {
+                activePointerDrag.ghost.remove();
+            }
+            activePointerDrag = null;
+        }
+
+        function beginPointerDrag(event, ch, buttonIndex, btn) {
+            if (inputMode !== "drag" || inputLocked || event.pointerType === "mouse") return;
+            if (btn.classList.contains("used")) return;
+
+            event.preventDefault();
+            clearPointerDrag();
+            btn.classList.add("dragging");
+
+            const ghost = document.createElement("div");
+            ghost.className = "touch-drag-ghost";
+            ghost.textContent = ch;
+            document.body.appendChild(ghost);
+
+            activePointerDrag = {
+                pointerId: event.pointerId,
+                letter: ch,
+                buttonIndex: buttonIndex,
+                button: btn,
+                ghost: ghost
+            };
+
+            updatePointerGhost(event.clientX, event.clientY);
+            updatePointerDropTarget(event.clientX, event.clientY);
+        }
+
+        function handlePointerMove(event) {
+            if (!activePointerDrag || event.pointerId !== activePointerDrag.pointerId) return;
+            event.preventDefault();
+            updatePointerGhost(event.clientX, event.clientY);
+            updatePointerDropTarget(event.clientX, event.clientY);
+        }
+
+        function finishPointerDrag(event) {
+            if (!activePointerDrag || event.pointerId !== activePointerDrag.pointerId) return;
+            event.preventDefault();
+
+            const letter = activePointerDrag.letter;
+            const buttonIndex = activePointerDrag.buttonIndex;
+            const slot = updatePointerDropTarget(event.clientX, event.clientY);
+
+            clearPointerDrag();
+
+            if (slot) {
+                chooseLetter(letter, buttonIndex);
+            }
         }
 
         function handleDrop(event) {
@@ -615,6 +728,9 @@
             wordSelect.addEventListener("change", () => startRound(false));
             inputModeEl.addEventListener("change", () => startRound(false));
             nextBtn.addEventListener("click", () => startRound(true));
+            document.addEventListener("pointermove", handlePointerMove, { passive: false });
+            document.addEventListener("pointerup", finishPointerDrag, { passive: false });
+            document.addEventListener("pointercancel", finishPointerDrag, { passive: false });
             winOverlay.addEventListener("click", (e) => {
                 if (e.target === winOverlay) {
                     winOverlay.classList.remove("show");
