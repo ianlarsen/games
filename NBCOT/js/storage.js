@@ -148,6 +148,7 @@ const Storage = (() => {
       dailyGoal:   20,
       sessionSize: 20,
       notifications: true,
+      soundEnabled: true,
     };
   }
 

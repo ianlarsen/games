@@ -179,21 +179,17 @@ const Engine = (() => {
 
   // ── Badge definitions and earning logic ──────────────────────
   const BADGE_DEFS = [
-    { id: 'first_question',   name: 'First Step',       icon: '👣', description: 'Answered your first question'                  },
-    { id: 'streak_3',         name: '3-Day Streak',     icon: '🔥', description: 'Studied 3 days in a row'                       },
-    { id: 'streak_7',         name: 'Week Warrior',     icon: '⚡', description: 'Studied 7 days in a row'                       },
-    { id: 'streak_14',        name: 'Fortnight Focus',  icon: '💪', description: 'Studied 14 days in a row'                      },
-    { id: 'questions_10',     name: 'Getting Started',  icon: '📖', description: 'Answered 10 questions'                         },
-    { id: 'questions_50',     name: 'Half Century',     icon: '🏅', description: 'Answered 50 questions'                         },
-    { id: 'questions_100',    name: 'Century Club',     icon: '💯', description: 'Answered 100 questions'                        },
-    { id: 'questions_500',    name: 'Question Master',  icon: '🎓', description: 'Answered 500 questions'                        },
-    { id: 'mastery_25',       name: 'Quarter Way',      icon: '🌱', description: 'Reached 25% overall mastery'                   },
-    { id: 'mastery_50',       name: 'Halfway There',    icon: '🌿', description: 'Reached 50% overall mastery'                   },
-    { id: 'mastery_75',       name: 'Almost Ready',     icon: '🌳', description: 'Reached 75% overall mastery'                   },
-    { id: 'mastery_100',      name: 'NBCOT Ready!',     icon: '🏆', description: 'Reached 100% overall mastery'                  },
-    { id: 'perfect_session',  name: 'Perfect Session',  icon: '⭐', description: 'Answered all questions correctly in a session' },
-    { id: 'domain_1',         name: 'Eval Expert',      icon: '🔍', description: 'Mastered the Evaluation domain'                },
-    { id: 'domain_2',         name: 'Knowledge Base',   icon: '📚', description: 'Mastered the Foundational Knowledge domain'    },
+    { id: 'first_question', name: 'First Step',     icon: '', img: 'assets/badges/first_question.png', description: 'Answered your first question'                        },
+    { id: 'streak_3',       name: '3-Day Streak',   icon: '', img: 'assets/badges/streak_3.png',       description: 'Studied 3 days in a row'                             },
+    { id: 'streak_7',       name: 'Week Warrior',   icon: '', img: 'assets/badges/streak_7.png',       description: 'Studied 7 days in a row'                             },
+    { id: 'streak_14',      name: 'Fortnight Focus',icon: '', img: 'assets/badges/streak_14.png',      description: 'Studied 14 days in a row'                            },
+    { id: 'mastery_25',     name: 'Quarter Way',    icon: '', img: 'assets/badges/mastery_25.png',     description: 'Reached 25% overall mastery'                         },
+    { id: 'mastery_50',     name: 'Halfway There',  icon: '', img: 'assets/badges/mastery_50.png',     description: 'Reached 50% overall mastery'                         },
+    { id: 'mastery_75',     name: 'Almost Ready',   icon: '', img: 'assets/badges/mastery_75.png',     description: 'Reached 75% overall mastery'                         },
+    { id: 'mastery_100',    name: 'NBCOT Ready!',   icon: '', img: 'assets/badges/mastery_100.png',    description: 'Reached 100% overall mastery'                        },
+    { id: 'perfect_session',name: 'Perfect Session',icon: '', img: 'assets/badges/perfect_session.png',description: 'Answered all questions correctly in a session'       },
+    { id: 'domain_1',       name: 'Eval Expert',    icon: '', img: 'assets/badges/domain_1.png',       description: 'Mastered the Evaluation & Assessment domain'         },
+    { id: 'domain_2',       name: 'Knowledge Base', icon: '', img: 'assets/badges/domain_2.png',       description: 'Mastered the Foundational Knowledge domain'          },
   ];
 
   function checkNewBadges(stats, existingBadges) {
@@ -208,13 +204,16 @@ const Engine = (() => {
       }
     };
 
-    const { totalAnswered = 0, streak = 0, overall = 0, lastSessionPerfect = false } = stats;
+    const {
+      totalAnswered = 0,
+      masteredCount = 0,
+      streak = 0,
+      overall = 0,
+      byDomain = {},
+      lastSessionPerfect = false,
+    } = stats;
 
-    if (totalAnswered >= 1)   add('first_question');
-    if (totalAnswered >= 10)  add('questions_10');
-    if (totalAnswered >= 50)  add('questions_50');
-    if (totalAnswered >= 100) add('questions_100');
-    if (totalAnswered >= 500) add('questions_500');
+    if (totalAnswered >= 1)    add('first_question');
 
     if (streak >= 3)  add('streak_3');
     if (streak >= 7)  add('streak_7');
@@ -226,6 +225,9 @@ const Engine = (() => {
     if (overall >= 100) add('mastery_100');
 
     if (lastSessionPerfect) add('perfect_session');
+
+    if ((byDomain.evaluation  || 0) >= 100) add('domain_1');
+    if ((byDomain.foundations || 0) >= 100) add('domain_2');
 
     return newBadges;
   }

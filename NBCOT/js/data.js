@@ -4,12 +4,12 @@
 // ============================================================
 
 const DOMAINS = [
-  { id: 'evaluation',     label: 'Evaluation & Assessment',       color: '#6366F1', icon: '🔍' },
-  { id: 'foundations',    label: 'Foundational Knowledge',        color: '#0EA5E9', icon: '📚' },
-  { id: 'intervention',   label: 'Intervention',                  color: '#10B981', icon: '🏥' },
-  { id: 'pediatrics',     label: 'Pediatric Practice',            color: '#F59E0B', icon: '🧒' },
-  { id: 'mental_health',  label: 'Mental Health',                 color: '#8B5CF6', icon: '🧠' },
-  { id: 'professional',   label: 'Professional Practice',         color: '#F43F5E', icon: '⚖️' },
+  { id: 'evaluation',    label: 'Evaluation & Assessment',  color: '#6366F1', icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>' },
+  { id: 'foundations',   label: 'Foundational Knowledge',   color: '#0EA5E9', icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>' },
+  { id: 'intervention',  label: 'Intervention',             color: '#10B981', icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>' },
+  { id: 'pediatrics',    label: 'Pediatric Practice',       color: '#F59E0B', icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>' },
+  { id: 'mental_health', label: 'Mental Health',            color: '#8B5CF6', icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z"/></svg>' },
+  { id: 'professional',  label: 'Professional Practice',    color: '#F43F5E', icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>' },
 ];
 
 const QUESTIONS = [

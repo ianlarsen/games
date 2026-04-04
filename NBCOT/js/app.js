@@ -76,6 +76,7 @@ const App = (() => {
     document.body.classList.remove('font-small', 'font-large');
     if (s.fontSize === 'small') document.body.classList.add('font-small');
     if (s.fontSize === 'large') document.body.classList.add('font-large');
+    Sound.setEnabled(s.soundEnabled !== false);
   }
 
   // ──────────────────────────────────────────────────────────
@@ -160,11 +161,11 @@ const App = (() => {
       return `
         <div class="home-header">
           <div class="home-greeting">
-            <div class="label">${greet} 👋</div>
+            <div class="label">${greet}</div>
             <div class="name">${escHtml(name)}</div>
             <div class="tagline">Your NBCOT exam is waiting</div>
           </div>
-          <div class="streak-badge">🔥 ${state.streak} day${state.streak !== 1 ? 's' : ''}</div>
+          <div class="streak-badge">${iconFlame()} ${state.streak} day${state.streak !== 1 ? 's' : ''}</div>
         </div>
       `;
     },
@@ -209,8 +210,8 @@ const App = (() => {
           <button class="btn btn-primary" onclick="App.startStudySession()"
                   style="width:100%;font-size:var(--font-size-lg);min-height:56px;border-radius:var(--radius-xl)">
             ${dueCount > 0
-              ? `📚 Study Now  <span style="background:rgba(255,255,255,.25);border-radius:var(--radius-full);padding:2px 10px;font-size:var(--font-size-sm);">${Math.min(dueCount, state.settings.sessionSize)} due</span>`
-              : '📚 Practice All'}
+              ? `Study Now  <span style="background:rgba(255,255,255,.25);border-radius:var(--radius-full);padding:2px 10px;font-size:var(--font-size-sm);">${Math.min(dueCount, state.settings.sessionSize)} due</span>`
+              : 'Practice All'}
           </button>
         </div>
       `;
@@ -240,9 +241,14 @@ const App = (() => {
     },
 
     _badgeItem(badge) {
+      const iconHtml = badge.img
+        ? `<img src="${badge.img}" alt="${escHtml(badge.name)}" class="badge-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display=''">
+           <span class="icon" style="display:none">${badge.icon}</span>`
+        : `<span class="icon">${badge.icon}</span>`;
       return `
         <div class="badge-item" title="${escHtml(badge.description)}">
-          <span class="icon">${badge.icon}</span>
+          ${iconHtml}
           <span class="label">${escHtml(badge.name)}</span>
         </div>
       `;
@@ -255,15 +261,15 @@ const App = (() => {
         <div class="screen">
           <h2 style="margin-bottom:var(--space-5)">Study Modes</h2>
 
-          ${Views._modeCard('📚', 'Smart Review',
+          ${Views._modeCard(iconBook(), 'Smart Review',
             `${Math.min(dueCount, state.settings.sessionSize)} cards due — spaced repetition`,
             'btn-primary', "App.startStudySession()")}
 
-          ${Views._modeCard('⚡', 'Quick Quiz',
+          ${Views._modeCard(iconLightning(), 'Quick Quiz',
             'Random 10 questions from any domain',
             'btn-secondary', "App.startQuickQuiz()")}
 
-          ${Views._modeCard('🎯', 'Practice Test',
+          ${Views._modeCard(iconTarget(), 'Practice Test',
             'Timed 50-question full-length exam',
             'btn-secondary', "App.startPracticeTest()")}
 
@@ -292,7 +298,7 @@ const App = (() => {
       return `
         <div class="card card-pad mb-4" style="margin-bottom:var(--space-3)">
           <div class="flex items-center gap-3 mb-4">
-            <span style="font-size:1.75rem">${icon}</span>
+            <span class="mode-card-icon">${icon}</span>
             <div>
               <div style="font-weight:700;font-size:var(--font-size-md)">${title}</div>
               <div style="font-size:var(--font-size-sm);color:var(--color-text-muted)">${desc}</div>
@@ -320,7 +326,7 @@ const App = (() => {
       return `
         <div class="study-screen">
           <div class="study-header">
-            <button class="close-btn" onclick="App.confirmEndSession()" aria-label="End session">✕</button>
+            <button class="close-btn" onclick="App.confirmEndSession()" aria-label="End session">${iconXMark()}</button>
             <div class="study-progress-wrap">
               <div class="study-progress-label">${current} / ${total}</div>
               <div class="progress-wrap">
@@ -333,7 +339,7 @@ const App = (() => {
           <div class="question-body">
             <div class="question-domain-chip"
                  style="background:${domain ? domain.color + '22' : '#eee'};color:${domain ? domain.color : '#666'}">
-              ${domain ? domain.icon : ''} ${domain ? domain.label : q.domain}
+              ${domain ? domain.label : q.domain}
             </div>
             <div class="question-stem">${escHtml(q.stem)}</div>
             <div class="options-list" id="options-list">
@@ -370,11 +376,11 @@ const App = (() => {
       const avgTime  = total > 0
         ? Math.round(sess.results.reduce((a, r) => a + r.timeTaken, 0) / total / 1000)
         : 0;
-      const emoji = accuracy >= 80 ? '🏆' : accuracy >= 60 ? '⭐' : '📚';
+      const trophySvg = accuracy >= 80 ? iconTrophy() : accuracy >= 60 ? iconStar() : iconBook();
 
       return `
         <div class="screen complete-screen">
-          <div class="complete-trophy">${emoji}</div>
+          <div class="complete-trophy">${trophySvg}</div>
           <h2>${accuracy >= 80 ? 'Great Work!' : accuracy >= 60 ? 'Good Job!' : 'Keep Practicing!'}</h2>
           <p class="mt-2">${correct} of ${total} correct · ${accuracy}% accuracy</p>
 
@@ -522,9 +528,13 @@ const App = (() => {
           <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-top:var(--space-4)">
             ${Engine.BADGE_DEFS.map(def => {
               const earned = state.badges.find(b => b.id === def.id);
+              const imgHtml = def.img
+                ? `<img src="${def.img}" alt="${escHtml(def.name)}" class="badge-img"
+                       onerror="this.style.display='none'">`
+                : '';
               return `
                 <div class="badge-item ${earned ? '' : 'locked'}" title="${escHtml(def.description)}">
-                  <span class="icon">${def.icon}</span>
+                  ${imgHtml}
                   <span class="label">${escHtml(def.name)}</span>
                 </div>
               `;
@@ -544,7 +554,7 @@ const App = (() => {
           <div class="settings-section-label">Profile</div>
           <div class="settings-section">
             <div class="settings-row">
-              <span class="icon">👤</span>
+              <span class="settings-icon">${iconPerson()}</span>
               <div class="info">
                 <div class="title">${escHtml(state.user ? state.user.name : 'Guest')}</div>
                 <div class="sub">Tap to edit your name</div>
@@ -556,7 +566,7 @@ const App = (() => {
           <div class="settings-section-label">Study Preferences</div>
           <div class="settings-section">
             <div class="settings-row" style="cursor:default">
-              <span class="icon">🎯</span>
+              <span class="settings-icon">${iconTarget()}</span>
               <div class="info">
                 <div class="title">Daily Goal</div>
                 <div class="sub">Questions per day</div>
@@ -569,7 +579,7 @@ const App = (() => {
               </select>
             </div>
             <div class="settings-row" style="cursor:default">
-              <span class="icon">📦</span>
+              <span class="settings-icon">${iconBox()}</span>
               <div class="info">
                 <div class="title">Session Size</div>
                 <div class="sub">Questions per session</div>
@@ -586,7 +596,7 @@ const App = (() => {
           <div class="settings-section-label">Appearance</div>
           <div class="settings-section">
             <div class="settings-row" style="cursor:default">
-              <span class="icon">🌙</span>
+              <span class="settings-icon">${iconMoon()}</span>
               <div class="info">
                 <div class="title">Dark Mode</div>
               </div>
@@ -597,7 +607,7 @@ const App = (() => {
               </label>
             </div>
             <div class="settings-row" style="cursor:default">
-              <span class="icon">🔤</span>
+              <span class="settings-icon">${iconText()}</span>
               <div class="info">
                 <div class="title">Font Size</div>
               </div>
@@ -610,10 +620,25 @@ const App = (() => {
             </div>
           </div>
 
+          <div class="settings-section-label">Audio</div>
+          <div class="settings-section">
+            <div class="settings-row" style="cursor:default">
+              <span class="settings-icon">${iconVolume()}</span>
+              <div class="info">
+                <div class="title">Sound Effects</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" ${s.soundEnabled !== false ? 'checked' : ''}
+                       onchange="App.saveSetting('soundEnabled', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
           <div class="settings-section-label">Account</div>
           <div class="settings-section">
             <div class="settings-row" onclick="App.exportProgress()">
-              <span class="icon">📤</span>
+              <span class="settings-icon">${iconUpload()}</span>
               <div class="info">
                 <div class="title">Export Progress</div>
                 <div class="sub">Download your study data as JSON</div>
@@ -621,7 +646,7 @@ const App = (() => {
               <span class="right">›</span>
             </div>
             <div class="settings-row" onclick="App.confirmReset()">
-              <span class="icon">🗑️</span>
+              <span class="settings-icon">${iconTrash()}</span>
               <div class="info" style="color:var(--color-error)">
                 <div class="title" style="color:var(--color-error)">Reset All Progress</div>
                 <div class="sub">This cannot be undone</div>
@@ -632,17 +657,28 @@ const App = (() => {
           <div class="settings-section-label">About</div>
           <div class="settings-section">
             <div class="settings-row" style="cursor:default">
-              <span class="icon">ℹ️</span>
+              <span class="settings-icon">${iconInfo()}</span>
               <div class="info">
                 <div class="title">NBCOT Prep</div>
                 <div class="sub">Version 1.0.0 · 75 curated questions</div>
               </div>
             </div>
             <div class="settings-row" style="cursor:default">
-              <span class="icon">📚</span>
+              <span class="settings-icon">${iconBook()}</span>
               <div class="info">
                 <div class="title">Study Method</div>
                 <div class="sub">Leitner spaced repetition + adaptive review</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section-label">Disclaimer</div>
+          <div class="settings-section">
+            <div class="settings-row" style="cursor:default;align-items:flex-start">
+              <span class="settings-icon">${iconWarning()}</span>
+              <div class="info" style="padding-top:2px">
+                <div class="title" style="font-size:var(--font-size-sm)">Independent Study Tool</div>
+                <div class="sub" style="line-height:1.5">This app is <strong>not affiliated with, endorsed by, or sponsored by</strong> the National Board for Certification in Occupational Therapy, Inc. (NBCOT®). NBCOT® is a registered trademark of NBCOT, Inc. All exam content is independently curated for study purposes only.</div>
               </div>
             </div>
           </div>
@@ -658,22 +694,22 @@ const App = (() => {
   // ──────────────────────────────────────────────────────────
   const onboardingSlides = [
     {
-      icon:  '🎓',
+      icon:  iconGradCap(),
       title: 'Master the\nNBCOT Exam',
-      body:  'Science-backed study tools designed specifically for occupational therapy candidates.',
+      body:  'Science-backed study tools designed specifically for occupational therapy candidates.<br><br><small style="opacity:.75;font-size:.78em;line-height:1.4;display:block">This app is an independent study tool and is <strong>not affiliated with, endorsed by, or sponsored by</strong> the National Board for Certification in Occupational Therapy, Inc. (NBCOT®). NBCOT® is a registered trademark of NBCOT, Inc.</small>',
     },
     {
-      icon:  '🔄',
+      icon:  iconRepeat(),
       title: 'Spaced\nRepetition',
       body:  'Our Leitner algorithm schedules reviews at the optimal moment — right before you forget.',
     },
     {
-      icon:  '🧠',
+      icon:  iconBrain(),
       title: 'Adaptive\nLearning',
       body:  'Weak domains get more attention. Strong areas stay fresh. Every session is personalized.',
     },
     {
-      icon:  '💪',
+      icon:  iconRocket(),
       title: 'Let\'s Get\nStarted',
       body:  null, // will show name input instead
     },
@@ -726,7 +762,7 @@ const App = (() => {
         </div>
         <button class="onboarding-btn" onclick="App.obNext()"
                 id="ob-btn" style="margin-bottom:env(safe-area-inset-bottom,12px)">
-          ${isLast ? 'Start Learning 🚀' : 'Continue →'}
+          ${isLast ? 'Start Learning' : 'Continue →'}
         </button>
         ${obSlide > 0
           ? `<button onclick="App.obBack()" style="background:none;border:none;color:rgba(255,255,255,.7);
@@ -784,7 +820,7 @@ const App = (() => {
     );
 
     if (sessionQs.length === 0) {
-      showToast('🎉 All caught up! Come back tomorrow for reviews.');
+      showToast('All caught up! Come back tomorrow for reviews.');
       return;
     }
 
@@ -886,11 +922,13 @@ const App = (() => {
     feedbackZone.innerHTML = `
       <div class="feedback-panel ${panelClass}">
         <div class="feedback-title ${titleClass}">
-          ${correct ? '✅ Correct!' : '❌ Incorrect'}
+          <span class="feedback-icon">${correct ? iconCheck() : iconXMark()}</span>
+          ${correct ? 'Correct!' : 'Incorrect'}
         </div>
         <div class="feedback-text">${escHtml(q.rationale)}</div>
       </div>
     `;
+    Sound.play(correct ? 'correct' : 'incorrect');
 
     // Update card state
     let cardState = state.cardStates[q.id] || Engine.newCardState(q.id);
@@ -901,6 +939,7 @@ const App = (() => {
 
     if (cardState.box > prevBox) sess.movedUp++;
     else if (cardState.box < prevBox) sess.movedDown++;
+    if (cardState.box > prevBox) Sound.play('level-up');
 
     // Record result
     sess.results.push({ questionId: q.id, correct, timeTaken, selectedOption: optionIndex });
@@ -955,9 +994,15 @@ const App = (() => {
     recalcStats();
 
     // Check for new badges
-    const totalAnswered = state.sessions.reduce((a, s) => a + (s.totalQuestions || 0), 0);
+    const totalAnswered  = state.sessions.reduce((a, s) => a + (s.totalQuestions || 0), 0);
     const newBadges = Engine.checkNewBadges(
-      { totalAnswered, streak: state.streak, overall: state.mastery.overall, lastSessionPerfect: accuracy === 100 },
+      {
+        totalAnswered,
+        streak:             state.streak,
+        overall:            state.mastery.overall,
+        byDomain:           state.mastery.byDomain,
+        lastSessionPerfect: accuracy === 100,
+      },
       state.badges
     );
 
@@ -971,6 +1016,7 @@ const App = (() => {
     document.getElementById('main-content').innerHTML = Views.sessionComplete();
     state.currentView = 'home';
     renderNav();
+    Sound.play('session-complete');
 
     // Show badge popups with delay
     newBadges.forEach((badge, i) => {
@@ -1049,7 +1095,7 @@ const App = (() => {
 
   async function confirmReset() {
     showModal(
-      '⚠️ Reset All Progress',
+      'Reset All Progress',
       'This will permanently delete all your study data, card states, and badges. This cannot be undone.',
       [
         { label: 'Cancel',           action: 'App.closeModal()', primary: false },
@@ -1086,7 +1132,7 @@ const App = (() => {
     anchor.download = `nbcot-progress-${Date.now()}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
-    showToast('📤 Progress exported!');
+    showToast('Progress exported!');
   }
 
   // ──────────────────────────────────────────────────────────
@@ -1143,12 +1189,13 @@ const App = (() => {
   }
 
   function showBadgePopup(badge) {
+    Sound.play('badge');
     const el = document.createElement('div');
     el.className = 'badge-popup';
     el.innerHTML = `
-      <span class="icon">${badge.icon}</span>
+      ${badge.img ? `<img src="${badge.img}" alt="${escHtml(badge.name)}" class="badge-img" onerror="this.style.display='none'">` : ''}
       <div class="text">
-        <div class="title">🎉 Badge Unlocked!</div>
+        <div class="title">Badge Unlocked!</div>
         <div class="sub">${escHtml(badge.name)} — ${escHtml(badge.description)}</div>
       </div>
     `;
@@ -1188,6 +1235,68 @@ const App = (() => {
   function iconChart() {
     return `<svg viewBox="0 0 24 24" fill="currentColor">
       <path d="M16 11h5v9h-5zM3 13h5v7H3zm6.5-6h5v14h-5z"/>
+    </svg>`;
+  }
+  function iconFlame() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>`;
+  }
+  function iconPerson() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+  }
+  function iconTarget() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="2" fill="var(--color-surface,#fff)"/></svg>`;
+  }
+  function iconBox() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM6.24 5h11.52l.84 1H5.4l.84-1zM5 19V8h14v11H5zm8.45-9l-3.45 3.44L8.55 12 7 13.55l2.98 2.98.02.02L12 14.5l.02.05 2.98-2.98L13.45 10z"/></svg>`;
+  }
+  function iconMoon() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>`;
+  }
+  function iconText() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></svg>`;
+  }
+  function iconUpload() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>`;
+  }
+  function iconTrash() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
+  }
+  function iconInfo() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`;
+  }
+  function iconWarning() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`;
+  }
+  function iconLightning() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`;
+  }
+  function iconTrophy() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H9v2h6v-2h-2v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>`;
+  }
+  function iconStar() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+  }
+  function iconCheck() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
+  }
+  function iconXMark() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
+  }
+  function iconGradCap() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`;
+  }
+  function iconRepeat() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`;
+  }
+  function iconBrain() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>`;
+  }
+  function iconRocket() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.19 6.35c-2.04 2.29-3.44 5.58-3.57 5.89L2 10.69l4.5-4.5 2.69.16zM11.17 17c-.31.13-3.58 1.53-5.87 3.57l-.17-2.71L9.63 13.3l1.54 3.7zm4.47 4.19L13.29 17.4l-4.05-9.79 7.47-7.47C18.99 2.13 22 4 22 8.5c0 4.49-3.01 8.37-6.36 12.69zM16 10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`;
+  }
+  function iconVolume() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
     </svg>`;
   }
   function iconGear() {
