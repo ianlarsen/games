@@ -71,9 +71,31 @@
         .game-shake {
             animation: gameShake 0.3s ease-in-out;
         }
+
+        #game-container {
+            position: relative;
+            isolation: isolate;
+        }
+
+        #background-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100% !important;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        #emoji-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+        }
     </style>
+    <link rel="stylesheet" href="../_ios_compat.css">
 </head>
-<body class="bg-gray-100 p-4 sm:p-8">
+
+<a href="../index.html" style="position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));z-index:9999;background:rgba(255,255,255,0.92);color:#111;padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:700;border:1px solid #d1d5db;">&larr; All Games</a>
 
     <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
         <header class="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -84,7 +106,7 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Castle Hunt</h1>
 
 <div id="game-container" class="relative w-full max-w-full h-[70vh] sm:h-[80vh] bg-gray-200 rounded-lg overflow-hidden border">
-            <img id="background-img" src="images/castle.png" alt="Castle Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/d1c4e9/ffffff?text=Castle+Image'">
+            <img id="background-img" src="images/castle.png" alt="Castle Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.style.display='none';document.getElementById('game-container').style.background='linear-gradient(135deg,#dbeafe,#bfdbfe)'">
             <!-- Emoji layer is where the JS will add emojis -->
             <div id="emoji-layer"></div>
             <!-- Win overlay -->

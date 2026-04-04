@@ -45,15 +45,6 @@
       align-items: center;
       gap: 0.6rem;
     }
-    .tts-toggle {
-      background: transparent;
-      color: var(--ink);
-      border: 2px solid var(--accent);
-      border-radius: 999px;
-      padding: .45rem .8rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
     main {
       margin-inline: auto;
       width: min(100%, var(--max));
@@ -120,12 +111,12 @@
       .tile { transition: none; }
     }
   </style>
+    <link rel="stylesheet" href="../_ios_compat.css">
 </head>
 <body>
   <header>
     <div class="header-content">
       <h1>🔎 Seek & Find</h1>
-      <button id="tts" class="tts-toggle" aria-pressed="false" aria-label="Turn on sound hints">🔇 Sound Off</button>
     </div>
   </header>
 
@@ -134,31 +125,31 @@
         <a href="../index.html" class="back-link">⬅️ Back to All Games</a>
     </div>
     <div class="grid">
-      <a class="tile" href="park.html" data-say="Park Hunt. Find the hidden emojis." aria-label="Park Hunt. Find the hidden emojis.">
+      <a class="tile" href="park.html" aria-label="Park Hunt. Find the hidden emojis.">
         <div class="emoji" aria-hidden="true">🌳🐿️</div>
         <div class="label">Park Hunt</div>
         <div class="hint">Find the emojis</div>
       </a>
 
-      <a class="tile" href="castle.html" data-say="Castle Hunt. Find the hidden emojis." aria-label="Castle Hunt. Find the hidden emojis.">
+      <a class="tile" href="castle.html" aria-label="Castle Hunt. Find the hidden emojis.">
         <div class="emoji" aria-hidden="true">🏰🐉</div>
         <div class="label">Castle Hunt</div>
         <div class="hint">Find the emojis</div>
       </a>
 
-      <a class="tile" href="space.html" data-say="Space Hunt. Find the hidden emojis." aria-label="Space Hunt. Find the hidden emojis.">
+      <a class="tile" href="space.html" aria-label="Space Hunt. Find the hidden emojis.">
         <div class="emoji" aria-hidden="true">🚀👽</div>
         <div class="label">Space Hunt</div>
         <div class="hint">Find the emojis</div>
       </a>
 
-      <a class="tile" href="beach.html" data-say="Beach Hunt. Find the hidden emojis." aria-label="Beach Hunt. Find the hidden emojis.">
+      <a class="tile" href="beach.html" aria-label="Beach Hunt. Find the hidden emojis.">
         <div class="emoji" aria-hidden="true">⛱️🦀</div>
         <div class="label">Space Hunt</div>
         <div class="hint">Find the emojis</div>
       </a>
 
-      <a class="tile" href="camping.html" data-say="Camping Hunt. Find the hidden emojis." aria-label="Camping Hunt. Find the hidden emojis.">
+      <a class="tile" href="camping.html" aria-label="Camping Hunt. Find the hidden emojis.">
         <div class="emoji" aria-hidden="true">🏕️🌲</div>
         <div class="label">Space Hunt</div>
         <div class="hint">Find the emojis</div>
@@ -170,18 +161,6 @@
   <footer>
   </footer>
 
-  <script>
-    (function(){
-      const btn = document.getElementById('tts'); let enabled=false;
-      const speak=(t)=>{ if(!enabled) return; try{ const u=new SpeechSynthesisUtterance(t); u.rate=.95; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} };
-      btn.addEventListener('click',()=>{ enabled=!enabled; btn.setAttribute('aria-pressed',String(enabled)); btn.textContent=enabled?'🔊 Sound On':'🔇 Sound Off'; if(enabled) speak('Sound on. Choose a theme.');});
-      for(const tile of document.querySelectorAll('.tile')){
-        tile.addEventListener('focus',()=>speak(tile.dataset.say));
-        tile.addEventListener('mouseenter',()=>speak(tile.dataset.say));
-        tile.addEventListener('click',()=>speak('Loading ' + tile.dataset.say));
-      }
-    })();
-  </script>
 </body>
 </html>
 
