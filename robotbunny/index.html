@@ -136,10 +136,9 @@
     box-shadow: 0 0 15px rgba(123, 226, 255, 0.3);
   }
   .mobile-btn:active { background: rgba(123, 226, 255, 0.3); transform: scale(0.95); }
-  #mobile-jump { right: 110px; bottom: 15px; width: 90px; height: 90px; font-size: 16px; }
-  #mobile-shoot { right: 15px; bottom: 15px; width: 80px; height: 80px; font-size: 28px; }
+  #mobile-jump { right: 15px; bottom: 15px; width: 90px; height: 90px; font-size: 16px; }
   #mobile-burst {
-    right: 210px; bottom: 15px; width: 70px; height: 70px; font-size: 20px;
+    right: 115px; bottom: 15px; width: 70px; height: 70px; font-size: 20px;
     background: rgba(255,215,0,0.18); border-color: rgba(255,215,0,0.65);
     color: #FFD700; box-shadow: 0 0 14px rgba(255,215,0,0.35);
     display: none; flex-direction: column; gap: 3px; line-height: 1;
@@ -316,7 +315,6 @@
 <div class="mobile-controls">
   <div id="joystick-base"><div id="joystick-knob"></div></div>
   <div class="mobile-btn" id="mobile-jump">JUMP</div>
-  <div class="mobile-btn" id="mobile-shoot">✦</div>
   <div class="mobile-btn" id="mobile-burst"><span id="burst-stars">★</span><span class="burst-label">BURST</span></div>
 </div>
 
@@ -361,13 +359,13 @@
   let fpsDisplayValue = 60;
   let fpsUpdateTimer = 0;
   const performanceProfiles = {
-    low: { particleDensity: 0.45, maxParticles: 90, uiShadowBlur: 0, introShadowBlur: 3 },
+    low: { particleDensity: 0.45, maxParticles: 80, uiShadowBlur: 0, introShadowBlur: 3 },
     balanced: isMobileDevice
-      ? { particleDensity: 0.65, maxParticles: 120, uiShadowBlur: 1, introShadowBlur: 5 }
-      : { particleDensity: 1.0, maxParticles: 260, uiShadowBlur: 2, introShadowBlur: 10 },
+      ? { particleDensity: 0.55, maxParticles: 90, uiShadowBlur: 1, introShadowBlur: 5 }
+      : { particleDensity: 0.8, maxParticles: 160, uiShadowBlur: 2, introShadowBlur: 10 },
     high: isMobileDevice
-      ? { particleDensity: 0.9, maxParticles: 180, uiShadowBlur: 2, introShadowBlur: 8 }
-      : { particleDensity: 1.25, maxParticles: 360, uiShadowBlur: 3, introShadowBlur: 12 }
+      ? { particleDensity: 0.75, maxParticles: 140, uiShadowBlur: 2, introShadowBlur: 8 }
+      : { particleDensity: 1.0, maxParticles: 240, uiShadowBlur: 3, introShadowBlur: 12 }
   };
   const performanceModeOrder = ['low', 'balanced', 'high'];
   let performanceMode = localStorage.getItem('rb_perf_mode') || 'balanced';
@@ -546,8 +544,8 @@
   const jumpVel = -950;
   const moveSpeed = 250;
   const maxVelX = 350;
-  const COYOTE_TIME = 0.1;
-  const JUMP_BUFFER_TIME = 0.12;
+  const COYOTE_TIME = 0.15;
+  const JUMP_BUFFER_TIME = 0.18;
   const LANDING_FORGIVENESS_TIME = 0.08;
   const COINS_PER_EXTRA_LIFE = 220;
   const MAX_EXTRA_LIVES_PER_LEVEL = 2;
@@ -568,8 +566,6 @@
   const MOON_BURST_DURATION = 3.2;  // seconds of extreme low-G burst
   const MOON_BURST_GRAVITY = 0.08;  // gravity multiplier during burst
   const MOON_BURST_LAUNCH_VY = -520;// upward velocity blasted onto enemies
-  const ICE_TRACTION  = 0.965;     // per-frame brake on crater ice (~11% speed retained after 1 s)
-  const ICE_ACCEL_MULT = 0.55;     // ground acceleration multiplier on ice
 
   // -------- Daily Contract & Mastery Badge (Day 9) --------
   const CONTRACT_REWARD_COINS = 50; // bonus coins awarded on daily contract completion
@@ -1141,6 +1137,7 @@
     }
   }
   function createDamageNumber(x, y, value, color = '#FFD700') {
+    if (damageNumbers.length >= 30) return;
     damageNumbers.push({ x, y: y - 10, value: value, life: 1.0, color: color, vy: -100 });
   }
   function addCombo() {
@@ -1822,25 +1819,14 @@
 
     const airControl = player.onGround ? 1 : airControlMultiplier;
     const effectiveMoveSpeed = moveSpeed * moveSpeedMultiplier * airControl;
-    const _biome = getBiomeForLevel(currentLevel);
-    // Level 1 has normal grip; ice starts from level 2 (second crater loop)
-    const onIce = player.onGround && _biome === 'crater' && currentLevel !== 1;
-    const accelMult = onIce ? ICE_ACCEL_MULT : 1;
 
-    if (moveLeft)  { player.vx -= effectiveMoveSpeed * dt * 8 * accelMult; player.facing = -1; }
-    if (moveRight) { player.vx += effectiveMoveSpeed * dt * 8 * accelMult; player.facing =  1; }
+    if (moveLeft)  { player.vx -= effectiveMoveSpeed * dt * 8; player.facing = -1; }
+    if (moveRight) { player.vx += effectiveMoveSpeed * dt * 8; player.facing =  1; }
     if (!moveLeft && !moveRight) {
-      if (onIce)                player.vx *= ICE_TRACTION; // barely slows — real sliding
-      else if (player.onGround) player.vx *= 0.86;         // normal ground brake
+      if (player.onGround) player.vx *= 0.86; // ground brake
       // in air: no friction, full momentum
     }
-    // Ice lets momentum build beyond normal cap
-    const effectiveMaxVelX = onIce ? maxVelX * 1.35 : maxVelX;
-    player.vx = clamp(player.vx, -effectiveMaxVelX, effectiveMaxVelX);
-    // Ice: emit skid sparkles when sliding fast
-    if (onIce && Math.abs(player.vx) > 160 && Math.random() < 0.25) {
-      createParticle(player.x + (player.vx < 0 ? player.w : 0), player.y + player.h, '#cce8ff', 2, 3);
-    }
+    player.vx = clamp(player.vx, -maxVelX, maxVelX);
 
     if (player.jumpBufferTimer > 0 && !wantDuck && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
       player.vy = jumpVel;
@@ -2339,18 +2325,6 @@
       }
     }
 
-    // Crater biome: ice sheen on ground surface
-    if (getBiomeForLevel(currentLevel) === 'crater') {
-      ctx.save(); ctx.globalAlpha = 0.2; ctx.fillStyle = '#a8d8ff';
-      for (const seg of segments) {
-        for (const plat of seg.platforms) {
-          if (plat.type !== 'ground' || !inView(plat.x, plat.y, plat.w, 8)) continue;
-          ctx.fillRect(plat.x, plat.y, plat.w, 7);
-        }
-      }
-      ctx.restore();
-    }
-
     // Ruins/caverns: animated lava in pits
     for (const seg of segments) {
       if (!seg.hazards || !seg.hazards.length) continue;
@@ -2539,12 +2513,9 @@
             const shieldAngle = enemy.dir > 0 ? 0 : Math.PI;
             ctx.strokeStyle = 'rgba(100,180,255,0.9)';
             ctx.lineWidth = 3;
-            ctx.shadowColor = '#7be2ff';
-            ctx.shadowBlur = 6;
             ctx.beginPath();
             ctx.arc(0, 0, enemy.w / 2 + 5, shieldAngle - Math.PI * 0.45, shieldAngle + Math.PI * 0.45);
             ctx.stroke();
-            ctx.shadowBlur = 0;
           }
         } else if (enemy.type === 'sniper') {
           // Body: tall, thin rectangle
@@ -2970,21 +2941,19 @@
   });
 
   const btns = {
-    jump: document.getElementById('mobile-jump'),
-    shoot: document.getElementById('mobile-shoot')
+    jump: document.getElementById('mobile-jump')
   };
   const bindTouch = (btn, code) => {
     if (!btn) return;
     btn.addEventListener('touchstart', e => {
       e.preventDefault();
       keys[code] = true;
-      if (code === 'KeyX') wantShoot = true;
       if (code === 'Space') wantJumpPress = true;
     }, { passive: false });
     btn.addEventListener('touchend', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
     btn.addEventListener('touchcancel', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
   };
-  bindTouch(btns.jump, 'Space'); bindTouch(btns.shoot, 'KeyX');
+  bindTouch(btns.jump, 'Space');
 
   // Mobile burst button — fires a homing laser at every on-screen enemy
   const mobileBurstBtn = document.getElementById('mobile-burst');
