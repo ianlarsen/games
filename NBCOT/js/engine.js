@@ -1,0 +1,255 @@
+// ============================================================
+//  NBCOT PREP — Learning Engine
+//  Leitner spaced-repetition + mastery scoring + badge tracking
+// ============================================================
+
+const Engine = (() => {
+
+  // ── Leitner box intervals (days until next review) ──────────
+  const BOX_INTERVALS = [0, 1, 3, 7, 14, 30]; // index = box (0 = new/never seen)
+
+  function getBoxInterval(box) {
+    return BOX_INTERVALS[Math.min(box, BOX_INTERVALS.length - 1)];
+  }
+
+  // ── Create a fresh card state for a new question ─────────────
+  function newCardState(questionId) {
+    return {
+      questionId,
+      box:         0,          // 0 = never seen; 1–5 = Leitner boxes
+      nextReview:  Date.now(), // due immediately
+      masteryPct:  0,
+      attempts:    0,
+      correctCount: 0,
+      lastSeen:    null,
+    };
+  }
+
+  // ── Is a card due for review right now? ──────────────────────
+  function isDue(state) {
+    if (!state) return true; // never studied = always due
+    return Date.now() >= state.nextReview;
+  }
+
+  // ── Grade a card after the user answers ──────────────────────
+  // Returns an updated cardState
+  function gradeCard(state, isCorrect) {
+    const now = Date.now();
+    let box = state.box;
+
+    if (isCorrect) {
+      box = Math.min(box + 1, 5); // advance (max box 5)
+    } else {
+      box = 1; // reset to box 1
+    }
+
+    const daysUntilNext = getBoxInterval(box);
+    const nextReview    = now + daysUntilNext * 86400000; // ms per day
+
+    const attempts    = state.attempts + 1;
+    const correctCount = state.correctCount + (isCorrect ? 1 : 0);
+    const masteryPct  = Math.round(((box - 1) / 4) * 100);
+
+    return {
+      ...state,
+      box,
+      nextReview,
+      masteryPct: Math.max(0, masteryPct),
+      attempts,
+      correctCount,
+      lastSeen: now,
+    };
+  }
+
+  // ── Build a study session question list ──────────────────────
+  // Returns array of question objects (from QUESTIONS) ready to study.
+  // Prioritises: (1) due cards, (2) new cards, up to maxCards.
+  function buildSession(cardStatesMap, questions, maxCards = 20) {
+    const now = Date.now();
+    const due  = [];
+    const newQ = [];
+
+    questions.forEach(q => {
+      const state = cardStatesMap[q.id];
+      if (!state || state.box === 0) {
+        newQ.push(q);
+      } else if (now >= state.nextReview) {
+        due.push(q);
+      }
+    });
+
+    // Sort due by most overdue first
+    due.sort((a, b) => {
+      const sa = cardStatesMap[a.id];
+      const sb = cardStatesMap[b.id];
+      return (sa ? sa.nextReview : 0) - (sb ? sb.nextReview : 0);
+    });
+
+    // Combine: due first, then new
+    const combined = [...due, ...newQ].slice(0, maxCards);
+
+    // Shuffle within each group but keep due before new
+    shuffle(combined.slice(0, due.length));
+    return combined;
+  }
+
+  // ── Build a practice test session (fixed domain + difficulty) ─
+  function buildTestSession(questions, optDomain = null, count = 50) {
+    let pool = optDomain
+      ? questions.filter(q => q.domain === optDomain)
+      : [...questions];
+
+    shuffle(pool);
+    return pool.slice(0, Math.min(count, pool.length));
+  }
+
+  // ── Calculate per-domain and overall mastery ─────────────────
+  function calcMastery(cardStatesMap, questions) {
+    const domainTotals   = {};
+    const domainMastered = {};
+
+    questions.forEach(q => {
+      if (!domainTotals[q.domain]) {
+        domainTotals[q.domain]   = 0;
+        domainMastered[q.domain] = 0;
+      }
+      domainTotals[q.domain]++;
+
+      const state = cardStatesMap[q.id];
+      if (state && state.box > 0) {
+        domainMastered[q.domain] += state.masteryPct;
+      }
+    });
+
+    const domainMastery = {};
+    let totalPct = 0;
+    let domainCount = 0;
+
+    Object.keys(domainTotals).forEach(d => {
+      const avg = domainTotals[d] > 0
+        ? Math.round(domainMastered[d] / domainTotals[d])
+        : 0;
+      domainMastery[d] = avg;
+      totalPct += avg;
+      domainCount++;
+    });
+
+    const overall = domainCount > 0 ? Math.round(totalPct / domainCount) : 0;
+    return { overall, byDomain: domainMastery };
+  }
+
+  // ── How many cards are due today ──────────────────────────────
+  function getDueCount(cardStatesMap, questions) {
+    const now = Date.now();
+    return questions.filter(q => {
+      const s = cardStatesMap[q.id];
+      return !s || s.box === 0 || now >= s.nextReview;
+    }).length;
+  }
+
+  // ── Streak calculation ────────────────────────────────────────
+  function calcStreak(sessionLogs) {
+    if (!sessionLogs || sessionLogs.length === 0) return 0;
+
+    const dayMs = 86400000;
+    const toDay = ts => Math.floor(ts / dayMs);
+
+    const studyDays = [...new Set(sessionLogs.map(s => toDay(s.startedAt)))].sort().reverse();
+    const todayNum  = toDay(Date.now());
+
+    // Walk backward from today counting consecutive days
+    let streak = 0;
+    let expected = todayNum;
+
+    for (const day of studyDays) {
+      if (day === expected || day === expected - 1) {
+        if (day === expected || (streak === 0 && day === todayNum - 1)) {
+          streak++;
+          expected = day - 1;
+        } else {
+          break;
+        }
+      } else if (day < expected) {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  // ── Badge definitions and earning logic ──────────────────────
+  const BADGE_DEFS = [
+    { id: 'first_question',   name: 'First Step',       icon: '👣', description: 'Answered your first question'                  },
+    { id: 'streak_3',         name: '3-Day Streak',     icon: '🔥', description: 'Studied 3 days in a row'                       },
+    { id: 'streak_7',         name: 'Week Warrior',     icon: '⚡', description: 'Studied 7 days in a row'                       },
+    { id: 'streak_14',        name: 'Fortnight Focus',  icon: '💪', description: 'Studied 14 days in a row'                      },
+    { id: 'questions_10',     name: 'Getting Started',  icon: '📖', description: 'Answered 10 questions'                         },
+    { id: 'questions_50',     name: 'Half Century',     icon: '🏅', description: 'Answered 50 questions'                         },
+    { id: 'questions_100',    name: 'Century Club',     icon: '💯', description: 'Answered 100 questions'                        },
+    { id: 'questions_500',    name: 'Question Master',  icon: '🎓', description: 'Answered 500 questions'                        },
+    { id: 'mastery_25',       name: 'Quarter Way',      icon: '🌱', description: 'Reached 25% overall mastery'                   },
+    { id: 'mastery_50',       name: 'Halfway There',    icon: '🌿', description: 'Reached 50% overall mastery'                   },
+    { id: 'mastery_75',       name: 'Almost Ready',     icon: '🌳', description: 'Reached 75% overall mastery'                   },
+    { id: 'mastery_100',      name: 'NBCOT Ready!',     icon: '🏆', description: 'Reached 100% overall mastery'                  },
+    { id: 'perfect_session',  name: 'Perfect Session',  icon: '⭐', description: 'Answered all questions correctly in a session' },
+    { id: 'domain_1',         name: 'Eval Expert',      icon: '🔍', description: 'Mastered the Evaluation domain'                },
+    { id: 'domain_2',         name: 'Knowledge Base',   icon: '📚', description: 'Mastered the Foundational Knowledge domain'    },
+  ];
+
+  function checkNewBadges(stats, existingBadges) {
+    const earned     = new Set(existingBadges.map(b => b.id));
+    const newBadges  = [];
+    const now        = Date.now();
+
+    const add = id => {
+      if (!earned.has(id)) {
+        const def = BADGE_DEFS.find(b => b.id === id);
+        if (def) newBadges.push({ ...def, earnedAt: now });
+      }
+    };
+
+    const { totalAnswered = 0, streak = 0, overall = 0, lastSessionPerfect = false } = stats;
+
+    if (totalAnswered >= 1)   add('first_question');
+    if (totalAnswered >= 10)  add('questions_10');
+    if (totalAnswered >= 50)  add('questions_50');
+    if (totalAnswered >= 100) add('questions_100');
+    if (totalAnswered >= 500) add('questions_500');
+
+    if (streak >= 3)  add('streak_3');
+    if (streak >= 7)  add('streak_7');
+    if (streak >= 14) add('streak_14');
+
+    if (overall >= 25)  add('mastery_25');
+    if (overall >= 50)  add('mastery_50');
+    if (overall >= 75)  add('mastery_75');
+    if (overall >= 100) add('mastery_100');
+
+    if (lastSessionPerfect) add('perfect_session');
+
+    return newBadges;
+  }
+
+  // ── Utility ───────────────────────────────────────────────────
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  return {
+    newCardState,
+    isDue,
+    gradeCard,
+    buildSession,
+    buildTestSession,
+    calcMastery,
+    getDueCount,
+    calcStreak,
+    checkNewBadges,
+    shuffle,
+    BADGE_DEFS,
+  };
+})();
