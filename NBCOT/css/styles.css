@@ -12,10 +12,12 @@
   --color-accent:         #F59E0B;
   --color-accent-dark:    #D97706;
   --color-success:        #059669;
+  --color-success-dark:   #065F46;
   --color-success-light:  #D1FAE5;
   --color-error:          #DC2626;
   --color-error-light:    #FEE2E2;
   --color-warning:        #D97706;
+  --color-warning-dark:   #92400E;
   --color-warning-light:  #FEF3C7;
 
   /* Domain colours */
@@ -33,7 +35,7 @@
   --color-border:         #E2E8F0;
   --color-text:           #1E293B;
   --color-text-2:         #475569;
-  --color-text-muted:     #94A3B8;
+  --color-text-muted:     #64748B;
 
   /* Typography */
   --font:            -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -81,7 +83,7 @@
   --color-border:   #334155;
   --color-text:     #F1F5F9;
   --color-text-2:   #CBD5E1;
-  --color-text-muted:#64748B;
+  --color-text-muted:#94A3B8;
   --color-primary-light: #1E3A5F;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,.4);
@@ -289,10 +291,10 @@ p  { line-height: 1.6; color: var(--color-text-2); }
   font-weight: 600;
 }
 
-.chip-primary  { background: var(--color-primary-light); color: var(--color-primary); }
+.chip-primary  { background: var(--color-primary-light); color: var(--color-primary-dark); }
 .chip-success  { background: var(--color-success-light); color: var(--color-success); }
 .chip-error    { background: var(--color-error-light);   color: var(--color-error);   }
-.chip-warning  { background: var(--color-warning-light); color: var(--color-warning); }
+.chip-warning  { background: var(--color-warning-light); color: var(--color-warning-dark); }
 
 /* ── Progress bar ──────────────────────────────────────────── */
 .progress-wrap {
@@ -477,14 +479,13 @@ p  { line-height: 1.6; color: var(--color-text-2); }
   align-items: center;
   gap: var(--space-2);
   background: var(--color-warning-light);
-  color: var(--color-warning);
+  color: var(--color-warning-dark);
   border-radius: var(--radius-full);
   padding: var(--space-2) var(--space-3);
   font-weight: 700;
   font-size: var(--font-size-sm);
 }
 .streak-badge svg { width: 16px; height: 16px; flex-shrink: 0; }
-}
 
 .home-mastery-card {
   margin: 0 var(--space-5) var(--space-4);
@@ -762,7 +763,7 @@ p  { line-height: 1.6; color: var(--color-text-2); }
 .feedback-icon { width: 20px; height: 20px; flex-shrink: 0; }
 .feedback-icon svg { width: 100%; height: 100%; }
 
-.feedback-title.correct-panel { color: var(--color-success); }
+.feedback-title.correct-panel { color: var(--color-success-dark); }
 .feedback-title.wrong-panel   { color: var(--color-error);   }
 
 .feedback-text { color: var(--color-text); }
