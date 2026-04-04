@@ -438,7 +438,7 @@
     ,bg10: 'images/pluto.png'
   };
 
-  const soundSources = {
+  const musicSources = {
     level1: 'sounds/level1.mp3',
     level2: 'sounds/level2.mp3',
     level3: 'sounds/level3.mp3',
@@ -451,22 +451,25 @@
     level10: 'sounds/level10.mp3',
     boss: 'sounds/boss.mp3',
     victory: 'sounds/victory.mp3'
-    ,
-    // SFX (added)
+  };
+  // SFX loaded via fetch -> Web Audio API for zero-latency playback
+  const sfxSources = {
     life: 'sounds/life.mp3',
     jump: 'sounds/jump.mp3',
     laser: 'sounds/laser.mp3',
     hit: 'sounds/hit.mp3',
     bossHit: 'sounds/boss-hit.mp3',
-    coinCollect: 'sounds/coin.mp3',
+    coin: 'sounds/coin.mp3',
     flag: 'sounds/flag.mp3',
-    squish: 'sounds/squish.mp3'
-    ,fireballSfx: 'sounds/fireball.mp3'
+    squish: 'sounds/squish.mp3',
+    fireballSfx: 'sounds/fireball.mp3'
   };
+  const sfxArrayBuffers = {};
+  const sfxDecodedBuffers = {};
 
   // Placeholder for test hopper insertion flag (not used in final version).
 
-  let assetsToLoad = Object.keys(imageSources).length + Object.keys(soundSources).length;
+  let assetsToLoad = Object.keys(imageSources).length + Object.keys(musicSources).length + Object.keys(sfxSources).length;
   let assetsLoaded = 0;
   let gameReady = false;
 
@@ -494,16 +497,22 @@
       assets[key] = img;
       img.src = src;
     }
-    // Sounds
-    for (const [key, src] of Object.entries(soundSources)) {
+    // Music tracks — HTMLAudio (long, streamed)
+    for (const [key, src] of Object.entries(musicSources)) {
       const audio = new Audio();
       audio.preload = 'auto';
       audio.addEventListener('canplaythrough', assetLoaded, { once: true });
-      audio.addEventListener('error', () => { console.error('Failed to load sound:', src); assetLoaded(); }, { once: true });
+      audio.addEventListener('error', () => { console.error('Failed to load music:', src); assetLoaded(); }, { once: true });
       assets[key] = audio;
       audio.src = src;
-      // Some browsers require explicit load() for non-DOM-attached Audio
       try { audio.load(); } catch(e) {}
+    }
+    // SFX — fetch as ArrayBuffer for Web Audio API (decoded on first user gesture)
+    for (const [key, src] of Object.entries(sfxSources)) {
+      fetch(src)
+        .then(r => r.arrayBuffer())
+        .then(ab => { sfxArrayBuffers[key] = ab; assetLoaded(); })
+        .catch(() => { console.error('Failed to load SFX:', src); assetLoaded(); });
     }
   }
 
@@ -1091,6 +1100,7 @@
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       } catch(e) { /* ignore */ }
     }
+    decodeSfxBuffers();
     stopMusic();
     const track = assets[trackName];
     if (track && typeof track.play === 'function') {
@@ -1110,16 +1120,28 @@
    * Play a short sound effect. A clone of the original audio object is used so that
    * overlapping effects do not cut each other off. Provide a volume between 0 and 1.
    */
-  function playSfx(name, vol = 1.0) {
-    const audio = assets[name];
-    if (!audio || typeof audio.cloneNode !== 'function') return;
-    try {
-      const instance = audio.cloneNode();
-      instance.volume = vol;
-      instance.play().catch(() => {});
-    } catch (e) {
-      // ignore playback errors
+  function decodeSfxBuffers() {
+    if (!audioCtx) return;
+    for (const [key, ab] of Object.entries(sfxArrayBuffers)) {
+      if (sfxDecodedBuffers[key]) continue;
+      audioCtx.decodeAudioData(ab.slice(0),
+        buf => { sfxDecodedBuffers[key] = buf; },
+        () => { console.warn('SFX decode failed:', key); }
+      );
     }
+  }
+
+  function playSfx(name, vol = 1.0) {
+    if (!audioCtx || !sfxDecodedBuffers[name]) return;
+    try {
+      const src = audioCtx.createBufferSource();
+      src.buffer = sfxDecodedBuffers[name];
+      const gain = audioCtx.createGain();
+      gain.gain.value = clamp(vol, 0, 1);
+      src.connect(gain);
+      gain.connect(audioCtx.destination);
+      src.start(0);
+    } catch(e) {}
   }
 
   // ============ PARTICLES ============
@@ -2244,7 +2266,7 @@
           }
           createParticle(c.x, c.y, '#FFD700', 5, 8);
           // Play coin collection sound
-          playSfx('coinCollect', 0.7);
+          playSfx('coin', 0.7);
         }
       }
       for (let i = segment.powerups.length - 1; i >= 0; i--) {
@@ -3069,6 +3091,7 @@
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
     }
+    decodeSfxBuffers();
     gameStarted = true;
     document.getElementById('start-screen').classList.add('hidden');
     gameState = 'playing';
