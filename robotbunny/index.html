@@ -137,8 +137,9 @@
   }
   .mobile-btn:active { background: rgba(123, 226, 255, 0.3); transform: scale(0.95); }
   #mobile-jump { right: 15px; bottom: 15px; width: 90px; height: 90px; font-size: 16px; }
+  #mobile-laser { right: 120px; bottom: 15px; width: 80px; height: 80px; font-size: 28px; }
   #mobile-burst {
-    right: 115px; bottom: 15px; width: 70px; height: 70px; font-size: 20px;
+    right: 215px; bottom: 15px; width: 70px; height: 70px; font-size: 20px;
     background: rgba(255,215,0,0.18); border-color: rgba(255,215,0,0.65);
     color: #FFD700; box-shadow: 0 0 14px rgba(255,215,0,0.35);
     display: none; flex-direction: column; gap: 3px; line-height: 1;
@@ -315,6 +316,7 @@
 <div class="mobile-controls">
   <div id="joystick-base"><div id="joystick-knob"></div></div>
   <div class="mobile-btn" id="mobile-jump">JUMP</div>
+  <div class="mobile-btn" id="mobile-laser">❆</div>
   <div class="mobile-btn" id="mobile-burst"><span id="burst-stars">★</span><span class="burst-label">BURST</span></div>
 </div>
 
@@ -1650,6 +1652,9 @@
       }
     }
     if (hudEls.perfMode) hudEls.perfMode.textContent = `Perf: ${getPerformanceModeLabel(performanceMode)}`;
+    if (hudEls.mobileLaser) {
+      hudEls.mobileLaser.style.display = gameState === 'playing' ? 'flex' : 'none';
+    }
     if (hudEls.mobileBurst) {
       const hasBurst = player_moonBursts > 0 && !moonBurstActive;
       hudEls.mobileBurst.style.display = hasBurst ? 'flex' : 'none';
@@ -1828,7 +1833,7 @@
     }
     player.vx = clamp(player.vx, -maxVelX, maxVelX);
 
-    if (player.jumpBufferTimer > 0 && !wantDuck && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
+    if (player.jumpBufferTimer > 0 && !wantDuck && !moonBurstActive && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
       player.vy = jumpVel;
       player.onGround = false;
       player.coyoteTimer = 0;
@@ -2941,19 +2946,21 @@
   });
 
   const btns = {
-    jump: document.getElementById('mobile-jump')
+    jump: document.getElementById('mobile-jump'),
+    laser: document.getElementById('mobile-laser')
   };
   const bindTouch = (btn, code) => {
     if (!btn) return;
     btn.addEventListener('touchstart', e => {
       e.preventDefault();
       keys[code] = true;
+      if (code === 'KeyX') wantShoot = true;
       if (code === 'Space') wantJumpPress = true;
     }, { passive: false });
     btn.addEventListener('touchend', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
     btn.addEventListener('touchcancel', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
   };
-  bindTouch(btns.jump, 'Space');
+  bindTouch(btns.jump, 'Space'); bindTouch(btns.laser, 'KeyX');
 
   // Mobile burst button — fires a homing laser at every on-screen enemy
   const mobileBurstBtn = document.getElementById('mobile-burst');
@@ -3039,6 +3046,7 @@
     perfMode: document.getElementById('perf-mode'),
     mobileBurst: document.getElementById('mobile-burst'),
     burstStars:  document.getElementById('burst-stars'),
+    mobileLaser: document.getElementById('mobile-laser'),
   };
   let _lastHudPerks = ''; // cache to avoid rebuilding perk string every frame
 
