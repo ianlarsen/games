@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 2688" width="1242" height="2688">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1D4ED8"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1242" height="2688" fill="url(#bg)"/>
+  <!-- Icon mark -->
+  <rect x="421" y="900" width="400" height="400" rx="80" ry="80" fill="#2563EB" opacity="0.9"/>
+  <text x="621" y="1135" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="220" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle">OT</text>
+  <rect x="421" y="1310" width="400" height="16" rx="8" fill="#F59E0B"/>
+  <!-- Title -->
+  <text x="621" y="1460" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="96" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" letter-spacing="6">NBCOT PREP</text>
+  <!-- Tagline -->
+  <text x="621" y="1580" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="52" fill="#A5B4FC" text-anchor="middle" dominant-baseline="middle">Study smarter. Pass with confidence.</text>
+</svg>
