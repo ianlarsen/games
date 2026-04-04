@@ -91,7 +91,9 @@
 
   /* Mobile Controls */
   .mobile-controls {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 180px;
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    height: calc(180px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     display: none; pointer-events: none; z-index: 100;
   }
   @media (max-width: 768px), (pointer: coarse) {
@@ -204,6 +206,7 @@
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.imageSmoothingEnabled = false;
   let audioCtx; // created on first user gesture
   let currentMusic = null;
   const isMobileDevice = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
@@ -364,8 +367,9 @@
 
   function fit() {
     const maxW = Math.min(window.innerWidth, 960);
-    const reservedBottom = isMobileDevice ? 200 : 0;
-    const availableH = Math.max(220, window.innerHeight - reservedBottom);
+    const reservedBottom = isMobileDevice ? 220 : 0;
+    const viewH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+    const availableH = Math.max(220, viewH - reservedBottom);
     const maxH = isMobileDevice ? Math.min(availableH, 600) : Math.min(window.innerHeight * 0.68, 560);
     const ar = canvas.width / canvas.height;
     let w = maxW, h = w / ar;
@@ -374,13 +378,12 @@
     canvas.style.height = h + 'px';
   }
   let resizeRaf = 0;
-  window.addEventListener('resize', () => {
+  function schedulefit() {
     if (resizeRaf) cancelAnimationFrame(resizeRaf);
-    resizeRaf = requestAnimationFrame(() => {
-      fit();
-      resizeRaf = 0;
-    });
-  });
+    resizeRaf = requestAnimationFrame(() => { fit(); resizeRaf = 0; });
+  }
+  window.addEventListener('resize', schedulefit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', schedulefit);
   fit();
 
   // ============ UTILITY FUNCTIONS ============
@@ -753,59 +756,18 @@
   let shieldRechargeTimer = SHIELD_RECHARGE_TIME;
 
   const activePerks = [];
-  let pendingPerkChoices = [];
   const completedSegmentIds = new Set();
   let completedSegmentCount = 0;
-
-  function renderPerkChoices() {
-    const perkGrid = document.getElementById('perk-grid');
-    if (!perkGrid) return;
-    perkGrid.innerHTML = '';
-    pendingPerkChoices.forEach((perk, index) => {
-      const card = document.createElement('button');
-      card.className = 'perk-card';
-      card.type = 'button';
-      card.innerHTML = `<div class="perk-index">OPTION ${index + 1}</div><div class="perk-name">${perk.name}</div><div class="perk-desc">${perk.description}</div>`;
-      card.addEventListener('click', () => selectPerkChoice(index));
-      perkGrid.appendChild(card);
-    });
-  }
+  let perkToast = null; // { name, timer } — shown briefly when a perk is auto-granted
 
   function openPerkChoice() {
     const available = perkDefinitions.filter(p => !activePerks.includes(p.id));
     if (available.length === 0) return;
-    const pool = [...available];
-    pendingPerkChoices = [];
-    const picks = Math.min(3, pool.length);
-    for (let i = 0; i < picks; i++) {
-      const idx = randInt(0, pool.length - 1);
-      pendingPerkChoices.push(pool.splice(idx, 1)[0]);
-    }
-    renderPerkChoices();
-    const overlay = document.getElementById('perk-overlay');
-    if (overlay) {
-      overlay.classList.add('active');
-      overlay.setAttribute('aria-hidden', 'false');
-    }
-    gameState = 'perkChoice';
-    clearInputState();
-    recordEvent('perk_offered', { offered: pendingPerkChoices.map(p => p.id) });
-  }
-
-  function selectPerkChoice(index) {
-    if (gameState !== 'perkChoice') return;
-    const picked = pendingPerkChoices[index];
-    if (!picked) return;
+    const picked = available[randInt(0, available.length - 1)];
     activePerks.push(picked.id);
     picked.apply();
+    perkToast = { name: picked.name, desc: picked.description, timer: 2.8 };
     recordEvent('perk_selected', { perk_id: picked.id, active_perks: activePerks.slice() });
-    pendingPerkChoices = [];
-    const overlay = document.getElementById('perk-overlay');
-    if (overlay) {
-      overlay.classList.remove('active');
-      overlay.setAttribute('aria-hidden', 'true');
-    }
-    gameState = 'playing';
   }
 
   function maybeOfferPerkFromProgress() {
@@ -829,9 +791,9 @@
 
   function resetRunPerks() {
     activePerks.length = 0;
-    pendingPerkChoices = [];
     completedSegmentIds.clear();
     completedSegmentCount = 0;
+    perkToast = null;
     airControlMultiplier = 1;
     moveSpeedMultiplier = 1;
     shootCooldownMultiplier = 1;
@@ -843,11 +805,6 @@
     precisionLensActive = false;
     shieldCharges = 0;
     shieldRechargeTimer = SHIELD_RECHARGE_TIME;
-    const overlay = document.getElementById('perk-overlay');
-    if (overlay) {
-      overlay.classList.remove('active');
-      overlay.setAttribute('aria-hidden', 'true');
-    }
   }
 
   // ============ MUSIC FUNCTIONS (FIXED) ============
@@ -1564,6 +1521,7 @@
     unloadOldSegments();
     maybeOfferPerkFromProgress();
     checkContractProgress();
+    if (perkToast) { perkToast.timer -= dt; if (perkToast.timer <= 0) perkToast = null; }
 
     if (levelFlag && rectsOverlap(player.x, player.y, player.w, player.h, levelFlag.x, levelFlag.y, levelFlag.w, levelFlag.h)) {
       // Play flag touch sound and complete the level
@@ -1927,6 +1885,7 @@
 
   // ============ DRAWING ============
   function draw() {
+    ctx.imageSmoothingEnabled = false;
     ctx.save();
     ctx.translate(shake.x, shake.y);
 
@@ -2370,6 +2329,24 @@
       ctx.restore();
     }
 
+    // Perk toast draw
+    if (perkToast && perkToast.timer > 0) {
+      const alpha = Math.min(1, perkToast.timer / 0.4);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillStyle = '#7be2ff';
+      ctx.shadowColor = '#7be2ff';
+      ctx.shadowBlur = uiShadowBlur * 4;
+      ctx.fillText('PERK: ' + perkToast.name, canvas.width / 2, canvas.height / 2 - 140);
+      ctx.font = '13px sans-serif';
+      ctx.fillStyle = '#c4d4e7';
+      ctx.shadowBlur = 0;
+      ctx.fillText(perkToast.desc, canvas.width / 2, canvas.height / 2 - 118);
+      ctx.restore();
+    }
+
     // Low-G biome window indicator
     if (lowGActive) {
       ctx.save();
@@ -2447,13 +2424,7 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape','Digit1','Digit2','Digit3'].includes(e.code)) e.preventDefault();
-    if (gameState === 'perkChoice') {
-      if (e.code === 'Digit1') selectPerkChoice(0);
-      if (e.code === 'Digit2') selectPerkChoice(1);
-      if (e.code === 'Digit3') selectPerkChoice(2);
-      return;
-    }
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','KeyW','KeyA','KeyD','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     keys[e.code] = true;
@@ -2528,6 +2499,14 @@
     if (gameState === 'levelComplete') startNextLevel();
     if (gameState === 'gameOver') location.reload();
   });
+
+  // Full-screen tap-to-continue for mobile: listen on document so any tap anywhere works,
+  // including taps that land on the mobile control buttons or outside the canvas.
+  document.addEventListener('touchstart', e => {
+    if (!gameStarted && gameReady) { e.preventDefault(); startGame(); return; }
+    if (gameState === 'levelComplete') { e.preventDefault(); startNextLevel(); return; }
+    if (gameState === 'gameOver') { e.preventDefault(); location.reload(); return; }
+  }, { passive: false });
 
   // Prevent scrolling while playing on mobile
   document.body.addEventListener('touchmove', e => { if (gameStarted) e.preventDefault(); }, { passive: false });
