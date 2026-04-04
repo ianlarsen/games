@@ -263,7 +263,7 @@
   <div class="hud-item"><span>FPS</span><span id="fps">--</span></div>
 </div>
 <div class="combo-display" id="combo-display">COMBO ×0</div>
-<div class="hint" id="hint-text">Move: Arrow Keys / A,D • Jump: Space / W • Shoot: X • Pause: ESC • Perf: Q</div>
+<div class="hint" id="hint-text">Move: ←→ / A,D • Jump: Space • Shoot: X • Duck: ↓/S • Burst: B • Pause: ESC • Perf: Q</div>
 <div class="badge">Image Edition</div>
 
 <!-- Start Screen -->
@@ -510,8 +510,7 @@
   const JUMP_BUFFER_TIME = 0.12;
   const LANDING_FORGIVENESS_TIME = 0.08;
   const COINS_PER_EXTRA_LIFE = 220;
-  const MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL = 2;
-  const MAX_EXTRA_LIVES_FROM_HEARTS_PER_LEVEL = 2;
+  const MAX_EXTRA_LIVES_PER_LEVEL = 2;
   const ENEMY_LEVEL_SPEED_SCALAR = 0.025;
   const SEGMENT_ENEMY_BUDGET = 8; // max enemies per generated segment
   const PACK_B_CHANCE = 0.10;      // Sniper + Hopper synergy
@@ -570,8 +569,7 @@
   let bossIntroTimer = 0;
   // Track coins towards extra life conversion with tighter pacing.
   let coinsForExtraLife = 0;
-  let extraLivesFromCoinsThisLevel = 0;
-  let extraLivesFromHeartsThisLevel = 0;
+  let extraLivesGainedThisLevel = 0;
   // Difficulty scaling for bosses. After each boss defeat, this factor
   // increases by 20% (multiplicative), making subsequent bosses tougher.
   let bossDifficultyFactor = 1.0;
@@ -1571,8 +1569,7 @@
     player.vx = 0; player.vy = 0;
     player.sessionCoins = 0;
     player.landingForgivenessTimer = 0;
-    extraLivesFromCoinsThisLevel = 0;
-    extraLivesFromHeartsThisLevel = 0;
+    extraLivesGainedThisLevel = 0;
     coinsForExtraLife = 0;
     lowGTimer = 0;
     lowGActive = false;
@@ -1846,7 +1843,7 @@
         if (pu.type === 'moonBurst' && rectsOverlap(player.x, player.y, player.w, player.h, pu.x, pu.y, pu.w, pu.h)) {
           segment.powerups.splice(i, 1);
           player_moonBursts = Math.min(3, player_moonBursts + 1);
-          createDamageNumber(player.x + player.w/2, player.y - 10, '\u2605 BURST', '#FFD700');
+          createDamageNumber(player.x + player.w/2, player.y - 10, '\u2605 BURST — PRESS B!', '#FFD700');
           playSfx('coin', 0.9);
         }
       }
@@ -2196,13 +2193,13 @@
           // Track coins towards extra life conversion with a per-level cap.
           coinsForExtraLife++;
           // Convert only while the per-level coin life cap has room.
-          if (coinsForExtraLife >= COINS_PER_EXTRA_LIFE && extraLivesFromCoinsThisLevel < MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL) {
-            let available = MAX_EXTRA_LIVES_FROM_COINS_PER_LEVEL - extraLivesFromCoinsThisLevel;
+          if (coinsForExtraLife >= COINS_PER_EXTRA_LIFE && extraLivesGainedThisLevel < MAX_EXTRA_LIVES_PER_LEVEL) {
+            let available = MAX_EXTRA_LIVES_PER_LEVEL - extraLivesGainedThisLevel;
             let conversion = Math.floor(coinsForExtraLife / COINS_PER_EXTRA_LIFE);
             conversion = Math.min(conversion, available);
             if (conversion > 0) {
               coinsForExtraLife -= conversion * COINS_PER_EXTRA_LIFE;
-              extraLivesFromCoinsThisLevel += conversion;
+              extraLivesGainedThisLevel += conversion;
               player.lives += conversion;
               player.maxLives = Math.max(player.maxLives, player.lives);
               createDamageNumber(c.x, c.y, `+${conversion} LIFE`, '#f00');
@@ -2218,8 +2215,8 @@
         const p = segment.powerups[i];
         if (rectsOverlap(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
           segment.powerups.splice(i, 1);
-          if (extraLivesFromHeartsThisLevel < MAX_EXTRA_LIVES_FROM_HEARTS_PER_LEVEL) {
-            extraLivesFromHeartsThisLevel++;
+          if (extraLivesGainedThisLevel < MAX_EXTRA_LIVES_PER_LEVEL) {
+            extraLivesGainedThisLevel++;
             player.lives++;
             player.maxLives = Math.max(player.maxLives, player.lives);
             createDamageNumber(p.x, p.y, '+1 LIFE', '#f00');
@@ -2758,7 +2755,15 @@
     if (player_moonBursts > 0 && !moonBurstActive) {
       ctx.save(); ctx.textAlign = 'right'; ctx.font = 'bold 13px sans-serif';
       ctx.fillStyle = '#FFD700';
-      ctx.fillText('\u2605'.repeat(player_moonBursts) + ' [Q]', canvas.width - 8, 20);
+      ctx.fillText('\u2605'.repeat(player_moonBursts) + ' [B]', canvas.width - 8, 20);
+      ctx.restore();
+    }
+    // Magnet field indicator (top-right, below burst counter)
+    if (permanentUpgrades.magnetField > 0) {
+      const magnetY = (player_moonBursts > 0 && !moonBurstActive) ? 38 : 20;
+      ctx.save(); ctx.textAlign = 'right'; ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = '#a78bfa';
+      ctx.fillText('\uD83E\uDDF2\u00D7' + permanentUpgrades.magnetField, canvas.width - 8, magnetY);
       ctx.restore();
     }
     // Draw moon burst star pickups
@@ -2870,7 +2875,7 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','KeyB','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     if (gameState === 'gameOver' && e.code === 'KeyU') { openShop(); return; }
@@ -2886,8 +2891,7 @@
     if (e.code === 'KeyX') wantShoot = true;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') wantJumpPress = true;
     if (e.code === 'KeyQ') cyclePerformanceMode();
-    // KeyQ now also handled for moon burst via separate check below
-    if (e.code === 'KeyQ' && gameState === 'playing' && player_moonBursts > 0 && !moonBurstActive) {
+    if (e.code === 'KeyB' && gameState === 'playing' && player_moonBursts > 0 && !moonBurstActive) {
       player_moonBursts--;
       moonBurstActive = true;
       moonBurstTimer = MOON_BURST_DURATION;
