@@ -145,14 +145,6 @@
     display: none; flex-direction: column; gap: 3px; line-height: 1;
   }
   #mobile-burst .burst-label { font-size: 9px; letter-spacing: 0.5px; opacity: 0.85; }
-  #mobile-blast {
-    right: 15px; bottom: 110px; width: 70px; height: 70px; font-size: 20px;
-    background: rgba(255,80,30,0.18); border-color: rgba(255,120,50,0.65);
-    color: #ff6432; box-shadow: 0 0 14px rgba(255,100,40,0.35);
-    flex-direction: column; gap: 3px; line-height: 1;
-  }
-  #mobile-blast .blast-label { font-size: 9px; letter-spacing: 0.5px; opacity: 0.85; }
-
   /* Landscape orientation prompt */
   #orient-overlay {
     display: none;
@@ -326,7 +318,6 @@
   <div class="mobile-btn" id="mobile-jump">JUMP</div>
   <div class="mobile-btn" id="mobile-shoot">✦</div>
   <div class="mobile-btn" id="mobile-burst"><span id="burst-stars">★</span><span class="burst-label">BURST</span></div>
-  <div class="mobile-btn" id="mobile-blast"><span>💥</span><span class="blast-label">BLAST</span></div>
 </div>
 
 <!-- Landscape orientation prompt -->
@@ -577,10 +568,8 @@
   const MOON_BURST_DURATION = 3.2;  // seconds of extreme low-G burst
   const MOON_BURST_GRAVITY = 0.08;  // gravity multiplier during burst
   const MOON_BURST_LAUNCH_VY = -520;// upward velocity blasted onto enemies
-  const BLAST_RADIUS   = 200;        // px radius for point-blank blast
-  const BLAST_COOLDOWN = 6.0;        // seconds between blasts
-  const ICE_TRACTION  = 0.989;     // per-frame brake on crater ice (~55% speed retained after 1 s)
-  const ICE_ACCEL_MULT = 0.26;     // ground acceleration multiplier on ice
+  const ICE_TRACTION  = 0.965;     // per-frame brake on crater ice (~11% speed retained after 1 s)
+  const ICE_ACCEL_MULT = 0.55;     // ground acceleration multiplier on ice
 
   // -------- Daily Contract & Mastery Badge (Day 9) --------
   const CONTRACT_REWARD_COINS = 50; // bonus coins awarded on daily contract completion
@@ -858,8 +847,6 @@
   const keys = {};
   let wantShoot = false;
   let wantJumpPress = false;
-  let wantBlast = false;
-  let blastCooldown = 0;
 
   // ============ ENTITIES ============
   const lasers = [];
@@ -1671,9 +1658,6 @@
       hudEls.mobileBurst.style.display = hasBurst ? 'flex' : 'none';
       if (hasBurst && hudEls.burstStars) hudEls.burstStars.textContent = '★'.repeat(player_moonBursts);
     }
-    if (hudEls.mobileBlast) {
-      hudEls.mobileBlast.style.opacity = blastCooldown <= 0 ? '1' : '0.4';
-    }
   }
 
   function update(dt) {
@@ -1880,48 +1864,6 @@
     }
     wantShoot = false;
 
-    // Blast ability — point-blank AoE attack on a cooldown
-    if (blastCooldown > 0) blastCooldown -= dt;
-    if (wantBlast && blastCooldown <= 0) {
-      blastCooldown = BLAST_COOLDOWN;
-      const cx = player.x + player.w / 2;
-      const cy = player.y + player.h / 2;
-      shake.intensity = Math.max(shake.intensity, 8);
-      createParticle(cx, cy, '#ff6432', 18, 7);
-      createParticle(cx, cy, '#ffaa55', 12, 5);
-      for (const seg of segments) {
-        for (let _bi = seg.enemies.length - 1; _bi >= 0; _bi--) {
-          const _be = seg.enemies[_bi];
-          const dist = Math.hypot((_be.x + _be.w / 2) - cx, (_be.y + _be.h / 2) - cy);
-          if (dist <= BLAST_RADIUS) {
-            _be.health -= 2;
-            createParticle(_be.x + _be.w / 2, _be.y + _be.h / 2, '#ff6432', 6, 4);
-            createDamageNumber(_be.x + _be.w / 2, _be.y, 2, '#ff6432');
-            score += 20;
-            addCombo();
-            if (_be.health <= 0) { seg.enemies.splice(_bi, 1); score += 50; enemiesKilledThisRun++; }
-          }
-        }
-      }
-      if (boss) {
-        const dist = Math.hypot((boss.x + boss.w / 2) - cx, (boss.y + boss.h / 2) - cy);
-        if (dist <= BLAST_RADIUS) {
-          boss.health -= 2; boss.hitFlash = 1.0;
-          playSfx('bossHit', 0.8);
-          createDamageNumber(boss.x + boss.w / 2, boss.y, 2, '#ff5555');
-          score += 40; addCombo();
-          if (boss.health <= 0) {
-            score += 1000; bossesKilledThisRun++;
-            checkContractProgress();
-            recordEvent('boss_defeat', { level: currentLevel, bosses_total: bossesKilledThisRun });
-            levelFlag = { x: boss.x + boss.w / 2 - 30, y: GROUND_Y - 120, w: 60, h: 100 };
-            bossDifficultyFactor *= 1.2; boss = null;
-          }
-        }
-      }
-    }
-    wantBlast = false;
-
     player.vy += gravity * (moonBurstActive ? MOON_BURST_GRAVITY : (lowGActive ? LOW_G_GRAVITY_MULT : 1.0)) * dt;
     player.x += player.vx * dt;
     player.y += player.vy * dt;
@@ -1932,7 +1874,7 @@
         if (rectsOverlap(player.x, player.y, player.w, player.h, plat.x, plat.y, plat.w, plat.h)) {
           if (player.vy > 0 && (player.y + player.h - player.vy * dt) <= plat.y) {
             player.y = plat.y - player.h; player.vy = 0; player.onGround = true; player.coyoteTimer = COYOTE_TIME; player.landingForgivenessTimer = LANDING_FORGIVENESS_TIME;
-          } else if (player.vy < 0 && (player.y - player.vy * dt) >= (plat.y + plat.h)) {
+          } else if (plat.type === 'ground' && player.vy < 0 && (player.y - player.vy * dt) >= (plat.y + plat.h)) {
             player.y = plat.y + plat.h; player.vy = 0;
           }
         }
@@ -2978,7 +2920,7 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
-    if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','KeyB','Enter','KeyR','KeyX','KeyZ','Escape'].includes(e.code)) e.preventDefault();
+    if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','KeyB','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     if (gameState === 'gameOver' && e.code === 'KeyU') { openShop(); return; }
@@ -2992,7 +2934,6 @@
     }
     keys[e.code] = true;
     if (e.code === 'KeyX') wantShoot = true;
-    if (e.code === 'KeyZ') wantBlast = true;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') wantJumpPress = true;
     if (e.code === 'KeyQ') cyclePerformanceMode();
     if (e.code === 'KeyB' && gameState === 'playing' && player_moonBursts > 0 && !moonBurstActive) {
@@ -3000,14 +2941,19 @@
       moonBurstActive = true;
       moonBurstTimer = MOON_BURST_DURATION;
       shake.intensity = 14;
-      // Launch all on-screen enemies upward
+      // Fire a homing laser at every on-screen enemy
       for (const seg of segments) {
         for (const enemy of seg.enemies) {
-          enemy.vy = MOON_BURST_LAUNCH_VY;
+          const dx = (enemy.x + enemy.w / 2) - (player.x + player.w / 2);
+          const dy = (enemy.y + enemy.h / 2) - (player.y + player.h / 2);
+          const len = Math.hypot(dx, dy) || 1;
+          lasers.push({ x: player.x + player.w / 2, y: player.y + player.h / 2,
+            w: 20, h: 4, vx: (dx / len) * 700, vy: (dy / len) * 700, dir: dx >= 0 ? 1 : -1 });
         }
       }
       createParticle(player.x + player.w/2, player.y + player.h/2, '#FFD700', 20, 8);
       createParticle(player.x + player.w/2, player.y + player.h/2, '#7be2ff', 14, 6);
+      playSfx('laser', 0.8);
     }
     if (e.code === 'Escape') paused = !paused;
   });
@@ -3017,7 +2963,6 @@
     for (const key in keys) keys[key] = false;
     wantShoot = false;
     wantJumpPress = false;
-    wantBlast = false;
   }
   window.addEventListener('blur', clearInputState);
   document.addEventListener('visibilitychange', () => {
@@ -3041,7 +2986,7 @@
   };
   bindTouch(btns.jump, 'Space'); bindTouch(btns.shoot, 'KeyX');
 
-  // Mobile burst button — runs the same logic as the keyboard 'B' handler
+  // Mobile burst button — fires a homing laser at every on-screen enemy
   const mobileBurstBtn = document.getElementById('mobile-burst');
   if (mobileBurstBtn) {
     mobileBurstBtn.addEventListener('touchstart', e => {
@@ -3052,21 +2997,17 @@
         moonBurstTimer = MOON_BURST_DURATION;
         shake.intensity = 14;
         for (const seg of segments) {
-          for (const enemy of seg.enemies) { enemy.vy = MOON_BURST_LAUNCH_VY; }
+          for (const enemy of seg.enemies) {
+            const dx = (enemy.x + enemy.w / 2) - (player.x + player.w / 2);
+            const dy = (enemy.y + enemy.h / 2) - (player.y + player.h / 2);
+            const len = Math.hypot(dx, dy) || 1;
+            lasers.push({ x: player.x + player.w / 2, y: player.y + player.h / 2,
+              w: 20, h: 4, vx: (dx / len) * 700, vy: (dy / len) * 700, dir: dx >= 0 ? 1 : -1 });
+          }
         }
         createParticle(player.x + player.w/2, player.y + player.h/2, '#FFD700', 20, 8);
         createParticle(player.x + player.w/2, player.y + player.h/2, '#7be2ff', 14, 6);
-      }
-    }, { passive: false });
-  }
-
-  // Mobile blast button — point-blank AoE on a cooldown (Z key equivalent)
-  const mobileBlastBtn = document.getElementById('mobile-blast');
-  if (mobileBlastBtn) {
-    mobileBlastBtn.addEventListener('touchstart', e => {
-      e.preventDefault();
-      if (gameState === 'playing' && blastCooldown <= 0) {
-        wantBlast = true;
+        playSfx('laser', 0.8);
       }
     }, { passive: false });
   }
@@ -3129,7 +3070,6 @@
     perfMode: document.getElementById('perf-mode'),
     mobileBurst: document.getElementById('mobile-burst'),
     burstStars:  document.getElementById('burst-stars'),
-    mobileBlast:  document.getElementById('mobile-blast'),
   };
   let _lastHudPerks = ''; // cache to avoid rebuilding perk string every frame
 
