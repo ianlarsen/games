@@ -10,6 +10,9 @@
   }
   html, body { height: 100%; margin: 0; background: var(--bg-deep); color: #e6edf3; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; overflow: hidden; }
   #wrap { display: grid; place-items: center; height: 100%; }
+  @media (max-width: 768px), (pointer: coarse) {
+    #wrap { padding-top: 40px; padding-bottom: 180px; box-sizing: border-box; }
+  }
   canvas {
     background: #000;
     width: min(100vw, 960px);
@@ -49,6 +52,14 @@
     .combo-display { top: 60px; right: 10px; font-size: 24px; }
   }
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+  /* Compact layout for landscape mobile (small viewport height) */
+  @media (max-height: 480px) {
+    .start-screen { gap: 8px; padding: 6px 12px; }
+    .start-title { font-size: 26px; letter-spacing: 2px; }
+    .start-button { padding: 10px 36px; font-size: 18px; min-width: 160px; }
+    #start-bunny-canvas { width: 55px !important; height: 55px !important; }
+    .leaderboard { max-height: 110px; overflow-y: auto; }
+  }
   .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: .8; font-size: 12px; color: #9fb1cc; text-align: center; max-width: 90vw; }
   .badge { position: fixed; top: 10px; right: 14px; font-size: 11px; color: #9fb1cc; opacity: .8; }
   @media (max-width: 768px), (pointer: coarse) {
@@ -518,10 +529,11 @@
 
   function fit() {
     const maxW = Math.min(window.innerWidth, 960);
-    const reservedBottom = isMobileDevice ? 220 : 0;
+    const reservedTop = isMobileDevice ? 40 : 0;
+    const reservedBottom = isMobileDevice ? 180 : 0;
     const viewH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-    const availableH = Math.max(220, viewH - reservedBottom);
-    const maxH = isMobileDevice ? Math.min(availableH, 600) : Math.min(window.innerHeight * 0.68, 560);
+    const availableH = Math.max(80, viewH - reservedTop - reservedBottom);
+    const maxH = isMobileDevice ? Math.min(availableH, 560) : Math.min(window.innerHeight * 0.68, 560);
     const ar = canvas.width / canvas.height;
     let w = maxW, h = w / ar;
     if (h > maxH) { h = maxH; w = h * ar; }
@@ -2854,41 +2866,48 @@
       ctx.restore();
     }
 
+    // Compute display-pixel scale so overlay text stays legible at any canvas CSS size
+    const _ovDH = canvas.clientHeight > 10 ? canvas.clientHeight : canvas.height;
+    const ovS = canvas.height / _ovDH; // e.g. 560/220 = 2.55 on small mobile, 1 on desktop
+    const opx = n => Math.round(n * ovS) + 'px';
+    const oY = off => canvas.height / 2 + Math.round(off * ovS);
+    const cx = canvas.width / 2;
+
     if (gameState === 'bossIntro') {
       ctx.fillStyle = 'rgba(0,0,0, 0.3)'; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.font = 'bold 80px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'red';
-      ctx.shadowColor = '#000'; ctx.shadowBlur = introShadowBlur; ctx.fillText('Boss Approaching', canvas.width/2, canvas.height/2); ctx.shadowBlur = 0;
+      ctx.font = 'bold ' + opx(52) + ' sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'red';
+      ctx.shadowColor = '#000'; ctx.shadowBlur = introShadowBlur; ctx.fillText('Boss Approaching', cx, canvas.height/2); ctx.shadowBlur = 0;
     }
     if (gameState === 'levelComplete') {
       ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle = '#FFD700'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('LEVEL COMPLETE!', canvas.width/2, canvas.height/2 - 20);
-      ctx.font = '20px sans-serif'; ctx.fillText('Press ENTER or TAP to continue', canvas.width/2, canvas.height/2 + 40);
+      ctx.fillStyle = '#FFD700'; ctx.font = 'bold ' + opx(36) + ' sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('LEVEL COMPLETE!', cx, oY(-20));
+      ctx.font = opx(18) + ' sans-serif'; ctx.fillText('Press ENTER or TAP to continue', cx, oY(30));
       if (todayContract) {
         if (contractJustCompletedThisRun) {
-          ctx.fillStyle = '#FFD700'; ctx.font = 'bold 17px sans-serif';
-          ctx.fillText('\u2713 CONTRACT: ' + todayContract.label + ' +' + CONTRACT_REWARD_COINS + ' coins', canvas.width/2, canvas.height/2 + 78);
+          ctx.fillStyle = '#FFD700'; ctx.font = 'bold ' + opx(15) + ' sans-serif';
+          ctx.fillText('\u2713 CONTRACT: ' + todayContract.label + ' +' + CONTRACT_REWARD_COINS + ' coins', cx, oY(58));
         } else {
-          ctx.fillStyle = '#aaa'; ctx.font = '14px sans-serif';
-          ctx.fillText('Contract: ' + contractProgressText(), canvas.width/2, canvas.height/2 + 78);
+          ctx.fillStyle = '#aaa'; ctx.font = opx(13) + ' sans-serif';
+          ctx.fillText('Contract: ' + contractProgressText(), cx, oY(58));
         }
       }
       if (badgeNewTierThisRun) {
-        ctx.fillStyle = '#FFD700'; ctx.font = 'bold 15px sans-serif';
-        ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', canvas.width/2, canvas.height/2 + 104);
+        ctx.fillStyle = '#FFD700'; ctx.font = 'bold ' + opx(13) + ' sans-serif';
+        ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', cx, oY(78));
       }
     } else if (gameState === 'gameOver') {
       ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle = '#f00'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
-      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.fillText('Tap to open shop or tap anywhere to restart', canvas.width/2, canvas.height/2 + 40);
+      ctx.fillStyle = '#f00'; ctx.font = 'bold ' + opx(36) + ' sans-serif'; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', cx, oY(-20));
+      ctx.fillStyle = '#fff'; ctx.font = opx(16) + ' sans-serif'; ctx.fillText('Tap to open shop or tap anywhere to restart', cx, oY(28));
       if (todayContract) {
         ctx.fillStyle = todayContract.completed ? '#FFD700' : '#888';
-        ctx.font = todayContract.completed ? 'bold 17px sans-serif' : '14px sans-serif';
-        ctx.fillText('Contract: ' + contractProgressText(), canvas.width/2, canvas.height/2 + 75);
+        ctx.font = (todayContract.completed ? 'bold ' : '') + opx(14) + ' sans-serif';
+        ctx.fillText('Contract: ' + contractProgressText(), cx, oY(52));
       }
       if (badgeNewTierThisRun) {
-        ctx.fillStyle = '#FFD700'; ctx.font = 'bold 15px sans-serif';
-        ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', canvas.width/2, canvas.height/2 + 103);
+        ctx.fillStyle = '#FFD700'; ctx.font = 'bold ' + opx(13) + ' sans-serif';
+        ctx.fillText('\u2605 BADGE: Boss Slayer ' + badgeNewTierThisRun + ' unlocked!', cx, oY(72));
       }
       // Score share line
       const perkCount = activePerks.length;
@@ -2896,10 +2915,11 @@
       const slayerTier = (badgeData.boss_slayer || {}).tier || 0;
       const tierLabel = slayerTier > 0 ? BOSS_SLAYER_TIERS[slayerTier-1].label : null;
       const shareText = '\ud83d\udc30 Robot Bunny: Lv' + currentLevel + ' \u2022 Score ' + Math.floor(score) + ' \u2022 ' + perkCount + ' perks' + (tierLabel ? ' \u2022 ' + tierLabel : '') + (todayContract && todayContract.completed ? ' \u2022 Daily \u2713' : '');
-      ctx.fillStyle = 'rgba(123,226,255,0.7)'; ctx.font = '12px sans-serif';
-      ctx.fillText(shareText, canvas.width/2, canvas.height/2 + (badgeNewTierThisRun ? 128 : 115));
-      ctx.fillStyle = '#7be2ff'; ctx.font = 'bold 13px sans-serif';
-      ctx.fillText('[ S ] Copy Score  \u2022  [ U ] Shop', canvas.width/2, canvas.height/2 + (badgeNewTierThisRun ? 148 : 135));
+      const badgeOffset = badgeNewTierThisRun ? 22 : 0;
+      ctx.fillStyle = 'rgba(123,226,255,0.7)'; ctx.font = opx(11) + ' sans-serif';
+      ctx.fillText(shareText, cx, oY(90 + badgeOffset));
+      ctx.fillStyle = '#7be2ff'; ctx.font = 'bold ' + opx(12) + ' sans-serif';
+      ctx.fillText('[ S ] Copy Score  \u2022  [ U ] Shop', cx, oY(108 + badgeOffset));
     }
   }
 
