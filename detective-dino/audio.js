@@ -29,16 +29,16 @@ const AudioManager = {
     if (this.sfxWrong) this.sfxWrong.volume = 0.6;
     if (this.sfxWin) this.sfxWin.volume = 0.8;
 
-    // Unlock audio on first user interaction
-    document.addEventListener('click', () => this.unlockAudio(), { once: true });
-    document.addEventListener('touchstart', () => this.unlockAudio(), { once: true });
+    // Unlock audio on first user interaction (capture: true fires before button onclick)
+    document.addEventListener('click', () => this.unlockAudio(), { once: true, capture: true });
+    document.addEventListener('touchstart', () => this.unlockAudio(), { once: true, capture: true });
   },
 
   // Unlock audio (required for mobile browsers)
   unlockAudio() {
     if (this.audioUnlocked) return;
 
-    const sounds = [this.sfxClick, this.sfxClue, this.sfxCorrect, this.sfxWrong, this.sfxWin];
+    const sounds = [this.bgMusic, this.sfxClick, this.sfxClue, this.sfxCorrect, this.sfxWrong, this.sfxWin];
     sounds.forEach(sound => {
       if (sound) {
         sound.play().then(() => {
@@ -49,21 +49,17 @@ const AudioManager = {
     });
 
     this.audioUnlocked = true;
-    console.log('Audio unlocked!');
   },
 
   // Play background music
   playMusic() {
     if (this.bgMusic) {
       // Try to play, and unlock audio if needed
-      this.bgMusic.play().then(() => {
-        console.log('Music started successfully!');
-      }).catch(err => {
-        console.log('Music autoplay prevented, will retry:', err);
+      this.bgMusic.play().catch(() => {
         // Retry after a short delay
         setTimeout(() => {
           if (this.bgMusic) {
-            this.bgMusic.play().catch(e => console.log('Music retry failed:', e));
+            this.bgMusic.play().catch(() => {});
           }
         }, 100);
       });
@@ -112,9 +108,7 @@ const AudioManager = {
   playSound(soundElement) {
     if (soundElement && this.audioUnlocked) {
       soundElement.currentTime = 0;
-      soundElement.play().catch(err => {
-        console.log('Sound play failed:', err);
-      });
+      soundElement.play().catch(() => {});
     }
   },
 
@@ -139,7 +133,7 @@ const AudioManager = {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + duration);
     } catch (err) {
-      console.log('Web Audio API not supported');
+      // Web Audio API not supported
     }
   },
 

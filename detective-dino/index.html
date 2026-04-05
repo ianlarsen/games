@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Detective Dino's Missing Cookie Case 🦕🍪</title>
+    <title>Detective Dino 🔎</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,10 +12,10 @@
         <div id="title-screen" class="screen active">
             <div class="title-content">
                 <div class="title-dino-container">
-                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="dino title">
+                    <img src="images/characters/detective_dino_excited.png" alt="Detective Dino" class="dino title">
                 </div>
                 <h1 class="game-title bounce">Detective Dino 🔍</h1>
-                <h2 class="subtitle">The Missing Cookie Case!</h2>
+                <h2 class="subtitle">Can you solve the mystery?</h2>
                 <button class="start-btn pulse" onclick="showReadingLevelScreen()">Start Investigation!</button>
             </div>
         </div>
@@ -50,11 +50,11 @@
             <!-- Top Bar -->
             <div id="top-bar">
                 <div id="detective-name">
-                    <img src="images/characters/detective_dino.png" alt="Detective Dino" class="dino icon">
-                    <span>Detective Dino</span>
+                    <img src="images/characters/detective_dino_thinking.png" alt="Detective Dino" id="dino-nav-icon" class="dino icon">
+                    <span id="mystery-title">Detective Dino</span>
                 </div>
                 <button id="notebook-btn" onclick="toggleNotebook()">
-                    <img src="images/objects/notebook.png" alt="Notebook" class="notebook-icon"> Clues (<span id="clue-count">0</span>/4)
+                    <img src="images/objects/notebook.png" alt="Notebook" class="notebook-icon"> Clues (<span id="clue-count">0/4</span>)
                 </button>
             </div>
 
@@ -109,49 +109,27 @@
         </div>
 
         <!-- Accusation Screen -->
-        <div id="accusation-screen" class="screen hidden">
+        <div id="accusation-screen" class="screen">
             <div class="accusation-content">
-                <h2>Who Stole the Cookies? 🍪</h2>
+                <h2 id="accusation-title">Who did it? 🔍</h2>
                 <p>Think carefully, Detective Dino!</p>
                 <div id="suspects-grid">
-                    <div class="suspect-card" onclick="accuseSuspect('bunny')" role="button" tabindex="0" aria-label="Accuse Bunny">
-                        <div class="bunny avatar">
-                            <img src="images/characters/bunny_happy.png" alt="Bunny" class="bunny">
-                        </div>
-                        <p>Bunny</p>
-                    </div>
-                    <div class="suspect-card" onclick="accuseSuspect('cat')" role="button" tabindex="0" aria-label="Accuse Cat">
-                        <div class="cat avatar">
-                            <img src="images/characters/cat_happy.png" alt="Cat" class="cat">
-                        </div>
-                        <p>Cat</p>
-                    </div>
-                    <div class="suspect-card" onclick="accuseSuspect('dog')" role="button" tabindex="0" aria-label="Accuse Dog">
-                        <div class="dog avatar">
-                            <img src="images/characters/dog_happy.png" alt="Dog" class="dog">
-                        </div>
-                        <p>Dog</p>
-                    </div>
-                    <div class="suspect-card" onclick="accuseSuspect('mouse')" role="button" tabindex="0" aria-label="Accuse Mouse">
-                        <div class="mouse avatar">
-                            <img src="images/characters/mouse_happy.png" alt="Mouse" class="mouse">
-                        </div>
-                        <p>Mouse</p>
-                    </div>
+                    <!-- Suspect cards generated dynamically by game.js -->
                 </div>
                 <button class="back-btn" onclick="hideAccusationScreen()">Go Back</button>
             </div>
         </div>
 
         <!-- Win Screen -->
-        <div id="win-screen" class="screen hidden">
+        <div id="win-screen" class="screen">
             <div class="win-content">
+                <img src="images/characters/detective_dino_celebrating.png" alt="Detective Dino Celebrating" id="win-dino" class="dino win-dino">
                 <h1 class="celebrate">🎉 CASE SOLVED! 🎉</h1>
                 <div class="win-message">
                     <p class="big-text">Great detective work!</p>
-                    <p>You found the cookie thief! 🍪</p>
+                    <p id="win-case-line">You solved the case! 🎉</p>
                     <div class="culprit">
-                        <img src="images/characters/mouse_sad.png" alt="Mouse" class="mouse culprit">
+                        <img src="images/characters/mouse_guilty.png" alt="Mouse" class="mouse culprit">
                         <div>It was Mouse!</div>
                     </div>
                 </div>
@@ -160,9 +138,10 @@
         </div>
 
         <!-- Try Again Screen -->
-        <div id="try-again-screen" class="screen hidden">
+        <div id="try-again-screen" class="screen">
             <div class="try-again-content">
                 <h1>Not Quite Right... 🤔</h1>
+                <div id="try-again-suspect" class="try-again-suspect-wrap"></div>
                 <p class="big-text">Keep investigating, Detective!</p>
                 <p>Look for more clues in each location.</p>
                 <button class="back-btn pulse" onclick="hideTryAgainScreen()">Keep Investigating!</button>

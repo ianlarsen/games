@@ -478,3 +478,111 @@ With this system:
 
 Current state: 1 mystery × 4 culprits = 4 variations
 Target state: 5 mysteries × 4 culprits = **20 variations!**
+
+---
+
+## ✅ SESSION NOTES — April 5, 2026
+
+### What was completed this session
+
+All work below was implemented in `game.js`, `style.css`, `audio.js`, and `index.html`. No new asset files were added — all improvements used existing images and sounds.
+
+---
+
+#### Bug Fixes
+
+- **Clue counter display** — Was showing `0/4/4` (hardcoded `/4` outside the span). Fixed.
+- **Object image map** — `objectImages` was empty, causing emoji fallbacks for all interactive objects. Mapped all 13 objects present in the game (cookie jar, magnifying glass, toys, sandcastle, tools, basketball hoop, easel, etc.).
+- **`goal` object image** — Mapped to `basketball_hoop.png` (existing file).
+- **"Make an accusation!" button** — Was wired to `action: 'close'` instead of `action: 'accuse'`. Fixed; now opens the accusation screen.
+- **Double `playClick()`** in `start()` — Removed duplicate call.
+- **Double `adaptText`** on clue descriptions — Was being adapted twice. Fixed by pre-adapting once in `collectClue`.
+- **Nav star badge** — Clue star (⭐) wasn't appearing on the nav button immediately after collecting a clue. Fixed by calling `updateNavigationState()` inside `collectClue`.
+- **Starting location not marked visited** — `visitedLocations` was populated after `renderNavigation()` ran, so the first location never got its ✓ badge. Fixed by initialising the Set before rendering.
+- **Object images had no `onerror` fallback** — Added emoji fallback matching the existing character-image pattern.
+- **Celebrating dino mood revert** — A `_dinoMoodTimer` setTimeout was overwriting the win-screen celebrating dino. Fixed by storing the timer in `this._dinoMoodTimer` and calling `clearTimeout` before setting the win mood.
+- **iOS background music silent on first tap** — `bgMusic` was missing from the `unlockAudio()` sounds array. Fixed.
+- **First user interaction silent** — Audio unlock event listener needed `{ capture: true }` to fire before button `onclick` handlers. Fixed.
+- **`initKeyboardAccessibility` crash** — Was querying `.suspect-card` elements at startup before the accusation screen was populated. Removed the dead branch.
+- **Spurious `hidden` class on game screens** — Some screens had `hidden` in HTML; the game uses `active` toggling. Removed conflicting classes.
+- **Console.log spoilers** — Several `console.log` calls exposed the guilty suspect in DevTools. Removed.
+- **Notebook descriptions bypassing `adaptText`** — Clue descriptions rendered in the notebook were not being adapted. Fixed.
+- **`showTryAgainScreen` `wrongResponse` not adapted** — `message` was set as raw text. Now wrapped in `this.adaptText(message)`.
+- **`showWinScreen` confession not adapted** — Confession string was set as raw text. Now wrapped in `this.adaptText(confessionText)`.
+- **Dead CSS background-class rules** — Stale `#background.kitchen / .backyard / .living_room / .park` rules removed from `style.css`.
+- **Nav CSS conflict** — `.nav-clue-found` gold colour was overriding `.active-location` green. Fixed specificity so active location always shows green.
+- **Browser tab title hardcoded** — Was "Detective Dino". Now set dynamically to `<mystery title> — Detective Dino` on game start.
+- **Static HTML title hardcoded** — `<title>` tag also updated.
+- **`audio.js` console.log noise** — Removed all debug logging from `AudioManager`.
+
+---
+
+#### New Features
+
+- **5 full mystery scenarios** (`mysteries.js`) — All 5 mysteries fully implemented with 4 possible culprits each = 20 unique game paths. Each culprit has 4 unique clues, guilty/nervous dialogue, confession, innocent dialogues, and wrong-accusation response.
+- **Random mystery + random culprit selection** — `selectRandomMystery()` picks a mystery and culprit at random each play.
+- **Detective Dino mood system** — `setDinoMood('excited' | 'thinking' | 'celebrating')` swaps the dino image dynamically. Excited on clue found, thinking during investigation, celebrating on win. Mood timer managed via `this._dinoMoodTimer` with `clearTimeout` so win mood isn't overwritten.
+- **Dynamic accusation screen** — Built from mystery data at runtime; shows all 4 suspects with their images.
+- **Win screen uses `_guilty.png`** — Correct suspect image shown on win. Confession text and case line are dynamic.
+- **Try-again screen shows accused suspect** — Accused suspect's `_nervous.png` shown alongside the wrong-response message.
+- **Location visit tracking** — `visitedLocations` Set; nav buttons show ✓ after visiting and ⭐ (gold) after finding a clue there.
+- **Accuse button pulse animation** — The accusation button pulses once all clues in the current mystery are found.
+- **Mystery title in top bar** — Current mystery name shown in the game header and browser tab.
+- **Notebook clue thumbnails** — Each notebook entry shows a small clue image thumbnail.
+- **Character `onerror` null-safety** — All character `<img>` tags have an `onerror` handler that hides the broken image gracefully.
+- **Mobile backgrounds use `cover`** — Backgrounds scale correctly on small screens.
+- **Reading level selection screen** — Three levels selectable before each game: Beginner, Intermediate, Advanced.
+
+---
+
+#### Reading Level System (Beginner — completed this session)
+
+The `adaptText()` function was completely rewritten for the beginner (1st grade) level. The previous implementation was a handful of fragile regex replacements covering only ~10% of the game's text for Mystery 1 only. Mysteries 2–5 passed through unadapted.
+
+**What was done:**
+- Replaced the entire beginner section with a **250-entry exact-phrase lookup table** covering all 5 mysteries:
+  - Every mystery intro line
+  - All interactive object dialogue lines
+  - All clue description lines (4 clues × 4 suspects × 5 mysteries = 80 entries)
+  - All guilty-suspect dialogue lines (initial + after-clue)
+  - All confessions
+  - All innocent suspect dialogues
+  - All wrong-accusation responses
+  - All recurring choice button texts ("Let's investigate!" → "Let's look!", etc.)
+  - All static UI strings ("Great detective work!" → "Great job! 🌟", etc.)
+- Added a **generic fallback** for any string not in the table: strips `*stage directions*`, takes the first sentence, caps at 5 words with `!`.
+- Added **intermediate-level overrides** for the most complex multi-sentence intros and a handful of tricky constructions.
+- `collectClue()` now **pre-adapts** the clue description and the progress line independently before combining them, then passes `textIsAdapted = true` to `showDialogue` so the combined string is never double-processed.
+- `showDialogue()` has a new 4th parameter `textIsAdapted = false`; when `true` the main text is used as-is but choice button texts are still passed through `adaptText`.
+- `showTryAgainScreen()` now passes `wrongResponse` through `this.adaptText()`.
+- `showWinScreen()` now passes the confession string through `this.adaptText()`, and uses "Case closed! 🎉" as the case line for beginners instead of the full mystery title.
+- New `_applyReadingLevelStaticText()` method called on `start()` updates static HTML in win/try-again screens per level:
+  - Win: "Great detective work!" → beginner: "Great job! 🌟"
+  - Try-again heading: beginner: "Oops! Try again! 🤔"
+  - Try-again hint: beginner: "Keep looking! 🔍" / "Find more clues!"
+
+---
+
+### What still needs to be done
+
+#### Assets still missing (from original plan)
+- `angry` character state images for all 4 suspects (`bunny_angry.png`, `cat_angry.png`, `dog_angry.png`, `mouse_angry.png`) — the game currently uses `_nervous.png` as a fallback for wrong accusations
+- Optional character states: `cat_sleeping.png`, `dog_playing.png`, `mouse_hiding.png`
+- All 18 new background images listed above (only the 4 originals + the 18 from mysteries 2–5 are actually present)
+- The 40+ new clue images and 50+ new object images listed above
+
+#### Reading level — Intermediate
+- The intermediate level currently only has sparse overrides for a handful of intro texts. It needs a similar (though less aggressive) review pass: multi-sentence dialogue simplified to single clear sentences at ~3rd grade level. Less urgent since intermediate reads acceptably, but not polished.
+
+#### Reading level — Beginner static choices
+- Choice button texts inside individual mystery dialogues (the `choices` arrays in `mysteries.js`) are not yet adapted at beginner level; only the recurring generic ones ("Add to notebook!", "Make an accusation!") are covered. A pass through mysteries.js choice texts for beginner simplification would finish the job.
+
+#### Sounds
+- All 48 new sounds listed in the plan are still missing. The 7 existing sounds work but the game would benefit greatly from character-specific sounds, better clue-found sounds, and location ambience.
+
+#### Further gameplay features (from original plan)
+- New game / replay button after win screen (currently the page must be refreshed)
+- Score or star rating based on number of wrong accusations
+- Difficulty scaling (more red-herring clues at higher levels)
+- Tutorial improvements (the tutorial was built but could be more visual)
+
