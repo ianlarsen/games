@@ -3,16 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Robot Bunny On The Moon</title>
+<title>Robot Bunny in Space</title>
 <style>
   :root {
     --bg-deep: #000000;
   }
   html, body { height: 100%; margin: 0; background: var(--bg-deep); color: #e6edf3; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; overflow: hidden; }
   #wrap { display: grid; place-items: center; height: 100%; }
-  @media (max-width: 768px), (pointer: coarse) {
-    #wrap { padding-top: 40px; padding-bottom: 180px; box-sizing: border-box; }
-  }
   canvas {
     background: #000;
     width: min(100vw, 960px);
@@ -39,6 +36,8 @@
     font-size: 13px; max-width: 90vw;
   }
   .hud-item { display: flex; align-items: center; gap: 5px; padding: 3px 8px; background: rgba(16,22,32,0.85); border-radius: 5px; border: 1px solid rgba(123,226,255,0.25); }
+  .hud-item img { width: 16px; height: 16px; image-rendering: pixelated; display: block; }
+  .mobile-btn img { width: 38px; height: 38px; image-rendering: pixelated; pointer-events: none; }
   .hud-item.button { cursor: pointer; user-select: none; -webkit-user-select: none; }
   .combo-display {
     position: fixed; top: 100px; right: 20px;
@@ -54,11 +53,10 @@
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
   /* Compact layout for landscape mobile (small viewport height) */
   @media (max-height: 480px) {
-    .start-screen { gap: 8px; padding: 6px 12px; }
-    .start-title { font-size: 26px; letter-spacing: 2px; }
+    .start-logo { width: min(300px, 70vw) !important; }
+    .start-bottom { gap: 6px; padding-bottom: 8px; }
     .start-button { padding: 10px 36px; font-size: 18px; min-width: 160px; }
-    #start-bunny-canvas { width: 55px !important; height: 55px !important; }
-    .leaderboard { max-height: 110px; overflow-y: auto; }
+    .leaderboard { max-height: 90px; overflow-y: auto; }
   }
   .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: .8; font-size: 12px; color: #9fb1cc; text-align: center; max-width: 90vw; }
   .badge { position: fixed; top: 10px; right: 14px; font-size: 11px; color: #9fb1cc; opacity: .8; }
@@ -68,24 +66,34 @@
   }
   .start-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 18px;
+    background: #060c18 url('images/landing-bg.png') center center / cover no-repeat;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-direction: column;
     z-index: 1000; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    overflow-y: auto; padding: 20px 0;
+    padding: 12px 0 28px; box-sizing: border-box;
   }
+  .start-screen::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,0.05) 35%,
+      rgba(0,0,0,0.05) 55%,
+      rgba(0,0,0,0.82) 100%);
+    pointer-events: none; z-index: 0;
+  }
+  .start-screen > * { position: relative; z-index: 1; }
   .start-screen.hidden { display: none; }
-  .start-title {
-    font-size: 48px; font-weight: 900;
-    font-family: 'Impact', 'Arial Black', sans-serif;
-    letter-spacing: 4px;
-    text-align: center; padding: 0 20px;
-    color: #b0b8c0;
-    background: linear-gradient(180deg, #e8eef4 0%, #8090a0 50%, #4a5560 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  .start-logo {
+    width: min(560px, 88vw);
+    height: auto;
+    margin-top: 4px;
+    filter: drop-shadow(0 0 22px rgba(123,226,255,0.7)) drop-shadow(0 2px 6px rgba(0,0,0,0.9));
+    image-rendering: pixelated;
+  }
+  .start-bottom {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    width: 100%;
   }
   .start-button {
     padding: 20px 60px; font-size: 28px; font-weight: bold; color: #7be2ff;
@@ -169,7 +177,8 @@
     #orient-overlay { display: flex; }
   }
   .orient-icon {
-    font-size: 64px; margin-bottom: 18px;
+    width: 80px; height: 80px; margin-bottom: 18px;
+    image-rendering: pixelated;
     animation: rotateHint 2s ease-in-out infinite;
     display: inline-block;
   }
@@ -297,12 +306,12 @@
   <canvas id="game" width="960" height="560" aria-label="Robot Bunny Platformer"></canvas>
 </div>
 <div class="hud">
-  <div class="hud-item"><span>🌙</span><span id="level">Level 1</span></div>
-  <div class="hud-item"><span>❤️</span><span id="lives">×3</span></div>
-  <div class="hud-item"><span>🎯</span><span id="score">0</span></div>
-  <div class="hud-item"><span>🪙</span><span id="coins">0</span></div>
-  <div class="hud-item"><span>⭐</span><span id="upgrades">Upgrades: 0</span></div>
-  <div class="hud-item button" id="perf-toggle"><span>⚙️</span><span id="perf-mode">Perf: Balanced</span></div>
+  <div class="hud-item"><img src="images/ui/hud-level.png" alt="Level"><span id="level">Level 1</span></div>
+  <div class="hud-item"><img src="images/ui/hud-lives.png" alt="Lives"><span id="lives">×3</span></div>
+  <div class="hud-item"><img src="images/ui/hud-score.png" alt="Score"><span id="score">0</span></div>
+  <div class="hud-item"><img src="images/ui/hud-coins.png" alt="Coins"><span id="coins">0</span></div>
+  <div class="hud-item"><img src="images/ui/hud-upgrades.png" alt="Upgrades"><span id="upgrades">Upgrades: 0</span></div>
+  <div class="hud-item button" id="perf-toggle"><img src="images/ui/hud-settings.png" alt="Settings"><span id="perf-mode">Perf: Balanced</span></div>
   <div class="hud-item"><span>FPS</span><span id="fps">--</span></div>
 </div>
 <div class="combo-display" id="combo-display">COMBO ×0</div>
@@ -311,29 +320,30 @@
 
 <!-- Start Screen -->
 <div class="start-screen" id="start-screen">
-  <canvas id="start-bunny-canvas" width="100" height="100"></canvas>
-  <div class="start-title" id="start-title">ROBOT BUNNY</div>
-  <div class="start-button" id="start-btn" style="display:none;">TAP TO START</div>
-  <div id="loading-text">LOADING ASSETS... 0%</div>
-  <div class="leaderboard" id="leaderboard">
-    <div class="lb-title">&#127942; Your Best Runs</div>
-    <table class="lb-table">
-      <thead><tr><th>Category</th><th>Score</th><th>Lv</th><th>Perks</th></tr></thead>
-      <tbody id="lb-body"></tbody>
-    </table>
+  <img class="start-logo" src="images/landing-logo.png" alt="Robot Bunny in Space">
+  <div class="start-bottom">
+    <div class="start-button" id="start-btn" style="display:none;">TAP TO START</div>
+    <div id="loading-text">LOADING ASSETS... 0%</div>
+    <div class="leaderboard" id="leaderboard">
+      <div class="lb-title">Your Best Runs</div>
+      <table class="lb-table">
+        <thead><tr><th>Category</th><th>Score</th><th>Lv</th><th>Perks</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <div class="mobile-controls">
   <div id="joystick-base"><div id="joystick-knob"></div></div>
   <div class="mobile-btn" id="mobile-jump">JUMP</div>
-  <div class="mobile-btn" id="mobile-laser">❆</div>
-  <div class="mobile-btn" id="mobile-burst"><span id="burst-stars">★</span><span class="burst-label">BURST</span></div>
+  <div class="mobile-btn" id="mobile-laser"><img src="images/ui/btn-laser.png" alt="Laser"></div>
+  <div class="mobile-btn" id="mobile-burst"><img id="burst-img" src="images/ui/btn-burst.png" alt="Burst"><span id="burst-stars" class="burst-label"></span></div>
 </div>
 
 <!-- Landscape orientation prompt -->
 <div id="orient-overlay">
-  <span class="orient-icon">📱</span>
+  <img class="orient-icon" src="images/ui/rotate-phone.png" alt="Rotate device">
   <div class="orient-title">Rotate Your Device</div>
   <div class="orient-sub">Turn your phone to landscape mode to play Robot Bunny</div>
 </div>
@@ -348,7 +358,7 @@
 
 <div class="shop-overlay" id="shop-overlay">
   <div class="shop-panel">
-    <div class="shop-title">🛒 Upgrade Shop</div>
+    <div class="shop-title"><img src="images/ui/shop-icon.png" alt="" style="width:24px;height:24px;image-rendering:pixelated;vertical-align:middle;"> Upgrade Shop</div>
     <div class="shop-coins" id="shop-coins-display"></div>
     <div id="shop-items"></div>
     <button class="shop-close" id="shop-close">Close &amp; Restart</button>
@@ -495,7 +505,6 @@
         if (loadingText) loadingText.style.display = 'none';
         const startBtn = document.getElementById('start-btn');
         if (startBtn) startBtn.style.display = 'block';
-        drawStartScreenBunny();
       }
   }
 
@@ -529,11 +538,10 @@
 
   function fit() {
     const maxW = Math.min(window.innerWidth, 960);
-    const reservedTop = isMobileDevice ? 40 : 0;
-    const reservedBottom = isMobileDevice ? 180 : 0;
+    const reservedBottom = isMobileDevice ? 220 : 0;
     const viewH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-    const availableH = Math.max(80, viewH - reservedTop - reservedBottom);
-    const maxH = isMobileDevice ? Math.min(availableH, 560) : Math.min(window.innerHeight * 0.68, 560);
+    const availableH = Math.max(220, viewH - reservedBottom);
+    const maxH = isMobileDevice ? Math.min(availableH, 600) : Math.min(window.innerHeight * 0.68, 560);
     const ar = canvas.width / canvas.height;
     let w = maxW, h = w / ar;
     if (h > maxH) { h = maxH; w = h * ar; }
@@ -668,13 +676,13 @@
 
   // Shop upgrade definitions: id, label, desc, costs[level], maxLevel
   const SHOP_UPGRADES = [
-    { id: 'maxHealth',   name: 'Extra Life',     desc: '+1 starting life',          costs: [120, 200, 300], maxLevel: 3 },
-    { id: 'quickShot',   name: 'Quick Shot',      desc: '-20% shoot cooldown',       costs: [80,  160],      maxLevel: 2 },
-    { id: 'magnetField', name: 'Magnet Field',    desc: '+30% coin attraction',      costs: [60,  130],      maxLevel: 2 },
+    { id: 'quickShot',   name: 'Quick Shot',   desc: '-20% shoot cooldown',  costs: [300, 600], maxLevel: 2 },
+    { id: 'magnetField', name: 'Magnet Field', desc: '+30% coin attraction', costs: [250, 500], maxLevel: 2 },
   ];
+  const SHOP_EXTRA_LIFE_COST = 1000; // consumable: 1 life added to the next run
+  const BASE_LIVES = 5;
 
   const permanentUpgrades = {
-    maxHealth:   parseInt(localStorage.getItem('rb_upg_health')   || '5', 10),
     quickShot:   parseInt(localStorage.getItem('rb_upg_quick')    || '0', 10),
     magnetField: parseInt(localStorage.getItem('rb_upg_magnet')   || '0', 10),
   };
@@ -683,7 +691,6 @@
     localStorage.setItem('rb_endless_coins',  totalCoins);
     localStorage.setItem('rb_endless_highest', highestLevel);
     localStorage.setItem('rb_high_score',     highScore);
-    localStorage.setItem('rb_upg_health',     permanentUpgrades.maxHealth);
     localStorage.setItem('rb_upg_quick',      permanentUpgrades.quickShot);
     localStorage.setItem('rb_upg_magnet',     permanentUpgrades.magnetField);
   }
@@ -716,9 +723,9 @@
     const deepest    = history.reduce((b, r) => r.level > b.level || (r.level === b.level && r.score > b.score) ? r : b, history[0]);
     const perkMaster = history.reduce((b, r) => (r.perks||0) > (b.perks||0) || ((r.perks||0) === (b.perks||0) && r.score > b.score) ? r : b, history[0]);
     const categories = [
-      { label: '\uD83C\uDFC6 Best Score',  entry: bestScore },
-      { label: '\uD83D\uDDFA\uFE0F Deepest Run', entry: deepest },
-      { label: '\u26A1 Perk Master',  entry: perkMaster },
+      { label: 'Best Score',   entry: bestScore },
+      { label: 'Deepest Run', entry: deepest },
+      { label: 'Perk Master', entry: perkMaster },
     ];
     for (const { label, entry } of categories) {
       const tr = document.createElement('tr');
@@ -735,10 +742,10 @@
     const display = document.getElementById('shop-coins-display');
     const container = document.getElementById('shop-items');
     if (!display || !container) return;
-    display.textContent = '\ud83e\ude99 ' + totalCoins + ' coins';
+    display.innerHTML = '<img src="images/ui/hud-coins.png" style="width:14px;height:14px;image-rendering:pixelated;vertical-align:middle;"> ' + totalCoins + ' coins';
     container.innerHTML = '';
     for (const upg of SHOP_UPGRADES) {
-      const currentLevel = upg.id === 'maxHealth' ? (permanentUpgrades.maxHealth - 5) : permanentUpgrades[upg.id];
+      const currentLevel = permanentUpgrades[upg.id];
       const isMaxed = currentLevel >= upg.maxLevel;
       const cost = isMaxed ? 0 : upg.costs[currentLevel];
       const canAfford = !isMaxed && totalCoins >= cost;
@@ -756,12 +763,38 @@
       div.appendChild(btn);
       container.appendChild(div);
     }
+
+    // Consumable extra life item
+    const boughtSoFar = parseInt(localStorage.getItem('rb_bought_lives') || '0', 10);
+    const canAffordLife = totalCoins >= SHOP_EXTRA_LIFE_COST;
+    const lifeDiv = document.createElement('div');
+    lifeDiv.className = 'shop-item';
+    lifeDiv.innerHTML = `<div class="shop-item-info"><div class="shop-item-name">\u2764\ufe0f Extra Life (next run)</div><div class="shop-item-desc">+1 life applied when you restart</div><div class="shop-item-level">Cost: ${SHOP_EXTRA_LIFE_COST} coins${boughtSoFar > 0 ? ' \u2022 Purchased: ' + boughtSoFar : ''}</div></div>`;
+    const lifeBtn = document.createElement('button');
+    lifeBtn.className = 'shop-btn';
+    lifeBtn.textContent = 'Buy';
+    lifeBtn.disabled = !canAffordLife;
+    if (canAffordLife) {
+      const buyLife = e => {
+        if (e.type === 'touchend') e.preventDefault();
+        if (totalCoins < SHOP_EXTRA_LIFE_COST) return;
+        totalCoins -= SHOP_EXTRA_LIFE_COST;
+        const cur = parseInt(localStorage.getItem('rb_bought_lives') || '0', 10);
+        localStorage.setItem('rb_bought_lives', cur + 1);
+        saveProgress();
+        renderShop();
+      };
+      lifeBtn.addEventListener('click', buyLife);
+      lifeBtn.addEventListener('touchend', buyLife, { passive: false });
+    }
+    lifeDiv.appendChild(lifeBtn);
+    container.appendChild(lifeDiv);
   }
 
   function buyUpgrade(id) {
     const upg = SHOP_UPGRADES.find(u => u.id === id);
     if (!upg) return;
-    const lvl = id === 'maxHealth' ? (permanentUpgrades.maxHealth - 5) : permanentUpgrades[id];
+    const lvl = permanentUpgrades[id];
     if (lvl >= upg.maxLevel) return;
     const cost = upg.costs[lvl];
     if (totalCoins < cost) return;
@@ -855,12 +888,22 @@
     shootCooldown: 0,
     invincible: false,
     invincibleTimer: 0,
-    lives: permanentUpgrades.maxHealth,
-    maxLives: permanentUpgrades.maxHealth,
+    lives: BASE_LIVES,
+    maxLives: BASE_LIVES,
     combo: 0,
     comboTimer: 0,
     sessionCoins: 0
   };
+
+  // Apply any extra lives purchased in the shop before the last run ended
+  (() => {
+    const bought = parseInt(localStorage.getItem('rb_bought_lives') || '0', 10);
+    if (bought > 0) {
+      player.lives += bought;
+      player.maxLives = Math.max(player.maxLives, player.lives);
+      localStorage.removeItem('rb_bought_lives');
+    }
+  })();
 
   // ============ INPUT ============
   const keys = {};
@@ -1692,7 +1735,7 @@
     if (hudEls.mobileBurst) {
       const hasBurst = player_moonBursts > 0 && !moonBurstActive;
       hudEls.mobileBurst.style.display = hasBurst ? 'flex' : 'none';
-      if (hasBurst && hudEls.burstStars) hudEls.burstStars.textContent = '★'.repeat(player_moonBursts);
+      if (hasBurst && hudEls.burstStars) hudEls.burstStars.textContent = player_moonBursts > 0 ? '×' + player_moonBursts : '';
     }
   }
 
@@ -2818,7 +2861,7 @@
       const magnetY = (player_moonBursts > 0 && !moonBurstActive) ? 38 : 20;
       ctx.save(); ctx.textAlign = 'right'; ctx.font = 'bold 12px sans-serif';
       ctx.fillStyle = '#a78bfa';
-      ctx.fillText('\uD83E\uDDF2\u00D7' + permanentUpgrades.magnetField, canvas.width - 8, magnetY);
+      ctx.fillText('MAG\u00D7' + permanentUpgrades.magnetField, canvas.width - 8, magnetY);
       ctx.restore();
     }
     // Draw moon burst star pickups
@@ -2924,17 +2967,8 @@
   }
 
   // ============ DRAW START SCREEN BUNNY ============
-  window.drawStartScreenBunny = function() {
-    const sCanvas = document.getElementById('start-bunny-canvas');
-    if (!sCanvas || !assets.player) return;
-    if (!assets.player.complete || assets.player.naturalWidth === 0) { setTimeout(drawStartScreenBunny, 100); return; }
-    const sCtx = sCanvas.getContext('2d');
-    sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
-    const img = assets.player;
-    const x = (sCanvas.width - img.naturalWidth) / 2;
-    const y = (sCanvas.height - img.naturalHeight) / 2;
-    sCtx.drawImage(img, x, y);
-  };
+  // No-op: start screen now uses landing-logo.png and landing-bg.png images directly.
+  window.drawStartScreenBunny = function() {};
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
