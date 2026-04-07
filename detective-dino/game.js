@@ -826,7 +826,7 @@ const Game = {
     const isCompactMobile = this.isSmallPhoneViewport();
     const minLeft = isCompactMobile ? 2 : (this.isMobileViewport() ? 6 : 12);
     const maxLeft = isCompactMobile ? 74 : (this.isMobileViewport() ? 76 : 78);
-    const bottom = this.isMobileViewport() ? '6%' : '8%';
+    const bottom = this.isMobileViewport() ? '2%' : '3%';
 
     if (total <= 1) {
       return { bottom, left: `${Math.round((minLeft + maxLeft) / 2)}%` };

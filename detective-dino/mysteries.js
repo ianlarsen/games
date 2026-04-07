@@ -45,7 +45,7 @@ const mysteriesData = {
           id: "ball",
           name: "Ball",
           emoji: "",
-          position: { bottom: "12%", left: "70%" },
+          position: { bottom: "3%", left: "70%" },
           dialogue: {
             text: "Dog's ball is still here. Dog was playing all day!",
             choices: [{ text: "Okay! ", action: "close" }]
@@ -57,7 +57,7 @@ const mysteriesData = {
           id: "couch",
           name: "Couch",
           emoji: "",
-          position: { bottom: "15%", left: "65%" },
+          position: { bottom: "3%", left: "65%" },
           dialogue: {
             text: "Cat's favorite napping spot. There's cat fur all over it!",
             choices: [{ text: "Cat was here all day! ", action: "close" }]
@@ -69,7 +69,7 @@ const mysteriesData = {
           id: "flowers",
           name: "Flowers",
           emoji: "",
-          position: { bottom: "15%", left: "70%" },
+          position: { bottom: "3%", left: "70%" },
           dialogue: {
             text: "Pretty flowers, but wait... there's something behind them!",
             choices: [{ text: "Look closer! ", action: "close" }]
@@ -92,7 +92,7 @@ const mysteriesData = {
           kitchen: {
             id: "bunny_fur_jar",
             name: "White Fur on Jar",
-            position: { bottom: "45%", left: "30%" },
+            position: { bottom: "12%", left: "20%" },
             description: "You found white bunny fur stuck to the cookie jar! ",
             hint: "Bunny was near the cookie jar!",
             image: "bunny_fur_white.png"
@@ -150,7 +150,7 @@ const mysteriesData = {
           kitchen: {
             id: "cat_fur_jar",
             name: "Orange Cat Fur",
-            position: { bottom: "48%", left: "28%" },
+            position: { bottom: "12%", left: "18%" },
             description: "Orange cat fur stuck to the cookie jar! ",
             hint: "Cat was definitely here!",
             image: "cat_fur.png"
@@ -388,7 +388,7 @@ const mysteriesData = {
           id: "toy_box",
           name: "Toy Box",
           emoji: "",
-          position: { bottom: "20%", left: "30%" },
+          position: { bottom: "3%", left: "30%" },
           dialogue: {
             text: "The toy box is messy! Someone was looking through it!",
             choices: [{ text: "Interesting! ", action: "close" }]
@@ -401,7 +401,7 @@ const mysteriesData = {
           id: "bed",
           name: "Bed",
           emoji: "",
-          position: { bottom: "15%", left: "60%" },
+          position: { bottom: "3%", left: "60%" },
           dialogue: {
             text: "The bed looks normal. Nothing suspicious here!",
             choices: [{ text: "Okay! ", action: "close" }]
@@ -413,7 +413,7 @@ const mysteriesData = {
           id: "toolbox",
           name: "Toolbox",
           emoji: "",
-          position: { bottom: "15%", left: "70%" },
+          position: { bottom: "3%", left: "70%" },
           dialogue: {
             text: "The toolbox is open! Someone might have used the tools!",
             choices: [{ text: "That's a clue! ", action: "close" }]
@@ -431,7 +431,7 @@ const mysteriesData = {
           playroom: {
             id: "bunny_fur_toy",
             name: "White Fur on Toy",
-            position: { bottom: "30%", left: "40%" },
+            position: { bottom: "8%", left: "40%" },
             description: "White bunny fur stuck to the broken toy! ",
             hint: "Bunny was touching the toy!",
             image: "bunny_fur_white.png"
@@ -485,7 +485,7 @@ const mysteriesData = {
           playroom: {
             id: "cat_fur_toy",
             name: "Orange Cat Fur",
-            position: { bottom: "30%", left: "40%" },
+            position: { bottom: "8%", left: "40%" },
             description: "Orange cat fur on the broken toy! ",
             hint: "Cat was playing with it!",
             image: "cat_fur.png"
@@ -539,7 +539,7 @@ const mysteriesData = {
           playroom: {
             id: "dog_drool_toy",
             name: "Drool on Toy",
-            position: { bottom: "30%", left: "40%" },
+            position: { bottom: "8%", left: "40%" },
             description: "Dog drool all over the broken toy! ",
             hint: "Dog was chewing on it!",
             image: "drool_puddle.png"
@@ -593,7 +593,7 @@ const mysteriesData = {
           playroom: {
             id: "tiny_teeth_marks",
             name: "Tiny Teeth Marks",
-            position: { bottom: "30%", left: "40%" },
+            position: { bottom: "8%", left: "40%" },
             description: "Tiny teeth marks on the toy! Mouse was nibbling! ",
             hint: "Mouse chewed on it!",
             image: "paw_print.png"
@@ -716,7 +716,7 @@ const mysteriesData = {
           id: "doghouse",
           name: "Doghouse",
           emoji: "",
-          position: { bottom: "25%", left: "65%" },
+          position: { bottom: "3%", left: "65%" },
           dialogue: {
             text: "Dog's house is empty! The ball isn't here!",
             choices: [{ text: "Keep looking! ", action: "close" }]
@@ -729,7 +729,7 @@ const mysteriesData = {
           id: "sandcastle",
           name: "Sandcastle",
           emoji: "",
-          position: { bottom: "15%", left: "50%" },
+          position: { bottom: "3%", left: "50%" },
           dialogue: {
             text: "A beautiful sandcastle! But no ball here!",
             choices: [{ text: "Nice castle! ", action: "close" }]
@@ -741,7 +741,7 @@ const mysteriesData = {
           id: "goal",
           name: "Goal Post",
           emoji: "",
-          position: { bottom: "20%", left: "70%" },
+          position: { bottom: "3%", left: "70%" },
           dialogue: {
             text: "The goal post is here, but where's the ball?",
             choices: [{ text: "We'll find it! ", action: "close" }]
@@ -821,7 +821,7 @@ const mysteriesData = {
           park: {
             id: "ball_in_tree",
             name: "Ball in Tree",
-            position: { bottom: "60%", left: "30%" },
+            position: { bottom: "28%", left: "30%" },
             description: "The ball is stuck in a tree! Cat must have batted it up there! ",
             hint: "Only cat could get it that high!",
             image: "hidden_cookies.png"
@@ -1044,7 +1044,7 @@ const mysteriesData = {
           id: "easel",
           name: "Easel",
           emoji: "",
-          position: { bottom: "30%", left: "40%" },
+          position: { bottom: "5%", left: "40%" },
           dialogue: {
             text: "The easel is knocked over! Paint is everywhere!",
             choices: [{ text: "What a mess! ", action: "close" }]
@@ -1087,7 +1087,7 @@ const mysteriesData = {
           art_room: {
             id: "white_fur_paint",
             name: "White Fur in Paint",
-            position: { bottom: "25%", left: "50%" },
+            position: { bottom: "8%", left: "50%" },
             description: "White bunny fur stuck in the wet paint! ",
             hint: "Bunny was in the paint!",
             image: "bunny_fur_white.png"
@@ -1141,7 +1141,7 @@ const mysteriesData = {
           art_room: {
             id: "cat_fur_paint",
             name: "Orange Fur in Paint",
-            position: { bottom: "25%", left: "50%" },
+            position: { bottom: "8%", left: "50%" },
             description: "Orange cat fur in the spilled paint! ",
             hint: "Cat walked through it!",
             image: "cat_fur.png"
@@ -1195,7 +1195,7 @@ const mysteriesData = {
           art_room: {
             id: "tail_wag_paint",
             name: "Tail Marks in Paint",
-            position: { bottom: "25%", left: "50%" },
+            position: { bottom: "8%", left: "50%" },
             description: "Tail wag marks in the paint! Dog was excited! ",
             hint: "Dog's tail caused the mess!",
             image: "drool_puddle.png"
@@ -1249,7 +1249,7 @@ const mysteriesData = {
           art_room: {
             id: "tiny_paint_tracks",
             name: "Tiny Paint Tracks",
-            position: { bottom: "25%", left: "50%" },
+            position: { bottom: "8%", left: "50%" },
             description: "Tiny mouse tracks in the paint! ",
             hint: "Mouse walked through the mess!",
             image: "small_footprints.png"
@@ -1372,7 +1372,7 @@ const mysteriesData = {
           id: "couch",
           name: "Couch",
           emoji: "",
-          position: { bottom: "15%", left: "65%" },
+          position: { bottom: "3%", left: "65%" },
           dialogue: {
             text: "The couch looks normal. Is the present under the cushions?",
             choices: [{ text: "Check everywhere! ", action: "close" }]
@@ -1396,7 +1396,7 @@ const mysteriesData = {
           id: "boxes",
           name: "Boxes",
           emoji: "",
-          position: { bottom: "20%", left: "60%" },
+          position: { bottom: "5%", left: "60%" },
           dialogue: {
             text: "Old boxes everywhere! Perfect hiding spots!",
             choices: [{ text: "Let's search! ", action: "close" }]
@@ -1408,7 +1408,7 @@ const mysteriesData = {
           id: "storage",
           name: "Storage Shelves",
           emoji: "",
-          position: { bottom: "25%", left: "55%" },
+          position: { bottom: "5%", left: "55%" },
           dialogue: {
             text: "Dark and dusty storage! Could the present be here?",
             choices: [{ text: "Keep looking! ", action: "close" }]
@@ -1504,7 +1504,7 @@ const mysteriesData = {
           basement: {
             id: "present_on_shelf",
             name: "Present on High Shelf",
-            position: { bottom: "50%", left: "60%" },
+            position: { bottom: "28%", left: "60%" },
             description: "The present on a high shelf! Only cat could jump that high! ",
             hint: "Cat's jumping skills!",
             image: "hidden_cookies.png"
