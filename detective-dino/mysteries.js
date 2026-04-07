@@ -11,8 +11,8 @@ const mysteriesData = {
 
     intro: {
       speaker: "Detective Dino",
-      text: "Oh no! Someone stole all the cookies from the cookie jar! 🍪 We need to find out who did it!",
-      choices: [{ text: "Let's investigate! 🔍", action: "start" }]
+      text: "Oh no! Someone stole all the cookies from the cookie jar!  We need to find out who did it!",
+      choices: [{ text: "Let's investigate! ", action: "start" }]
     },
 
     // Locations used in this mystery
@@ -32,11 +32,11 @@ const mysteriesData = {
         {
           id: "cookie_jar",
           name: "Cookie Jar",
-          emoji: "🏺",
+          emoji: "",
           position: { bottom: "50%", left: "25%" },
           dialogue: {
-            text: "The cookie jar is empty! All the cookies are gone! 😱",
-            choices: [{ text: "We need to find clues! 🔍", action: "close" }]
+            text: "The cookie jar is empty! All the cookies are gone! ",
+            choices: [{ text: "We need to find clues! ", action: "close" }]
           }
         }
       ],
@@ -44,11 +44,11 @@ const mysteriesData = {
         {
           id: "ball",
           name: "Ball",
-          emoji: "⚽",
+          emoji: "",
           position: { bottom: "12%", left: "70%" },
           dialogue: {
             text: "Dog's ball is still here. Dog was playing all day!",
-            choices: [{ text: "Okay! ✅", action: "close" }]
+            choices: [{ text: "Okay! ", action: "close" }]
           }
         }
       ],
@@ -56,11 +56,11 @@ const mysteriesData = {
         {
           id: "couch",
           name: "Couch",
-          emoji: "🛋️",
+          emoji: "",
           position: { bottom: "15%", left: "65%" },
           dialogue: {
             text: "Cat's favorite napping spot. There's cat fur all over it!",
-            choices: [{ text: "Cat was here all day! 💤", action: "close" }]
+            choices: [{ text: "Cat was here all day! ", action: "close" }]
           }
         }
       ],
@@ -68,11 +68,11 @@ const mysteriesData = {
         {
           id: "flowers",
           name: "Flowers",
-          emoji: "🌻",
+          emoji: "",
           position: { bottom: "15%", left: "70%" },
           dialogue: {
             text: "Pretty flowers, but wait... there's something behind them!",
-            choices: [{ text: "Look closer! 👀", action: "close" }]
+            choices: [{ text: "Look closer! ", action: "close" }]
           }
         }
       ]
@@ -85,7 +85,7 @@ const mysteriesData = {
       // ========================================
       bunny: {
         name: "Bunny",
-        emoji: "🐰",
+        emoji: "",
 
         // Clues that appear when Bunny is guilty
         clues: {
@@ -93,7 +93,7 @@ const mysteriesData = {
             id: "bunny_fur_jar",
             name: "White Fur on Jar",
             position: { bottom: "45%", left: "30%" },
-            description: "You found white bunny fur stuck to the cookie jar! 🐰",
+            description: "You found white bunny fur stuck to the cookie jar! ",
             hint: "Bunny was near the cookie jar!",
             image: "bunny_fur_white.png"
           },
@@ -101,7 +101,7 @@ const mysteriesData = {
             id: "carrot_prints",
             name: "Carrot-Shaped Prints",
             position: { bottom: "10%", left: "50%" },
-            description: "Carrot-shaped marks leading to the garden! How ironic! 🥕",
+            description: "Carrot-shaped marks leading to the garden! How ironic! ",
             hint: "These prints are bunny-sized!",
             image: "carrot_prints.png"
           },
@@ -109,7 +109,7 @@ const mysteriesData = {
             id: "cookie_crumbs_bunny",
             name: "Cookie Crumbs",
             position: { bottom: "10%", left: "20%" },
-            description: "Cookie crumbs with white fur mixed in! 🍪",
+            description: "Cookie crumbs with white fur mixed in! ",
             hint: "The thief dropped crumbs!",
             image: "cookie_crumbs.png"
           },
@@ -117,7 +117,7 @@ const mysteriesData = {
             id: "cookies_with_carrots",
             name: "Cookies Hidden with Carrots",
             position: { bottom: "12%", left: "75%" },
-            description: "Cookies hidden next to carrots in the garden! Bunny's secret stash! 🥕🍪",
+            description: "Cookies hidden next to carrots in the garden! Bunny's secret stash! ",
             hint: "The cookies are here with carrots!",
             image: "cookies_with_carrots.png"
           }
@@ -126,16 +126,16 @@ const mysteriesData = {
         // Dialogue when Bunny is guilty
         dialogue: {
           initial: {
-            text: "Hi Detective! I... uh... love carrots! Yes, carrots! 🥕 I definitely wasn't near the cookies!",
-            choices: [{ text: "You seem nervous... 🤔", action: "close" }]
+            text: "Hi Detective! I... uh... love carrots! Yes, carrots!  I definitely wasn't near the cookies!",
+            choices: [{ text: "You seem nervous... ", action: "close" }]
           },
           afterClue: {
-            text: "Okay, okay! I couldn't help it! They smelled like carrots somehow! I'm so sorry! 😢",
-            choices: [{ text: "The truth comes out! ⚖️", action: "close" }]
+            text: "Okay, okay! I couldn't help it! They smelled like carrots somehow! I'm so sorry! ",
+            choices: [{ text: "The truth comes out! ", action: "close" }]
           }
         },
 
-        confession: "I... I couldn't resist! The cookies smelled amazing and I was so hungry! Forgive me! 😭🍪",
+        confession: "I... I couldn't resist! The cookies smelled amazing and I was so hungry! Forgive me! ",
         wrongResponse: "" // Not used when they're guilty
       },
 
@@ -144,16 +144,16 @@ const mysteriesData = {
       // ========================================
       cat: {
         name: "Cat",
-        emoji: "🐱",
+        emoji: "",
 
         clues: {
           kitchen: {
             id: "cat_fur_jar",
             name: "Orange Cat Fur",
             position: { bottom: "48%", left: "28%" },
-            description: "Orange cat fur stuck to the cookie jar! 🐱",
+            description: "Orange cat fur stuck to the cookie jar! ",
             hint: "Cat was definitely here!",
-            image: "cat_fur_orange.png"
+            image: "cat_fur.png"
           },
           backyard: {
             id: "cat_paw_prints",
@@ -167,7 +167,7 @@ const mysteriesData = {
             id: "cookies_under_cushion",
             name: "Cookies Under Cushion",
             position: { bottom: "18%", left: "68%" },
-            description: "You found cookies hidden under the couch cushion! Cat's hiding spot! 🍪",
+            description: "You found cookies hidden under the couch cushion! Cat's hiding spot! ",
             hint: "Cat hid them on the couch!",
             image: "cushion_cookies.png"
           },
@@ -183,16 +183,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Meow... I was sleeping! I prefer fish anyway... 😺 *nervously licks paw*",
-            choices: [{ text: "Suspicious... 👀", action: "close" }]
+            text: "Meow... I was sleeping! I prefer fish anyway...  *nervously licks paw*",
+            choices: [{ text: "Suspicious... ", action: "close" }]
           },
           afterClue: {
-            text: "Fine! I wanted to try them! Fish gets boring sometimes! I'm sorry! 😿",
-            choices: [{ text: "Mystery solved! 🎯", action: "close" }]
+            text: "Fine! I wanted to try them! Fish gets boring sometimes! I'm sorry! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "Meow... okay, I confess! I was curious about cookies! They looked so tasty! 😿🍪",
+        confession: "Meow... okay, I confess! I was curious about cookies! They looked so tasty! ",
         wrongResponse: ""
       },
 
@@ -201,14 +201,14 @@ const mysteriesData = {
       // ========================================
       dog: {
         name: "Dog",
-        emoji: "🐶",
+        emoji: "",
 
         clues: {
           kitchen: {
             id: "muddy_paws_jar",
             name: "Muddy Paw Prints",
             position: { bottom: "10%", left: "40%" },
-            description: "Large muddy paw prints near the cookie jar! 🐾",
+            description: "Large muddy paw prints near the cookie jar! ",
             hint: "Dog's paws are big and muddy!",
             image: "muddy_tracks.png"
           },
@@ -232,7 +232,7 @@ const mysteriesData = {
             id: "buried_cookies",
             name: "Buried Cookies",
             position: { bottom: "12%", left: "70%" },
-            description: "Cookies buried in the garden! Dog buried them like bones! 🦴🍪",
+            description: "Cookies buried in the garden! Dog buried them like bones! ",
             hint: "Dog buries favorite things!",
             image: "buried_cookies.png"
           }
@@ -240,16 +240,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Woof! I was just playing! With my ball! Not cookies! Woof woof! 🎾 *tail wagging nervously*",
-            choices: [{ text: "Hmm... 🧐", action: "close" }]
+            text: "Woof! I was just playing! With my ball! Not cookies! Woof woof!  *tail wagging nervously*",
+            choices: [{ text: "Hmm... ", action: "close" }]
           },
           afterClue: {
-            text: "Woof... okay, you got me! I buried them for later! I love burying things! Sorry! 🐕",
-            choices: [{ text: "Case closed! 📝", action: "close" }]
+            text: "Woof... okay, you got me! I buried them for later! I love burying things! Sorry! ",
+            choices: [{ text: "Case closed! ", action: "close" }]
           }
         },
 
-        confession: "Woof woof! I couldn't help it! They smelled SO good! I wanted to bury them for later! 🐕🍪",
+        confession: "Woof woof! I couldn't help it! They smelled SO good! I wanted to bury them for later! ",
         wrongResponse: ""
       },
 
@@ -258,7 +258,7 @@ const mysteriesData = {
       // ========================================
       mouse: {
         name: "Mouse",
-        emoji: "🐭",
+        emoji: "",
 
         clues: {
           kitchen: {
@@ -289,7 +289,7 @@ const mysteriesData = {
             id: "hidden_cookies",
             name: "Hidden Cookies",
             position: { bottom: "12%", left: "75%" },
-            description: "You found the cookies hidden behind the flowers! 🍪 And they have mouse-sized bites!",
+            description: "You found the cookies hidden behind the flowers!  And they have mouse-sized bites!",
             hint: "The cookies are here! Mouse must have hidden them!",
             image: "hidden_cookies.png" // HAVE THIS
           }
@@ -297,16 +297,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Squeak! Um... I was just... uh... looking at the flowers! 🌸 Nothing else!",
-            choices: [{ text: "Hmm... suspicious! 🤨", action: "close" }]
+            text: "Squeak! Um... I was just... uh... looking at the flowers!  Nothing else!",
+            choices: [{ text: "Hmm... suspicious! ", action: "close" }]
           },
           afterClue: {
-            text: "Okay okay! I was hungry and the cookies smelled so good! I'm sorry! 😢",
-            choices: [{ text: "Case closed! ⚖️", action: "close" }]
+            text: "Okay okay! I was hungry and the cookies smelled so good! I'm sorry! ",
+            choices: [{ text: "Case closed! ", action: "close" }]
           }
         },
 
-        confession: "Squeak! I confess! I was so hungry and they smelled amazing! Please forgive me! 😢🍪",
+        confession: "Squeak! I confess! I was so hungry and they smelled amazing! Please forgive me! ",
         wrongResponse: ""
       }
     },
@@ -315,47 +315,47 @@ const mysteriesData = {
     innocentDialogue: {
       bunny: {
         initial: {
-          text: "Hi Detective! I love carrots, not cookies! 🥕 I was eating carrots all day!",
-          choices: [{ text: "Thanks Bunny! 👍", action: "close" }]
+          text: "Hi Detective! I love carrots, not cookies!  I was eating carrots all day!",
+          choices: [{ text: "Thanks Bunny! ", action: "close" }]
         },
         afterClue: {
-          text: "See? My paws don't match those prints! I'm innocent! 🐰",
-          choices: [{ text: "You're right! 🤔", action: "close" }]
+          text: "See? My paws don't match those prints! I'm innocent! ",
+          choices: [{ text: "You're right! ", action: "close" }]
         },
-        wrongResponse: "Bunny loves carrots, not cookies! And the clues don't match Bunny! Try again! 🥕"
+        wrongResponse: "Bunny loves carrots, not cookies! And the clues don't match Bunny! Try again! "
       },
       cat: {
         initial: {
-          text: "Meow! I was taking a nap on the couch all day! 😺 Cookies make me sleepy.",
-          choices: [{ text: "Thanks Cat! 😸", action: "close" }]
+          text: "Meow! I was taking a nap on the couch all day!  Cookies make me sleepy.",
+          choices: [{ text: "Thanks Cat! ", action: "close" }]
         },
         afterClue: {
-          text: "I prefer fish anyway! 🐟 Those clues aren't mine!",
-          choices: [{ text: "Got it! 👌", action: "close" }]
+          text: "I prefer fish anyway!  Those clues aren't mine!",
+          choices: [{ text: "Got it! ", action: "close" }]
         },
-        wrongResponse: "Cat was napping all day! And Cat prefers fish! The evidence doesn't match! Try again! 😺"
+        wrongResponse: "Cat was napping all day! And Cat prefers fish! The evidence doesn't match! Try again! "
       },
       dog: {
         initial: {
-          text: "Woof! I was playing with my ball all day! 🎾 I don't even like cookies!",
-          choices: [{ text: "Thanks Dog! 🐕", action: "close" }]
+          text: "Woof! I was playing with my ball all day!  I don't even like cookies!",
+          choices: [{ text: "Thanks Dog! ", action: "close" }]
         },
         afterClue: {
-          text: "Those aren't my prints! Mine are different! Woof! 🐾",
-          choices: [{ text: "Good point! 💡", action: "close" }]
+          text: "Those aren't my prints! Mine are different! Woof! ",
+          choices: [{ text: "Good point! ", action: "close" }]
         },
-        wrongResponse: "Dog was playing outside all day! And the clues don't point to Dog! Try again! 🐕"
+        wrongResponse: "Dog was playing outside all day! And the clues don't point to Dog! Try again! "
       },
       mouse: {
         initial: {
-          text: "Squeak squeak! I was just enjoying the flowers! 🌸 I'm too small for cookies!",
-          choices: [{ text: "Thanks Mouse! 🐭", action: "close" }]
+          text: "Squeak squeak! I was just enjoying the flowers!  I'm too small for cookies!",
+          choices: [{ text: "Thanks Mouse! ", action: "close" }]
         },
         afterClue: {
-          text: "Those prints are too big to be mine! Check again! Squeak! 🐭",
-          choices: [{ text: "Hmm... 🤔", action: "close" }]
+          text: "Those prints are too big to be mine! Check again! Squeak! ",
+          choices: [{ text: "Hmm... ", action: "close" }]
         },
-        wrongResponse: "Mouse is innocent! The evidence points elsewhere! Look more carefully! 🐭"
+        wrongResponse: "Mouse is innocent! The evidence points elsewhere! Look more carefully! "
       }
     }
   },
@@ -369,8 +369,8 @@ const mysteriesData = {
 
     intro: {
       speaker: "Detective Dino",
-      text: "Oh no! Someone broke the special toy! 🧸 We need to find out who did it!",
-      choices: [{ text: "Let's investigate! 🔍", action: "start" }]
+      text: "Oh no! Someone broke the special toy!  We need to find out who did it!",
+      choices: [{ text: "Let's investigate! ", action: "start" }]
     },
 
     locations: ['playroom', 'garden', 'bedroom', 'garage'],
@@ -387,11 +387,11 @@ const mysteriesData = {
         {
           id: "toy_box",
           name: "Toy Box",
-          emoji: "📦",
+          emoji: "",
           position: { bottom: "20%", left: "30%" },
           dialogue: {
             text: "The toy box is messy! Someone was looking through it!",
-            choices: [{ text: "Interesting! 🤔", action: "close" }]
+            choices: [{ text: "Interesting! ", action: "close" }]
           }
         }
       ],
@@ -400,11 +400,11 @@ const mysteriesData = {
         {
           id: "bed",
           name: "Bed",
-          emoji: "🛏️",
+          emoji: "",
           position: { bottom: "15%", left: "60%" },
           dialogue: {
             text: "The bed looks normal. Nothing suspicious here!",
-            choices: [{ text: "Okay! ✅", action: "close" }]
+            choices: [{ text: "Okay! ", action: "close" }]
           }
         }
       ],
@@ -412,11 +412,11 @@ const mysteriesData = {
         {
           id: "toolbox",
           name: "Toolbox",
-          emoji: "🧰",
+          emoji: "",
           position: { bottom: "15%", left: "70%" },
           dialogue: {
             text: "The toolbox is open! Someone might have used the tools!",
-            choices: [{ text: "That's a clue! 🔧", action: "close" }]
+            choices: [{ text: "That's a clue! ", action: "close" }]
           }
         }
       ]
@@ -425,14 +425,14 @@ const mysteriesData = {
     suspects: {
       bunny: {
         name: "Bunny",
-        emoji: "🐰",
+        emoji: "",
 
         clues: {
           playroom: {
             id: "bunny_fur_toy",
             name: "White Fur on Toy",
             position: { bottom: "30%", left: "40%" },
-            description: "White bunny fur stuck to the broken toy! 🐰",
+            description: "White bunny fur stuck to the broken toy! ",
             hint: "Bunny was touching the toy!",
             image: "bunny_fur_white.png"
           },
@@ -440,7 +440,7 @@ const mysteriesData = {
             id: "broken_toy_garden",
             name: "Broken Toy Piece",
             position: { bottom: "15%", left: "55%" },
-            description: "A piece of the broken toy hidden in the garden! 🧩",
+            description: "A piece of the broken toy hidden in the garden! ",
             hint: "Someone tried to hide the evidence!",
             image: "broken_toy_in_garden.png"
           },
@@ -448,7 +448,7 @@ const mysteriesData = {
             id: "carrot_pieces_bed",
             name: "Carrot Pieces",
             position: { bottom: "20%", left: "25%" },
-            description: "Carrot pieces near the bed! Bunny was here eating! 🥕",
+            description: "Carrot pieces near the bed! Bunny was here eating! ",
             hint: "Bunny's favorite snack!",
             image: "carrot_pieces.png"
           },
@@ -456,7 +456,7 @@ const mysteriesData = {
             id: "toy_with_fur",
             name: "Toy with Bunny Fur",
             position: { bottom: "12%", left: "65%" },
-            description: "More toy pieces with white fur! Bunny tried to fix it! 🔧",
+            description: "More toy pieces with white fur! Bunny tried to fix it! ",
             hint: "Bunny felt guilty and tried to repair it!",
             image: "toy_with_bunny_fur.png"
           }
@@ -464,37 +464,37 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Hi! I... uh... was just playing carefully! Very carefully! 🐰",
-            choices: [{ text: "Hmm, suspicious... 🤔", action: "close" }]
+            text: "Hi! I... uh... was just playing carefully! Very carefully! ",
+            choices: [{ text: "Hmm, suspicious... ", action: "close" }]
           },
           afterClue: {
-            text: "Okay! I played too rough and it broke! I tried to fix it! I'm sorry! 😢",
-            choices: [{ text: "Mystery solved! 🎯", action: "close" }]
+            text: "Okay! I played too rough and it broke! I tried to fix it! I'm sorry! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "I didn't mean to break it! I was just so excited to play! Please forgive me! 😭🧸",
+        confession: "I didn't mean to break it! I was just so excited to play! Please forgive me! ",
         wrongResponse: ""
       },
 
       cat: {
         name: "Cat",
-        emoji: "🐱",
+        emoji: "",
 
         clues: {
           playroom: {
             id: "cat_fur_toy",
             name: "Orange Cat Fur",
             position: { bottom: "30%", left: "40%" },
-            description: "Orange cat fur on the broken toy! 🐱",
+            description: "Orange cat fur on the broken toy! ",
             hint: "Cat was playing with it!",
-            image: "cat_fur_orange.png"
+            image: "cat_fur.png"
           },
           garden: {
             id: "cat_toy_garden",
             name: "Toy Piece Outside",
             position: { bottom: "15%", left: "55%" },
-            description: "The toy piece was batted outside! Cats love to swat things! 🐾",
+            description: "The toy piece was batted outside! Cats love to swat things! ",
             hint: "Cat was playing rough!",
             image: "broken_toy_piece.png"
           },
@@ -502,7 +502,7 @@ const mysteriesData = {
             id: "cat_hiding_spot",
             name: "Cat Paw Prints",
             position: { bottom: "20%", left: "25%" },
-            description: "Cat paw prints all around! Cat was running around! 🐾",
+            description: "Cat paw prints all around! Cat was running around! ",
             hint: "Cat was very active here!",
             image: "cat_paw_print.png"
           },
@@ -510,7 +510,7 @@ const mysteriesData = {
             id: "toy_under_shelf",
             name: "Toy Under Shelf",
             position: { bottom: "12%", left: "65%" },
-            description: "Cat pushed the toy under the shelf and it broke! 🧸",
+            description: "Cat pushed the toy under the shelf and it broke! ",
             hint: "Cat was batting at it!",
             image: "broken_toy_piece.png"
           }
@@ -518,29 +518,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Meow... I was just napping! I didn't touch any toys! 😺",
-            choices: [{ text: "Really? 🤨", action: "close" }]
+            text: "Meow... I was just napping! I didn't touch any toys! ",
+            choices: [{ text: "Really? ", action: "close" }]
           },
           afterClue: {
-            text: "Fine! I was batting it around and it broke! I didn't mean to! 😿",
-            choices: [{ text: "Case closed! 📝", action: "close" }]
+            text: "Fine! I was batting it around and it broke! I didn't mean to! ",
+            choices: [{ text: "Case closed! ", action: "close" }]
           }
         },
 
-        confession: "Meow... I'm sorry! It looked fun to play with! I got carried away! 😿🧸",
+        confession: "Meow... I'm sorry! It looked fun to play with! I got carried away! ",
         wrongResponse: ""
       },
 
       dog: {
         name: "Dog",
-        emoji: "🐶",
+        emoji: "",
 
         clues: {
           playroom: {
             id: "dog_drool_toy",
             name: "Drool on Toy",
             position: { bottom: "30%", left: "40%" },
-            description: "Dog drool all over the broken toy! 🐶",
+            description: "Dog drool all over the broken toy! ",
             hint: "Dog was chewing on it!",
             image: "drool_puddle.png"
           },
@@ -548,7 +548,7 @@ const mysteriesData = {
             id: "buried_toy_piece",
             name: "Buried Toy Piece",
             position: { bottom: "15%", left: "55%" },
-            description: "Dog buried part of the toy like a bone! 🦴",
+            description: "Dog buried part of the toy like a bone! ",
             hint: "Dog buries everything!",
             image: "broken_toy_in_garden.png"
           },
@@ -556,7 +556,7 @@ const mysteriesData = {
             id: "muddy_paws_bed",
             name: "Muddy Paw Prints",
             position: { bottom: "20%", left: "25%" },
-            description: "Big muddy paw prints on the bed! Dog was here! 🐾",
+            description: "Big muddy paw prints on the bed! Dog was here! ",
             hint: "Dog tracked mud everywhere!",
             image: "muddy_tracks.png"
           },
@@ -564,7 +564,7 @@ const mysteriesData = {
             id: "chewed_toy",
             name: "Chewed Toy Piece",
             position: { bottom: "12%", left: "65%" },
-            description: "Toy piece with bite marks! Dog was chewing it! 🦷",
+            description: "Toy piece with bite marks! Dog was chewing it! ",
             hint: "Dog thought it was a chew toy!",
             image: "broken_toy_piece.png"
           }
@@ -572,29 +572,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Woof! I was just playing fetch outside! Not with toys! 🎾",
-            choices: [{ text: "Are you sure? 🧐", action: "close" }]
+            text: "Woof! I was just playing fetch outside! Not with toys! ",
+            choices: [{ text: "Are you sure? ", action: "close" }]
           },
           afterClue: {
-            text: "Woof woof! Okay, I thought it was a chew toy! I'm sorry! 🐕",
-            choices: [{ text: "Mystery solved! ✅", action: "close" }]
+            text: "Woof woof! Okay, I thought it was a chew toy! I'm sorry! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "Woof! I thought it was for me to chew! I didn't know it was special! 🐕🧸",
+        confession: "Woof! I thought it was for me to chew! I didn't know it was special! ",
         wrongResponse: ""
       },
 
       mouse: {
         name: "Mouse",
-        emoji: "🐭",
+        emoji: "",
 
         clues: {
           playroom: {
             id: "tiny_teeth_marks",
             name: "Tiny Teeth Marks",
             position: { bottom: "30%", left: "40%" },
-            description: "Tiny teeth marks on the toy! Mouse was nibbling! 🐭",
+            description: "Tiny teeth marks on the toy! Mouse was nibbling! ",
             hint: "Mouse chewed on it!",
             image: "paw_print.png"
           },
@@ -602,7 +602,7 @@ const mysteriesData = {
             id: "small_toy_piece",
             name: "Small Toy Piece",
             position: { bottom: "15%", left: "55%" },
-            description: "A tiny piece of toy! Mouse carried it here! 🧩",
+            description: "A tiny piece of toy! Mouse carried it here! ",
             hint: "Mouse was moving the pieces!",
             image: "broken_toy_piece.png"
           },
@@ -610,7 +610,7 @@ const mysteriesData = {
             id: "mouse_nest",
             name: "Tiny Footprints",
             position: { bottom: "20%", left: "25%" },
-            description: "Tiny mouse footprints everywhere! 🐾",
+            description: "Tiny mouse footprints everywhere! ",
             hint: "Mouse was very busy here!",
             image: "small_footprints.png"
           },
@@ -618,7 +618,7 @@ const mysteriesData = {
             id: "toy_in_hole",
             name: "Toy in Mouse Hole",
             position: { bottom: "12%", left: "65%" },
-            description: "Toy pieces near mouse hole! Mouse tried to take them home! 🏠",
+            description: "Toy pieces near mouse hole! Mouse tried to take them home! ",
             hint: "Mouse wanted the toy parts!",
             image: "broken_toy_piece.png"
           }
@@ -626,16 +626,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Squeak! I was just looking! I didn't break anything! 🐭",
-            choices: [{ text: "Tell the truth! 🤔", action: "close" }]
+            text: "Squeak! I was just looking! I didn't break anything! ",
+            choices: [{ text: "Tell the truth! ", action: "close" }]
           },
           afterClue: {
-            text: "Squeak squeak! I wanted to use the pieces for my nest! Sorry! 😢",
-            choices: [{ text: "Case solved! 🎯", action: "close" }]
+            text: "Squeak squeak! I wanted to use the pieces for my nest! Sorry! ",
+            choices: [{ text: "Case solved! ", action: "close" }]
           }
         },
 
-        confession: "Squeak! The toy pieces looked perfect for my home! I'm sorry I broke it! 😢🧸",
+        confession: "Squeak! The toy pieces looked perfect for my home! I'm sorry I broke it! ",
         wrongResponse: ""
       }
     },
@@ -643,47 +643,47 @@ const mysteriesData = {
     innocentDialogue: {
       bunny: {
         initial: {
-          text: "I was eating carrots in the garden all day! 🥕",
-          choices: [{ text: "Thanks Bunny! 👍", action: "close" }]
+          text: "I was eating carrots in the garden all day! ",
+          choices: [{ text: "Thanks Bunny! ", action: "close" }]
         },
         afterClue: {
-          text: "Those clues aren't mine! I'm innocent! 🐰",
-          choices: [{ text: "You're right! 💡", action: "close" }]
+          text: "Those clues aren't mine! I'm innocent! ",
+          choices: [{ text: "You're right! ", action: "close" }]
         },
-        wrongResponse: "Bunny wasn't near the toy! The evidence points elsewhere! Try again! 🐰"
+        wrongResponse: "Bunny wasn't near the toy! The evidence points elsewhere! Try again! "
       },
       cat: {
         initial: {
-          text: "I was sleeping on the couch! I don't play with toys! 😺",
-          choices: [{ text: "Thanks Cat! 😸", action: "close" }]
+          text: "I was sleeping on the couch! I don't play with toys! ",
+          choices: [{ text: "Thanks Cat! ", action: "close" }]
         },
         afterClue: {
-          text: "That's not my fur! Check again! 🐱",
-          choices: [{ text: "Got it! 👌", action: "close" }]
+          text: "That's not my fur! Check again! ",
+          choices: [{ text: "Got it! ", action: "close" }]
         },
-        wrongResponse: "Cat was napping! The clues don't match! Try again! 😺"
+        wrongResponse: "Cat was napping! The clues don't match! Try again! "
       },
       dog: {
         initial: {
-          text: "I only play with my ball! Woof! 🎾",
-          choices: [{ text: "Thanks Dog! 🐕", action: "close" }]
+          text: "I only play with my ball! Woof! ",
+          choices: [{ text: "Thanks Dog! ", action: "close" }]
         },
         afterClue: {
-          text: "Those aren't my paw prints! Woof! 🐾",
-          choices: [{ text: "Good point! 💡", action: "close" }]
+          text: "Those aren't my paw prints! Woof! ",
+          choices: [{ text: "Good point! ", action: "close" }]
         },
-        wrongResponse: "Dog was playing outside! The evidence doesn't fit! Try again! 🐕"
+        wrongResponse: "Dog was playing outside! The evidence doesn't fit! Try again! "
       },
       mouse: {
         initial: {
-          text: "I'm too small to break toys! Squeak! 🐭",
-          choices: [{ text: "Thanks Mouse! 🐭", action: "close" }]
+          text: "I'm too small to break toys! Squeak! ",
+          choices: [{ text: "Thanks Mouse! ", action: "close" }]
         },
         afterClue: {
-          text: "That's not my evidence! Squeak! 🐭",
-          choices: [{ text: "Hmm... 🤔", action: "close" }]
+          text: "That's not my evidence! Squeak! ",
+          choices: [{ text: "Hmm... ", action: "close" }]
         },
-        wrongResponse: "Mouse is innocent! Look at the clues again! Try again! 🐭"
+        wrongResponse: "Mouse is innocent! Look at the clues again! Try again! "
       }
     }
   },
@@ -697,8 +697,8 @@ const mysteriesData = {
 
     intro: {
       speaker: "Detective Dino",
-      text: "Oh no! Dog's favorite ball is missing! ⚽ We need to find it!",
-      choices: [{ text: "Let's search! 🔍", action: "start" }]
+      text: "Oh no! Dog's favorite ball is missing!  We need to find it!",
+      choices: [{ text: "Let's search! ", action: "start" }]
     },
 
     locations: ['backyard', 'park', 'beach', 'sports_field'],
@@ -715,11 +715,11 @@ const mysteriesData = {
         {
           id: "doghouse",
           name: "Doghouse",
-          emoji: "🏠",
+          emoji: "",
           position: { bottom: "25%", left: "65%" },
           dialogue: {
             text: "Dog's house is empty! The ball isn't here!",
-            choices: [{ text: "Keep looking! 👀", action: "close" }]
+            choices: [{ text: "Keep looking! ", action: "close" }]
           }
         }
       ],
@@ -728,11 +728,11 @@ const mysteriesData = {
         {
           id: "sandcastle",
           name: "Sandcastle",
-          emoji: "🏰",
+          emoji: "",
           position: { bottom: "15%", left: "50%" },
           dialogue: {
             text: "A beautiful sandcastle! But no ball here!",
-            choices: [{ text: "Nice castle! 🏰", action: "close" }]
+            choices: [{ text: "Nice castle! ", action: "close" }]
           }
         }
       ],
@@ -740,11 +740,11 @@ const mysteriesData = {
         {
           id: "goal",
           name: "Goal Post",
-          emoji: "🥅",
+          emoji: "",
           position: { bottom: "20%", left: "70%" },
           dialogue: {
             text: "The goal post is here, but where's the ball?",
-            choices: [{ text: "We'll find it! 🎯", action: "close" }]
+            choices: [{ text: "We'll find it! ", action: "close" }]
           }
         }
       ]
@@ -753,14 +753,14 @@ const mysteriesData = {
     suspects: {
       bunny: {
         name: "Bunny",
-        emoji: "🐰",
+        emoji: "",
 
         clues: {
           backyard: {
             id: "bunny_tracks",
             name: "Bunny Tracks",
             position: { bottom: "15%", left: "45%" },
-            description: "Bunny tracks near where the ball was! 🐰",
+            description: "Bunny tracks near where the ball was! ",
             hint: "Bunny was hopping around here!",
             image: "carrot_prints.png"
           },
@@ -768,7 +768,7 @@ const mysteriesData = {
             id: "bunny_fur_grass",
             name: "White Fur",
             position: { bottom: "20%", left: "50%" },
-            description: "White bunny fur in the grass! 🐰",
+            description: "White bunny fur in the grass! ",
             hint: "Bunny was playing here!",
             image: "bunny_fur_white.png"
           },
@@ -776,7 +776,7 @@ const mysteriesData = {
             id: "ball_buried_carrots",
             name: "Ball with Carrots",
             position: { bottom: "12%", left: "70%" },
-            description: "The ball buried next to carrots! Bunny hid it! ⚽🥕",
+            description: "The ball buried next to carrots! Bunny hid it! ",
             hint: "Bunny's secret hiding spot!",
             image: "hidden_cookies.png"
           },
@@ -784,7 +784,7 @@ const mysteriesData = {
             id: "bunny_digging",
             name: "Digging Marks",
             position: { bottom: "18%", left: "60%" },
-            description: "Bunny was digging here! Looking for a place to hide the ball! 🕳️",
+            description: "Bunny was digging here! Looking for a place to hide the ball! ",
             hint: "Fresh digging marks!",
             image: "carrot_prints.png"
           }
@@ -792,29 +792,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "I don't like balls! I prefer carrots! 🥕",
-            choices: [{ text: "Suspicious... 🤔", action: "close" }]
+            text: "I don't like balls! I prefer carrots! ",
+            choices: [{ text: "Suspicious... ", action: "close" }]
           },
           afterClue: {
-            text: "Okay! I wanted to play with it too! I hid it! Sorry! 😢",
-            choices: [{ text: "Found it! 🎯", action: "close" }]
+            text: "Okay! I wanted to play with it too! I hid it! Sorry! ",
+            choices: [{ text: "Found it! ", action: "close" }]
           }
         },
 
-        confession: "I just wanted to play with the ball! I didn't mean to hide it for so long! 😭⚽",
+        confession: "I just wanted to play with the ball! I didn't mean to hide it for so long! ",
         wrongResponse: ""
       },
 
       cat: {
         name: "Cat",
-        emoji: "🐱",
+        emoji: "",
 
         clues: {
           backyard: {
             id: "cat_paw_ball",
             name: "Cat Paw Prints",
             position: { bottom: "15%", left: "45%" },
-            description: "Cat paw prints near the ball's spot! 🐾",
+            description: "Cat paw prints near the ball's spot! ",
             hint: "Cat was batting the ball!",
             image: "cat_paw_print.png"
           },
@@ -822,7 +822,7 @@ const mysteriesData = {
             id: "ball_in_tree",
             name: "Ball in Tree",
             position: { bottom: "60%", left: "30%" },
-            description: "The ball is stuck in a tree! Cat must have batted it up there! 🌳⚽",
+            description: "The ball is stuck in a tree! Cat must have batted it up there! ",
             hint: "Only cat could get it that high!",
             image: "hidden_cookies.png"
           },
@@ -830,7 +830,7 @@ const mysteriesData = {
             id: "cat_tracks_sand",
             name: "Cat Prints in Sand",
             position: { bottom: "12%", left: "70%" },
-            description: "Cat paw prints in the sand! Cat was here! 🐾",
+            description: "Cat paw prints in the sand! Cat was here! ",
             hint: "Cat doesn't usually like sand!",
             image: "cat_paw_print.png"
           },
@@ -838,37 +838,37 @@ const mysteriesData = {
             id: "orange_fur",
             name: "Orange Fur",
             position: { bottom: "18%", left: "60%" },
-            description: "Orange cat fur on the grass! 🐱",
+            description: "Orange cat fur on the grass! ",
             hint: "Cat was playing here!",
-            image: "cat_fur_orange.png"
+            image: "cat_fur.png"
           }
         },
 
         dialogue: {
           initial: {
-            text: "Meow! I don't play with dog toys! Too energetic! 😺",
-            choices: [{ text: "Hmm... 🤨", action: "close" }]
+            text: "Meow! I don't play with dog toys! Too energetic! ",
+            choices: [{ text: "Hmm... ", action: "close" }]
           },
           afterClue: {
-            text: "Fine! I was batting it around and it got stuck! Sorry! 😿",
-            choices: [{ text: "Mystery solved! 🎯", action: "close" }]
+            text: "Fine! I was batting it around and it got stuck! Sorry! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "Meow... it was fun to bat around! I didn't mean to lose it! 😿⚽",
+        confession: "Meow... it was fun to bat around! I didn't mean to lose it! ",
         wrongResponse: ""
       },
 
       dog: {
         name: "Dog",
-        emoji: "🐶",
+        emoji: "",
 
         clues: {
           backyard: {
             id: "dog_digging",
             name: "Fresh Digging",
             position: { bottom: "15%", left: "45%" },
-            description: "Dog was digging here! Fresh dirt everywhere! 🐾",
+            description: "Dog was digging here! Fresh dirt everywhere! ",
             hint: "Dog buried something!",
             image: "muddy_tracks.png"
           },
@@ -876,7 +876,7 @@ const mysteriesData = {
             id: "dog_drool_trail",
             name: "Drool Trail",
             position: { bottom: "20%", left: "50%" },
-            description: "Dog drool trail! Dog was carrying the ball! 🐶",
+            description: "Dog drool trail! Dog was carrying the ball! ",
             hint: "Dog was very excited!",
             image: "drool_puddle.png"
           },
@@ -884,7 +884,7 @@ const mysteriesData = {
             id: "buried_ball",
             name: "Buried Ball",
             position: { bottom: "12%", left: "70%" },
-            description: "The ball buried in the sand! Dog hid it here! 🏖️⚽",
+            description: "The ball buried in the sand! Dog hid it here! ",
             hint: "Dog's favorite hiding trick!",
             image: "buried_cookies.png"
           },
@@ -892,7 +892,7 @@ const mysteriesData = {
             id: "muddy_ball_spot",
             name: "Muddy Area",
             position: { bottom: "18%", left: "60%" },
-            description: "Muddy paw prints where the ball was! 🐾",
+            description: "Muddy paw prints where the ball was! ",
             hint: "Dog was playing in the mud!",
             image: "muddy_tracks.png"
           }
@@ -900,29 +900,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Woof! My ball is missing! Help me find it! 🎾",
-            choices: [{ text: "We will! 🔍", action: "close" }]
+            text: "Woof! My ball is missing! Help me find it! ",
+            choices: [{ text: "We will! ", action: "close" }]
           },
           afterClue: {
-            text: "Woof woof! Oh! I buried it to save it for later! I forgot! 🐕",
-            choices: [{ text: "Found it! 🎉", action: "close" }]
+            text: "Woof woof! Oh! I buried it to save it for later! I forgot! ",
+            choices: [{ text: "Found it! ", action: "close" }]
           }
         },
 
-        confession: "Woof! I buried it for safekeeping and forgot where! Silly me! 🐕⚽",
+        confession: "Woof! I buried it for safekeeping and forgot where! Silly me! ",
         wrongResponse: ""
       },
 
       mouse: {
         name: "Mouse",
-        emoji: "🐭",
+        emoji: "",
 
         clues: {
           backyard: {
             id: "tiny_tracks_ball",
             name: "Tiny Tracks",
             position: { bottom: "15%", left: "45%" },
-            description: "Tiny mouse tracks near the ball! 🐭",
+            description: "Tiny mouse tracks near the ball! ",
             hint: "Mouse was trying to move it!",
             image: "small_footprints.png"
           },
@@ -930,7 +930,7 @@ const mysteriesData = {
             id: "mouse_pushing",
             name: "Push Marks",
             position: { bottom: "20%", left: "50%" },
-            description: "Tiny push marks! Mouse was rolling the ball! 🐭",
+            description: "Tiny push marks! Mouse was rolling the ball! ",
             hint: "Mouse is surprisingly strong!",
             image: "small_footprints.png"
           },
@@ -938,7 +938,7 @@ const mysteriesData = {
             id: "ball_in_hole",
             name: "Ball in Hole",
             position: { bottom: "12%", left: "70%" },
-            description: "The ball in a mouse hole! Mouse tried to take it home! 🏠⚽",
+            description: "The ball in a mouse hole! Mouse tried to take it home! ",
             hint: "The ball is too big for the hole!",
             image: "hidden_cookies.png"
           },
@@ -946,7 +946,7 @@ const mysteriesData = {
             id: "mouse_trail",
             name: "Mouse Trail",
             position: { bottom: "18%", left: "60%" },
-            description: "A trail showing where mouse rolled the ball! 🐾",
+            description: "A trail showing where mouse rolled the ball! ",
             hint: "Mouse worked very hard!",
             image: "paw_print.png"
           }
@@ -954,16 +954,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Squeak! I can't even lift a ball! Too small! 🐭",
-            choices: [{ text: "Maybe... 🤔", action: "close" }]
+            text: "Squeak! I can't even lift a ball! Too small! ",
+            choices: [{ text: "Maybe... ", action: "close" }]
           },
           afterClue: {
-            text: "Squeak! Okay, I rolled it away! It looked fun! Sorry! 😢",
-            choices: [{ text: "Case closed! ✅", action: "close" }]
+            text: "Squeak! Okay, I rolled it away! It looked fun! Sorry! ",
+            choices: [{ text: "Case closed! ", action: "close" }]
           }
         },
 
-        confession: "Squeak! I wanted a big ball for my home! I didn't think Dog would miss it! 😢⚽",
+        confession: "Squeak! I wanted a big ball for my home! I didn't think Dog would miss it! ",
         wrongResponse: ""
       }
     },
@@ -971,47 +971,47 @@ const mysteriesData = {
     innocentDialogue: {
       bunny: {
         initial: {
-          text: "I was eating carrots all day! 🥕",
-          choices: [{ text: "Thanks Bunny! 👍", action: "close" }]
+          text: "I was eating carrots all day! ",
+          choices: [{ text: "Thanks Bunny! ", action: "close" }]
         },
         afterClue: {
-          text: "I don't even like balls! Innocent! 🐰",
-          choices: [{ text: "Right! 💡", action: "close" }]
+          text: "I don't even like balls! Innocent! ",
+          choices: [{ text: "Right! ", action: "close" }]
         },
-        wrongResponse: "Bunny prefers carrots to balls! Wrong suspect! Try again! 🐰"
+        wrongResponse: "Bunny prefers carrots to balls! Wrong suspect! Try again! "
       },
       cat: {
         initial: {
-          text: "I was napping! Meow! 😺",
-          choices: [{ text: "Thanks Cat! 😸", action: "close" }]
+          text: "I was napping! Meow! ",
+          choices: [{ text: "Thanks Cat! ", action: "close" }]
         },
         afterClue: {
-          text: "Not my prints! Check again! 🐱",
-          choices: [{ text: "Okay! 👌", action: "close" }]
+          text: "Not my prints! Check again! ",
+          choices: [{ text: "Okay! ", action: "close" }]
         },
-        wrongResponse: "Cat was sleeping! The evidence doesn't match! Try again! 😺"
+        wrongResponse: "Cat was sleeping! The evidence doesn't match! Try again! "
       },
       dog: {
         initial: {
-          text: "I love my ball! I wouldn't hide it! Woof! 🎾",
-          choices: [{ text: "Thanks Dog! 🐕", action: "close" }]
+          text: "I love my ball! I wouldn't hide it! Woof! ",
+          choices: [{ text: "Thanks Dog! ", action: "close" }]
         },
         afterClue: {
-          text: "Wait, those could be my prints... but I didn't hide it! Woof! 🐾",
-          choices: [{ text: "Interesting! 💡", action: "close" }]
+          text: "Wait, those could be my prints... but I didn't hide it! Woof! ",
+          choices: [{ text: "Interesting! ", action: "close" }]
         },
-        wrongResponse: "Dog is the victim here! Not the culprit! Try again! 🐕"
+        wrongResponse: "Dog is the victim here! Not the culprit! Try again! "
       },
       mouse: {
         initial: {
-          text: "Too heavy for me! Squeak! 🐭",
-          choices: [{ text: "Thanks Mouse! 🐭", action: "close" }]
+          text: "Too heavy for me! Squeak! ",
+          choices: [{ text: "Thanks Mouse! ", action: "close" }]
         },
         afterClue: {
-          text: "I'm innocent! Squeak! 🐭",
-          choices: [{ text: "Got it! 🤔", action: "close" }]
+          text: "I'm innocent! Squeak! ",
+          choices: [{ text: "Got it! ", action: "close" }]
         },
-        wrongResponse: "Mouse is too small! The evidence points elsewhere! Try again! 🐭"
+        wrongResponse: "Mouse is too small! The evidence points elsewhere! Try again! "
       }
     }
   },
@@ -1025,8 +1025,8 @@ const mysteriesData = {
 
     intro: {
       speaker: "Detective Dino",
-      text: "Oh no! Someone made a paint mess in the art room! 🎨 We need to find the culprit!",
-      choices: [{ text: "Let's investigate! 🔍", action: "start" }]
+      text: "Oh no! Someone made a paint mess in the art room!  We need to find the culprit!",
+      choices: [{ text: "Let's investigate! ", action: "start" }]
     },
 
     locations: ['art_room', 'hallway', 'bathroom', 'kitchen'],
@@ -1043,11 +1043,11 @@ const mysteriesData = {
         {
           id: "easel",
           name: "Easel",
-          emoji: "🖼️",
+          emoji: "",
           position: { bottom: "30%", left: "40%" },
           dialogue: {
             text: "The easel is knocked over! Paint is everywhere!",
-            choices: [{ text: "What a mess! 😱", action: "close" }]
+            choices: [{ text: "What a mess! ", action: "close" }]
           }
         }
       ],
@@ -1056,11 +1056,11 @@ const mysteriesData = {
         {
           id: "sink",
           name: "Sink",
-          emoji: "🚰",
+          emoji: "",
           position: { bottom: "20%", left: "50%" },
           dialogue: {
             text: "The sink has paint in it! Someone tried to wash up!",
-            choices: [{ text: "Good clue! 🔍", action: "close" }]
+            choices: [{ text: "Good clue! ", action: "close" }]
           }
         }
       ],
@@ -1068,11 +1068,11 @@ const mysteriesData = {
         {
           id: "table",
           name: "Table",
-          emoji: "🪑",
+          emoji: "",
           position: { bottom: "15%", left: "60%" },
           dialogue: {
             text: "The kitchen table is clean! No paint here!",
-            choices: [{ text: "Okay! ✅", action: "close" }]
+            choices: [{ text: "Okay! ", action: "close" }]
           }
         }
       ]
@@ -1081,14 +1081,14 @@ const mysteriesData = {
     suspects: {
       bunny: {
         name: "Bunny",
-        emoji: "🐰",
+        emoji: "",
 
         clues: {
           art_room: {
             id: "white_fur_paint",
             name: "White Fur in Paint",
             position: { bottom: "25%", left: "50%" },
-            description: "White bunny fur stuck in the wet paint! 🐰",
+            description: "White bunny fur stuck in the wet paint! ",
             hint: "Bunny was in the paint!",
             image: "bunny_fur_white.png"
           },
@@ -1096,7 +1096,7 @@ const mysteriesData = {
             id: "paint_paw_bunny",
             name: "Paint Paw Prints",
             position: { bottom: "15%", left: "45%" },
-            description: "Bunny-sized paw prints in paint! 🎨🐾",
+            description: "Bunny-sized paw prints in paint! ",
             hint: "Bunny walked through the paint!",
             image: "carrot_prints.png"
           },
@@ -1104,7 +1104,7 @@ const mysteriesData = {
             id: "bunny_washing",
             name: "White Fur by Sink",
             position: { bottom: "18%", left: "55%" },
-            description: "White fur near the sink! Bunny was washing up! 🐰",
+            description: "White fur near the sink! Bunny was washing up! ",
             hint: "Bunny tried to clean off!",
             image: "bunny_fur_white.png"
           },
@@ -1112,7 +1112,7 @@ const mysteriesData = {
             id: "paint_carrot",
             name: "Paint on Carrot",
             position: { bottom: "20%", left: "40%" },
-            description: "A carrot with paint on it! Bunny was eating while painting! 🥕🎨",
+            description: "A carrot with paint on it! Bunny was eating while painting! ",
             hint: "Bunny's snack has paint!",
             image: "carrot_pieces.png"
           }
@@ -1120,37 +1120,37 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "I... uh... I was just eating carrots! Not painting! 🥕",
-            choices: [{ text: "Really? 🤨", action: "close" }]
+            text: "I... uh... I was just eating carrots! Not painting! ",
+            choices: [{ text: "Really? ", action: "close" }]
           },
           afterClue: {
-            text: "Okay! I wanted to paint and I bumped the easel! I'm sorry! 😢",
-            choices: [{ text: "Mystery solved! 🎯", action: "close" }]
+            text: "Okay! I wanted to paint and I bumped the easel! I'm sorry! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "I wanted to make art too! But I'm clumsy and knocked everything over! 😭🎨",
+        confession: "I wanted to make art too! But I'm clumsy and knocked everything over! ",
         wrongResponse: ""
       },
 
       cat: {
         name: "Cat",
-        emoji: "🐱",
+        emoji: "",
 
         clues: {
           art_room: {
             id: "cat_fur_paint",
             name: "Orange Fur in Paint",
             position: { bottom: "25%", left: "50%" },
-            description: "Orange cat fur in the spilled paint! 🐱",
+            description: "Orange cat fur in the spilled paint! ",
             hint: "Cat walked through it!",
-            image: "cat_fur_orange.png"
+            image: "cat_fur.png"
           },
           hallway: {
             id: "paint_paws_cat",
             name: "Cat Paint Prints",
             position: { bottom: "15%", left: "45%" },
-            description: "Cat paw prints in paint going down the hall! 🎨🐾",
+            description: "Cat paw prints in paint going down the hall! ",
             hint: "Cat left a trail!",
             image: "cat_paw_print.png"
           },
@@ -1158,7 +1158,7 @@ const mysteriesData = {
             id: "paint_in_sink",
             name: "Orange Paint Water",
             position: { bottom: "18%", left: "55%" },
-            description: "The sink water is orange from cat fur and paint! 🐱",
+            description: "The sink water is orange from cat fur and paint! ",
             hint: "Cat tried to wash!",
             image: "cat_paw_print.png"
           },
@@ -1166,7 +1166,7 @@ const mysteriesData = {
             id: "cat_paint_trail",
             name: "Paint Trail",
             position: { bottom: "20%", left: "40%" },
-            description: "Paint paw prints lead to cat's food bowl! 🐱🎨",
+            description: "Paint paw prints lead to cat's food bowl! ",
             hint: "Cat went straight to eat!",
             image: "cat_paw_print.png"
           }
@@ -1174,29 +1174,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Meow! I was sleeping! I don't like paint! 😺",
-            choices: [{ text: "Suspicious... 🤔", action: "close" }]
+            text: "Meow! I was sleeping! I don't like paint! ",
+            choices: [{ text: "Suspicious... ", action: "close" }]
           },
           afterClue: {
-            text: "Fine! I jumped on the table and knocked the paint over! Sorry! 😿",
-            choices: [{ text: "Case closed! 📝", action: "close" }]
+            text: "Fine! I jumped on the table and knocked the paint over! Sorry! ",
+            choices: [{ text: "Case closed! ", action: "close" }]
           }
         },
 
-        confession: "Meow... I was curious about the shiny paint bottles! I knocked them over! 😿🎨",
+        confession: "Meow... I was curious about the shiny paint bottles! I knocked them over! ",
         wrongResponse: ""
       },
 
       dog: {
         name: "Dog",
-        emoji: "🐶",
+        emoji: "",
 
         clues: {
           art_room: {
             id: "tail_wag_paint",
             name: "Tail Marks in Paint",
             position: { bottom: "25%", left: "50%" },
-            description: "Tail wag marks in the paint! Dog was excited! 🐶",
+            description: "Tail wag marks in the paint! Dog was excited! ",
             hint: "Dog's tail caused the mess!",
             image: "drool_puddle.png"
           },
@@ -1204,7 +1204,7 @@ const mysteriesData = {
             id: "muddy_paint_paws",
             name: "Muddy Paint Paws",
             position: { bottom: "15%", left: "45%" },
-            description: "Big muddy paw prints with paint! Dog tracked it everywhere! 🐾🎨",
+            description: "Big muddy paw prints with paint! Dog tracked it everywhere! ",
             hint: "Dog has big paws!",
             image: "muddy_tracks.png"
           },
@@ -1212,7 +1212,7 @@ const mysteriesData = {
             id: "dog_washing",
             name: "Paint in Tub",
             position: { bottom: "18%", left: "55%" },
-            description: "Paint all over the tub! Dog tried to wash off! 🐶",
+            description: "Paint all over the tub! Dog tried to wash off! ",
             hint: "Dog made more mess washing!",
             image: "drool_puddle.png"
           },
@@ -1220,7 +1220,7 @@ const mysteriesData = {
             id: "paint_water_bowl",
             name: "Paint in Water Bowl",
             position: { bottom: "20%", left: "40%" },
-            description: "Dog's water bowl has paint in it! Dog rinsed paws here! 🐶🎨",
+            description: "Dog's water bowl has paint in it! Dog rinsed paws here! ",
             hint: "Dog tried to clean up!",
             image: "drool_puddle.png"
           }
@@ -1228,29 +1228,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Woof! I was playing outside! Not painting! 🎾",
-            choices: [{ text: "Hmm... 🧐", action: "close" }]
+            text: "Woof! I was playing outside! Not painting! ",
+            choices: [{ text: "Hmm... ", action: "close" }]
           },
           afterClue: {
-            text: "Woof woof! I ran in excited and my tail knocked over the paint! Sorry! 🐕",
-            choices: [{ text: "Found the culprit! 🎯", action: "close" }]
+            text: "Woof woof! I ran in excited and my tail knocked over the paint! Sorry! ",
+            choices: [{ text: "Found the culprit! ", action: "close" }]
           }
         },
 
-        confession: "Woof! I was too excited! My tail wagged too hard and knocked everything! 🐕🎨",
+        confession: "Woof! I was too excited! My tail wagged too hard and knocked everything! ",
         wrongResponse: ""
       },
 
       mouse: {
         name: "Mouse",
-        emoji: "🐭",
+        emoji: "",
 
         clues: {
           art_room: {
             id: "tiny_paint_tracks",
             name: "Tiny Paint Tracks",
             position: { bottom: "25%", left: "50%" },
-            description: "Tiny mouse tracks in the paint! 🐭",
+            description: "Tiny mouse tracks in the paint! ",
             hint: "Mouse walked through the mess!",
             image: "small_footprints.png"
           },
@@ -1258,7 +1258,7 @@ const mysteriesData = {
             id: "small_paint_trail",
             name: "Small Paint Trail",
             position: { bottom: "15%", left: "45%" },
-            description: "Tiny paint paw prints down the hall! Mouse ran away! 🐭🎨",
+            description: "Tiny paint paw prints down the hall! Mouse ran away! ",
             hint: "Mouse left tiny marks!",
             image: "paw_print.png"
           },
@@ -1266,7 +1266,7 @@ const mysteriesData = {
             id: "mouse_paint_sink",
             name: "Tiny Prints by Sink",
             position: { bottom: "18%", left: "55%" },
-            description: "Tiny mouse prints near the sink! Mouse tried to wash! 🐭",
+            description: "Tiny mouse prints near the sink! Mouse tried to wash! ",
             hint: "Mouse wanted to clean up!",
             image: "small_footprints.png"
           },
@@ -1274,7 +1274,7 @@ const mysteriesData = {
             id: "paint_mouse_hole",
             name: "Paint by Mouse Hole",
             position: { bottom: "20%", left: "40%" },
-            description: "Paint marks near mouse hole! Mouse brought paint home! 🏠🎨",
+            description: "Paint marks near mouse hole! Mouse brought paint home! ",
             hint: "Mouse tracked it everywhere!",
             image: "paw_print.png"
           }
@@ -1282,16 +1282,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Squeak! I'm too small to make a big mess! 🐭",
-            choices: [{ text: "We'll see... 🔍", action: "close" }]
+            text: "Squeak! I'm too small to make a big mess! ",
+            choices: [{ text: "We'll see... ", action: "close" }]
           },
           afterClue: {
-            text: "Squeak squeak! I wanted to use the paint for decorating! I spilled it! 😢",
-            choices: [{ text: "Mystery solved! ✅", action: "close" }]
+            text: "Squeak squeak! I wanted to use the paint for decorating! I spilled it! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "Squeak! I wanted pretty colors for my home! I didn't mean to spill so much! 😢🎨",
+        confession: "Squeak! I wanted pretty colors for my home! I didn't mean to spill so much! ",
         wrongResponse: ""
       }
     },
@@ -1299,47 +1299,47 @@ const mysteriesData = {
     innocentDialogue: {
       bunny: {
         initial: {
-          text: "I was munching carrots in the garden! 🥕",
-          choices: [{ text: "Thanks Bunny! 👍", action: "close" }]
+          text: "I was munching carrots in the garden! ",
+          choices: [{ text: "Thanks Bunny! ", action: "close" }]
         },
         afterClue: {
-          text: "That's not my fur! I'm innocent! 🐰",
-          choices: [{ text: "Right! 💡", action: "close" }]
+          text: "That's not my fur! I'm innocent! ",
+          choices: [{ text: "Right! ", action: "close" }]
         },
-        wrongResponse: "Bunny was outside! The clues don't match! Try again! 🐰"
+        wrongResponse: "Bunny was outside! The clues don't match! Try again! "
       },
       cat: {
         initial: {
-          text: "I don't like getting messy! Meow! 😺",
-          choices: [{ text: "Thanks Cat! 😸", action: "close" }]
+          text: "I don't like getting messy! Meow! ",
+          choices: [{ text: "Thanks Cat! ", action: "close" }]
         },
         afterClue: {
-          text: "I stay clean! Not my prints! 🐱",
-          choices: [{ text: "Got it! 👌", action: "close" }]
+          text: "I stay clean! Not my prints! ",
+          choices: [{ text: "Got it! ", action: "close" }]
         },
-        wrongResponse: "Cat avoids messes! Wrong suspect! Try again! 😺"
+        wrongResponse: "Cat avoids messes! Wrong suspect! Try again! "
       },
       dog: {
         initial: {
-          text: "I was playing outside all day! Woof! 🎾",
-          choices: [{ text: "Thanks Dog! 🐕", action: "close" }]
+          text: "I was playing outside all day! Woof! ",
+          choices: [{ text: "Thanks Dog! ", action: "close" }]
         },
         afterClue: {
-          text: "Those aren't my prints! Woof! 🐾",
-          choices: [{ text: "Okay! 💡", action: "close" }]
+          text: "Those aren't my prints! Woof! ",
+          choices: [{ text: "Okay! ", action: "close" }]
         },
-        wrongResponse: "Dog was outdoors! The evidence doesn't fit! Try again! 🐕"
+        wrongResponse: "Dog was outdoors! The evidence doesn't fit! Try again! "
       },
       mouse: {
         initial: {
-          text: "Paint bottles are too big for me! Squeak! 🐭",
-          choices: [{ text: "Thanks Mouse! 🐭", action: "close" }]
+          text: "Paint bottles are too big for me! Squeak! ",
+          choices: [{ text: "Thanks Mouse! ", action: "close" }]
         },
         afterClue: {
-          text: "I'm innocent! Squeak! 🐭",
-          choices: [{ text: "Hmm... 🤔", action: "close" }]
+          text: "I'm innocent! Squeak! ",
+          choices: [{ text: "Hmm... ", action: "close" }]
         },
-        wrongResponse: "Mouse is too tiny! Look again! Try again! 🐭"
+        wrongResponse: "Mouse is too tiny! Look again! Try again! "
       }
     }
   },
@@ -1353,8 +1353,8 @@ const mysteriesData = {
 
     intro: {
       speaker: "Detective Dino",
-      text: "Oh no! Someone hid the birthday present as a prank! 🎁 We need to find it!",
-      choices: [{ text: "Let's search! 🔍", action: "start" }]
+      text: "Oh no! Someone hid the birthday present as a prank!  We need to find it!",
+      choices: [{ text: "Let's search! ", action: "start" }]
     },
 
     locations: ['living_room', 'closet', 'attic', 'basement'],
@@ -1371,11 +1371,11 @@ const mysteriesData = {
         {
           id: "couch",
           name: "Couch",
-          emoji: "🛋️",
+          emoji: "",
           position: { bottom: "15%", left: "65%" },
           dialogue: {
             text: "The couch looks normal. Is the present under the cushions?",
-            choices: [{ text: "Check everywhere! 🔍", action: "close" }]
+            choices: [{ text: "Check everywhere! ", action: "close" }]
           }
         }
       ],
@@ -1383,11 +1383,11 @@ const mysteriesData = {
         {
           id: "shelf",
           name: "Shelf",
-          emoji: "📚",
+          emoji: "",
           position: { bottom: "40%", left: "50%" },
           dialogue: {
             text: "The shelf is messy! Someone was searching through it!",
-            choices: [{ text: "Interesting! 🤔", action: "close" }]
+            choices: [{ text: "Interesting! ", action: "close" }]
           }
         }
       ],
@@ -1395,11 +1395,11 @@ const mysteriesData = {
         {
           id: "boxes",
           name: "Boxes",
-          emoji: "📦",
+          emoji: "",
           position: { bottom: "20%", left: "60%" },
           dialogue: {
             text: "Old boxes everywhere! Perfect hiding spots!",
-            choices: [{ text: "Let's search! 🔍", action: "close" }]
+            choices: [{ text: "Let's search! ", action: "close" }]
           }
         }
       ],
@@ -1407,11 +1407,11 @@ const mysteriesData = {
         {
           id: "storage",
           name: "Storage Shelves",
-          emoji: "🗄️",
+          emoji: "",
           position: { bottom: "25%", left: "55%" },
           dialogue: {
             text: "Dark and dusty storage! Could the present be here?",
-            choices: [{ text: "Keep looking! 👀", action: "close" }]
+            choices: [{ text: "Keep looking! ", action: "close" }]
           }
         }
       ]
@@ -1420,14 +1420,14 @@ const mysteriesData = {
     suspects: {
       bunny: {
         name: "Bunny",
-        emoji: "🐰",
+        emoji: "",
 
         clues: {
           living_room: {
             id: "bunny_fur_present",
             name: "White Fur",
             position: { bottom: "20%", left: "70%" },
-            description: "White bunny fur near where the present was! 🐰",
+            description: "White bunny fur near where the present was! ",
             hint: "Bunny was here recently!",
             image: "bunny_fur_white.png"
           },
@@ -1435,7 +1435,7 @@ const mysteriesData = {
             id: "carrot_in_closet",
             name: "Carrot Piece",
             position: { bottom: "15%", left: "45%" },
-            description: "A carrot piece in the closet! Bunny was snacking here! 🥕",
+            description: "A carrot piece in the closet! Bunny was snacking here! ",
             hint: "Bunny's favorite snack!",
             image: "carrot_pieces.png"
           },
@@ -1443,7 +1443,7 @@ const mysteriesData = {
             id: "bunny_hiding_spot",
             name: "Bunny Tracks",
             position: { bottom: "18%", left: "55%" },
-            description: "Bunny tracks lead to a box! 🐰",
+            description: "Bunny tracks lead to a box! ",
             hint: "Bunny went to the attic!",
             image: "carrot_prints.png"
           },
@@ -1451,7 +1451,7 @@ const mysteriesData = {
             id: "present_with_carrots",
             name: "Present Hidden",
             position: { bottom: "22%", left: "50%" },
-            description: "The present hidden behind carrot boxes! Found it! 🎁🥕",
+            description: "The present hidden behind carrot boxes! Found it! ",
             hint: "Bunny's clever hiding spot!",
             image: "hidden_cookies.png"
           }
@@ -1459,37 +1459,37 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Me? Hide a present? I was eating carrots! 🥕",
-            choices: [{ text: "Suspicious... 🤔", action: "close" }]
+            text: "Me? Hide a present? I was eating carrots! ",
+            choices: [{ text: "Suspicious... ", action: "close" }]
           },
           afterClue: {
-            text: "Okay! It was a prank! I was going to give it back! I promise! 😢",
-            choices: [{ text: "Found it! 🎯", action: "close" }]
+            text: "Okay! It was a prank! I was going to give it back! I promise! ",
+            choices: [{ text: "Found it! ", action: "close" }]
           }
         },
 
-        confession: "It was just a funny joke! I didn't mean to worry everyone! 😭🎁",
+        confession: "It was just a funny joke! I didn't mean to worry everyone! ",
         wrongResponse: ""
       },
 
       cat: {
         name: "Cat",
-        emoji: "🐱",
+        emoji: "",
 
         clues: {
           living_room: {
             id: "cat_fur_cushion",
             name: "Orange Fur",
             position: { bottom: "20%", left: "70%" },
-            description: "Orange cat fur on the couch! 🐱",
+            description: "Orange cat fur on the couch! ",
             hint: "Cat was lounging here!",
-            image: "cat_fur_orange.png"
+            image: "cat_fur.png"
           },
           closet: {
             id: "knocked_items",
             name: "Knocked Items",
             position: { bottom: "15%", left: "45%" },
-            description: "Cat knocked things off the shelf looking for hiding spots! 🐱",
+            description: "Cat knocked things off the shelf looking for hiding spots! ",
             hint: "Classic cat behavior!",
             image: "cat_paw_print.png"
           },
@@ -1497,7 +1497,7 @@ const mysteriesData = {
             id: "cat_nap_spot",
             name: "Cat Paw Prints",
             position: { bottom: "18%", left: "55%" },
-            description: "Cat paw prints in the dusty attic! 🐾",
+            description: "Cat paw prints in the dusty attic! ",
             hint: "Cat was exploring!",
             image: "cat_paw_print.png"
           },
@@ -1505,7 +1505,7 @@ const mysteriesData = {
             id: "present_on_shelf",
             name: "Present on High Shelf",
             position: { bottom: "50%", left: "60%" },
-            description: "The present on a high shelf! Only cat could jump that high! 🎁🐱",
+            description: "The present on a high shelf! Only cat could jump that high! ",
             hint: "Cat's jumping skills!",
             image: "hidden_cookies.png"
           }
@@ -1513,29 +1513,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Meow! I don't play pranks! Too lazy! 😺",
-            choices: [{ text: "Really? 🤨", action: "close" }]
+            text: "Meow! I don't play pranks! Too lazy! ",
+            choices: [{ text: "Really? ", action: "close" }]
           },
           afterClue: {
-            text: "Fine! I thought it would be funny to hide it! Sorry! 😿",
-            choices: [{ text: "Mystery solved! 🎯", action: "close" }]
+            text: "Fine! I thought it would be funny to hide it! Sorry! ",
+            choices: [{ text: "Mystery solved! ", action: "close" }]
           }
         },
 
-        confession: "Meow... I wanted to see everyone search for it! It was funny! 😿🎁",
+        confession: "Meow... I wanted to see everyone search for it! It was funny! ",
         wrongResponse: ""
       },
 
       dog: {
         name: "Dog",
-        emoji: "🐶",
+        emoji: "",
 
         clues: {
           living_room: {
             id: "excited_marks",
             name: "Scratches",
             position: { bottom: "20%", left: "70%" },
-            description: "Excited scratch marks! Dog was very playful! 🐶",
+            description: "Excited scratch marks! Dog was very playful! ",
             hint: "Dog was excited!",
             image: "muddy_tracks.png"
           },
@@ -1543,7 +1543,7 @@ const mysteriesData = {
             id: "dog_nose_prints",
             name: "Nose Prints",
             position: { bottom: "15%", left: "45%" },
-            description: "Dog nose prints on the closet door! Dog was sniffing! 👃",
+            description: "Dog nose prints on the closet door! Dog was sniffing! ",
             hint: "Dog's wet nose!",
             image: "drool_puddle.png"
           },
@@ -1551,7 +1551,7 @@ const mysteriesData = {
             id: "dog_paws_attic",
             name: "Big Paw Prints",
             position: { bottom: "18%", left: "55%" },
-            description: "Big dog paw prints in the attic! 🐾",
+            description: "Big dog paw prints in the attic! ",
             hint: "Dog climbed up here!",
             image: "muddy_tracks.png"
           },
@@ -1559,7 +1559,7 @@ const mysteriesData = {
             id: "present_buried",
             name: "Present Buried",
             position: { bottom: "22%", left: "50%" },
-            description: "The present partially buried! Dog tried to bury it like a bone! 🎁🦴",
+            description: "The present partially buried! Dog tried to bury it like a bone! ",
             hint: "Dog's instinct!",
             image: "buried_cookies.png"
           }
@@ -1567,29 +1567,29 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Woof! I love presents! I wouldn't hide it! 🎁",
-            choices: [{ text: "Hmm... 🧐", action: "close" }]
+            text: "Woof! I love presents! I wouldn't hide it! ",
+            choices: [{ text: "Hmm... ", action: "close" }]
           },
           afterClue: {
-            text: "Woof woof! I wanted to keep it safe like my bones! Sorry! 🐕",
-            choices: [{ text: "Case closed! 📝", action: "close" }]
+            text: "Woof woof! I wanted to keep it safe like my bones! Sorry! ",
+            choices: [{ text: "Case closed! ", action: "close" }]
           }
         },
 
-        confession: "Woof! I was protecting it! I didn't mean to hide it from everyone! 🐕🎁",
+        confession: "Woof! I was protecting it! I didn't mean to hide it from everyone! ",
         wrongResponse: ""
       },
 
       mouse: {
         name: "Mouse",
-        emoji: "🐭",
+        emoji: "",
 
         clues: {
           living_room: {
             id: "tiny_tracks_present",
             name: "Tiny Tracks",
             position: { bottom: "20%", left: "70%" },
-            description: "Tiny mouse tracks near the present's spot! 🐭",
+            description: "Tiny mouse tracks near the present's spot! ",
             hint: "Mouse was investigating!",
             image: "small_footprints.png"
           },
@@ -1597,7 +1597,7 @@ const mysteriesData = {
             id: "gnaw_marks",
             name: "Gnaw Marks",
             position: { bottom: "15%", left: "45%" },
-            description: "Tiny gnaw marks on boxes! Mouse was searching! 🐭",
+            description: "Tiny gnaw marks on boxes! Mouse was searching! ",
             hint: "Mouse teeth marks!",
             image: "paw_print.png"
           },
@@ -1605,7 +1605,7 @@ const mysteriesData = {
             id: "mouse_trail_attic",
             name: "Mouse Trail",
             position: { bottom: "18%", left: "55%" },
-            description: "A trail of tiny prints through the attic! 🐾",
+            description: "A trail of tiny prints through the attic! ",
             hint: "Mouse explored everywhere!",
             image: "small_footprints.png"
           },
@@ -1613,7 +1613,7 @@ const mysteriesData = {
             id: "present_in_hole",
             name: "Present by Hole",
             position: { bottom: "22%", left: "50%" },
-            description: "The present near a mouse hole! Mouse tried to drag it home! 🏠🎁",
+            description: "The present near a mouse hole! Mouse tried to drag it home! ",
             hint: "Too big for mouse hole!",
             image: "hidden_cookies.png"
           }
@@ -1621,16 +1621,16 @@ const mysteriesData = {
 
         dialogue: {
           initial: {
-            text: "Squeak! The present is too big for me to move! 🐭",
-            choices: [{ text: "Maybe... 🔍", action: "close" }]
+            text: "Squeak! The present is too big for me to move! ",
+            choices: [{ text: "Maybe... ", action: "close" }]
           },
           afterClue: {
-            text: "Squeak squeak! I wanted to see what was inside! I moved it! Sorry! 😢",
-            choices: [{ text: "Found the culprit! 🎯", action: "close" }]
+            text: "Squeak squeak! I wanted to see what was inside! I moved it! Sorry! ",
+            choices: [{ text: "Found the culprit! ", action: "close" }]
           }
         },
 
-        confession: "Squeak! I was so curious! I tried to open it early! I'm sorry! 😢🎁",
+        confession: "Squeak! I was so curious! I tried to open it early! I'm sorry! ",
         wrongResponse: ""
       }
     },
@@ -1638,47 +1638,47 @@ const mysteriesData = {
     innocentDialogue: {
       bunny: {
         initial: {
-          text: "I was eating carrots outside! 🥕",
-          choices: [{ text: "Thanks Bunny! 👍", action: "close" }]
+          text: "I was eating carrots outside! ",
+          choices: [{ text: "Thanks Bunny! ", action: "close" }]
         },
         afterClue: {
-          text: "That's not my fur! I didn't do it! 🐰",
-          choices: [{ text: "Right! 💡", action: "close" }]
+          text: "That's not my fur! I didn't do it! ",
+          choices: [{ text: "Right! ", action: "close" }]
         },
-        wrongResponse: "Bunny was busy with carrots! Wrong suspect! Try again! 🐰"
+        wrongResponse: "Bunny was busy with carrots! Wrong suspect! Try again! "
       },
       cat: {
         initial: {
-          text: "I was napping all day! Meow! 😺",
-          choices: [{ text: "Thanks Cat! 😸", action: "close" }]
+          text: "I was napping all day! Meow! ",
+          choices: [{ text: "Thanks Cat! ", action: "close" }]
         },
         afterClue: {
-          text: "Not my prints! Check again! 🐱",
-          choices: [{ text: "Okay! 👌", action: "close" }]
+          text: "Not my prints! Check again! ",
+          choices: [{ text: "Okay! ", action: "close" }]
         },
-        wrongResponse: "Cat was sleeping! The clues don't match! Try again! 😺"
+        wrongResponse: "Cat was sleeping! The clues don't match! Try again! "
       },
       dog: {
         initial: {
-          text: "I love presents! I wouldn't hide them! Woof! 🎁",
-          choices: [{ text: "Thanks Dog! 🐕", action: "close" }]
+          text: "I love presents! I wouldn't hide them! Woof! ",
+          choices: [{ text: "Thanks Dog! ", action: "close" }]
         },
         afterClue: {
-          text: "Those aren't my paws! Woof! 🐾",
-          choices: [{ text: "Got it! 💡", action: "close" }]
+          text: "Those aren't my paws! Woof! ",
+          choices: [{ text: "Got it! ", action: "close" }]
         },
-        wrongResponse: "Dog loves presents too much to hide them! Try again! 🐕"
+        wrongResponse: "Dog loves presents too much to hide them! Try again! "
       },
       mouse: {
         initial: {
-          text: "Too heavy to move! Squeak! 🐭",
-          choices: [{ text: "Thanks Mouse! 🐭", action: "close" }]
+          text: "Too heavy to move! Squeak! ",
+          choices: [{ text: "Thanks Mouse! ", action: "close" }]
         },
         afterClue: {
-          text: "I'm innocent! Squeak! 🐭",
-          choices: [{ text: "Hmm... 🤔", action: "close" }]
+          text: "I'm innocent! Squeak! ",
+          choices: [{ text: "Hmm... ", action: "close" }]
         },
-        wrongResponse: "Mouse is too small! Look elsewhere! Try again! 🐭"
+        wrongResponse: "Mouse is too small! Look elsewhere! Try again! "
       }
     }
   }

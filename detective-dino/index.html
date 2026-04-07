@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Detective Dino 🔎</title>
+    <meta name="screen-orientation" content="landscape">
+    <meta name="x5-orientation" content="landscape">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="full-screen" content="yes">
+    <title>Detective Dino </title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +18,7 @@
                 <div class="title-dino-container">
                     <img src="images/characters/detective_dino_excited.png" alt="Detective Dino" class="dino title">
                 </div>
-                <h1 class="game-title bounce">Detective Dino 🔍</h1>
+                <h1 class="game-title bounce">Detective Dino </h1>
                 <h2 class="subtitle">Can you solve the mystery?</h2>
                 <button class="start-btn pulse" onclick="showReadingLevelScreen()">Start Investigation!</button>
             </div>
@@ -23,23 +27,32 @@
         <!-- Reading Level Selection Screen -->
         <div id="reading-level-screen" class="screen">
             <div class="reading-level-content">
-                <h1 class="level-title">Choose Your Reading Level</h1>
-                <p class="level-subtitle">Pick the level that's right for you!</p>
+                <div class="level-header">
+                    <img src="images/characters/detective_dino_excited.png" alt="Detective Dino" class="level-dino">
+                    <h1 class="level-title">Choose Your Level</h1>
+                    <p class="level-subtitle">Pick the right challenge for you!</p>
+                </div>
                 <div class="level-buttons">
-                    <div class="level-card" onclick="selectReadingLevel('beginner')" role="button" tabindex="0" aria-label="Choose Beginner reading level">
-                        <div class="level-icon">📖</div>
+                    <div class="level-card" data-level="beginner" onclick="selectReadingLevel('beginner')" role="button" tabindex="0" aria-label="Choose Beginner reading level">
+                        <div class="level-stars">⭐</div>
+                        <div class="level-clues">🔍</div>
                         <h2>Beginner</h2>
-                        <p>Easy words<br>Short sentences<br>1st Grade</p>
+                        <span class="level-grade">1st Grade</span>
+                        <p class="level-desc">Easy words<br>Short sentences</p>
                     </div>
-                    <div class="level-card" onclick="selectReadingLevel('intermediate')" role="button" tabindex="0" aria-label="Choose Intermediate reading level">
-                        <div class="level-icon">📚</div>
+                    <div class="level-card" data-level="intermediate" onclick="selectReadingLevel('intermediate')" role="button" tabindex="0" aria-label="Choose Intermediate reading level">
+                        <div class="level-stars">⭐⭐</div>
+                        <div class="level-clues">🔍🔍</div>
                         <h2>Intermediate</h2>
-                        <p>More words<br>Longer sentences<br>3rd Grade</p>
+                        <span class="level-grade">3rd Grade</span>
+                        <p class="level-desc">More words<br>Longer sentences</p>
                     </div>
-                    <div class="level-card" onclick="selectReadingLevel('advanced')" role="button" tabindex="0" aria-label="Choose Advanced reading level">
-                        <div class="level-icon">🎓</div>
+                    <div class="level-card" data-level="advanced" onclick="selectReadingLevel('advanced')" role="button" tabindex="0" aria-label="Choose Advanced reading level">
+                        <div class="level-stars">⭐⭐⭐</div>
+                        <div class="level-clues">🔍🔍🔍</div>
                         <h2>Advanced</h2>
-                        <p>Complex clues<br>Detailed descriptions<br>5th Grade</p>
+                        <span class="level-grade">5th Grade</span>
+                        <p class="level-desc">Complex clues<br>Full detail</p>
                     </div>
                 </div>
             </div>
@@ -53,6 +66,9 @@
                     <img src="images/characters/detective_dino_thinking.png" alt="Detective Dino" id="dino-nav-icon" class="dino icon">
                     <span id="mystery-title">Detective Dino</span>
                 </div>
+                <button id="level-btn" onclick="toggleLevelSelect()" aria-label="Change reading level">
+                    <span id="level-btn-indicator">📖</span>
+                </button>
                 <button id="notebook-btn" onclick="toggleNotebook()">
                     <img src="images/objects/notebook.png" alt="Notebook" class="notebook-icon"> Clues (<span id="clue-count">0/4</span>)
                 </button>
@@ -86,7 +102,7 @@
                     <div class="tutorial-actions">
                         <button id="tutorial-back" class="back-btn" onclick="previousTutorialStep()">Back</button>
                         <button id="tutorial-next" class="start-btn" onclick="nextTutorialStep()">Next</button>
-                        <button id="tutorial-skip" class="close-btn" onclick="skipTutorial()" aria-label="Skip tutorial">✖</button>
+                        <button id="tutorial-skip" class="close-btn" onclick="skipTutorial()" aria-label="Skip tutorial"></button>
                     </div>
                 </div>
             </div>
@@ -97,11 +113,39 @@
             </div>
         </div>
 
+        <!-- In-game reading level overlay -->
+        <div id="level-select-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="level-select-title">
+            <div id="level-select-content">
+                <h2 id="level-select-title">📖 Reading Level</h2>
+                <button class="close-btn" onclick="toggleLevelSelect()" aria-label="Close">✕</button>
+                <div class="in-game-level-cards">
+                    <div class="in-game-level-card" data-level="beginner" onclick="changeLevelInGame('beginner')" role="button" tabindex="0">
+                        <div class="ilc-stars">⭐</div>
+                        <div class="ilc-clues">🔍</div>
+                        <span class="ilc-name">Beginner</span>
+                        <span class="ilc-grade">1st Grade</span>
+                    </div>
+                    <div class="in-game-level-card" data-level="intermediate" onclick="changeLevelInGame('intermediate')" role="button" tabindex="0">
+                        <div class="ilc-stars">⭐⭐</div>
+                        <div class="ilc-clues">🔍🔍</div>
+                        <span class="ilc-name">Intermediate</span>
+                        <span class="ilc-grade">3rd Grade</span>
+                    </div>
+                    <div class="in-game-level-card" data-level="advanced" onclick="changeLevelInGame('advanced')" role="button" tabindex="0">
+                        <div class="ilc-stars">⭐⭐⭐</div>
+                        <div class="ilc-clues">🔍🔍🔍</div>
+                        <span class="ilc-name">Advanced</span>
+                        <span class="ilc-grade">5th Grade</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Clue Notebook Overlay -->
         <div id="notebook-overlay" class="hidden">
             <div id="notebook-content">
-                <h2>🔍 Detective's Notebook</h2>
-                <button class="close-btn" onclick="toggleNotebook()">✖</button>
+                <h2> Detective's Notebook</h2>
+                <button class="close-btn" onclick="toggleNotebook()"></button>
                 <div id="clues-list">
                     <p class="no-clues">Find clues by investigating each location!</p>
                 </div>
@@ -111,7 +155,7 @@
         <!-- Accusation Screen -->
         <div id="accusation-screen" class="screen">
             <div class="accusation-content">
-                <h2 id="accusation-title">Who did it? 🔍</h2>
+                <h2 id="accusation-title">Who did it? </h2>
                 <p>Think carefully, Detective Dino!</p>
                 <div id="suspects-grid">
                     <!-- Suspect cards generated dynamically by game.js -->
@@ -124,12 +168,12 @@
         <div id="win-screen" class="screen">
             <div class="win-content">
                 <img src="images/characters/detective_dino_celebrating.png" alt="Detective Dino Celebrating" id="win-dino" class="dino win-dino">
-                <h1 class="celebrate">🎉 CASE SOLVED! 🎉</h1>
+                <h1 class="celebrate"> CASE SOLVED! </h1>
                 <div class="win-message">
                     <p class="big-text">Great detective work!</p>
-                    <p id="win-case-line">You solved the case! 🎉</p>
+                    <p id="win-case-line">You solved the case! </p>
                     <div class="culprit">
-                        <img src="images/characters/mouse_guilty.png" alt="Mouse" class="mouse culprit">
+                        <img src="images/characters/mouse_guilty.png" alt="Mouse" class="culprit-img">
                         <div>It was Mouse!</div>
                     </div>
                 </div>
@@ -140,12 +184,20 @@
         <!-- Try Again Screen -->
         <div id="try-again-screen" class="screen">
             <div class="try-again-content">
-                <h1>Not Quite Right... 🤔</h1>
+                <h1>Not Quite Right... </h1>
                 <div id="try-again-suspect" class="try-again-suspect-wrap"></div>
                 <p class="big-text">Keep investigating, Detective!</p>
                 <p>Look for more clues in each location.</p>
                 <button class="back-btn pulse" onclick="hideTryAgainScreen()">Keep Investigating!</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Rotate-device prompt (shown in portrait on touch devices) -->
+    <div id="rotate-prompt" aria-live="polite" aria-label="Please rotate your device to landscape">
+        <div id="rotate-prompt-inner">
+            <div id="rotate-icon">📱</div>
+            <p>Turn your device sideways<br>to play Detective Dino!</p>
         </div>
     </div>
 
