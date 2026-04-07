@@ -3,580 +3,1043 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CySA+ Typing Train: Secure the Track</title>
+    <title>Alien Getaway Typing</title>
     <style>
+        /* =====================================================
+           ROOT / BODY
+        ===================================================== */
         :root {
-            --track-color: #5d4037; /* Dark brown */
-            --sky-color: #4CAF50; /* Green/Nature background */
-            --train-color: #e74c3c; /* Red train fallback */
-            --text-color: #333;
-            --container-width: 900px;
+            --sky-top:    #0a0a2e;
+            --sky-mid:    #1a1a5e;
+            --sky-bot:    #2d1b4e;
+            --ground:     #1a0a0a;
+            --road:       #2a2a2a;
+            --stripe:     #f0c030;
+            --text-color: #eee;
+            --w: 960px;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
+            background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(to bottom, #81c784 0%, var(--sky-color) 100%);
-            overflow: hidden;
-            color: white;
-        }
-
-        /* --- Game Container & UI --- */
-
-        #game-container {
-            width: var(--container-width);
-            max-width: 90vw;
-            height: 450px;
-            position: relative;
-            border: 5px solid #bdc3c7;
-            background-color: #9ccc65; /* Light green ground */
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* FIX: Adjusted position to prevent overlap */
-        #stats {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 5px;
-            z-index: 100;
-            font-size: 1.1em;
-            width: 150px;
-            text-align: left;
-        }
-        #stats span { display: block; margin-bottom: 5px; }
-        #wpm { font-weight: bold; color: #f1c40f; font-size: 1.2em; }
-
-        /* --- Train Track and Movement --- */
-
-        #track {
-            position: absolute;
-            bottom: 100px;
-            width: 300%; 
-            height: 10px;
-            background-color: var(--track-color);
-            z-index: 20;
-            transition: transform 0.05s linear;
-        }
-
-        /* Simple ties */
-        #track::before {
-            content: '';
-            position: absolute;
-            top: 5px;
-            left: 0;
-            width: 100%;
-            height: 10px;
-            background: repeating-linear-gradient(90deg, 
-                #8d6e63 0, #8d6e63 10px, 
-                transparent 10px, transparent 100px
-            );
-        }
-
-        #train {
-            /* Adjusted size */
-            width: 300px;
-            height: 150px;
-            bottom: 80px; /* Lowered position to compensate for increased height (Track is at 100px) */
-            left: 20%; 
-            position: absolute;
-            /* Corrected image location */
-            background-image: url('images/train.png'); 
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: bottom;
-            z-index: 30;
-            transition: transform 0.1s; 
-        }
-        
-        .bump-effect {
-            animation: bump 0.2s 1;
-        }
-
-        @keyframes bump {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-10px) rotate(-1deg); }
-            100% { transform: translateY(0); }
-        }
-
-        /* --- Text Display Area --- */
-
-        #sentence-container {
-            width: 80%;
-            min-height: 100px;
-            margin-top: 100px; /* PUSHED DOWN to clear the stats box */
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            font-size: 1.5em;
-            line-height: 1.6;
             color: var(--text-color);
-            white-space: pre-wrap;
-            text-align: left;
-            user-select: none;
-            z-index: 50;
+            overflow: hidden;
         }
 
-        .correct { color: #2ecc71; font-weight: bold; }
-        .cursor { background-color: #3498db; color: white; padding: 0 1px; border-radius: 2px; }
-
-        /* --- Input Field --- */
-
-        #word-input {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            padding: 10px;
-            font-size: 1.5em;
-            text-align: center;
-            background-color: #f7f7f7;
-            border: 3px solid #3498db;
-            border-radius: 5px;
-            outline: none;
-            color: #333;
-            z-index: 50; 
-            opacity: 0; /* Hide the input, but keep it active for typing */
-        }
-        /* Style for the visual focus indicator (since the input is hidden) */
-        #word-input:focus + #sentence-container {
-            border: 3px solid #3498db;
-        }
-
-
-        /* --- Overlay (Start/End/Pause) --- */
-
-        #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 200;
+        /* =====================================================
+           GAME WRAPPER
+        ===================================================== */
+        #game-wrapper {
+            width: var(--w);
+            max-width: 100vw;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+        }
+
+        /* =====================================================
+           STATS BAR
+        ===================================================== */
+        #stats-bar {
+            display: flex;
+            justify-content: space-around;
             align-items: center;
-            text-align: center;
+            padding: 7px 16px;
+            background: rgba(0,0,0,0.88);
+            border: 2px solid #4444aa;
+            border-bottom: none;
+            flex-shrink: 0;
+        }
+        .stat-item { text-align: center; min-width: 70px; }
+        .stat-label { display: block; font-size: 0.65em; color: #88f; letter-spacing: 0.08em; text-transform: uppercase; }
+        .stat-value { display: block; font-size: 1.15em; font-weight: bold; }
+        #wpm-value    { color: #f1c40f; }
+        #level-value  { color: #7df; }
+        #score-value  { color: #7f7; }
+        #top-value    { color: #f77; }
+        #progress-bar-wrap { width: 80px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-top: 3px; }
+        #progress-bar-fill { height: 100%; background: #7df; border-radius: 3px; width: 0%; transition: width 0.3s; }
+        #idle-bar-wrap { width: 90px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-top: 3px; }
+        #idle-bar-fill { height: 100%; background: #4f4; border-radius: 3px; width: 100%; transition: background 0.3s; }
+
+        /* =====================================================
+           SCENE
+        ===================================================== */
+        #scene {
+            position: relative;
+            width: 100%;
+            height: 480px;
+            background: linear-gradient(to bottom,
+                var(--sky-top) 0%,
+                var(--sky-mid) 50%,
+                var(--sky-bot) 78%,
+                var(--ground) 100%);
+            overflow: hidden;
+            border: 2px solid #4444aa;
+            border-top: none;
+            border-bottom: none;
         }
 
-        #overlay h1 { color: #f1c40f; font-size: 3em; margin-bottom: 0.5em; }
-        #overlay p { font-size: 1.2em; margin-bottom: 2em; max-width: 80%; line-height: 1.5; }
+        /* Stars */
+        #stars { position: absolute; inset: 0; pointer-events: none; }
+        .star {
+            position: absolute; border-radius: 50%; background: white; opacity: 0.7;
+            animation: twinkle 2s infinite alternate;
+        }
+        @keyframes twinkle { from { opacity: 0.3; } to { opacity: 1.0; } }
 
+        /* Road */
+        #road {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 110px;
+            background: #222;
+        }
+        #road-dashes { position: absolute; bottom: 52px; left: 0; width: 100%; height: 8px; }
+        .road-dash {
+            position: absolute; bottom: 0; height: 8px; width: 60px;
+            background: var(--stripe);
+        }
+
+        /* City silhouette */
+        #city-layer {
+            position: absolute; bottom: 110px; left: 0; width: 100%; height: 90px;
+            background-image: url('images/city_silhouette.png');
+            background-size: auto 90px;
+            background-repeat: repeat-x;
+            opacity: 0.5;
+        }
+
+        /* Car */
+        #car {
+            position: absolute;
+            bottom: 68px; left: 120px;
+            width: 180px; height: 100px;
+            background-image: url('images/car.png');
+            background-size: contain; background-repeat: no-repeat; background-position: bottom left;
+            z-index: 30;
+            transform-origin: bottom center;
+        }
+        #car.bump { animation: car-bump 0.25s 1; }
+        @keyframes car-bump {
+            0%   { transform: translateY(0) rotate(0deg); }
+            30%  { transform: translateY(-12px) rotate(-2deg); }
+            70%  { transform: translateY(-5px) rotate(1deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        #car.abducted { animation: abduct 1.8s ease-in forwards; }
+        @keyframes abduct {
+            0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+            40%  { transform: translateY(-70px) rotate(-8deg); opacity: 1; }
+            100% { transform: translateY(-360px) rotate(15deg); opacity: 0; }
+        }
+
+        /* Walker */
+        #walker {
+            position: absolute;
+            bottom: 68px; left: 140px;
+            width: 56px; height: 80px;
+            background-image: url('images/walker.png');
+            background-size: contain; background-repeat: no-repeat; background-position: bottom;
+            z-index: 31; display: none;
+        }
+        #walker.walk-off { animation: walk-left 3.2s linear forwards; }
+        @keyframes walk-left { 0% { left: 140px; } 100% { left: -80px; } }
+
+        /* Saucer */
+        #saucer {
+            position: absolute;
+            width: 200px; height: 100px;
+            background-image: url('images/saucer.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            z-index: 40;
+            top: -130px; left: 500px;
+        }
+        #saucer.hover { animation: saucer-hover 3s ease-in-out infinite; }
+        @keyframes saucer-hover {
+            0%   { margin-top: 0; }
+            50%  { margin-top: 14px; }
+            100% { margin-top: 0; }
+        }
+        #saucer.swoop { animation: saucer-swoop 1.5s ease-in-out; }
+        @keyframes saucer-swoop {
+            0%   { top: 28px; }
+            45%  { top: 220px; }
+            100% { top: 28px; }
+        }
+        #saucer.pushed { animation: saucer-pushed 0.55s ease-out; }
+        @keyframes saucer-pushed {
+            0%   { filter: none;         margin-left: 0; }
+            30%  { filter: brightness(2.5); margin-left: 50px; }
+            100% { filter: none;         margin-left: 0; }
+        }
+
+        /* Tractor beam */
+        #beam {
+            position: absolute;
+            width: 90px;
+            background: linear-gradient(to bottom, rgba(80,255,80,0.75), rgba(80,255,80,0.0));
+            z-index: 39; opacity: 0; transition: opacity 0.45s;
+        }
+        #beam.active { opacity: 1; }
+
+        /* Ping-pong ball */
+        .ball {
+            position: absolute;
+            width: 18px; height: 18px;
+            background-image: url('images/ball.png');
+            background-size: contain; border-radius: 50%;
+            z-index: 50; pointer-events: none;
+        }
+
+        /* =====================================================
+           TYPING BOX
+        ===================================================== */
+        #typing-area {
+            position: absolute;
+            top: 14px; left: 50%; transform: translateX(-50%);
+            width: 82%;
+            background: rgba(0,0,0,0.82);
+            border: 2px solid #4444aa;
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.45em;
+            letter-spacing: 0.05em;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            user-select: none;
+            z-index: 60;
+        }
+        .correct { color: #4f4; font-weight: bold; }
+        .cursor  { background: #7df; color: #000; padding: 0 1px; border-radius: 2px; }
+
+        /* =====================================================
+           KEY CAPS
+        ===================================================== */
+        #key-display {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 5px; z-index: 60;
+        }
+        .key-cap {
+            width: 30px; height: 30px;
+            background: rgba(255,255,255,0.85); color: #111;
+            font-weight: bold; font-size: 0.9em;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.5);
+            text-transform: uppercase;
+        }
+        .key-cap.new-key { background: #f1c40f; color: #111; }
+
+        /* Hidden real input */
+        #word-input {
+            position: absolute; opacity: 0; top: 0; left: 0; width: 1px; height: 1px;
+            pointer-events: none;
+        }
+
+        /* =====================================================
+           OVERLAY
+        ===================================================== */
+        #overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 200;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; padding: 20px;
+        }
+        #overlay h1 { color: #f1c40f; font-size: 2.2em; margin-bottom: 0.25em; text-shadow: 0 0 20px #f80; }
+        #overlay p  { font-size: 1.05em; line-height: 1.65; max-width: 82%; margin-bottom: 0.8em; }
+        .overlay-keys { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 6px 0 16px; }
+        .overlay-keys .key-cap { width: 36px; height: 36px; font-size: 1em; }
         #start-button {
-            padding: 15px 30px;
-            font-size: 1.5em;
-            cursor: pointer;
-            background-color: #3498db; 
-            color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.2s, transform 0.1s;
+            margin-top: 8px; padding: 11px 26px; font-size: 1.25em; cursor: pointer;
+            background: #3498db; color: white; border: none; border-radius: 5px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        #start-button:hover  { background: #2980b9; }
+        #start-button:active { transform: scale(0.97); }
+
+        /* Shoot banner */
+        #shoot-banner {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: rgba(0,0,0,0.85); border: 2px solid #7df; border-radius: 10px;
+            padding: 16px 32px; font-size: 1.4em; color: #7df;
+            text-align: center; z-index: 70; display: none; pointer-events: none;
         }
 
-        #start-button:hover { background-color: #2980b9; }
-        #start-button:active { transform: scale(0.98); }
+        /* Title icons (replace emojis) */
+        .title-icon { height: 0.85em; width: auto; vertical-align: middle; display: inline; filter: drop-shadow(0 0 6px #f80) drop-shadow(0 0 12px #fa0) brightness(1.15); }
 
+        /* Score boxes */
+        .score-row { display: flex; gap: 40px; justify-content: center; margin: 10px 0; }
+        .score-box { background: rgba(255,255,255,0.07); border: 1px solid #446; border-radius: 6px; padding: 10px 20px; text-align: center; }
+        .score-box .sb-label { font-size: 0.75em; color: #88f; text-transform: uppercase; letter-spacing: 0.07em; }
+        .score-box .sb-value { font-size: 1.8em; font-weight: bold; margin-top: 2px; }
+
+        /* Bottom border accent */
+        #scene-bottom-border { height: 3px; background: #4444aa; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        
-        <div id="stats">
-            <span id="score">Words: 0</span>
-            <span id="accuracy">Accuracy: 100%</span>
-            <span id="missed">Errors: 0</span>
-            <hr style="border: 0; height: 1px; background: #fff3; margin: 5px 0;">
-            <span id="wpm">WPM: 0</span>
+<div id="game-wrapper">
+
+    <!-- STATS BAR -->
+    <div id="stats-bar">
+        <div class="stat-item">
+            <span class="stat-label">Level</span>
+            <span class="stat-value" id="level-value">1</span>
         </div>
-
-        <div id="sentence-container">
-            <p id="sentence-text">Press Start to begin your journey...</p>
+        <div class="stat-item">
+            <span class="stat-label">Line</span>
+            <span class="stat-value" id="line-value">0 / 5</span>
+            <div id="progress-bar-wrap"><div id="progress-bar-fill"></div></div>
         </div>
-
-        <div id="train"></div>
-        <div id="track"></div>
-        
-        <input type="text" id="word-input" autocomplete="off" placeholder="" disabled>
-
-        <div id="overlay">
-            <h1>CySA+ Typing Train</h1>
-            <p id="overlay-message">
-                **Objective:** Type the crucial CySA+ study statements quickly and accurately.
-                <br>Your WPM drives the train's speed. Any error results in a temporary "bump" slowdown.
-                <br><br>
-                Press **Start** to begin the security assessment!
-            </p>
-            <button id="start-button">Start Assessment</button>
+        <div class="stat-item">
+            <span class="stat-label">WPM</span>
+            <span class="stat-value" id="wpm-value">0</span>
         </div>
-
+        <div class="stat-item">
+            <span class="stat-label">Accuracy</span>
+            <span class="stat-value" id="accuracy-value">100%</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Score</span>
+            <span class="stat-value" id="score-value">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Best</span>
+            <span class="stat-value" id="top-value">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Idle</span>
+            <div id="idle-bar-wrap"><div id="idle-bar-fill"></div></div>
+        </div>
     </div>
 
-    <script>
-        // --- GAME CONFIGURATION ---
-        const SENTENCES_BASE = [
-            "A security information and event management system centralizes logs and alerts for analysis.",
-            "Threat intelligence platforms aggregate, analyze, and disseminate data on cyber threats.",
-            "Vulnerability scanning identifies potential security weaknesses in network assets.",
-            "Penetration testing simulates an attack to evaluate the security posture of a system.",
-            "The MITRE ATT&CK framework provides a knowledge base of adversary tactics and techniques.",
-            "The Diamond Model of Intrusion Analysis focuses on adversary, capability, infrastructure, and victim.",
-            "SOAR platforms automate responses to security events using playbooks.",
-            "Risk equals the probability of a threat multiplied by the impact of a vulnerability.",
-            "An incident response plan outlines procedures for handling security breaches.",
-            "Forensic duplication must utilize a write-blocker to ensure data integrity.",
-            "Chain of custody documentation is vital to maintain evidence admissibility in court.",
-            "SIEM systems often employ normalization and correlation engines to process data.",
-            "Configuration management tools ensure all systems adhere to a secure baseline.",
-            "Honeypots and honeynets are used for deception and collecting threat intelligence.",
-            "A zero-day exploit targets a vulnerability for which no patch is currently available.",
-            "The principle of least privilege dictates that users should only have necessary permissions.",
-            "Data loss prevention technology monitors data to prevent unauthorized exfiltration.",
-            "Egress filtering is used to monitor and restrict traffic leaving the network.",
-            "Continuous monitoring is essential for detecting changes in the security landscape.",
-            "A tabletop exercise is a discussion-based training session for incident response teams.",
-            "A business impact analysis identifies critical business functions and their necessary recovery time objectives."
-        ];
-        const CHARACTER_PER_WORD = 5; 
-        const TRAIN_SPEED_MULTIPLIER = 10; 
-        const ERROR_SLOWDOWN_TIME = 1000;
-        const PAUSE_INTERVAL = 120000; // 2 minutes in milliseconds
+    <!-- SCENE -->
+    <div id="scene">
+        <div id="stars"></div>
+        <div id="city-layer"></div>
+        <div id="road"></div>
+        <div id="road-dashes"></div>
 
-        // --- DOM Elements ---
-        const wordInput = document.getElementById('word-input');
-        const sentenceContainer = document.getElementById('sentence-container');
-        const scoreDisplay = document.getElementById('score');
-        const accuracyDisplay = document.getElementById('accuracy');
-        const missedDisplay = document.getElementById('missed');
-        const wpmDisplay = document.getElementById('wpm');
-        const overlay = document.getElementById('overlay');
-        const overlayMessage = document.getElementById('overlay-message');
-        const startButton = document.getElementById('start-button');
-        const trainElement = document.getElementById('train');
-        const trackElement = document.getElementById('track');
+        <div id="saucer"></div>
+        <div id="beam"></div>
 
-        // --- GAME STATE ---
-        let gameState = {
-            isRunning: false,
-            score: 0, 
-            errors: 0, 
-            totalTypedCharacters: 0,
-            totalCorrectCharacters: 0,
-            sentenceIndex: 0,
-            shuffledSentences: [], // Holds the randomized list
-            currentSentence: '',
-            typedProgress: 0,
-            startTime: 0,
-            wpm: 0,
-            trackPosition: 0,
-            baseSpeed: 0,
-            slowdownTimer: 0,
-            pauseTimer: null,
-            lastFrameTime: Date.now(),
-        };
+        <div id="car"></div>
+        <div id="walker"></div>
 
-        // --- UTILITY FUNCTIONS ---
-        // Fisher-Yates (Knuth) Shuffle for randomization
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
+        <div id="typing-area">Ready...</div>
+        <div id="key-display"></div>
+        <input type="text" id="word-input" autocomplete="off" disabled>
+        <div id="shoot-banner"></div>
 
-        // --- GAME CONTROL ---
+        <!-- Overlay lives inside scene so it covers everything -->
+        <div id="overlay">
+            <h1><img src="images/icon_car.png" class="title-icon" alt=""> Alien Getaway Typing</h1>
+            <p id="overlay-message">
+                Drive the cobbled future-car while the alien saucer tries to swoop down!<br>
+                Type the characters to keep moving forward.<br><br>
+                <strong>Stop typing for 5 seconds</strong> and the saucer beams you up — game over!<br><br>
+                After each round, press <strong>SPACE to fire ping-pong balls</strong> and <strong>arrow keys to dodge</strong>!<br><br>
+                <strong>Level 1 — practice keys:</strong>
+            </p>
+            <div class="overlay-keys" id="overlay-keys"></div>
+            <button id="start-button">Start Level 1</button>
+        </div>
+    </div>
+    <div id="scene-bottom-border"></div>
 
-        function startGame() {
-            // Only shuffle if it's a true new game (i.e., not a resume from pause)
-            if (!gameState.shuffledSentences || gameState.shuffledSentences.length === 0) {
-                 gameState.shuffledSentences = shuffleArray([...SENTENCES_BASE]);
-            }
-            
-            // Reset state
-            gameState = {
-                ...gameState, // Keep shuffledSentences, index, and accumulated stats
-                isRunning: true,
-                startTime: gameState.startTime || Date.now(), // Keep existing start time if resuming
-                lastFrameTime: Date.now(),
-            };
+</div>
 
-            updateStats();
-            wordInput.value = '';
-            wordInput.disabled = false;
-            wordInput.focus();
-            overlay.style.display = 'none';
+<script>
+// ================================================================
+//  ASSET PATHS
+// ================================================================
+const ASSETS = {
+    sfx: {
+        engine:   'sounds/engine_loop.mp3',
+        keyClick: 'sounds/key_click.mp3',
+        error:    'sounds/error_buzz.mp3',
+        ballFire: 'sounds/ball_fire.mp3',
+        ballHit:  'sounds/ball_hit.mp3',
+        saucerHum:'sounds/saucer_hum.mp3',
+        beamOn:      'sounds/beam_on.mp3',
+        abduct:      'sounds/abduct_end.mp3',
+        levelUp:     'sounds/level_up.mp3',
+        gameOver:    'sounds/game_over.mp3',
+        bgMusic:     'sounds/bg_music.mp3',
+        shootMusic:  'sounds/shootmusic_bg.mp3',
+    }
+};
 
-            // Start main loops
-            startPauseTimer();
-            if (!gameState.currentSentence) {
-                loadNextSentence();
-            }
-            gameState.animationFrame = requestAnimationFrame(gameLoop);
-        }
+// ================================================================
+//  AUDIO
+// ================================================================
+const audioCache = {};
+function playSound(key, loop = false) {
+    const src = ASSETS.sfx[key];
+    if (!src) return null;
+    try {
+        if (!audioCache[key]) audioCache[key] = new Audio(src);
+        const a = audioCache[key];
+        a.loop = loop;
+        a.currentTime = 0;
+        a.play().catch(() => {});
+        return a;
+    } catch(e) { return null; }
+}
+function stopSound(key) {
+    if (audioCache[key]) { audioCache[key].pause(); audioCache[key].currentTime = 0; }
+}
 
-        function restartGame() {
-             // Full reset for a new campaign
-             gameState.shuffledSentences = shuffleArray([...SENTENCES_BASE]);
-             gameState.sentenceIndex = 0;
-             gameState.score = 0;
-             gameState.errors = 0;
-             gameState.totalTypedCharacters = 0;
-             gameState.totalCorrectCharacters = 0;
-             gameState.startTime = 0;
+// ================================================================
+//  LEVELS
+// ================================================================
+const LEVELS = [
+    { name:'Level 1', description:'G &amp; H',       chars:['g','h'],                   newChars:['g','h'],  type:'random', linesRequired:3 },
+    { name:'Level 2', description:'+ A &amp; S',      chars:['g','h','a','s'],            newChars:['a','s'],  type:'random', linesRequired:3 },
+    { name:'Level 3', description:'+ L',              chars:['g','h','a','s','l'],         newChars:['l'],      type:'random', linesRequired:3 },
+    { name:'Level 4', description:'+ D &amp; F',      chars:['g','h','a','s','l','d','f'], newChars:['d','f'],  type:'random', linesRequired:3 },
+    { name:'Level 5', description:'+ K &amp; J',      chars:['g','h','a','s','l','d','f','k','j'], newChars:['k','j'], type:'random', linesRequired:3 },
+    {
+        name:'Level 6', description:'Home Row Words',
+        chars:[], newChars:[], type:'words', linesRequired:3,
+        words:['glad','flag','flask','lads','lash','lass','dash','hash','gash','fads','shall',
+               'flash','slash','half','hall','fall','gall','flak','gala','shag','slag','gals',
+               'lad','lag','sad','fad','has','had','gas','gal','jag','ask','shad','flags',
+               'jags','falls','halls','dhal','shah','slash','flask']
+    }
+];
 
-             startGame();
-        }
+// ================================================================
+//  CONSTANTS
+// ================================================================
+const CHAR_PER_WORD      = 5;
+const SPEED_MPX          = 55;   // road scroll px/s at WPM=60
+const ERROR_SLOW_MS      = 900;
+const IDLE_MS            = 5000;
+const SCORE_PER_LINE     = 100;
+const SHOOT_DURATION_MS  = 30000; // 30 seconds
 
+// ================================================================
+//  DOM
+// ================================================================
+const wordInput   = document.getElementById('word-input');
+const typingArea  = document.getElementById('typing-area');
+const scene       = document.getElementById('scene');
+const carEl       = document.getElementById('car');
+const saucerEl    = document.getElementById('saucer');
+const beamEl      = document.getElementById('beam');
+const walkerEl    = document.getElementById('walker');
+const roadDashes  = document.getElementById('road-dashes');
+const cityLayer   = document.getElementById('city-layer');
+const keyDisplay  = document.getElementById('key-display');
+const overlay     = document.getElementById('overlay');
+const overlayMsg  = document.getElementById('overlay-message');
+const overlayKeys = document.getElementById('overlay-keys');
+const startBtn    = document.getElementById('start-button');
+const shootBanner = document.getElementById('shoot-banner');
+const levelVal    = document.getElementById('level-value');
+const lineVal     = document.getElementById('line-value');
+const progFill    = document.getElementById('progress-bar-fill');
+const wpmVal      = document.getElementById('wpm-value');
+const accVal      = document.getElementById('accuracy-value');
+const scoreVal    = document.getElementById('score-value');
+const topVal      = document.getElementById('top-value');
+const idleFill    = document.getElementById('idle-bar-fill');
 
-        function pauseGame(message, buttonText, buttonAction) {
-            gameState.isRunning = false;
-            wordInput.disabled = true;
-            clearTimeout(gameState.pauseTimer);
-            cancelAnimationFrame(gameState.animationFrame);
-            
-            overlayMessage.innerHTML = message;
-            startButton.textContent = buttonText;
-            startButton.onclick = buttonAction; // Set temporary button action
-            overlay.style.display = 'flex';
-        }
+// ================================================================
+//  STATE
+// ================================================================
+let gs = {
+    phase: 'overlay',  // overlay | typing | shooting | gameover
+    levelIdx: 0,
+    linesThisLevel: 0,
+    totalScore: 0,
+    topScore: parseInt(localStorage.getItem('homeRowTop') || '0'),
+    errors: 0,
+    totalChars: 0,
+    correctChars: 0,
+    startTime: 0,
+    wpm: 0,
+    currentSentence: '',
+    typedProgress: 0,
+    roadOffset: 0,
+    cityOffset: 0,
+    baseSpeed: 0,
+    slowdownTimer: 0,
+    raf: null,
+    lastFrame: Date.now(),
+    lastKeyTime: Date.now(),
+    abducting: false,
+    saucerX: 500,
+    saucerVisible: false,
+    _shootHandler: null,
+    _shootTimer: null,
+    _saucerRaf: null,
+    carX: 120,
+    saucerY: 28,
+};
 
-        function startPauseTimer() {
-            clearTimeout(gameState.pauseTimer);
-            gameState.pauseTimer = setTimeout(() => {
-                pauseGame(
-                    `
-                    **PAUSE**
-                    <br>Two minutes have passed.
-                    <br><br>
-                    Current WPM: ${calculateWPM()}
-                    <br>Do you wish to continue your security assessment?
-                    `,
-                    'Continue Assessment',
-                    () => {
-                        // Restore button action and continue game
-                        startButton.onclick = null; 
-                        startGame();
-                    }
-                );
-            }, PAUSE_INTERVAL);
-        }
+// ================================================================
+//  STAR FIELD
+// ================================================================
+(function() {
+    const stars = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const sz = Math.random() * 2.5 + 0.5;
+        s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*62}%;left:${Math.random()*100}%;animation-delay:${Math.random()*2}s;animation-duration:${1.5+Math.random()*2}s;`;
+        stars.appendChild(s);
+    }
+})();
 
-        function endGame() {
-            clearTimeout(gameState.pauseTimer);
-            
-            pauseGame(
-                `
-                **ASSESSMENT COMPLETE!**
-                <br>You have reviewed all the CySA+ statements.
-                <br><br>
-                **Sentences Completed:** ${Math.max(0, gameState.sentenceIndex)}
-                <br>**Final Accuracy:** ${calculateAccuracy()}%
-                <br>**Avg. WPM:** **${calculateWPM()}**
-                `,
-                'Restart Assessment',
-                restartGame
-            );
-        }
-        
-        // --- CALCULATION FUNCTIONS ---
+// ================================================================
+//  ROAD DASHES
+// ================================================================
+(function() {
+    for (let x = 0; x < 960 * 2; x += 120) {
+        const d = document.createElement('div');
+        d.className = 'road-dash';
+        d.style.left = x + 'px';
+        roadDashes.appendChild(d);
+    }
+})();
 
-        function calculateAccuracy() {
-            if (gameState.totalTypedCharacters === 0) return 100;
-            return Math.max(0, Math.floor((gameState.totalCorrectCharacters / gameState.totalTypedCharacters) * 100));
-        }
+// ================================================================
+//  UTILITY
+// ================================================================
+function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        function calculateWPM() {
-            if (gameState.startTime === 0 || gameState.totalCorrectCharacters === 0) return 0;
-            
-            const elapsedTimeMinutes = (Date.now() - gameState.startTime) / 60000;
-            const wpm = (gameState.totalCorrectCharacters / CHARACTER_PER_WORD) / elapsedTimeMinutes;
+function genRandom(chars, len=34) {
+    let r='';
+    while(r.length < len){
+        const wl = Math.floor(Math.random()*4)+2;
+        for(let i=0;i<wl&&r.length<len;i++) r += chars[Math.floor(Math.random()*chars.length)];
+        if(r.length<len) r+=' ';
+    }
+    return r.trimEnd();
+}
 
-            return Math.floor(wpm);
-        }
+function genWords(words, len=34) {
+    const pool=[...words].sort(()=>Math.random()-0.5);
+    let r='';
+    for(const w of pool){
+        if(!r) r=w;
+        else if(r.length+1+w.length<=len) r+=' '+w;
+        if(r.length>=len-4) break;
+    }
+    return r;
+}
 
-        function updateStats() {
-            gameState.wpm = calculateWPM();
-            const accuracy = calculateAccuracy();
+function calcWPM() {
+    if(!gs.startTime||!gs.correctChars) return 0;
+    return Math.floor((gs.correctChars/CHAR_PER_WORD)/((Date.now()-gs.startTime)/60000));
+}
+function calcAcc() {
+    if(!gs.totalChars) return 100;
+    return Math.max(0,Math.floor((gs.correctChars/gs.totalChars)*100));
+}
 
-            scoreDisplay.textContent = `Sentences: ${gameState.score}`; 
-            accuracyDisplay.textContent = `Accuracy: ${accuracy}%`;
-            missedDisplay.textContent = `Errors: ${gameState.errors}`;
-            wpmDisplay.textContent = `WPM: ${gameState.wpm}`;
+function updateStats() {
+    const lv = LEVELS[gs.levelIdx];
+    gs.wpm = calcWPM();
+    gs.baseSpeed = Math.max(18, gs.wpm * SPEED_MPX / 60);
+    levelVal.textContent = gs.levelIdx+1;
+    lineVal.textContent  = `${gs.linesThisLevel} / ${lv.linesRequired}`;
+    progFill.style.width = ((gs.linesThisLevel/lv.linesRequired)*100)+'%';
+    wpmVal.textContent   = gs.wpm;
+    accVal.textContent   = calcAcc()+'%';
+    scoreVal.textContent = gs.totalScore;
+    topVal.textContent   = gs.topScore;
+}
 
-            // Calculate base speed based on WPM
-            gameState.baseSpeed = gameState.wpm * TRAIN_SPEED_MULTIPLIER;
-        }
-        
-        function loadNextSentence() {
-            if (gameState.sentenceIndex >= gameState.shuffledSentences.length) {
-                endGame();
-                return;
-            }
+// ================================================================
+//  KEY CAPS
+// ================================================================
+function buildKeyCaps(container, all, newKeys) {
+    container.innerHTML='';
+    all.forEach(c=>{
+        const cap=document.createElement('div');
+        cap.className='key-cap'+(newKeys.includes(c)?' new-key':'');
+        cap.textContent=c.toUpperCase();
+        container.appendChild(cap);
+    });
+}
+function refreshKeyDisplay(idx){
+    const lv=LEVELS[idx];
+    buildKeyCaps(keyDisplay, lv.chars.length?lv.chars:LEVELS[4].chars, lv.newChars);
+}
 
-            gameState.currentSentence = gameState.shuffledSentences[gameState.sentenceIndex].toLowerCase();
-            gameState.typedProgress = 0;
-            wordInput.value = '';
+// ================================================================
+//  RENDER SENTENCE
+// ================================================================
+function renderSentence(){
+    const {currentSentence:s, typedProgress:p}=gs;
+    const ok=s.substring(0,p), cur=s[p]||'', rest=s.substring(p+1);
+    let h='';
+    if(ok)   h+=`<span class="correct">${escapeHtml(ok)}</span>`;
+    if(cur)  h+=`<span class="cursor">${escapeHtml(cur)}</span>`;
+    else if(p===s.length) h+='<span class="cursor">&nbsp;</span>';
+    h+=escapeHtml(rest);
+    typingArea.innerHTML=h;
+}
 
-            renderCurrentSentence();
-            gameState.sentenceIndex++;
-            updateStats();
-        }
+// ================================================================
+//  SAUCER
+// ================================================================
+const PATROL = [120, 310, 530, 680];
+let patrolIdx = 0;
 
+function showSaucerTyping(){
+    gs.saucerX = PATROL[patrolIdx % PATROL.length];
+    patrolIdx++;
+    saucerEl.style.left = gs.saucerX+'px';
+    saucerEl.style.top  = '28px';
+    saucerEl.className  = 'hover';
+    gs.saucerVisible    = true;
+    placeBelowSaucer();
+    playSound('saucerHum', true);
+}
 
-        // --- UI FUNCTIONS ---
+function hideSaucer(){
+    saucerEl.className  = '';
+    saucerEl.style.top  = '-130px';
+    beamEl.classList.remove('active');
+    beamEl.style.height = '0';
+    gs.saucerVisible    = false;
+    stopSound('saucerHum');
+}
 
-        function renderCurrentSentence() {
-            const { currentSentence, typedProgress } = gameState;
-            const correctPart = currentSentence.substring(0, typedProgress);
-            let nextChar = currentSentence[typedProgress] || '';
-            const remainingPart = currentSentence.substring(typedProgress + 1);
+function placeBelowSaucer(){
+    const sx  = gs.saucerX;
+    const sy  = parseInt(saucerEl.style.top||'28');
+    beamEl.style.left   = (sx+55)+'px';
+    beamEl.style.top    = (sy+80)+'px';
+    beamEl.style.width  = '90px';
+    beamEl.style.height = Math.max(0, 480-sy-80-110)+'px';
+}
 
-            let html = '';
-            
-            // 1. Correct Part
-            if (correctPart.length > 0) {
-                 html += `<span class="correct">${correctPart}</span>`;
-            }
+// ================================================================
+//  GAME LOOP
+// ================================================================
+function gameLoop(){
+    if(gs.phase!=='typing') return;
 
-            // 2. Cursor/Next Character
-            if (nextChar) {
-                html += `<span class="cursor">${nextChar}</span>`;
-            } else if (typedProgress === currentSentence.length) {
-                // End of sentence - show a blinking block
-                html += `<span class="cursor">&nbsp;</span>`;
-            }
+    const now=Date.now(), delta=(now-gs.lastFrame)/1000;
+    gs.lastFrame=now;
 
-            // 3. Remaining Part
-            html += remainingPart;
+    if(gs.slowdownTimer>0){
+        gs.slowdownTimer-=delta*1000;
+        if(gs.slowdownTimer<=0){ gs.slowdownTimer=0; carEl.classList.remove('bump'); }
+    }
 
-            sentenceContainer.innerHTML = html;
-        }
+    let spd = gs.baseSpeed;
+    if(gs.slowdownTimer>0) spd*=0.15;
 
-        function gameLoop() {
-            if (!gameState.isRunning) return;
-            
-            const now = Date.now();
-            const deltaTime = (now - gameState.lastFrameTime) / 1000; 
-            gameState.lastFrameTime = now;
+    // Scroll road dashes
+    gs.roadOffset=(gs.roadOffset-spd*delta);
+    if(gs.roadOffset<=-120) gs.roadOffset+=120;
+    roadDashes.style.transform=`translateX(${gs.roadOffset}px)`;
 
-            // 1. Update Slowdown Timer
-            if (gameState.slowdownTimer > 0) {
-                gameState.slowdownTimer -= deltaTime * 1000;
-                if (gameState.slowdownTimer < 0) {
-                    gameState.slowdownTimer = 0;
-                    trainElement.classList.remove('bump-effect');
-                }
-            }
-            
-            // 2. Calculate Train Speed
-            let currentSpeed = gameState.baseSpeed;
-            if (gameState.slowdownTimer > 0) {
-                currentSpeed *= 0.1; 
-            }
+    // Parallax city
+    gs.cityOffset-=spd*0.25*delta;
+    if(gs.cityOffset<=-960) gs.cityOffset+=960;
+    cityLayer.style.backgroundPositionX=gs.cityOffset+'px';
 
-            // 3. Update Track Position
-            const trackWidth = trackElement.clientWidth;
-            const moveDistance = currentSpeed * deltaTime;
+    // Car X: advances right with typing speed, retreats on errors
+    const targetCarX = Math.max(80, Math.min(580, 80 + gs.wpm * 7));
+    gs.carX += (targetCarX - gs.carX) * Math.min(1, delta * 1.5);
+    if(gs.slowdownTimer > 0) gs.carX = Math.max(80, gs.carX - 100 * delta);
+    carEl.style.left = Math.round(gs.carX) + 'px';
 
-            gameState.trackPosition -= moveDistance;
+    // Idle bar
+    const idleElapsed = now - gs.lastKeyTime;
+    const idlePct     = Math.max(0,1-idleElapsed/IDLE_MS);
+    idleFill.style.width     = (idlePct*100)+'%';
+    idleFill.style.background = idlePct>0.45?'#4f4':idlePct>0.18?'#fa0':'#f44';
 
-            if (gameState.trackPosition <= -trackWidth / 3) {
-                 gameState.trackPosition = 0;
-            }
+    if(idleElapsed>=IDLE_MS && !gs.abducting){
+        startAbduction();
+        return;
+    }
 
-            trackElement.style.transform = `translateX(${gameState.trackPosition}px)`;
+    updateStats();
+    gs.raf = requestAnimationFrame(gameLoop);
+}
 
-            // 4. Update Stats
-            updateStats();
+// ================================================================
+//  ABDUCTION (idle timeout)
+// ================================================================
+function startAbduction(){
+    gs.abducting = true;
+    gs.phase     = 'gameover';
+    cancelAnimationFrame(gs.raf);
+    wordInput.disabled = true;
+    stopSound('engine');
+    stopSound('bgMusic');
 
-            // 5. Continue Loop
-            gameState.animationFrame = requestAnimationFrame(gameLoop);
-        }
+    // Move saucer over the car
+    gs.saucerX = carEl.offsetLeft - 10;
+    saucerEl.style.left = gs.saucerX+'px';
+    saucerEl.style.top  = '28px';
+    saucerEl.className  = '';
+    placeBelowSaucer();
+    beamEl.classList.add('active');
+    playSound('beamOn');
 
-        // --- EVENT HANDLERS ---
+    setTimeout(()=>{
+        carEl.classList.add('abducted');
+        playSound('abduct');
+    }, 900);
 
-        function handleInput(event) {
-            if (!gameState.isRunning || !gameState.currentSentence) {
-                wordInput.value = '';
-                return;
-            }
+    setTimeout(()=>{
+        carEl.style.display = 'none';
+        beamEl.classList.remove('active');
+        hideSaucer();
+        // Show walker
+        walkerEl.style.display = 'block';
+        walkerEl.classList.add('walk-off');
+        playSound('gameOver');
+    }, 2700);
 
-            const currentInput = event.target.value.toLowerCase();
-            const targetSentence = gameState.currentSentence;
-            
-            let matchLength = 0;
-            let isMismatch = false;
+    setTimeout(showGameOver, 5500);
+}
 
-            // 1. Check for correct character match
-            for (let i = 0; i < currentInput.length; i++) {
-                if (currentInput[i] === targetSentence[i]) {
-                    matchLength++;
-                } else {
-                    isMismatch = true;
-                    break; 
-                }
-            }
-            
-            // 2. Update character stats
-            if (currentInput.length > gameState.typedProgress) {
-                 gameState.totalTypedCharacters++; 
-                if (!isMismatch) {
-                    gameState.totalCorrectCharacters++;
-                }
-            }
-            
-            // 3. Handle Mismatch (The Bump)
-            if (isMismatch) {
-                // Revert the input field to the last correct sequence
-                const correctPart = targetSentence.substring(0, matchLength);
-                wordInput.value = correctPart;
-                
-                // Trigger the slowdown and visual bump
-                gameState.errors++;
-                gameState.slowdownTimer = ERROR_SLOWDOWN_TIME;
-                trainElement.classList.add('bump-effect');
-            } 
-            
-            // 4. Update Progress and UI
-            gameState.typedProgress = matchLength;
-            renderCurrentSentence();
+// ================================================================
+//  GAME OVER
+// ================================================================
+function showGameOver(){
+    if(gs.totalScore > gs.topScore){
+        gs.topScore = gs.totalScore;
+        localStorage.setItem('homeRowTop', gs.topScore);
+    }
+    walkerEl.style.display='none';
+    walkerEl.className='';
+    carEl.style.display='';
+    carEl.className='';
+    carEl.style.transform='';
+    carEl.style.opacity='';
 
-            // 5. Check for completion
-            if (matchLength === targetSentence.length) {
-                gameState.score++; // Increment completed sentence count
-                loadNextSentence(); 
-            }
-            
-            // Keep input focused
-            wordInput.focus();
-        }
-        
-        // --- INITIALIZATION ---
-        startButton.addEventListener('click', restartGame); // Initially sets up the game
-        wordInput.addEventListener('input', handleInput);
-        
-        document.addEventListener('keydown', () => {
-             if (gameState.isRunning) {
-                wordInput.focus();
-            }
-        });
-        
-        // Initial setup
+    overlayMsg.innerHTML=`
+        <em style="color:#f77;font-size:1.15em">The saucer got you!</em><br><br>
+        <div class="score-row">
+            <div class="score-box"><div class="sb-label">This Run</div><div class="sb-value" style="color:#7df">${gs.totalScore}</div></div>
+            <div class="score-box"><div class="sb-label">Best Score</div><div class="sb-value" style="color:#f1c40f">${gs.topScore}</div></div>
+        </div><br>
+        Level reached: <strong>${gs.levelIdx+1}</strong> &nbsp;|&nbsp;
+        Accuracy: <strong>${calcAcc()}%</strong> &nbsp;|&nbsp;
+        WPM: <strong>${calcWPM()}</strong>
+    `;
+    overlayKeys.innerHTML='';
+    startBtn.textContent='Play Again';
+    startBtn.onclick=()=>startGame(0,true);
+    overlay.style.display='flex';
+}
+
+// ================================================================
+//  SHOOT PHASE
+// ================================================================
+function startShootPhase(){
+    gs.phase = 'shooting';
+    wordInput.disabled = true;
+    typingArea.innerHTML = '';
+    keyDisplay.innerHTML = '';
+
+    // Position saucer — pure JS control, no CSS animations
+    gs.saucerX = 450;
+    gs.saucerY = 28;
+    saucerEl.className = '';
+    saucerEl.style.left = gs.saucerX + 'px';
+    saucerEl.style.top  = gs.saucerY + 'px';
+
+    stopSound('engine');
+    stopSound('bgMusic');
+    playSound('saucerHum', true);
+    playSound('shootMusic', true);
+
+    // rAF loop: saucer creeps down when not shot at
+    let shootLastFrame = Date.now();
+    function saucerCreep(){
+        if(gs.phase !== 'shooting') return;
+        const now = Date.now();
+        const dt  = (now - shootLastFrame) / 1000;
+        shootLastFrame = now;
+        gs.saucerY = Math.min(290, gs.saucerY + 7 * dt);
+        const bob = Math.sin(now / 500) * 5;
+        saucerEl.style.top  = (gs.saucerY + bob) + 'px';
+        beamEl.style.top    = (gs.saucerY + bob + 80) + 'px';
+        beamEl.style.left   = (gs.saucerX + 55) + 'px';
+        gs._saucerRaf = requestAnimationFrame(saucerCreep);
+    }
+    gs._saucerRaf = requestAnimationFrame(saucerCreep);
+
+    // Countdown + score banner
+    let shootScore = 0;
+    const endTime  = Date.now() + SHOOT_DURATION_MS;
+    function updateBanner(){
+        if(gs.phase !== 'shooting') return;
+        const secsLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+        shootBanner.innerHTML = `SPACE = fire &nbsp;|&nbsp; Arrows = dodge &nbsp;|&nbsp; <span style="color:#7f7">+${shootScore} pts</span> &nbsp;<span style="color:#f77">${secsLeft}s</span>`;
+    }
+    shootBanner.style.display = 'block';
+    updateBanner();
+    const bannerInterval = setInterval(()=>{
+        if(gs.phase !== 'shooting'){ clearInterval(bannerInterval); return; }
+        // +1 point per second survived
+        gs.totalScore++; shootScore++;
         updateStats();
+        updateBanner();
+    }, 1000);
 
-    </script>
+    let fireReady = true;
+    const handler = (e) => {
+        if(gs.phase !== 'shooting') return;
+        if(e.code === 'ArrowLeft'){
+            e.preventDefault();
+            gs.carX = Math.max(30, gs.carX - 55);
+            carEl.style.left = Math.round(gs.carX) + 'px';
+        } else if(e.code === 'ArrowRight'){
+            e.preventDefault();
+            gs.carX = Math.min(700, gs.carX + 55);
+            carEl.style.left = Math.round(gs.carX) + 'px';
+        } else if(e.code === 'Space'){
+            e.preventDefault();
+            if(!fireReady) return;
+            fireReady = false;
+            setTimeout(()=>{ fireReady = true; }, 200);
+            playSound('ballFire');
+            fireBall(()=>{
+                // Push saucer back up
+                gs.saucerY = Math.max(28, gs.saucerY - 80);
+                // Drift saucer X slightly so it keeps moving
+                gs.saucerX = Math.max(200, Math.min(scene.offsetWidth - 220,
+                    gs.saucerX + (Math.random() * 100 - 50)));
+                saucerEl.style.left = gs.saucerX + 'px';
+                saucerEl.classList.remove('pushed');
+                void saucerEl.offsetWidth;
+                saucerEl.classList.add('pushed');
+                playSound('ballHit');
+                shootScore += 25;
+                gs.totalScore += 25;
+                updateStats();
+                updateBanner();
+            });
+        }
+    };
+    document.addEventListener('keydown', handler);
+    gs._shootHandler = handler;
+
+    // Hard 30-second end
+    gs._shootTimer = setTimeout(()=>{
+        clearInterval(bannerInterval);
+        if(gs.phase === 'shooting') endShootPhase();
+    }, SHOOT_DURATION_MS);
+}
+
+function fireBall(onHit){
+    const ball = document.createElement('div');
+    ball.className='ball';
+    const sx=carEl.offsetLeft + carEl.offsetWidth*0.65;
+    const sy=carEl.offsetTop  + 15;
+    ball.style.left=sx+'px';
+    ball.style.top=sy+'px';
+    scene.appendChild(ball);
+
+    const tx=gs.saucerX+90;
+    const ty=parseInt(saucerEl.style.top||'28')+50;
+    const dx=tx-sx, dy=ty-sy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const dur=dist/660;  // 660px/s
+    let start=null;
+
+    function step(ts){
+        if(!start) start=ts;
+        const t=Math.min(1,(ts-start)/(dur*1000));
+        ball.style.left=(sx+dx*t)+'px';
+        ball.style.top =(sy+dy*t)+'px';
+        if(t<1) requestAnimationFrame(step);
+        else{ ball.remove(); onHit(); }
+    }
+    requestAnimationFrame(step);
+}
+
+function endShootPhase(){
+    if(gs._shootHandler){
+        document.removeEventListener('keydown',gs._shootHandler);
+        gs._shootHandler=null;
+    }
+    if(gs._shootTimer){ clearTimeout(gs._shootTimer); gs._shootTimer=null; }
+    if(gs._saucerRaf){ cancelAnimationFrame(gs._saucerRaf); gs._saucerRaf=null; }
+    document.querySelectorAll('.ball').forEach(b=>b.remove());
+    shootBanner.style.display='none';
+    stopSound('saucerHum');
+    stopSound('shootMusic');
+    hideSaucer();
+    playSound('levelUp');
+
+    const nextIdx=gs.levelIdx+1;
+    if(nextIdx>=LEVELS.length) showAllComplete();
+    else showBetweenLevels(nextIdx);
+}
+
+// ================================================================
+//  BETWEEN LEVELS OVERLAY
+// ================================================================
+function showBetweenLevels(nextIdx){
+    const next=LEVELS[nextIdx];
+    const isLast=nextIdx===LEVELS.length-1;
+    overlayMsg.innerHTML=`
+        <strong>Level ${gs.levelIdx+1} cleared!</strong><br>
+        ${isLast?'Final level':'Next'}: <strong>${next.description}</strong><br><br>
+        Accuracy: <strong>${calcAcc()}%</strong> &nbsp;|&nbsp; WPM: <strong>${calcWPM()}</strong><br>
+        Score: <strong>${gs.totalScore}</strong><br><br>
+        <small style="color:#88f">(New keys highlighted in yellow)</small>
+    `;
+    const all=next.chars.length?next.chars:LEVELS[4].chars;
+    buildKeyCaps(overlayKeys,all,next.newChars);
+    startBtn.textContent=`Start Level ${nextIdx+1}`;
+    startBtn.onclick=()=>{
+        gs.linesThisLevel=0;
+        startGame(nextIdx,false);
+    };
+    overlay.style.display='flex';
+}
+
+function showAllComplete(){
+    if(gs.totalScore>gs.topScore){
+        gs.topScore=gs.totalScore;
+        localStorage.setItem('homeRowTop',gs.topScore);
+    }
+    topVal.textContent=gs.topScore;
+    overlayMsg.innerHTML=`
+        <strong style="color:#f1c40f;font-size:1.25em"><img src="images/icon_trophy.png" class="title-icon" alt=""> All Levels Complete!</strong><br><br>
+        You mastered every home row key!<br><br>
+        <div class="score-row">
+            <div class="score-box"><div class="sb-label">Final Score</div><div class="sb-value" style="color:#7df">${gs.totalScore}</div></div>
+            <div class="score-box"><div class="sb-label">Best Score</div><div class="sb-value" style="color:#f1c40f">${gs.topScore}</div></div>
+        </div><br>
+        Accuracy: <strong>${calcAcc()}%</strong> &nbsp;|&nbsp; WPM: <strong>${calcWPM()}</strong>
+    `;
+    overlayKeys.innerHTML='';
+    startBtn.textContent='Play Again';
+    startBtn.onclick=()=>startGame(0,true);
+    overlay.style.display='flex';
+}
+
+// ================================================================
+//  START GAME
+// ================================================================
+function startGame(levelIdx, isNewGame){
+    cancelAnimationFrame(gs.raf);
+    if(isNewGame){
+        gs.errors=0; gs.totalChars=0; gs.correctChars=0;
+        gs.startTime=0; gs.totalScore=0; gs.linesThisLevel=0;
+        gs.abducting=false; patrolIdx=0;
+        carEl.style.display=''; carEl.className='';
+        carEl.style.transform=''; carEl.style.opacity='';
+        walkerEl.style.display='none'; walkerEl.className='';
+    }
+    gs.levelIdx    = levelIdx;
+    gs.phase       = 'typing';
+    gs.lastFrame   = Date.now();
+    gs.lastKeyTime = Date.now();
+    if(!gs.startTime) gs.startTime = Date.now();
+    gs.carX        = 120;
+
+    refreshKeyDisplay(levelIdx);
+    showSaucerTyping();
+    overlay.style.display='none';
+    wordInput.disabled=false;
+    wordInput.value='';
+    wordInput.focus();
+    playSound('bgMusic', true);
+    playSound('engine', true);
+    loadNextLine();
+    gs.raf=requestAnimationFrame(gameLoop);
+}
+
+// ================================================================
+//  LOAD LINE
+// ================================================================
+function loadNextLine(){
+    const lv=LEVELS[gs.levelIdx];
+    gs.currentSentence = lv.type==='words' ? genWords(lv.words) : genRandom(lv.chars);
+    gs.typedProgress=0;
+    wordInput.value='';
+    renderSentence();
+    updateStats();
+}
+
+// ================================================================
+//  INPUT
+// ================================================================
+function handleInput(e){
+    if(gs.phase!=='typing'||!gs.currentSentence){ wordInput.value=''; return; }
+
+    const inp=e.target.value.toLowerCase();
+    const tgt=gs.currentSentence;
+    let match=0, bad=false;
+    for(let i=0;i<inp.length;i++){
+        if(inp[i]===tgt[i]) match++;
+        else { bad=true; break; }
+    }
+
+    if(inp.length>gs.typedProgress){
+        gs.totalChars++;
+        if(!bad) gs.correctChars++;
+    }
+
+    if(bad){
+        wordInput.value=tgt.substring(0,match);
+        gs.errors++;
+        gs.slowdownTimer=ERROR_SLOW_MS;
+        carEl.classList.remove('bump');
+        void carEl.offsetWidth;
+        carEl.classList.add('bump');
+        playSound('error');
+    } else {
+        playSound('keyClick');
+    }
+
+    gs.typedProgress=match;
+    gs.lastKeyTime=Date.now();
+    renderSentence();
+
+    if(match===tgt.length){
+        gs.linesThisLevel++;
+        gs.totalScore+=SCORE_PER_LINE+gs.wpm;
+        updateStats();
+        if(gs.linesThisLevel>=LEVELS[gs.levelIdx].linesRequired){
+            gs.phase='transition';
+            cancelAnimationFrame(gs.raf);
+            wordInput.disabled=true;
+            stopSound('engine');
+            setTimeout(startShootPhase,350);
+        } else {
+            loadNextLine();
+        }
+    }
+    wordInput.focus();
+}
+
+// ================================================================
+//  FOCUS KEEP + INIT
+// ================================================================
+document.addEventListener('keydown', ()=>{ if(gs.phase==='typing') wordInput.focus(); });
+
+buildKeyCaps(overlayKeys, LEVELS[0].chars, LEVELS[0].newChars);
+updateStats();
+topVal.textContent=gs.topScore;
+startBtn.onclick=()=>startGame(0,true);
+wordInput.addEventListener('input', handleInput);
+</script>
 </body>
 </html>
