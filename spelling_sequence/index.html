@@ -176,7 +176,7 @@
             background: #fff;
             font-size: clamp(1.4rem, 6vw, 2.1rem);
             font-weight: 800;
-            touch-action: manipulation;
+            touch-action: none;
             user-select: none;
             -webkit-user-select: none;
         }
@@ -620,6 +620,7 @@
                 ghost: ghost
             };
 
+            btn.setPointerCapture(event.pointerId);
             updatePointerGhost(event.clientX, event.clientY);
             updatePointerDropTarget(event.clientX, event.clientY);
         }
@@ -730,7 +731,7 @@
             nextBtn.addEventListener("click", () => startRound(true));
             document.addEventListener("pointermove", handlePointerMove, { passive: false });
             document.addEventListener("pointerup", finishPointerDrag, { passive: false });
-            document.addEventListener("pointercancel", finishPointerDrag, { passive: false });
+            document.addEventListener("pointercancel", clearPointerDrag, { passive: false });
             winOverlay.addEventListener("click", (e) => {
                 if (e.target === winOverlay) {
                     winOverlay.classList.remove("show");
