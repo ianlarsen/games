@@ -103,6 +103,24 @@ const Engine = (() => {
     return pool.slice(0, Math.min(count, pool.length));
   }
 
+  // ── Build a daily challenge session (deterministic per calendar day) ──
+  // dateKey: 'YYYY-MM-DD' string — same key always returns the same questions.
+  function buildDailyChallenge(questions, dateKey) {
+    let seed = 0;
+    for (let i = 0; i < dateKey.length; i++) seed += dateKey.charCodeAt(i);
+    function nextInt(max) {
+      seed = (seed * 9301 + 49297) % 233280;
+      return Math.floor((seed / 233280) * max);
+    }
+    const domainIds = ['evaluation', 'foundations', 'intervention', 'pediatrics', 'mental_health', 'professional'];
+    const result = [];
+    domainIds.forEach(domainId => {
+      const pool = questions.filter(q => q.domain === domainId);
+      if (pool.length > 0) result.push(pool[nextInt(pool.length)]);
+    });
+    return result;
+  }
+
   // ── Calculate per-domain and overall mastery ─────────────────
   function calcMastery(cardStatesMap, questions) {
     const domainTotals   = {};
@@ -190,6 +208,10 @@ const Engine = (() => {
     { id: 'perfect_session',name: 'Perfect Session',icon: '', img: 'assets/badges/perfect_session.png',description: 'Answered all questions correctly in a session'       },
     { id: 'domain_1',       name: 'Eval Expert',    icon: '', img: 'assets/badges/domain_1.png',       description: 'Mastered the Evaluation & Assessment domain'         },
     { id: 'domain_2',       name: 'Knowledge Base', icon: '', img: 'assets/badges/domain_2.png',       description: 'Mastered the Foundational Knowledge domain'          },
+    { id: 'daily_7',        name: 'Daily Devotee',  icon: '🔥', img: 'assets/badges/daily_7.png',      description: 'Completed 7 Daily Challenges'                        },
+    { id: 'blitz_20',       name: 'Speed Demon',    icon: '⚡', img: 'assets/badges/blitz_20.png',     description: 'Scored 20+ in a 60-Second Blitz'                     },
+    { id: 'streak_10',      name: 'On a Roll',      icon: '🎯', img: 'assets/badges/streak_10.png',    description: '10 correct answers in a row (Streak Run)'            },
+    { id: 'nemesis_slayer', name: 'Nemesis Slayer', icon: '💀', img: 'assets/badges/nemesis_slayer.png',description: 'Defeated your first Nemesis question'                },
   ];
 
   function checkNewBadges(stats, existingBadges) {
@@ -211,6 +233,10 @@ const Engine = (() => {
       overall = 0,
       byDomain = {},
       lastSessionPerfect = false,
+      dailyChallengeTotal = 0,
+      blitzHighScore = 0,
+      streakRunBest = 0,
+      nemesisDefeated = false,
     } = stats;
 
     if (totalAnswered >= 1)    add('first_question');
@@ -228,8 +254,21 @@ const Engine = (() => {
 
     if ((byDomain.evaluation  || 0) >= 100) add('domain_1');
     if ((byDomain.foundations || 0) >= 100) add('domain_2');
+    if (dailyChallengeTotal >= 7)  add('daily_7');
+    if (blitzHighScore >= 20)       add('blitz_20');
+    if (streakRunBest >= 10)        add('streak_10');
+    if (nemesisDefeated)            add('nemesis_slayer');
 
     return newBadges;
+  }
+
+  // ── Nemesis detection ─────────────────────────────────────────
+  // A question is a nemesis if it has been answered incorrectly 3+ times
+  // and the last attempt was also wrong.
+  function isNemesis(cardState) {
+    if (!cardState) return false;
+    const wrong = (cardState.attempts || 0) - (cardState.correctCount || 0);
+    return wrong >= 3;
   }
 
   // ── Utility ───────────────────────────────────────────────────
@@ -247,10 +286,12 @@ const Engine = (() => {
     gradeCard,
     buildSession,
     buildTestSession,
+    buildDailyChallenge,
     calcMastery,
     getDueCount,
     calcStreak,
     checkNewBadges,
+    isNemesis,
     shuffle,
     BADGE_DEFS,
   };

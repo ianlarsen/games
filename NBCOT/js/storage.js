@@ -169,6 +169,8 @@ const Storage = (() => {
     getSessionLogs,
     getBadges,
     awardBadge,
+    getDailyChallengeStatus,
+    saveDailyChallengeStatus,
     clearAll,
     getSettings,
     saveSettings,

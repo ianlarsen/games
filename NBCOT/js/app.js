@@ -9,15 +9,17 @@ const App = (() => {
   //  APPLICATION STATE
   // ──────────────────────────────────────────────────────────
   const state = {
-    user:        null,         // { name, createdAt, settings }
-    cardStates:  {},           // { [questionId]: CardState }
-    sessions:    [],           // session logs array
-    badges:      [],           // earned badge objects
-    mastery:     { overall: 0, byDomain: {} },
-    streak:      0,
-    currentView: 'home',       // active nav tab
-    session:     null,         // active study session
-    settings:    Storage.getDefaultSettings(),
+    user:           null,
+    cardStates:     {},
+    sessions:       [],
+    badges:         [],
+    mastery:        { overall: 0, byDomain: {} },
+    streak:         0,
+    currentView:    'home',
+    session:        null,
+    settings:       Storage.getDefaultSettings(),
+    dailyChallenge: { lastCompletedDate: null, totalCompleted: 0 },
+    gameStats:      { blitzHighScore: 0, streakRunBest: 0, nemesisDefeated: false },
   };
 
   // ──────────────────────────────────────────────────────────
@@ -50,11 +52,17 @@ const App = (() => {
       Storage.getBadges(),
     ]);
 
-    state.user       = user  || null;
-    state.cardStates = cardStatesMap || {};
-    state.sessions   = sessions || [];
-    state.badges     = badges  || [];
-    state.settings   = (user && user.settings) ? user.settings : Storage.getDefaultSettings();
+    state.user           = user  || null;
+    state.cardStates     = cardStatesMap || {};
+    state.sessions       = sessions || [];
+    state.badges         = badges  || [];
+    state.settings       = (user && user.settings) ? user.settings : Storage.getDefaultSettings();
+    state.dailyChallenge = (user && user.dailyChallenge)
+      ? user.dailyChallenge
+      : { lastCompletedDate: null, totalCompleted: 0 };
+    state.gameStats = (user && user.gameStats)
+      ? user.gameStats
+      : { blitzHighScore: 0, streakRunBest: 0, nemesisDefeated: false };
 
     recalcStats();
   }
@@ -140,6 +148,7 @@ const App = (() => {
       return `
         ${Views._homeHeader()}
         ${Views._masteryCard(mastery.overall, studied, total, state.streak)}
+        ${Views._dailyChallengeCard()}
         ${Views._sessionCTA(dueCount)}
         <div class="home-section-title">Domain Progress</div>
         <div class="domain-list">${DOMAINS.map(d =>
@@ -217,6 +226,28 @@ const App = (() => {
       `;
     },
 
+    _dailyChallengeCard() {
+      const dateKey   = getDayKey();
+      const completed = state.dailyChallenge.lastCompletedDate === dateKey;
+      const total     = state.dailyChallenge.totalCompleted || 0;
+      return `
+        <div class="daily-challenge-card${completed ? ' completed' : ''}"
+             ${completed ? '' : 'onclick="App.startDailyChallenge()"'}
+             role="button" aria-label="Daily Challenge">
+          <div class="dc-left">
+            <div class="dc-icon">${completed ? iconCheck() : iconFlame()}</div>
+            <div class="dc-info">
+              <div class="dc-title">${completed ? "Today's Challenge Complete!" : 'Daily Challenge'}</div>
+              <div class="dc-sub">${completed
+                ? `${total} completed total`
+                : '6 questions &middot; One from each domain'}</div>
+            </div>
+          </div>
+          <div class="dc-cta${completed ? ' dc-done' : ''}">${completed ? iconCheck() : 'Go!'}</div>
+        </div>
+      `;
+    },
+
     _domainRow(domain, pct, total) {
       const studied = Object.values(state.cardStates)
         .filter(s => {
@@ -273,6 +304,20 @@ const App = (() => {
             'Timed 50-question full-length exam',
             'btn-secondary', "App.startPracticeTest()")}
 
+          <div class="home-section-title" style="padding:var(--space-4) 0 var(--space-2)">Arcade Modes</div>
+
+          ${Views._modeCard(iconLightning(), '60-Second Blitz',
+            `Answer as many as you can before time runs out · Best: ${state.gameStats.blitzHighScore}`,
+            'btn-accent', "App.startBlitz()")}
+
+          ${Views._modeCard(iconFlame(), 'Endless Streak Run',
+            `How many in a row can you get? · Best: ${state.gameStats.streakRunBest}`,
+            'btn-accent', "App.startStreakRun()")}
+
+          ${Views._modeCard(iconSpin(), 'Spin the Wheel',
+            'Spin for a random domain challenge',
+            'btn-accent', "App.showDomainWheel()")}
+
           <div class="home-section-title" style="padding:var(--space-4) 0 var(--space-3)">Study by Domain</div>
           <div class="domain-list">
             ${DOMAINS.map(d => {
@@ -316,12 +361,14 @@ const App = (() => {
         return Views.sessionComplete();
       }
 
-      const q       = sess.questions[sess.questionIndex];
-      const total   = sess.questions.length;
-      const current = sess.questionIndex + 1;
-      const domain  = DOMAINS.find(d => d.id === q.domain);
-      const pct     = Math.round((current - 1) / total * 100);
-      const elapsed = elapsedLabel(sess.questionStartTime);
+      const q          = sess.questions[sess.questionIndex];
+      const total      = sess.questions.length;
+      const current    = sess.questionIndex + 1;
+      const domain     = DOMAINS.find(d => d.id === q.domain);
+      const pct        = Math.round((current - 1) / total * 100);
+      const elapsed    = elapsedLabel(sess.questionStartTime);
+      const cardState  = state.cardStates[q.id];
+      const isNemesis  = Engine.isNemesis(cardState);
 
       return `
         <div class="study-screen">
@@ -337,6 +384,7 @@ const App = (() => {
           </div>
 
           <div class="question-body">
+            ${isNemesis ? '<div class="nemesis-banner">💀 NEMESIS QUESTION</div>' : ''}
             <div class="question-domain-chip"
                  style="background:${domain ? domain.color + '22' : '#eee'};color:${domain ? domain.color : '#666'}">
               ${domain ? domain.label : q.domain}
@@ -365,6 +413,131 @@ const App = (() => {
       `;
     },
 
+    // ── BLITZ SESSION ─────────────────────────────────────
+    blitzSession() {
+      const sess = state.session;
+      if (!sess) return '';
+      const q      = sess.questions[sess.questionIndex % sess.questions.length];
+      const domain = DOMAINS.find(d => d.id === q.domain);
+      return `
+        <div class="blitz-screen">
+          <div class="blitz-header">
+            <div class="blitz-timer-wrap">
+              <svg class="blitz-ring" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
+                <circle cx="22" cy="22" r="18" fill="none" stroke="#fff" stroke-width="4"
+                  stroke-dasharray="113.1" stroke-dashoffset="0"
+                  stroke-linecap="round" id="blitz-ring-fill"
+                  style="transform:rotate(-90deg);transform-origin:50% 50%"/>
+              </svg>
+              <div class="blitz-seconds" id="blitz-seconds">60</div>
+            </div>
+            <div class="blitz-score-wrap">
+              <div class="blitz-score" id="blitz-score">${sess.blitzScore || 0}</div>
+              <div class="blitz-score-lbl">correct</div>
+            </div>
+            <button class="close-btn" onclick="App.endBlitz()" aria-label="End blitz">${iconXMark()}</button>
+          </div>
+          <div class="question-body" style="padding-top:var(--space-3)">
+            <div class="question-domain-chip"
+                 style="background:${domain ? domain.color+'22' : '#eee'};color:${domain ? domain.color : '#666'}">
+              ${domain ? domain.label : q.domain}
+            </div>
+            <div class="question-stem" id="blitz-stem">${escHtml(q.stem)}</div>
+            <div class="options-list" id="blitz-options">
+              ${q.options.map((opt, i) => `
+                <button class="option-btn" id="bopt-${i}" onclick="App.blitzAnswer(${i})">
+                  ${escHtml(opt)}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          <div id="blitz-feedback" class="blitz-feedback"></div>
+        </div>
+      `;
+    },
+
+    // ── STREAK RUN SESSION ────────────────────────────────
+    streakRunSession() {
+      const sess = state.session;
+      if (!sess) return '';
+      const q       = sess.questions[sess.questionIndex];
+      const domain  = DOMAINS.find(d => d.id === q.domain);
+      const current = sess.streakCurrent || 0;
+      return `
+        <div class="streak-run-screen">
+          <div class="sr-header">
+            <button class="close-btn" onclick="App.endStreakRun()" aria-label="End">${iconXMark()}</button>
+            <div class="sr-title">🔥 Streak Run</div>
+            <div class="sr-counter">
+              <span class="sr-current" id="sr-count">${current}</span>
+              <span class="sr-best">best ${sess.streakBest || 0}</span>
+            </div>
+          </div>
+          <div class="question-body">
+            <div class="question-domain-chip"
+                 style="background:${domain ? domain.color+'22' : '#eee'};color:${domain ? domain.color : '#666'}">
+              ${domain ? domain.label : q.domain}
+            </div>
+            <div class="question-stem">${escHtml(q.stem)}</div>
+            <div class="options-list" id="sr-options">
+              ${q.options.map((opt, i) => `
+                <button class="option-btn" id="sropt-${i}" onclick="App.streakAnswer(${i})">
+                  ${escHtml(opt)}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          <div id="sr-feedback"></div>
+        </div>
+      `;
+    },
+
+    // ── DOMAIN WHEEL ──────────────────────────────────────
+    domainWheel() {
+      const sliceAngle = 360 / DOMAINS.length;
+      const slices = DOMAINS.map((d, i) => {
+        const startDeg = i * sliceAngle;
+        const midDeg   = startDeg + sliceAngle / 2;
+        const midRad   = (midDeg - 90) * Math.PI / 180;
+        const r = 110;
+        const cx = 130, cy = 130;
+        const x1 = cx + r * Math.cos((startDeg - 90) * Math.PI / 180);
+        const y1 = cy + r * Math.sin((startDeg - 90) * Math.PI / 180);
+        const endDeg = startDeg + sliceAngle;
+        const x2 = cx + r * Math.cos((endDeg - 90) * Math.PI / 180);
+        const y2 = cy + r * Math.sin((endDeg - 90) * Math.PI / 180);
+        const lx = cx + 72 * Math.cos(midRad);
+        const ly = cy + 72 * Math.sin(midRad);
+        return `
+          <path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 0,1 ${x2.toFixed(1)},${y2.toFixed(1)} Z"
+                fill="${d.color}" stroke="#fff" stroke-width="2"/>
+          <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+                fill="#fff" font-size="18" font-family="-apple-system,sans-serif">${d.icon}</text>
+        `;
+      }).join('');
+      return `
+        <div class="wheel-screen">
+          <button class="close-btn" onclick="App.navigate('study')" style="align-self:flex-start;margin-bottom:var(--space-3)">${iconXMark()}</button>
+          <h2 style="margin-bottom:var(--space-2)">Spin the Wheel</h2>
+          <p style="color:var(--color-text-muted);font-size:var(--font-size-sm);margin-bottom:var(--space-5)">Spin to get your domain challenge!</p>
+          <div class="wheel-wrap" id="wheel-wrap">
+            <div class="wheel-pointer">▼</div>
+            <div class="wheel-svg-wrap" id="wheel-svg-wrap">
+              <svg width="260" height="260" viewBox="0 0 260 260" id="wheel-svg">
+                ${slices}
+                <circle cx="130" cy="130" r="18" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="wheel-result" id="wheel-result"></div>
+          <button class="btn btn-accent btn-full" id="wheel-spin-btn" onclick="App.spinWheel()" style="margin-top:var(--space-5)">
+            Spin!
+          </button>
+        </div>
+      `;
+    },
+
     // ── SESSION COMPLETE ──────────────────────────────────
     sessionComplete() {
       const sess   = state.session;
@@ -377,9 +550,11 @@ const App = (() => {
         ? Math.round(sess.results.reduce((a, r) => a + r.timeTaken, 0) / total / 1000)
         : 0;
       const trophySvg = accuracy >= 80 ? iconTrophy() : accuracy >= 60 ? iconStar() : iconBook();
+      const isDaily   = sess.mode === 'daily';
 
       return `
         <div class="screen complete-screen">
+          ${isDaily ? `<div class="daily-complete-banner">${iconFlame()} Daily Challenge Complete!</div>` : ''}
           <div class="complete-trophy">${trophySvg}</div>
           <h2>${accuracy >= 80 ? 'Great Work!' : accuracy >= 60 ? 'Good Job!' : 'Keep Practicing!'}</h2>
           <p class="mt-2">${correct} of ${total} correct · ${accuracy}% accuracy</p>
@@ -871,10 +1046,332 @@ const App = (() => {
     renderSessionScreen();
   }
 
+  function startDailyChallenge() {
+    const dateKey = getDayKey();
+    if (state.dailyChallenge.lastCompletedDate === dateKey) {
+      showToast("You've already completed today's challenge! Come back tomorrow.");
+      return;
+    }
+    const qs = Engine.buildDailyChallenge(QUESTIONS, dateKey);
+    state.session = {
+      questions:         qs,
+      questionIndex:     0,
+      results:           [],
+      startedAt:         Date.now(),
+      questionStartTime: Date.now(),
+      movedUp:           0,
+      movedDown:         0,
+      mode:              'daily',
+      dateKey,
+    };
+    renderSessionScreen();
+  }
+
   function renderSessionScreen() {
     document.getElementById('bottom-nav').style.display = 'none';
     document.getElementById('main-content').innerHTML = Views.studySession();
     startQuestionTimer();
+  }
+
+  // ──────────────────────────────────────────────────────────
+  //  60-SECOND BLITZ
+  // ──────────────────────────────────────────────────────────
+  let blitzInterval = null;
+
+  function startBlitz() {
+    const pool = Engine.shuffle([...QUESTIONS]);
+    state.session = {
+      questions:     pool,
+      questionIndex: 0,
+      blitzScore:    0,
+      blitzTimeLeft: 60,
+      mode:          'blitz',
+    };
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('main-content').innerHTML = Views.blitzSession();
+    clearInterval(blitzInterval);
+    blitzInterval = setInterval(_blitzTick, 1000);
+  }
+
+  function _blitzTick() {
+    const sess = state.session;
+    if (!sess || sess.mode !== 'blitz') { clearInterval(blitzInterval); return; }
+    sess.blitzTimeLeft--;
+    const secEl = document.getElementById('blitz-seconds');
+    const ringEl = document.getElementById('blitz-ring-fill');
+    if (secEl) secEl.textContent = sess.blitzTimeLeft;
+    if (ringEl) {
+      const pct = sess.blitzTimeLeft / 60;
+      ringEl.style.strokeDashoffset = (113.1 * (1 - pct)).toFixed(1);
+      if (sess.blitzTimeLeft <= 10) ringEl.style.stroke = '#F87171';
+    }
+    if (sess.blitzTimeLeft <= 0) { clearInterval(blitzInterval); _blitzEnd(); }
+  }
+
+  function blitzAnswer(optionIndex) {
+    const sess = state.session;
+    if (!sess || sess.mode !== 'blitz') return;
+    const q       = sess.questions[sess.questionIndex % sess.questions.length];
+    const correct = optionIndex === q.correct;
+
+    const opts = document.querySelectorAll('#blitz-options .option-btn');
+    opts.forEach(b => { b.disabled = true; });
+    if (opts[optionIndex]) opts[optionIndex].classList.add(correct ? 'correct' : 'wrong');
+    if (!correct && opts[q.correct]) opts[q.correct].classList.add('correct');
+
+    const fb = document.getElementById('blitz-feedback');
+    if (fb) {
+      fb.textContent = correct ? '✓ Correct!' : '✗ Wrong';
+      fb.className   = 'blitz-feedback ' + (correct ? 'blitz-fb-correct' : 'blitz-fb-wrong');
+    }
+
+    if (correct) {
+      sess.blitzScore++;
+      Sound.play('correct');
+    } else {
+      Sound.play('incorrect');
+    }
+
+    setTimeout(() => {
+      sess.questionIndex++;
+      if (sess.blitzTimeLeft > 0) {
+        document.getElementById('main-content').innerHTML = Views.blitzSession();
+        clearInterval(blitzInterval);
+        blitzInterval = setInterval(_blitzTick, 1000);
+      }
+    }, 400);
+  }
+
+  function _blitzEnd() {
+    clearInterval(blitzInterval);
+    const sess = state.session;
+    if (!sess) return;
+    const score    = sess.blitzScore || 0;
+    const isNew    = score > (state.gameStats.blitzHighScore || 0);
+    if (isNew) { state.gameStats.blitzHighScore = score; saveGameStats(); }
+
+    const newBadges = Engine.checkNewBadges(
+      { ...buildBadgeStats(), blitzHighScore: state.gameStats.blitzHighScore },
+      state.badges
+    );
+    _awardBadges(newBadges);
+
+    document.getElementById('bottom-nav').style.display = 'flex';
+    state.currentView = 'study';
+    renderNav();
+    document.getElementById('main-content').innerHTML = `
+      <div class="screen complete-screen">
+        <div class="blitz-end-icon">⚡</div>
+        <h2>Time's Up!</h2>
+        <p class="mt-2" style="font-size:var(--font-size-lg)">You scored <strong>${score}</strong> correct</p>
+        ${isNew ? '<div class="new-record-badge">🏆 New High Score!</div>' : `<p style="color:var(--color-text-muted)">Best: ${state.gameStats.blitzHighScore}</p>`}
+        <div class="complete-stats-grid mt-6">
+          <div class="stat-card"><div class="val blue">${score}</div><div class="lbl">Correct</div></div>
+          <div class="stat-card"><div class="val">${state.gameStats.blitzHighScore}</div><div class="lbl">All-Time Best</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3);width:100%;margin-top:var(--space-5)">
+          <button class="btn btn-accent btn-full" onclick="App.startBlitz()">Play Again</button>
+          <button class="btn btn-secondary btn-full" onclick="App.navigate('study')">Back to Study</button>
+        </div>
+      </div>
+    `;
+    Sound.play('session-complete');
+    state.session = null;
+  }
+
+  function endBlitz() {
+    clearInterval(blitzInterval);
+    _blitzEnd();
+  }
+
+  // ──────────────────────────────────────────────────────────
+  //  ENDLESS STREAK RUN
+  // ──────────────────────────────────────────────────────────
+  function startStreakRun() {
+    const pool = Engine.shuffle([...QUESTIONS]);
+    state.session = {
+      questions:     pool,
+      questionIndex: 0,
+      mode:          'streakrun',
+      streakCurrent: 0,
+      streakBest:    state.gameStats.streakRunBest || 0,
+    };
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('main-content').innerHTML = Views.streakRunSession();
+  }
+
+  function streakAnswer(optionIndex) {
+    const sess = state.session;
+    if (!sess || sess.mode !== 'streakrun') return;
+    const q       = sess.questions[sess.questionIndex];
+    const correct = optionIndex === q.correct;
+
+    const opts = document.querySelectorAll('#sr-options .option-btn');
+    opts.forEach(b => { b.disabled = true; });
+    if (opts[optionIndex]) opts[optionIndex].classList.add(correct ? 'correct' : 'wrong');
+    if (!correct && opts[q.correct]) opts[q.correct].classList.add('correct');
+
+    if (correct) {
+      sess.streakCurrent++;
+      if (sess.streakCurrent > (sess.streakBest || 0)) sess.streakBest = sess.streakCurrent;
+      Sound.play('correct');
+      if (sess.streakCurrent > (state.gameStats.streakRunBest || 0)) {
+        state.gameStats.streakRunBest = sess.streakCurrent;
+        saveGameStats();
+      }
+      const fb = document.getElementById('sr-feedback');
+      if (fb) { fb.textContent = `🔥 ${sess.streakCurrent} in a row!`; fb.className = 'sr-feedback-correct'; }
+      setTimeout(() => {
+        sess.questionIndex++;
+        if (sess.questionIndex >= sess.questions.length) sess.questionIndex = 0;
+        document.getElementById('main-content').innerHTML = Views.streakRunSession();
+      }, 500);
+    } else {
+      Sound.play('incorrect');
+      const fb = document.getElementById('sr-feedback');
+      if (fb) { fb.textContent = `Streak ended at ${sess.streakCurrent}`; fb.className = 'sr-feedback-wrong'; }
+      setTimeout(() => _streakRunEnd(sess.streakCurrent, sess.streakBest), 1200);
+    }
+  }
+
+  function _streakRunEnd(finalStreak, best) {
+    const newBadges = Engine.checkNewBadges(
+      { ...buildBadgeStats(), streakRunBest: state.gameStats.streakRunBest },
+      state.badges
+    );
+    _awardBadges(newBadges);
+
+    document.getElementById('bottom-nav').style.display = 'flex';
+    state.currentView = 'study';
+    renderNav();
+    const isNew = finalStreak >= best && finalStreak > 0;
+    document.getElementById('main-content').innerHTML = `
+      <div class="screen complete-screen">
+        <div class="complete-trophy">🔥</div>
+        <h2>Run Over!</h2>
+        <p class="mt-2" style="font-size:var(--font-size-lg)">Streak: <strong>${finalStreak}</strong></p>
+        ${isNew ? '<div class="new-record-badge">🏆 New Best!</div>' : `<p style="color:var(--color-text-muted)">Best: ${state.gameStats.streakRunBest}</p>`}
+        <div class="complete-stats-grid mt-6">
+          <div class="stat-card"><div class="val blue">${finalStreak}</div><div class="lbl">This Run</div></div>
+          <div class="stat-card"><div class="val">${state.gameStats.streakRunBest}</div><div class="lbl">All-Time Best</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3);width:100%;margin-top:var(--space-5)">
+          <button class="btn btn-accent btn-full" onclick="App.startStreakRun()">Try Again</button>
+          <button class="btn btn-secondary btn-full" onclick="App.navigate('study')">Back to Study</button>
+        </div>
+      </div>
+    `;
+    Sound.play('session-complete');
+    state.session = null;
+  }
+
+  function endStreakRun() {
+    const sess = state.session;
+    _streakRunEnd(sess ? (sess.streakCurrent || 0) : 0, sess ? (sess.streakBest || 0) : 0);
+  }
+
+  // ──────────────────────────────────────────────────────────
+  //  DOMAIN WHEEL
+  // ──────────────────────────────────────────────────────────
+  let wheelSpinning = false;
+
+  function showDomainWheel() {
+    wheelSpinning = false;
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('main-content').innerHTML = Views.domainWheel();
+  }
+
+  function spinWheel() {
+    if (wheelSpinning) return;
+    wheelSpinning = true;
+    const btn = document.getElementById('wheel-spin-btn');
+    if (btn) btn.disabled = true;
+
+    const resultEl = document.getElementById('wheel-result');
+    if (resultEl) resultEl.innerHTML = '';
+
+    const domainIndex = Math.floor(Math.random() * DOMAINS.length);
+    const domain      = DOMAINS[domainIndex];
+    const sliceAngle  = 360 / DOMAINS.length;
+    const spinRounds  = 5 + Math.floor(Math.random() * 3);
+    // We want the pointer (top) to land on the middle of the winning slice.
+    // Slice i starts at i * sliceAngle. We negate because CSS rotate goes clockwise.
+    const targetAngle = -(domainIndex * sliceAngle + sliceAngle / 2);
+    const totalSpin   = -(spinRounds * 360) + targetAngle;
+
+    const svgWrap = document.getElementById('wheel-svg-wrap');
+    if (svgWrap) {
+      svgWrap.style.transition = 'transform 3.5s cubic-bezier(0.17,0.67,0.12,0.99)';
+      svgWrap.style.transform  = `rotate(${totalSpin}deg)`;
+    }
+
+    setTimeout(() => {
+      wheelSpinning = false;
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div class="wheel-result-card" style="border-color:${domain.color};background:${domain.color}11">
+            <div style="font-size:2rem">${domain.icon}</div>
+            <div style="font-weight:700;color:${domain.color};font-size:var(--font-size-lg)">${domain.label}</div>
+            <div style="font-size:var(--font-size-sm);color:var(--color-text-muted)">Get ready!</div>
+          </div>
+        `;
+      }
+      if (btn) {
+        btn.textContent = `Play ${domain.label}!`;
+        btn.disabled    = false;
+        btn.onclick     = () => App.startDomainWheel(domain.id);
+      }
+    }, 3600);
+  }
+
+  function startDomainWheel(domainId) {
+    const pool = Engine.shuffle(QUESTIONS.filter(q => q.domain === domainId)).slice(0, 10);
+    state.session = {
+      questions:         pool,
+      questionIndex:     0,
+      results:           [],
+      startedAt:         Date.now(),
+      questionStartTime: Date.now(),
+      movedUp:           0,
+      movedDown:         0,
+      mode:              'wheel',
+    };
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('main-content').innerHTML = Views.studySession();
+    startQuestionTimer();
+  }
+
+  // ──────────────────────────────────────────────────────────
+  //  GAME STATS HELPERS
+  // ──────────────────────────────────────────────────────────
+  async function saveGameStats() {
+    const user = state.user || {};
+    await Storage.saveUser({ ...user, gameStats: state.gameStats, id: 'profile' });
+  }
+
+  function buildBadgeStats() {
+    const totalAnswered = state.sessions.reduce((a, s) => a + (s.totalQuestions || 0), 0);
+    return {
+      totalAnswered,
+      streak:              state.streak,
+      overall:             state.mastery.overall,
+      byDomain:            state.mastery.byDomain,
+      lastSessionPerfect:  false,
+      dailyChallengeTotal: state.dailyChallenge.totalCompleted || 0,
+      blitzHighScore:      state.gameStats.blitzHighScore || 0,
+      streakRunBest:       state.gameStats.streakRunBest || 0,
+      nemesisDefeated:     state.gameStats.nemesisDefeated || false,
+    };
+  }
+
+  async function _awardBadges(newBadges) {
+    for (const badge of newBadges) {
+      await Storage.awardBadge(badge);
+      state.badges.push(badge);
+    }
+    newBadges.forEach((badge, i) => {
+      setTimeout(() => showBadgePopup(badge), 500 + i * 2000);
+    });
   }
 
   // Question timer
@@ -924,6 +1421,9 @@ const App = (() => {
     `;
     Sound.play(correct ? 'correct' : 'incorrect');
 
+    // Nemesis slayer detection
+    const wasNemesis = Engine.isNemesis(state.cardStates[q.id] || Engine.newCardState(q.id));
+
     // Update card state
     let cardState = state.cardStates[q.id] || Engine.newCardState(q.id);
     const prevBox = cardState.box;
@@ -934,6 +1434,12 @@ const App = (() => {
     if (cardState.box > prevBox) sess.movedUp++;
     else if (cardState.box < prevBox) sess.movedDown++;
     if (cardState.box > prevBox) Sound.play('level-up');
+
+    // Track nemesis defeat
+    if (wasNemesis && correct && !state.gameStats.nemesisDefeated) {
+      state.gameStats.nemesisDefeated = true;
+      saveGameStats();
+    }
 
     // Record result
     sess.results.push({ questionId: q.id, correct, timeTaken, selectedOption: optionIndex });
@@ -987,23 +1493,19 @@ const App = (() => {
     // Recalculate stats
     recalcStats();
 
+    // Handle daily challenge completion
+    if (sess.mode === 'daily' && sess.dateKey && state.dailyChallenge.lastCompletedDate !== sess.dateKey) {
+      const newTotal = (state.dailyChallenge.totalCompleted || 0) + 1;
+      state.dailyChallenge = { lastCompletedDate: sess.dateKey, totalCompleted: newTotal };
+      await Storage.saveDailyChallengeStatus(state.dailyChallenge);
+    }
+
     // Check for new badges
-    const totalAnswered  = state.sessions.reduce((a, s) => a + (s.totalQuestions || 0), 0);
     const newBadges = Engine.checkNewBadges(
-      {
-        totalAnswered,
-        streak:             state.streak,
-        overall:            state.mastery.overall,
-        byDomain:           state.mastery.byDomain,
-        lastSessionPerfect: accuracy === 100,
-      },
+      { ...buildBadgeStats(), lastSessionPerfect: accuracy === 100 },
       state.badges
     );
-
-    for (const badge of newBadges) {
-      await Storage.awardBadge(badge);
-      state.badges.push(badge);
-    }
+    await _awardBadges(newBadges);
 
     // Show completion screen
     document.getElementById('bottom-nav').style.display = 'flex';
@@ -1101,11 +1603,12 @@ const App = (() => {
   async function resetAll() {
     closeModal();
     await Storage.clearAll();
-    state.cardStates = {};
-    state.sessions   = [];
-    state.badges     = [];
-    state.session    = null;
-    state.user       = null;
+    state.cardStates   = {};
+    state.sessions     = [];
+    state.badges       = [];
+    state.session      = null;
+    state.user         = null;
+    state.gameStats    = { blitzHighScore: 0, streakRunBest: 0, nemesisDefeated: false };
     recalcStats();
     renderOnboarding();
   }
@@ -1205,6 +1708,11 @@ const App = (() => {
     return m > 0 ? `${m}:${sec.toString().padStart(2, '0')}` : `${sec}s`;
   }
 
+  function getDayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   // Secure HTML escaping — prevents XSS from question content
   function escHtml(str) {
     if (!str) return '';
@@ -1294,6 +1802,9 @@ const App = (() => {
       <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
     </svg>`;
   }
+  function iconSpin() {
+    return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>`;
+  }
   function iconGear() {
     return `<svg viewBox="0 0 24 24" fill="currentColor">
       <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0
@@ -1317,6 +1828,16 @@ const App = (() => {
     startDomainSession,
     startQuickQuiz,
     startPracticeTest,
+    startDailyChallenge,
+    startBlitz,
+    blitzAnswer,
+    endBlitz,
+    startStreakRun,
+    streakAnswer,
+    endStreakRun,
+    showDomainWheel,
+    spinWheel,
+    startDomainWheel,
     selectOption,
     nextQuestion,
     confirmEndSession,
