@@ -84,12 +84,11 @@ const Engine = (() => {
       const sb = cardStatesMap[b.id];
       return (sa ? sa.nextReview : 0) - (sb ? sb.nextReview : 0);
     });
+    shuffle(due); // randomise within due group
 
     // Combine: due first, then new
     const combined = [...due, ...newQ].slice(0, maxCards);
 
-    // Shuffle within each group but keep due before new
-    shuffle(combined.slice(0, due.length));
     return combined;
   }
 

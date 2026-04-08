@@ -157,6 +157,19 @@ const Storage = (() => {
     return saveUser({ ...user, settings });
   }
 
+  // ── Daily challenge status (stored on user object) ────────
+  async function getDailyChallengeStatus() {
+    const user = await getUser();
+    return (user && user.dailyChallenge)
+      ? user.dailyChallenge
+      : { lastCompletedDate: null, totalCompleted: 0 };
+  }
+
+  async function saveDailyChallengeStatus(status) {
+    const user = await getUser() || { id: 'profile' };
+    return saveUser({ ...user, dailyChallenge: status });
+  }
+
   return {
     init,
     getUser,

@@ -1513,11 +1513,6 @@ const App = (() => {
     state.currentView = 'home';
     renderNav();
     Sound.play('session-complete');
-
-    // Show badge popups with delay
-    newBadges.forEach((badge, i) => {
-      setTimeout(() => showBadgePopup(badge), 500 + i * 2000);
-    });
   }
 
   function confirmEndSession() {
