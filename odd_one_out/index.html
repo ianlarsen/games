@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odd One Out</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(160deg, #fef3c7 0%, #fce7f3 55%, #ede9fe 100%);
+      min-height: 100dvh;
+      padding: 1rem 1rem 2rem;
+      scroll-behavior: smooth;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    header {
+      max-width: 720px;
+      margin: 0 auto 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .score-badge {
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #be185d;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    /* ── Main ───────────────────────────────────────────────────────── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: clamp(1.4rem, 6vw, 2.2rem);
+      color: #9d174d;
+      margin-bottom: 0.1rem;
+      text-shadow: 1px 2px 0 rgba(0,0,0,0.07);
+    }
+    .subtitle {
+      font-size: clamp(0.82rem, 3.2vw, 0.95rem);
+      color: #555;
+      margin-bottom: 0.3rem;
+    }
+    .round-label {
+      font-size: clamp(0.7rem, 2.4vw, 0.85rem);
+      color: #888;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .progress-track {
+      background: #e5e7eb;
+      border-radius: 99px;
+      height: 10px;
+      margin-bottom: 0.8rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(to right, #f472b6, #be185d);
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Question label ─────────────────────────────────────────────── */
+    .question-box {
+      background: #fdf2f8;
+      border: 2px solid #fbcfe8;
+      border-radius: 16px;
+      padding: 0.6rem 1rem;
+      margin-bottom: 0.75rem;
+      font-size: clamp(1rem, 4vw, 1.25rem);
+      font-weight: 800;
+      color: #831843;
+    }
+
+    /* ── 2×2 grid of SVG tiles ──────────────────────────────────────── */
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      max-width: 520px;
+      margin: 0 auto 0.75rem;
+    }
+
+    .tile-btn {
+      background: #fff;
+      border: 4px solid #e5e7eb;
+      border-radius: 18px;
+      cursor: pointer;
+      padding: 0.4rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      position: relative;
+    }
+    .tile-btn svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .tile-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #9ca3af;
+      letter-spacing: 0.06em;
+      margin-top: 0.2rem;
+    }
+    .tile-btn:hover,
+    .tile-btn:focus-visible {
+      transform: scale(1.04);
+      border-color: #f9a8d4;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.13);
+      outline: 3px solid #f9a8d4;
+      outline-offset: 2px;
+    }
+    .tile-btn:active { transform: scale(0.96); }
+
+    .tile-btn.state-correct {
+      border-color: #22c55e;
+      background: #f0fff4;
+      animation: popTile 0.3s ease;
+    }
+    .tile-btn.state-wrong {
+      border-color: #f87171;
+      background: #fff5f5;
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes popTile {
+      0%   { transform: scale(0.85); }
+      60%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-6px); }
+      75%       { transform: translateX(6px); }
+    }
+
+    /* ── Feedback ───────────────────────────────────────────────────── */
+    .feedback {
+      min-height: 2rem;
+      font-size: clamp(1rem, 4vw, 1.2rem);
+      font-weight: 800;
+    }
+    .feedback.correct { color: #15803d; }
+    .feedback.wrong   { color: #dc2626; }
+
+    /* ── Win overlay ─────────────────────────────────────────────────── */
+    .win-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; pointer-events: none;
+      transition: opacity 0.35s;
+    }
+    .win-overlay.show { opacity: 1; pointer-events: auto; }
+    .win-card {
+      background: #fff; border-radius: 26px;
+      padding: 2rem 1.6rem; text-align: center;
+      max-width: 340px; width: 90%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      animation: popCard 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popCard {
+      from { transform: scale(0.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .win-emoji  { font-size: 3rem; margin-bottom: 0.4rem; }
+    .win-title  { font-size: clamp(1.3rem,5vw,1.7rem); font-weight: 800; color: #1f2937; margin-bottom: 0.4rem; }
+    .win-score  { font-size: 1rem; color: #6b7280; margin-bottom: 1.2rem; }
+    .replay-btn {
+      background: linear-gradient(135deg, #f472b6, #be185d);
+      color: #fff; border: none; border-radius: 14px;
+      padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; min-height: 50px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      transition: transform 0.12s;
+    }
+    .replay-btn:hover  { transform: translateY(-2px); }
+    .replay-btn:active { transform: scale(0.96); }
+
+    /* ── Confetti ────────────────────────────────────────────────────── */
+    .confetti-layer {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 999; overflow: hidden;
+    }
+
+    /* ── Mobile ──────────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      body {
+        padding: 0.35rem 0.35rem 0;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        overscroll-behavior-y: none;
+      }
+      header { flex-shrink: 0; margin-bottom: 0.25rem; }
+      .back-btn, .score-badge {
+        min-height: 38px; padding: 0.3rem 0.7rem;
+        font-size: 0.82rem; border-radius: 10px;
+      }
+      main {
+        flex: 1; min-height: 0;
+        display: flex; flex-direction: column; overflow: hidden;
+      }
+      h1           { font-size: 1rem;    margin-bottom: 0; }
+      .subtitle    { font-size: 0.68rem; margin-bottom: 0.1rem; }
+      .round-label { font-size: 0.62rem; margin-bottom: 0.15rem; }
+      .progress-track { height: 6px; margin-bottom: 0.22rem; flex-shrink: 0; }
+      .question-box {
+        flex-shrink: 0;
+        padding: 0.28rem 0.7rem; margin-bottom: 0.25rem;
+        font-size: clamp(0.88rem, 3.5vw, 1rem);
+      }
+      .tiles-grid {
+        flex: 1; min-height: 0;
+        gap: 8px; margin-bottom: 0.2rem;
+        align-content: stretch;
+      }
+      .tile-btn { display: flex; flex-direction: column; justify-content: center; }
+      .feedback {
+        flex-shrink: 0; min-height: 1.3rem; font-size: 0.88rem;
+        padding-bottom: env(safe-area-inset-bottom, 0.25rem);
+      }
+    }
+    @media (max-width: 360px) {
+      .tiles-grid { gap: 6px; }
+      .tile-label { font-size: 0.65rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="score-badge">⭐ <span id="score-val">0</span> / 10</div>
+  </header>
+
+  <main>
+    <h1>👁️ Odd One Out</h1>
+    <p class="subtitle">Find the one that looks different!</p>
+    <p class="round-label" id="round-label">Round 1 of 10</p>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="question-box">Which one is different?</div>
+
+    <!-- 2×2 grid of SVG tiles -->
+    <div class="tiles-grid" id="tiles-grid"></div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </main>
+
+  <div class="confetti-layer" id="confetti-layer"></div>
+  <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
+    <div class="win-card">
+      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-title" id="win-title-el">Amazing!</div>
+      <div class="win-score" id="win-score-msg"></div>
+      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════
+    //  PUZZLE DEFINITIONS
+    //
+    //  Each puzzle has:
+    //    draw(svg, variant):  function that draws the shape into an SVG el
+    //                         variant 0 = standard; 1-3 = the three matching
+    //                         copies; oddVariant = index of the different one
+    //    oddVariant: which index (0-3) is the "odd" tile
+    //    hint: text describing the difference (not shown, for authoring ref)
+    // ═══════════════════════════════════════════════════════════════════
+
+    const NS = 'http://www.w3.org/2000/svg';
+
+    function el(tag, attrs) {
+      const e = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k, v));
+      return e;
+    }
+
+    function stroke(e, sw) {
+      e.setAttribute('stroke-width', sw ?? '2.5');
+      e.setAttribute('stroke', '#222');
+      e.setAttribute('fill', 'none');
+      return e;
+    }
+
+    // ── Puzzle factory helpers ───────────────────────────────────────
+
+    // DIAMOND: nested diamonds + cross + circle inside
+    // variant 0 = large diamond; variant 1 = medium; variant 2 = small; variant 3 = missing inner cross
+    function drawDiamond(svg, variant) {
+      // v=0 largest outer, v=1 medium, v=2 smallest; v=3 = missing inner
+      const sizes      = [60, 50, 40];
+      const outerSize  = variant === 0 ? 70 : variant === 1 ? 60 : variant === 2 ? 50 : 60;
+      // outer filled diamond (rotated square)
+      const cx = 60, cy = 60;
+      function diamond(s, sw) {
+        const p = `${cx},${cy-s} ${cx+s},${cy} ${cx},${cy+s} ${cx-s},${cy}`;
+        svg.appendChild(stroke(el('polygon', {points:p}), sw));
+      }
+      diamond(outerSize, '3');
+      diamond(outerSize - 10, '2.5');
+      diamond(outerSize - 20, '2.2');
+
+      // cross lines inside outer diamond
+      if (variant !== 3) {
+        const hL = outerSize - 5;
+        svg.appendChild(stroke(el('line', {x1:cx-hL, y1:cy, x2:cx+hL, y2:cy}), '2'));
+        svg.appendChild(stroke(el('line', {x1:cx, y1:cy-hL, x2:cx, y2:cy+hL}), '2'));
+      }
+
+      // circle
+      const r = variant === 2 ? 14 : 18;
+      svg.appendChild(stroke(el('circle', {cx, cy, r}), '2.2'));
+
+      // X inside circle
+      const d = r * 0.7;
+      svg.appendChild(stroke(el('line', {x1:cx-d, y1:cy-d, x2:cx+d, y2:cy+d}), '2'));
+      svg.appendChild(stroke(el('line', {x1:cx+d, y1:cy-d, x2:cx-d, y2:cy+d}), '2'));
+
+      // corner triangles
+      const offs = outerSize - 3;
+      const tri = (px,py,dx,dy) => {
+        const p = `${px},${py} ${px+dx},${py+dy/2} ${px+dx},${py-dy/2}`;
+        svg.appendChild(stroke(el('polygon',{points:p}),'1.8'));
+      };
+      tri(cx+offs, cy, -12, 16);
+      tri(cx-offs, cy, 12, 16);
+      tri(cx, cy-offs, -8, -12);
+      tri(cx, cy+offs, -8, 12);
+    }
+
+    // BOX IN BOX: 4 nested squares, one may be missing or rotated
+    function drawBoxInBox(svg, variant) {
+      const cx = 60, cy = 60;
+      const steps = variant === 1 ? [52, 38, 24, 10] : [52, 38, 24, 10];
+      const count = variant === 2 ? 3 : 4; // v=2 only 3 boxes
+      for (let i = 0; i < count; i++) {
+        const s = steps[i];
+        svg.appendChild(stroke(el('rect', {x:cx-s, y:cy-s, width:s*2, height:s*2}), i===0?'3':'2.2'));
+      }
+      // diagonals from corners, v=0 all four, v=1 missing one
+      const s0 = steps[0];
+      if (variant !== 1) {
+        svg.appendChild(stroke(el('line',{x1:cx-s0,y1:cy-s0,x2:cx+s0,y2:cy+s0}),'2'));
+        svg.appendChild(stroke(el('line',{x1:cx+s0,y1:cy-s0,x2:cx-s0,y2:cy+s0}),'2'));
+      } else {
+        // only one diagonal
+        svg.appendChild(stroke(el('line',{x1:cx-s0,y1:cy-s0,x2:cx+s0,y2:cy+s0}),'2'));
+      }
+      // centre circle normal except v=3 which is a square
+      if (variant !== 3) {
+        svg.appendChild(stroke(el('circle',{cx,cy,r:10}),'2'));
+      } else {
+        svg.appendChild(stroke(el('rect',{x:cx-10,y:cy-10,width:20,height:20}),'2'));
+      }
+    }
+
+    // STAR: 6-pointed star (hex), v=0-2 same, v=3 5-pointed
+    function drawStar(svg, variant) {
+      const cx=60, cy=60;
+      function star6(r, sw) {
+        const pts = [];
+        for(let i=0;i<6;i++){
+          const a=Math.PI/3*i-Math.PI/2;
+          const b=a+Math.PI/6;
+          pts.push(`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`);
+          pts.push(`${cx+(r*0.5)*Math.cos(b)},${cy+(r*0.5)*Math.sin(b)}`);
+        }
+        svg.appendChild(stroke(el('polygon',{points:pts.join(' ')}),sw));
+      }
+      function star5(r, sw) {
+        const pts = [];
+        for(let i=0;i<5;i++){
+          const a=Math.PI*2/5*i-Math.PI/2;
+          const b=a+Math.PI/5;
+          pts.push(`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`);
+          pts.push(`${cx+(r*0.38)*Math.cos(b)},${cy+(r*0.38)*Math.sin(b)}`);
+        }
+        svg.appendChild(stroke(el('polygon',{points:pts.join(' ')}),sw));
+      }
+      if (variant === 3) {
+        star5(48,'3'); star5(36,'2.2'); star5(24,'2');
+      } else {
+        star6(48,'3'); star6(36,'2.2'); star6(24,'2');
+      }
+      svg.appendChild(stroke(el('circle',{cx,cy,r:12}),'2'));
+    }
+
+    // GRID: 3×3 grid of squares; v=3 one square is a circle
+    function drawGrid(svg, variant) {
+      const size=22, gap=4, startX=10, startY=10;
+      for(let row=0;row<3;row++){
+        for(let col=0;col<3;col++){
+          const x=startX+col*(size+gap);
+          const y=startY+row*(size+gap);
+          const isOdd = variant===3 && row===1 && col===1;
+          if(isOdd){
+            svg.appendChild(stroke(el('circle',{cx:x+size/2,cy:y+size/2,r:size/2}),'2.2'));
+          } else {
+            svg.appendChild(stroke(el('rect',{x,y,width:size,height:size}),'2.2'));
+          }
+        }
+      }
+      // outer border
+      svg.appendChild(stroke(el('rect',{x:startX-4,y:startY-4,width:(size+gap)*3+2,height:(size+gap)*3+2}),'3'));
+      // cross only for v=0,1,2; v=1 thicker lines
+      if(variant!==3){
+        const sw = variant===1 ? '3.5' : '2';
+        const mid=startX+(size+gap)*1+size/2;
+        svg.appendChild(stroke(el('line',{x1:mid,y1:startY-4,x2:mid,y2:startY+(size+gap)*3-2}),sw));
+        const midY=startY+(size+gap)*1+size/2;
+        svg.appendChild(stroke(el('line',{x1:startX-4,y1:midY,x2:startX+(size+gap)*3-2,y2:midY}),sw));
+      }
+    }
+
+    // TRIANGLE LAYERS: concentric triangles; v=2 one extra triangle
+    function drawTriLayers(svg, variant) {
+      const cx=60,cy=65;
+      function tri(r,sw){
+        const p=`${cx},${cy-r} ${cx+r*0.866},${cy+r*0.5} ${cx-r*0.866},${cy+r*0.5}`;
+        svg.appendChild(stroke(el('polygon',{points:p}),sw));
+      }
+      const sizes = variant===2 ? [52,40,28,16,6] : [52,40,28,16];
+      sizes.forEach((s,i)=>tri(s, i===0?'3':'2.2'));
+      svg.appendChild(stroke(el('circle',{cx,cy,r:10}),'2'));
+    }
+
+    // CROSS SHAPE: plus sign with concentric copies; v=1 rotated 45°
+    function drawCross(svg, variant) {
+      const cx=60, cy=60;
+      function crossPath(a, b) {
+        return `M${cx-b},${cy-a} L${cx-b},${cy-b} L${cx-a},${cy-b}
+                L${cx-a},${cy+b} L${cx-b},${cy+b} L${cx-b},${cy+a}
+                L${cx+b},${cy+a} L${cx+b},${cy+b} L${cx+a},${cy+b}
+                L${cx+a},${cy-b} L${cx+b},${cy-b} L${cx+b},${cy-a}
+                L${cx-b},${cy-a} Z`;
+      }
+      if(variant===1){
+        // rotated 45°
+        const g=document.createElementNS(NS,'g');
+        g.setAttribute('transform',`rotate(45,${cx},${cy})`);
+        [[50,18],[38,13],[26,9]].forEach(([a,b],i)=>{
+          const p=document.createElementNS(NS,'path');
+          p.setAttribute('d',crossPath(a,b));
+          stroke(p, i===0?'3':'2.2');
+          g.appendChild(p);
+        });
+        svg.appendChild(g);
+      } else {
+        [[50,18],[38,13],[26,9]].forEach(([a,b],i)=>{
+          const p=document.createElementNS(NS,'path');
+          p.setAttribute('d',crossPath(a,b));
+          stroke(p, i===0?'3':'2.2');
+          svg.appendChild(p);
+        });
+      }
+      svg.appendChild(stroke(el('circle',{cx,cy,r:10}),'2'));
+    }
+
+    // ARROW: 3 concentric arrows pointing right; v=2 points left
+    function drawArrow(svg, variant) {
+      const cx=60, cy=60;
+      function arrowPath(tip, back, ht, hs) {
+        const x = variant===2 ? cx*2-tip : tip;
+        const bx = variant===2 ? cx*2-back : back;
+        return `M${x},${cy}
+                L${bx},${cy-ht}
+                L${bx},${cy-hs}
+                L${cx-30},${cy-hs}
+                L${cx-30},${cy+hs}
+                L${bx},${cy+hs}
+                L${bx},${cy+ht} Z`;
+      }
+      [[95,70,30,12],[80,58,22,9],[65,48,14,6]].forEach(([tip,back,ht,hs],i)=>{
+        const p=document.createElementNS(NS,'path');
+        p.setAttribute('d',arrowPath(tip,back,ht,hs));
+        stroke(p,i===0?'3':'2.2');
+        svg.appendChild(p);
+      });
+    }
+
+    // CIRCLE SPIRAL: concentric circles; v=3 one gap cut in largest circle
+    function drawCircles(svg, variant) {
+      const cx=60,cy=60;
+      const radii=[50,40,30,20,10];
+      radii.forEach((r,i)=>{
+        if(variant===3 && i===0){
+          // arc with gap instead of full circle
+          const gap=30*(Math.PI/180);
+          const x1=cx+r*Math.cos(-gap); const y1=cy+r*Math.sin(-gap);
+          const x2=cx+r*Math.cos(gap);  const y2=cy+r*Math.sin(gap);
+          const p=document.createElementNS(NS,'path');
+          p.setAttribute('d',`M${x1},${y1} A${r},${r},0,1,1,${x2},${y2}`);
+          stroke(p,'3');
+          svg.appendChild(p);
+        } else {
+          svg.appendChild(stroke(el('circle',{cx,cy,r}), i===0?'3':'2.2'));
+        }
+      });
+    }
+
+    // HOUSE: simple house outline, 3 nested; v=2 roof is flat
+    function drawHouse(svg, variant) {
+      function house(scale, sw) {
+        const cx=60,base=85,w=45*scale,h=35*scale,roof=25*scale;
+        const bx=cx-w, by=base-h;
+        svg.appendChild(stroke(el('rect',{x:bx,y:by,width:w*2,height:h}),sw));
+        if(variant===2 && scale===1){
+          // flat roof (extra line on top)
+          svg.appendChild(stroke(el('line',{x1:bx,y1:by,x2:bx+w*2,y2:by}),sw));
+        } else {
+          svg.appendChild(stroke(el('polygon',{points:`${cx},${by-roof} ${bx},${by} ${bx+w*2},${by}`}),sw));
+        }
+      }
+      house(1,'3'); house(0.75,'2.2'); house(0.5,'2');
+      // door
+      svg.appendChild(stroke(el('rect',{x:53,y:68,width:14,height:17}),'2'));
+    }
+
+    // FLOWER: 6-petal flower with concentric copies; v=1 has 4 petals
+    function drawFlower(svg, variant) {
+      const cx=60,cy=60;
+      function petals(r, pr, cnt, sw) {
+        for(let i=0;i<cnt;i++){
+          const a=Math.PI*2/cnt*i;
+          const px=cx+r*Math.cos(a), py=cy+r*Math.sin(a);
+          svg.appendChild(stroke(el('ellipse',{cx:px,cy:py,rx:pr,ry:pr*0.55,
+            transform:`rotate(${a*180/Math.PI+90},${px},${py})`}),sw));
+        }
+      }
+      const cnt = variant===1 ? 4 : 6;
+      petals(30,14,cnt,'2.5');
+      petals(22,10,cnt,'2');
+      svg.appendChild(stroke(el('circle',{cx,cy,r:12}),'2.5'));
+    }
+
+    // LIGHTNING: 2 overlapping zigzag bolts; v=3 one bolt points opposite
+    function drawLightning(svg, variant) {
+      function bolt(offX, flip, sw) {
+        const d = flip ? -1 : 1;
+        const p=`M${60+offX},${15} L${45+offX},${52} L${55+offX},${52} L${40+offX},${108} L${68+offX},${58} L${58+offX},${58} Z`;
+        const path=document.createElementNS(NS,'path');
+        path.setAttribute('d',p);
+        path.setAttribute('transform', flip ? `scale(-1,1) translate(${-(120+offX*2)},0)` : '');
+        stroke(path,sw);
+        svg.appendChild(path);
+      }
+      bolt(-8,  false, '2.8');
+      bolt(8, variant===3, '2.8');
+    }
+
+    // FACE: simple smiley; v=2 = sad mouth
+    function drawFace(svg, variant) {
+      const cx=60,cy=60,r=48;
+      svg.appendChild(stroke(el('circle',{cx,cy,r}),'3'));
+      svg.appendChild(stroke(el('circle',{cx,cy,r:r-10}),'2'));
+      // eyes
+      svg.appendChild(stroke(el('circle',{cx:cx-15,cy:cy-12,r:6}),'2.2'));
+      svg.appendChild(stroke(el('circle',{cx:cx+15,cy:cy-12,r:6}),'2.2'));
+      // mouth
+      const mouth=document.createElementNS(NS,'path');
+      if(variant===2){
+        mouth.setAttribute('d',`M${cx-16},${cy+18} Q${cx},${cy+8} ${cx+16},${cy+18}`);
+      } else {
+        mouth.setAttribute('d',`M${cx-16},${cy+14} Q${cx},${cy+26} ${cx+16},${cy+14}`);
+      }
+      stroke(mouth,'2.5');
+      svg.appendChild(mouth);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  PUZZLE LIST
+    //  draw(svg,variant), oddVariant = index(0-3) that is different,
+    //  desc = hint for the odd one (used internally)
+    // ═══════════════════════════════════════════════════════════════════
+    const PUZZLES = [
+      { draw: drawDiamond,  oddVariant: 2, desc: 'Smaller outer diamond' },
+      { draw: drawDiamond,  oddVariant: 3, desc: 'Missing inner cross-lines' },
+      { draw: drawBoxInBox, oddVariant: 1, desc: 'Missing one diagonal' },
+      { draw: drawBoxInBox, oddVariant: 3, desc: 'Circle replaced by square in centre' },
+      { draw: drawBoxInBox, oddVariant: 2, desc: 'Only 3 nested boxes' },
+      { draw: drawStar,     oddVariant: 3, desc: '5-pointed star instead of 6' },
+      { draw: drawGrid,     oddVariant: 3, desc: 'Centre square is a circle' },
+      { draw: drawGrid,     oddVariant: 1, desc: 'Thicker grid lines' },
+      { draw: drawTriLayers,oddVariant: 2, desc: 'Extra inner triangle' },
+      { draw: drawCross,    oddVariant: 1, desc: 'Cross rotated 45°' },
+      { draw: drawArrow,    oddVariant: 2, desc: 'Arrow pointing left' },
+      { draw: drawCircles,  oddVariant: 3, desc: 'Gap in outer circle' },
+      { draw: drawHouse,    oddVariant: 2, desc: 'Flat roof instead of pointed' },
+      { draw: drawFlower,   oddVariant: 1, desc: '4 petals instead of 6' },
+      { draw: drawLightning,oddVariant: 3, desc: 'Second bolt reversed' },
+      { draw: drawFace,     oddVariant: 2, desc: 'Sad mouth instead of happy' },
+    ];
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  SOUNDS
+    // ═══════════════════════════════════════════════════════════════════
+    const SFX = {
+      match: new Audio('sounds/match.mp3'),
+      win:   new Audio('sounds/win.mp3'),
+    };
+    function playSound(name) {
+      const s = SFX[name]; if (!s) return;
+      s.currentTime = 0; s.play().catch(()=>{});
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  GAME STATE
+    // ═══════════════════════════════════════════════════════════════════
+    const TOTAL = 10;
+    let round=0, score=0, answered=false, roundQueue=[];
+
+    function shuffle(arr) {
+      const a=[...arr];
+      for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+      return a;
+    }
+
+    function buildRoundQueue() { return shuffle(PUZZLES).slice(0,TOTAL); }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RENDER ROUND
+    // ═══════════════════════════════════════════════════════════════════
+    function renderRound() {
+      answered = false;
+      const pz = roundQueue[round];
+
+      document.getElementById('round-label').textContent = `Round ${round+1} of ${TOTAL}`;
+      document.getElementById('progress-fill').style.width = `${(round/TOTAL)*100}%`;
+
+      // Build tile positions: oddVariant placed at a random slot
+      // tileVariants[i] = which variant index to draw at slot i
+      const slots = shuffle([0,1,2,3]);
+      // slots[k] = position for variant k; but we want the inverse:
+      // slot position -> variant
+      // Assign: three standard slots get variant 0, one slot gets oddVariant
+      const tileVariants = [0,0,0,0];
+      const oddSlot = slots[pz.oddVariant]; // where in the grid the odd one lands
+      tileVariants[oddSlot] = pz.oddVariant;
+      // other slots stay 0 (the "normal" version)
+
+      const grid = document.getElementById('tiles-grid');
+      grid.innerHTML = '';
+      const labels = ['A','B','C','D'];
+
+      for (let i = 0; i < 4; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'tile-btn';
+        btn.setAttribute('aria-label', `Tile ${labels[i]}`);
+
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox','0 0 120 120');
+        svg.setAttribute('xmlns', NS);
+
+        pz.draw(svg, tileVariants[i]);
+        btn.appendChild(svg);
+
+        const lbl = document.createElement('div');
+        lbl.className = 'tile-label';
+        lbl.textContent = labels[i];
+        btn.appendChild(lbl);
+
+        const isOdd = (i === oddSlot);
+        btn.addEventListener('click', () => handleChoice(btn, isOdd));
+        grid.appendChild(btn);
+      }
+
+      const fb = document.getElementById('feedback');
+      fb.textContent = ''; fb.className = 'feedback';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HANDLE CHOICE
+    // ═══════════════════════════════════════════════════════════════════
+    function handleChoice(btn, isOdd) {
+      if (answered) return;
+      const fb = document.getElementById('feedback');
+      if (isOdd) {
+        answered = true;
+        btn.classList.add('state-correct');
+        playSound('match');
+        const msgs = ["Found it! 🌟","Sharp eyes! 👁️","You got it! ⭐","Correct! 🎉","Nice spotting! 🔍"];
+        fb.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+        fb.className = 'feedback correct';
+        score++;
+        document.getElementById('score-val').textContent = score;
+        setTimeout(()=>{ round++; round>=TOTAL ? showWinScreen() : renderRound(); }, 1300);
+      } else {
+        btn.classList.add('state-wrong');
+        fb.textContent = 'Not that one — keep looking!';
+        fb.className = 'feedback wrong';
+        setTimeout(()=>{ btn.classList.remove('state-wrong'); fb.textContent=''; fb.className='feedback'; }, 850);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  WIN SCREEN
+    // ═══════════════════════════════════════════════════════════════════
+    function showWinScreen() {
+      document.getElementById('progress-fill').style.width='100%';
+      playSound('win');
+      const emojiEl=document.getElementById('win-emoji');
+      const titleEl=document.getElementById('win-title-el');
+      const scoreEl=document.getElementById('win-score-msg');
+      if(score>=TOTAL)      {emojiEl.textContent='🏆👁️🏆';titleEl.textContent='Eagle Eyes!';}
+      else if(score>=8)     {emojiEl.textContent='⭐👁️⭐';titleEl.textContent='Super Spotter!';}
+      else if(score>=5)     {emojiEl.textContent='🌟👁️🌟';titleEl.textContent='Good Looking!';}
+      else                  {emojiEl.textContent='💪👁️💪';titleEl.textContent='Keep Practising!';}
+      scoreEl.textContent=`You got ${score} out of ${TOTAL} right!`;
+      document.getElementById('win-overlay').classList.add('show');
+      launchConfetti();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CONFETTI
+    // ═══════════════════════════════════════════════════════════════════
+    function launchConfetti() {
+      const style=document.createElement('style');
+      style.textContent=`@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(105vh) rotate(540deg);opacity:0;}}`;
+      document.head.appendChild(style);
+      const layer=document.getElementById('confetti-layer');
+      layer.innerHTML='';
+      const colors=['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa','#fb7185','#4ade80'];
+      for(let i=0;i<70;i++){
+        const e=document.createElement('div');
+        const s=7+Math.random()*8;
+        e.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-20px;width:${s}px;height:${s}px;border-radius:${Math.random()>0.45?'50%':'2px'};background:${colors[Math.floor(Math.random()*colors.length)]};animation:confettiFall ${1.6+Math.random()*2.2}s ease-in ${Math.random()}s forwards;`;
+        layer.appendChild(e);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESTART
+    // ═══════════════════════════════════════════════════════════════════
+    function restartGame() {
+      round=0; score=0;
+      document.getElementById('score-val').textContent='0';
+      document.getElementById('win-overlay').classList.remove('show');
+      document.getElementById('confetti-layer').innerHTML='';
+      roundQueue=buildRoundQueue();
+      renderRound();
+    }
+
+    restartGame();
+  </script>
+</body>
+</html>
