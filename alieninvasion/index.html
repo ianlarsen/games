@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alien Invasion</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    #game-info {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+      box-sizing: border-box;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      background-color: black;
+      border: 2px solid white;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-info">
+    <span id="score">Score: 0</span>
+    <span id="lives">Lives: 3</span>
+    <span id="high-score">High Score: 0</span>
+  </div>
+  <canvas id="game-canvas" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    const highScoreEl = document.getElementById('high-score');
+
+    let score = 0;
+    let lives = 3;
+    let highScore = localStorage.getItem('highScore') || 0;
+    let gameActive = false;
+
+    // Preload images for the aliens and the player base. The images live in the
+    // same directory as this HTML file. These will be drawn instead of
+    // colored rectangles so the game has a retro 8‑bit look. If the images
+    // are still loading when the game draws, the code falls back to
+    // simple colored rectangles so the game remains playable.
+    const alienImg = new Image();
+    alienImg.src = 'images/alien.png';
+    const playerImg = new Image();
+    playerImg.src = 'images/base.png';
+
+    // Preload audio for background music and laser firing. The music should
+    // loop continuously during gameplay. If the files are not found, the
+    // browser will simply fail silently without breaking the game.
+    const bgMusic = new Audio('sounds/theme.mp3');
+    bgMusic.loop = true;
+    const laserSound = new Audio('sounds/laser.mp3');
+
+    const player = {
+      x: canvas.width / 2 - 25,
+      y: canvas.height - 60,
+      width: 50,
+      height: 50,
+      speed: 6,
+      bullets: []
+    };
+
+    let playerMovement = 0;
+
+    const alienGrid = {
+      rows: 5,
+      cols: 10,
+      width: 40,
+      height: 40,
+      // Start aliens at the far left so they can travel all the way to
+      // both edges of the canvas before reversing direction. Without this
+      // change the initial offset prevented them from reaching the walls.
+      xOffset: 0,
+      yOffset: 30,
+      padding: 20,
+      moveSpeed: 1,
+      moveDirection: 1,
+      moveDownDistance: 20
+    };
+
+    let aliens = [];
+    let alienBullets = [];
+
+    const bulletProps = {
+      width: 4,
+      height: 10,
+      speed: 8
+    };
+
+    const alienBulletProps = {
+      width: 4,
+      height: 10,
+      speed: 5
+    };
+
+    function createAliens() {
+      aliens = [];
+      for (let row = 0; row < alienGrid.rows; row++) {
+        for (let col = 0; col < alienGrid.cols; col++) {
+          aliens.push({
+            x: col * (alienGrid.width + alienGrid.padding) + alienGrid.xOffset,
+            y: row * (alienGrid.height + alienGrid.padding) + alienGrid.yOffset,
+            width: alienGrid.width,
+            height: alienGrid.height
+          });
+        }
+      }
+    }
+
+    function drawTitleScreen() {
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.font = '48px Arial';
+      ctx.fillText('ALIEN INVASION', canvas.width / 2, canvas.height / 2 - 50);
+      ctx.font = '24px Arial';
+      ctx.fillText('Press SPACE to Start', canvas.width / 2, canvas.height / 2 + 20);
+    }
+
+    function drawPlayer() {
+      // Draw the player using the loaded image. If the image hasn't
+      // finished loading yet, fall back to a red rectangle so there is
+      // always visible feedback.
+      if (playerImg.complete && playerImg.naturalWidth) {
+        ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+      } else {
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+      }
+    }
+
+    function drawAliens() {
+      aliens.forEach(alien => {
+        // Draw each alien using the sprite. If the image isn't ready yet,
+        // use a green rectangle as a placeholder. The alien color is green
+        // to contrast with the red player base.
+        if (alienImg.complete && alienImg.naturalWidth) {
+          ctx.drawImage(alienImg, alien.x, alien.y, alien.width, alien.height);
+        } else {
+          ctx.fillStyle = '#00FF00';
+          ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+        }
+      });
+    }
+
+    function drawBullets() {
+      ctx.fillStyle = '#FFFF00';
+      player.bullets.forEach(b => {
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+    }
+
+    function drawAlienBullets() {
+      ctx.fillStyle = '#FF4500';
+      alienBullets.forEach(b => {
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+    }
+
+    function updateGame() {
+      player.x += playerMovement * player.speed;
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+
+      let hitWall = false;
+      aliens.forEach(alien => {
+        alien.x += alienGrid.moveSpeed * alienGrid.moveDirection;
+        if (alien.x + alien.width > canvas.width || alien.x < 0) {
+          hitWall = true;
+        }
+      });
+
+      if (hitWall) {
+        alienGrid.moveDirection *= -1;
+        aliens.forEach(alien => alien.y += alienGrid.moveDownDistance);
+      }
+
+      aliens.forEach(alien => {
+        if (alien.y + alien.height >= player.y) {
+          lives = 0;
+          endGame();
+        }
+      });
+
+      for (let i = player.bullets.length - 1; i >= 0; i--) {
+        const b = player.bullets[i];
+        b.y -= b.speed;
+
+        for (let j = aliens.length - 1; j >= 0; j--) {
+          const a = aliens[j];
+          if (checkCollision(b, a)) {
+            aliens.splice(j, 1);
+            player.bullets.splice(i, 1);
+            score += 10;
+            break;
+          }
+        }
+
+        if (b.y < 0) player.bullets.splice(i, 1);
+      }
+
+      if (Math.random() < 0.015 && aliens.length > 0) {
+        const shooter = aliens[Math.floor(Math.random() * aliens.length)];
+        alienBullets.push({
+          x: shooter.x + shooter.width / 2,
+          y: shooter.y + shooter.height,
+          width: alienBulletProps.width,
+          height: alienBulletProps.height,
+          speed: alienBulletProps.speed
+        });
+      }
+
+      for (let i = alienBullets.length - 1; i >= 0; i--) {
+        const b = alienBullets[i];
+        b.y += b.speed;
+
+        if (checkCollision(b, player)) {
+          alienBullets.splice(i, 1);
+          lives--;
+          if (lives <= 0) endGame();
+        } else if (b.y > canvas.height) {
+          alienBullets.splice(i, 1);
+        }
+      }
+
+      scoreEl.textContent = `Score: ${score}`;
+      livesEl.textContent = `Lives: ${lives}`;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+      }
+      highScoreEl.textContent = `High Score: ${highScore}`;
+
+      // If all aliens have been destroyed, trigger the win condition. This
+      // check occurs after updating scores and ensures the game stops
+      // immediately once the last alien is gone.
+      if (aliens.length === 0) {
+        winGame();
+        return;
+      }
+    }
+
+    function checkCollision(obj1, obj2) {
+      return obj1.x < obj2.x + obj2.width &&
+             obj1.x + obj1.width > obj2.x &&
+             obj1.y < obj2.y + obj2.height &&
+             obj1.y + obj1.height > obj2.y;
+    }
+
+    function endGame() {
+      gameActive = false;
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.font = '48px Arial';
+      ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+      ctx.font = '24px Arial';
+      ctx.fillText('Press SPACE to Restart', canvas.width / 2, canvas.height / 2 + 40);
+
+      // Pause the background music when the game ends so it does not
+      // continue playing on the title screen.
+      if (bgMusic && typeof bgMusic.pause === 'function') {
+        bgMusic.pause();
+      }
+    }
+
+    // Display a victory message when the player destroys all aliens. This
+    // function mirrors endGame() but shows a winning message instead of
+    // "GAME OVER". The background music is also paused so it does not
+    // continue after the win screen.
+    function winGame() {
+      gameActive = false;
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.font = '48px Arial';
+      ctx.fillText('YOU WIN!', canvas.width / 2, canvas.height / 2);
+      ctx.font = '24px Arial';
+      ctx.fillText('Press SPACE to Restart', canvas.width / 2, canvas.height / 2 + 40);
+      if (bgMusic && typeof bgMusic.pause === 'function') {
+        bgMusic.pause();
+      }
+    }
+
+    function resetGame() {
+      score = 0;
+      lives = 3;
+      player.x = canvas.width / 2 - 25;
+      player.bullets = [];
+      alienBullets = [];
+      createAliens();
+      gameActive = true;
+
+      // Restart the background music whenever the game is reset. This
+      // ensures the music loops cleanly from the beginning on each
+      // playthrough.
+      if (bgMusic && typeof bgMusic.play === 'function') {
+        try {
+          bgMusic.currentTime = 0;
+        } catch (e) {
+          // Ignore errors if currentTime cannot be set (e.g., uninitialized audio)
+        }
+        bgMusic.play().catch(() => {
+          /* ignore playback errors, such as if the user hasn't interacted
+             with the page yet; browsers may block autoplay until user
+             interaction. */
+        });
+      }
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!gameActive) {
+        drawTitleScreen();
+      } else {
+        drawPlayer();
+        drawAliens();
+        drawBullets();
+        drawAlienBullets();
+        updateGame();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') playerMovement = -1;
+      if (e.key === 'ArrowRight' || e.key === 'd') playerMovement = 1;
+
+      if (e.key === ' ' && gameActive) {
+        // Spawn a new bullet from the player's current position
+        player.bullets.push({
+          x: player.x + player.width / 2 - bulletProps.width / 2,
+          y: player.y,
+          width: bulletProps.width,
+          height: bulletProps.height,
+          speed: bulletProps.speed
+        });
+        // Play the laser firing sound. Reset the current time so rapid
+        // firing triggers the sound repeatedly from the start.
+        if (laserSound && typeof laserSound.play === 'function') {
+          try {
+            laserSound.currentTime = 0;
+          } catch (err) {
+            /* ignore */
+          }
+          laserSound.play().catch(() => {
+            /* ignore any playback errors due to autoplay restrictions */
+          });
+        }
+      } else if (e.key === ' ' && !gameActive) {
+        resetGame();
+      }
+    });
+    document.addEventListener('keyup', e => {
+      if (
+        e.key === 'ArrowLeft' ||
+        e.key === 'a' ||
+        e.key === 'ArrowRight' ||
+        e.key === 'd'
+      ) {
+        playerMovement = 0;
+      }
+    });
+
+    // Initial setup
+    createAliens();
+    gameLoop();
+  </script>
+</body>
+</html>   
