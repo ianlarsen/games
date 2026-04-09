@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Because!</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(160deg, #fef3c7 0%, #d1fae5 55%, #dbeafe 100%);
+      min-height: 100dvh;
+      padding: 1rem 1rem 2rem;
+      scroll-behavior: smooth;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    header {
+      max-width: 720px;
+      margin: 0 auto 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .score-badge {
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #d97706;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    /* ── Main ───────────────────────────────────────────────────────── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 6vw, 2.2rem);
+      color: #92400e;
+      margin-bottom: 0.1rem;
+      text-shadow: 1px 2px 0 rgba(0,0,0,0.07);
+    }
+
+    .subtitle {
+      font-size: clamp(0.82rem, 3.2vw, 0.95rem);
+      color: #555;
+      margin-bottom: 0.3rem;
+    }
+
+    .round-label {
+      font-size: clamp(0.7rem, 2.4vw, 0.85rem);
+      color: #888;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .progress-track {
+      background: #e5e7eb;
+      border-radius: 99px;
+      height: 10px;
+      margin-bottom: 0.8rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(to right, #fbbf24, #f97316);
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Question card ──────────────────────────────────────────────── */
+    .question-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+
+    .question-img-wrap {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #fef9c3;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .question-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      padding: 0.5rem;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .question-text {
+      padding: 0.65rem 1rem 0.7rem;
+      font-size: clamp(1rem, 4.2vw, 1.3rem);
+      font-weight: 800;
+      color: #1e3a8a;
+      line-height: 1.3;
+      background: #eff6ff;
+      border-top: 2px solid #bfdbfe;
+    }
+
+    /* ── Choices ─────────────────────────────────────────────────────── */
+    .choices-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 520px;
+      margin: 0 auto 0.65rem;
+    }
+
+    .choice-btn {
+      border-radius: 16px;
+      border: 3px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+      padding: 0.65rem 0.6rem;
+      font-size: clamp(0.82rem, 3vw, 0.98rem);
+      font-weight: 600;
+      color: #1f2937;
+      text-align: center;
+      line-height: 1.3;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+      transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .choice-btn:hover,
+    .choice-btn:focus-visible {
+      transform: translateY(-3px) scale(1.03);
+      border-color: #fbbf24;
+      box-shadow: 0 7px 18px rgba(0,0,0,0.12);
+      outline: 3px solid #fbbf24;
+      outline-offset: 2px;
+    }
+    .choice-btn:active { transform: scale(0.95); }
+
+    .choice-btn.state-correct {
+      border-color: #22c55e;
+      background: #f0fff4;
+      animation: cellPop 0.3s ease;
+    }
+    .choice-btn.state-wrong {
+      border-color: #f87171;
+      background: #fff5f5;
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes cellPop {
+      0%   { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-7px); }
+      60%       { transform: translateX(7px); }
+    }
+
+    /* ── Feedback ────────────────────────────────────────────────────── */
+    .feedback {
+      min-height: 2rem;
+      font-size: clamp(1rem, 4vw, 1.2rem);
+      font-weight: 800;
+    }
+    .feedback.correct { color: #15803d; }
+    .feedback.wrong   { color: #dc2626; }
+
+    /* ── Win overlay ─────────────────────────────────────────────────── */
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+    .win-overlay.show { opacity: 1; pointer-events: auto; }
+
+    .win-card {
+      background: #fff;
+      border-radius: 26px;
+      padding: 2rem 1.6rem;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      animation: popCard 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popCard {
+      from { transform: scale(0.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .win-emoji  { font-size: 3rem; margin-bottom: 0.4rem; }
+    .win-title  { font-size: clamp(1.3rem,5vw,1.7rem); font-weight: 800; color: #1f2937; margin-bottom: 0.4rem; }
+    .win-score  { font-size: 1rem; color: #6b7280; margin-bottom: 1.2rem; }
+
+    .replay-btn {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 0.75rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 50px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .replay-btn:hover  { transform: translateY(-2px); }
+    .replay-btn:active { transform: scale(0.96); }
+
+    /* ── Confetti ────────────────────────────────────────────────────── */
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+
+    /* ── Mobile — everything on one screen ──────────────────────────── */
+    @media (max-width: 600px) {
+      body {
+        padding: 0.35rem 0.35rem 0;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        overscroll-behavior-y: none;
+      }
+
+      header {
+        flex-shrink: 0;
+        margin-bottom: 0.25rem;
+      }
+      .back-btn, .score-badge {
+        min-height: 38px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.82rem;
+        border-radius: 10px;
+      }
+
+      main {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      h1           { font-size: 1rem;   margin-bottom: 0; }
+      .subtitle    { font-size: 0.68rem; margin-bottom: 0.1rem; }
+      .round-label { font-size: 0.62rem; margin-bottom: 0.15rem; }
+
+      .progress-track { height: 6px; margin-bottom: 0.25rem; flex-shrink: 0; }
+
+      .question-card {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0.3rem;
+      }
+      .question-img-wrap {
+        flex: 1;
+        min-height: 0;
+        aspect-ratio: unset;
+      }
+      .question-text {
+        flex-shrink: 0;
+        padding: 0.3rem 0.7rem 0.35rem;
+        font-size: clamp(0.9rem, 3.8vw, 1.1rem);
+      }
+
+      .choices-grid {
+        flex-shrink: 0;
+        gap: 6px;
+        margin-bottom: 0.2rem;
+      }
+      .choice-btn {
+        min-height: 44px;
+        padding: 0.3rem 0.4rem;
+        font-size: 0.82rem;
+      }
+
+      .feedback {
+        flex-shrink: 0;
+        min-height: 1.3rem;
+        font-size: 0.88rem;
+        padding-bottom: env(safe-area-inset-bottom, 0.25rem);
+      }
+    }
+
+    @media (max-width: 360px) {
+      .choice-btn { font-size: 0.75rem; min-height: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="score-badge">⭐ <span id="score-val">0</span> / <span id="total-val">10</span></div>
+  </header>
+
+  <main>
+    <h1>🤔 Because!</h1>
+    <p class="subtitle">Answer the "Why?" question</p>
+    <p class="round-label" id="round-label">Round 1 of 10</p>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <!-- Question card: image + question text -->
+    <div class="question-card">
+      <div class="question-img-wrap">
+        <img id="question-img" src="" alt="" />
+      </div>
+      <div class="question-text" id="question-text"></div>
+    </div>
+
+    <!-- Choices -->
+    <div class="choices-grid" id="choices-grid"></div>
+
+    <!-- Feedback -->
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </main>
+
+  <div class="confetti-layer" id="confetti-layer"></div>
+
+  <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
+    <div class="win-card">
+      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-title" id="win-title-el">Amazing!</div>
+      <div class="win-score" id="win-score-msg"></div>
+      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════
+    //  DATA
+    //  Each entry: question text, image filename, correct answer, 3 distractors
+    //  Images live in images/<id>.png
+    // ═══════════════════════════════════════════════════════════════════
+    const QUESTIONS = [
+      {
+        id: 'exercise',
+        q: 'Why do you exercise?',
+        correct: 'To stay healthy',
+        distractors: ['To get wet', 'To eat more food', 'To fall asleep'],
+      },
+      {
+        id: 'school',
+        q: 'Why do you go to school?',
+        correct: 'To learn',
+        distractors: ['To watch TV', 'To play all day', 'To take a nap'],
+      },
+      {
+        id: 'squirrel_nuts',
+        q: 'Why do squirrels gather nuts?',
+        correct: 'So they can eat them later',
+        distractors: ['To play with them', 'To give them away', 'To count them'],
+      },
+      {
+        id: 'recycle',
+        q: 'Why do we recycle?',
+        correct: 'To protect the earth',
+        distractors: ['To make more rubbish', 'To win a prize', 'To save time'],
+      },
+      {
+        id: 'chairs',
+        q: 'Why do we have chairs?',
+        correct: 'So we can sit',
+        distractors: ['So we can jump on them', 'To hold our bags', 'To decorate the room'],
+      },
+      {
+        id: 'bathing_suit',
+        q: 'Why do you wear a bathing suit?',
+        correct: 'So you can go swimming',
+        distractors: ['To stay warm', 'To go to school', 'To sleep in'],
+      },
+      {
+        id: 'stamp_letter',
+        q: 'Why do you put a stamp on a letter?',
+        correct: 'So you can mail it',
+        distractors: ['To make it look pretty', 'To keep it closed', 'To weigh it down'],
+      },
+      {
+        id: 'sunglasses',
+        q: 'Why do you wear sunglasses?',
+        correct: 'To protect your eyes from the sun',
+        distractors: ['To see in the dark', 'To keep your ears warm', 'To look at clouds'],
+      },
+      {
+        id: 'brush_teeth',
+        q: 'Why do you brush your teeth?',
+        correct: 'To keep them clean and healthy',
+        distractors: ['To make them blue', 'To wake up faster', 'To eat breakfast'],
+      },
+      {
+        id: 'wash_hands',
+        q: 'Why do we wash our hands?',
+        correct: 'To get rid of germs',
+        distractors: ['To make them wet', 'To cool them down', 'To wake up'],
+      },
+      {
+        id: 'coat',
+        q: 'Why do you wear a coat outside?',
+        correct: 'To stay warm',
+        distractors: ['To look big', 'To go to the beach', 'To get wet'],
+      },
+      {
+        id: 'eat_food',
+        q: 'Why do we eat food?',
+        correct: 'To give our body energy',
+        distractors: ['To make a mess', 'To stay awake all night', 'To grow taller faster'],
+      },
+      {
+        id: 'drink_water',
+        q: 'Why do we drink water?',
+        correct: 'To stay hydrated and healthy',
+        distractors: ['To get wet inside', 'To make our stomach cold', 'To stop being sleepy'],
+      },
+      {
+        id: 'shoes',
+        q: 'Why do we wear shoes?',
+        correct: 'To protect our feet',
+        distractors: ['So our feet look bigger', 'To jump higher', 'To keep our hands warm'],
+      },
+      {
+        id: 'sleep',
+        q: 'Why do we need sleep?',
+        correct: 'So our body can rest and grow',
+        distractors: ['To talk to our dreams', 'To eat in the dark', 'To stop the sun coming up'],
+      },
+    ];
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  SOUNDS
+    // ═══════════════════════════════════════════════════════════════════
+    const SFX = {
+      match: new Audio('sounds/match.mp3'),
+      win:   new Audio('sounds/win.mp3'),
+    };
+    function playSound(name) {
+      const s = SFX[name];
+      if (!s) return;
+      s.currentTime = 0;
+      s.play().catch(() => {});
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  GAME STATE
+    // ═══════════════════════════════════════════════════════════════════
+    const TOTAL = 10;
+    let round      = 0;
+    let score      = 0;
+    let answered   = false;
+    let roundQueue = [];
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════════════
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function buildRoundQueue() {
+      return shuffle(QUESTIONS).slice(0, TOTAL);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RENDER ROUND
+    // ═══════════════════════════════════════════════════════════════════
+    function renderRound() {
+      answered = false;
+      const q = roundQueue[round];
+
+      document.getElementById('round-label').textContent =
+        `Round ${round + 1} of ${TOTAL}`;
+      document.getElementById('progress-fill').style.width =
+        `${(round / TOTAL) * 100}%`;
+
+      // Image + question text
+      const img = document.getElementById('question-img');
+      img.src = `images/${q.id}.png`;
+      img.alt = q.q;
+      document.getElementById('question-text').textContent = q.q;
+
+      // Build 4 choices
+      const correctText  = q.correct;
+      const allChoices   = shuffle([correctText, ...shuffle(q.distractors).slice(0, 3)]);
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      allChoices.forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = text;
+        btn.addEventListener('click', () => handleChoice(text, btn, correctText));
+        grid.appendChild(btn);
+      });
+
+      const fb = document.getElementById('feedback');
+      fb.textContent = '';
+      fb.className = 'feedback';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HANDLE CHOICE
+    // ═══════════════════════════════════════════════════════════════════
+    function handleChoice(chosen, btn, correct) {
+      if (answered) return;
+      const fb = document.getElementById('feedback');
+
+      if (chosen === correct) {
+        answered = true;
+        btn.classList.add('state-correct');
+        playSound('match');
+
+        const msgs = [
+          'That\'s right! 🌟', 'You got it! ⭐', 'Great thinking! 🧠',
+          'Correct! 🎉', 'Wonderful! 🎊', 'Nice work! 👏',
+        ];
+        fb.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+        fb.className = 'feedback correct';
+
+        score++;
+        document.getElementById('score-val').textContent = score;
+
+        setTimeout(() => {
+          round++;
+          if (round >= TOTAL) showWinScreen();
+          else renderRound();
+        }, 1300);
+
+      } else {
+        btn.classList.add('state-wrong');
+        fb.textContent = 'Not quite — try again!';
+        fb.className = 'feedback wrong';
+        setTimeout(() => {
+          btn.classList.remove('state-wrong');
+          fb.textContent = '';
+          fb.className = 'feedback';
+        }, 850);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  WIN SCREEN
+    // ═══════════════════════════════════════════════════════════════════
+    function showWinScreen() {
+      document.getElementById('progress-fill').style.width = '100%';
+      playSound('win');
+
+      const emojiEl = document.getElementById('win-emoji');
+      const titleEl = document.getElementById('win-title-el');
+      const scoreEl = document.getElementById('win-score-msg');
+
+      if (score >= TOTAL)  { emojiEl.textContent = '🏆🤔🏆'; titleEl.textContent = 'Perfect!'; }
+      else if (score >= 8) { emojiEl.textContent = '⭐🤔⭐'; titleEl.textContent = 'Super Thinker!'; }
+      else if (score >= 5) { emojiEl.textContent = '🌟🤔🌟'; titleEl.textContent = 'Good Thinking!'; }
+      else                 { emojiEl.textContent = '💪🤔💪'; titleEl.textContent = 'Keep Practising!'; }
+
+      scoreEl.textContent = `You got ${score} out of ${TOTAL} right!`;
+      document.getElementById('win-overlay').classList.add('show');
+      launchConfetti();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CONFETTI
+    // ═══════════════════════════════════════════════════════════════════
+    function launchConfetti() {
+      const style = document.createElement('style');
+      style.textContent = `@keyframes confettiFall {
+        0%   { transform:translateY(-20px) rotate(0deg);   opacity:1; }
+        100% { transform:translateY(105vh) rotate(540deg); opacity:0; }
+      }`;
+      document.head.appendChild(style);
+      const layer  = document.getElementById('confetti-layer');
+      layer.innerHTML = '';
+      const colors = ['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa','#fb7185','#4ade80'];
+      for (let i = 0; i < 70; i++) {
+        const el   = document.createElement('div');
+        const size = 7 + Math.random() * 8;
+        el.style.cssText = `
+          position:absolute;left:${Math.random()*100}%;top:-20px;
+          width:${size}px;height:${size}px;
+          border-radius:${Math.random()>0.45?'50%':'2px'};
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          opacity:1;
+          animation:confettiFall ${1.6+Math.random()*2.2}s ease-in ${Math.random()}s forwards;
+        `;
+        layer.appendChild(el);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESTART
+    // ═══════════════════════════════════════════════════════════════════
+    function restartGame() {
+      round = 0;
+      score = 0;
+      document.getElementById('score-val').textContent = '0';
+      document.getElementById('win-overlay').classList.remove('show');
+      document.getElementById('confetti-layer').innerHTML = '';
+      roundQueue = buildRoundQueue();
+      renderRound();
+    }
+
+    restartGame();
+  </script>
+</body>
+</html>
