@@ -1,0 +1,33 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+}
+
+body {
+    padding-top: env(safe-area-inset-top, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    box-sizing: border-box;
+    overscroll-behavior-y: auto;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+img, iframe, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+}
+
+a, button {
+    touch-action: manipulation;
+}
