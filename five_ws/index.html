@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Picture Detective</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(160deg, #e0f2fe 0%, #fef9c3 60%, #fce7f3 100%);
+      min-height: 100dvh;
+      padding: 1rem 1rem 2rem;
+      scroll-behavior: smooth;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    header {
+      max-width: 720px;
+      margin: 0 auto 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .score-badge {
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1d4ed8;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    /* ── Main ───────────────────────────────────────────────────────── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 6vw, 2.4rem);
+      color: #1e40af;
+      margin-bottom: 0.15rem;
+      text-shadow: 1px 2px 0 rgba(0,0,0,0.07);
+    }
+
+    .subtitle {
+      font-size: clamp(0.85rem, 3.5vw, 1rem);
+      color: #555;
+      margin-bottom: 0.3rem;
+    }
+
+    .round-label {
+      font-size: clamp(0.72rem, 2.5vw, 0.88rem);
+      color: #888;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .progress-track {
+      background: #e5e7eb;
+      border-radius: 99px;
+      height: 10px;
+      margin-bottom: 0.9rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(to right, #60a5fa, #818cf8);
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Scene card ─────────────────────────────────────────────────── */
+    .scene-card {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.11);
+      margin-bottom: 0.9rem;
+      overflow: hidden;
+    }
+
+    .scene-img-wrap {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #e0f2fe;
+      overflow: hidden;
+    }
+
+    .scene-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .scene-name-bar {
+      padding: 0.35rem 0.8rem 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      background: #f9fafb;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    /* ── W-badge row ─────────────────────────────────────────────────── */
+    .w-badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .w-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #f3f4f6;
+      color: #374151;
+      border: 2px solid #e5e7eb;
+    }
+    .w-badge.active {
+      color: #fff;
+      border-color: transparent;
+    }
+    .w-badge.who.active    { background: #2563eb; }
+    .w-badge.what.active   { background: #d97706; }
+    .w-badge.where.active  { background: #16a34a; }
+    .w-badge.when.active   { background: #7c3aed; }
+    .w-badge.why.active    { background: #db2777; }
+
+    /* ── Question ────────────────────────────────────────────────────── */
+    .question-box {
+      background: #eff6ff;
+      border: 2px solid #bfdbfe;
+      border-radius: 16px;
+      padding: 0.7rem 1rem;
+      margin-bottom: 0.75rem;
+      font-size: clamp(1rem, 4vw, 1.3rem);
+      font-weight: 700;
+      color: #1e3a8a;
+      line-height: 1.35;
+    }
+
+    /* ── Choices ─────────────────────────────────────────────────────── */
+    .choices-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 520px;
+      margin: 0 auto 0.75rem;
+    }
+
+    .choice-btn {
+      border-radius: 16px;
+      border: 3px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+      padding: 0.65rem 0.7rem;
+      font-size: clamp(0.85rem, 3vw, 1rem);
+      font-weight: 600;
+      color: #1f2937;
+      text-align: center;
+      line-height: 1.3;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .choice-btn:hover,
+    .choice-btn:focus-visible {
+      transform: translateY(-3px) scale(1.03);
+      border-color: #60a5fa;
+      box-shadow: 0 7px 18px rgba(0,0,0,0.13);
+      outline: 3px solid #60a5fa;
+      outline-offset: 2px;
+    }
+    .choice-btn:active { transform: scale(0.95); }
+
+    .choice-btn.state-correct {
+      border-color: #22c55e;
+      background: #f0fff4;
+      animation: cellPop 0.3s ease;
+    }
+    .choice-btn.state-wrong {
+      border-color: #f87171;
+      background: #fff5f5;
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes cellPop {
+      0%   { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-7px); }
+      60%       { transform: translateX(7px); }
+    }
+
+    /* ── Feedback ────────────────────────────────────────────────────── */
+    .feedback {
+      min-height: 2rem;
+      font-size: clamp(1rem, 4vw, 1.25rem);
+      font-weight: 800;
+    }
+    .feedback.correct { color: #15803d; }
+    .feedback.wrong   { color: #dc2626; }
+
+    /* ── Win overlay ─────────────────────────────────────────────────── */
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+    .win-overlay.show { opacity: 1; pointer-events: auto; }
+
+    .win-card {
+      background: #fff;
+      border-radius: 26px;
+      padding: 2rem 1.6rem;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      animation: popCard 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popCard {
+      from { transform: scale(0.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .win-emoji  { font-size: 3rem; margin-bottom: 0.4rem; }
+    .win-title  { font-size: clamp(1.3rem,5vw,1.7rem); font-weight: 800; color: #1f2937; margin-bottom: 0.4rem; }
+    .win-score  { font-size: 1rem; color: #6b7280; margin-bottom: 1.2rem; }
+
+    .replay-btn {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 0.75rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 50px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .replay-btn:hover { transform: translateY(-2px); }
+    .replay-btn:active { transform: scale(0.96); }
+
+    /* ── Confetti ────────────────────────────────────────────────────── */
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+
+    /* ── Mobile ──────────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      /* Flex column — everything stacks in exactly 100dvh */
+      body {
+        padding: 0.35rem 0.35rem 0;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        overscroll-behavior-y: none;
+      }
+
+      header {
+        flex-shrink: 0;
+        margin-bottom: 0.3rem;
+      }
+      .back-btn, .score-badge {
+        min-height: 38px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.82rem;
+        border-radius: 10px;
+      }
+
+      /* main is the flex child that fills remaining space */
+      main {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      h1           { font-size: 1.05rem; margin-bottom: 0; }
+      .subtitle    { font-size: 0.7rem;  margin-bottom: 0.1rem; }
+      .round-label { font-size: 0.65rem; margin-bottom: 0.2rem; }
+
+      .progress-track {
+        height: 6px;
+        margin-bottom: 0.3rem;
+        flex-shrink: 0;
+      }
+
+      /* Scene card grows to fill leftover vertical space */
+      .scene-card {
+        flex: 1;
+        min-height: 0;
+        margin-bottom: 0.3rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .scene-img-wrap {
+        flex: 1;
+        min-height: 0;
+        aspect-ratio: unset;
+      }
+      .scene-name-bar {
+        flex-shrink: 0;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.62rem;
+      }
+
+      .w-badge-row {
+        flex-shrink: 0;
+        gap: 4px;
+        margin-bottom: 0.25rem;
+      }
+      .w-badge { font-size: 0.67rem; padding: 3px 7px; }
+
+      .question-box {
+        flex-shrink: 0;
+        padding: 0.35rem 0.7rem;
+        margin-bottom: 0.28rem;
+        font-size: clamp(0.88rem, 3.5vw, 1.05rem);
+      }
+
+      .choices-grid {
+        flex-shrink: 0;
+        gap: 6px;
+        margin-bottom: 0.2rem;
+      }
+      .choice-btn {
+        min-height: 44px;
+        padding: 0.35rem 0.4rem;
+        font-size: 0.85rem;
+      }
+
+      .feedback {
+        flex-shrink: 0;
+        min-height: 1.4rem;
+        font-size: 0.9rem;
+        padding-bottom: env(safe-area-inset-bottom, 0.3rem);
+      }
+    }
+
+    @media (max-width: 360px) {
+      .w-badge { font-size: 0.6rem; padding: 2px 5px; }
+      .choice-btn { font-size: 0.78rem; min-height: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="score-badge">⭐ <span id="score-val">0</span> / 10</div>
+  </header>
+
+  <main>
+    <h1>�️ Picture Detective</h1>
+    <p class="subtitle">Look at the picture and answer!</p>
+    <p class="round-label" id="round-label">Round 1 of 10</p>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <!-- Scene -->
+    <div class="scene-card">
+      <div class="scene-img-wrap">
+        <img id="scene-img" src="" alt="" />
+      </div>
+      <div class="scene-name-bar" id="scene-name-bar"></div>
+    </div>
+
+    <!-- Active W badge row -->
+    <div class="w-badge-row" id="w-badge-row">
+      <span class="w-badge who"  id="badge-who">Who?</span>
+      <span class="w-badge what" id="badge-what">What?</span>
+      <span class="w-badge where" id="badge-where">Where?</span>
+      <span class="w-badge when"  id="badge-when">When?</span>
+      <span class="w-badge why"   id="badge-why">Why?</span>
+    </div>
+
+    <!-- Question -->
+    <div class="question-box" id="question-box"></div>
+
+    <!-- Choices -->
+    <div class="choices-grid" id="choices-grid"></div>
+
+    <!-- Feedback -->
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </main>
+
+  <div class="confetti-layer" id="confetti-layer"></div>
+
+  <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
+    <div class="win-card">
+      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-title" id="win-title-el">Amazing Work!</div>
+      <div class="win-score" id="win-score-msg"></div>
+      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════
+    //  DATA  —  each scene has a full illustration + scene-specific Qs
+    // ═══════════════════════════════════════════════════════════════════
+
+    const SCENES = [
+      {
+        id: 'beach', title: 'Beach',
+        image: 'images/scenes/beach.png',
+        questions: [
+          { wCat:'who',   q:'Who is in the scene?',              correct:'A boy',               distractors:['A girl','A dog','A teacher'] },
+          { wCat:'what',  q:'What is he doing?',                 correct:'Sitting on the sand', distractors:['Swimming','Running','Sleeping'] },
+          { wCat:'what',  q:'What is over him?',                 correct:'An umbrella',         distractors:['A cloud','A kite','A tree'] },
+          { wCat:'what',  q:'What is next to him?',              correct:'A beach ball',        distractors:['A bucket','A towel','A sandcastle'] },
+          { wCat:'where', q:'Where is the boy?',                 correct:'At the beach',        distractors:['In the park','At school','In the garden'] },
+          { wCat:'why',   q:'Why do people go to the beach?',    correct:'To play in the sun',  distractors:['To do homework','To cook dinner','To sleep'] },
+        ],
+      },
+      {
+        id: 'park', title: 'Park',
+        image: 'images/scenes/park.png',
+        questions: [
+          { wCat:'who',   q:'Who is in the scene?',              correct:'A girl',              distractors:['A boy','A dog','A teacher'] },
+          { wCat:'what',  q:'What is she doing?',                correct:'Swinging',            distractors:['Reading','Running','Eating'] },
+          { wCat:'what',  q:'What do you see in the water?',     correct:'Ducks',               distractors:['Fish','A boat','Frogs'] },
+          { wCat:'where', q:'Where is the girl?',                correct:'At the park',         distractors:['At the beach','At school','At home'] },
+          { wCat:'when',  q:'When do people go to the park?',    correct:'On a sunny day',      distractors:['At night','When it is raining','In a thunderstorm'] },
+        ],
+      },
+      {
+        id: 'kitchen', title: 'Kitchen',
+        image: 'images/scenes/kitchen.png',
+        questions: [
+          { wCat:'who',   q:'Who is in the scene?',              correct:'A woman',             distractors:['A man','A girl','A dog'] },
+          { wCat:'what',  q:'What is she doing?',                correct:'Baking',              distractors:['Eating','Washing dishes','Sleeping'] },
+          { wCat:'what',  q:'What is on the counter?',           correct:'A mixing bowl',       distractors:['A book','A ball','A toy'] },
+          { wCat:'where', q:'Where is she?',                     correct:'In the kitchen',      distractors:['In the bedroom','In the garden','At the park'] },
+          { wCat:'why',   q:'Why is she baking?',                correct:'To make something to eat', distractors:['To play a game','To do homework','To go outside'] },
+        ],
+      },
+      {
+        id: 'bedroom', title: 'Bedroom',
+        image: 'images/scenes/bedroom.png',
+        questions: [
+          { wCat:'who',   q:'Who is in the scene?',              correct:'A child',             distractors:['A teacher','A baby','A dog'] },
+          { wCat:'what',  q:'What is the child doing?',          correct:'Sleeping',            distractors:['Reading','Playing','Watching TV'] },
+          { wCat:'what',  q:'What is beside the bed?',           correct:'A teddy bear',        distractors:['A ball','A book','A dog'] },
+          { wCat:'where', q:'Where is the child?',               correct:'In the bedroom',      distractors:['In the kitchen','At school','At the park'] },
+          { wCat:'when',  q:'When does this happen?',            correct:'At night',            distractors:['In the morning','At lunchtime','After school'] },
+        ],
+      },
+      {
+        id: 'garden', title: 'Garden',
+        image: 'images/scenes/garden.png',
+        questions: [
+          { wCat:'who',   q:'Who is in the scene?',              correct:'A boy',               distractors:['A girl','A man','A cat'] },
+          { wCat:'what',  q:'What is he doing?',                 correct:'Watering the plants', distractors:['Digging','Picking flowers','Eating'] },
+          { wCat:'what',  q:'What is he holding?',               correct:'A watering can',      distractors:['A shovel','A bucket','A ball'] },
+          { wCat:'where', q:'Where is the boy?',                 correct:'In the garden',       distractors:['At the park','At the beach','In the kitchen'] },
+          { wCat:'why',   q:'Why does he water the plants?',     correct:'To help them grow',   distractors:['To make mud','To cool down','To wash them'] },
+        ],
+      },
+    ];
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  SOUNDS
+    // ═══════════════════════════════════════════════════════════════════
+    const SFX = {
+      match: new Audio('sounds/match.mp3'),
+      win:   new Audio('sounds/win.mp3'),
+    };
+    function playSound(name) {
+      const s = SFX[name];
+      if (!s) return;
+      s.currentTime = 0;
+      s.play().catch(() => {});
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  GAME STATE
+    // ═══════════════════════════════════════════════════════════════════
+    const TOTAL   = 10;
+    const W_CATS  = ['who','what','where','when','why'];
+
+    let round    = 0;
+    let score    = 0;
+    let answered = false;
+    let roundQueue = [];   // [{who,what,where,when,whyEntry,wCategory}]
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════════════
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ROUND GENERATION  — flatten all scene questions, pick TOTAL
+    // ═══════════════════════════════════════════════════════════════════
+    function buildRoundQueue() {
+      const pool = [];
+      SCENES.forEach(scene => {
+        scene.questions.forEach(q => pool.push({ scene, question: q }));
+      });
+      return shuffle(pool).slice(0, TOTAL);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  SCENE RENDERER
+    // ═══════════════════════════════════════════════════════════════════
+    function renderScene(roundData) {
+      const { scene } = roundData;
+      const img = document.getElementById('scene-img');
+      img.src = scene.image;
+      img.alt = scene.title;
+      document.getElementById('scene-name-bar').textContent = '📍 ' + scene.title;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  W-BADGE HIGHLIGHT
+    // ═══════════════════════════════════════════════════════════════════
+    function highlightBadge(wCat) {
+      W_CATS.forEach(w => {
+        const b = document.getElementById(`badge-${w}`);
+        b.classList.toggle('active', w === wCat);
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  BUILD CHOICES
+    // ═══════════════════════════════════════════════════════════════════
+    function buildChoices(roundData) {
+      const { question } = roundData;
+      const correctText = capitalise(question.correct);
+      const distractors = shuffle([...question.distractors]).map(d => capitalise(d));
+      const allChoices  = shuffle([correctText, ...distractors.slice(0, 3)]);
+      return { correctText, allChoices };
+    }
+
+    function capitalise(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RENDER ROUND
+    // ═══════════════════════════════════════════════════════════════════
+    function renderRound() {
+      answered = false;
+      const rd = roundQueue[round];
+
+      document.getElementById('round-label').textContent =
+        `Round ${round + 1} of ${TOTAL}`;
+      document.getElementById('progress-fill').style.width =
+        `${(round / TOTAL) * 100}%`;
+
+      // Scene
+      renderScene(rd);
+
+      // Highlight active W badge
+      highlightBadge(rd.question.wCat);
+
+      // Question
+      document.getElementById('question-box').textContent = rd.question.q;
+
+      // Choices
+      const { correctText, allChoices } = buildChoices(rd);
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      allChoices.forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = text;
+        btn.addEventListener('click', () => handleChoice(text, btn, correctText));
+        grid.appendChild(btn);
+      });
+
+      const fb = document.getElementById('feedback');
+      fb.textContent = '';
+      fb.className = 'feedback';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HANDLE CHOICE
+    // ═══════════════════════════════════════════════════════════════════
+    function handleChoice(chosen, btn, correct) {
+      if (answered) return;
+      const fb = document.getElementById('feedback');
+
+      if (chosen === correct) {
+        answered = true;
+        btn.classList.add('state-correct');
+        playSound('match');
+
+        const messages = [
+          'That\'s right! 🌟',
+          'You got it! ⭐',
+          'Great thinking! 🧠',
+          'Correct! 🎉',
+          'Wonderful! 🎊',
+          'Nice work! 👏',
+        ];
+        fb.textContent = messages[Math.floor(Math.random() * messages.length)];
+        fb.className = 'feedback correct';
+
+        score++;
+        document.getElementById('score-val').textContent = score;
+
+        setTimeout(() => {
+          round++;
+          if (round >= TOTAL) showWinScreen();
+          else renderRound();
+        }, 1300);
+
+      } else {
+        btn.classList.add('state-wrong');
+        fb.textContent = 'Not quite — try again!';
+        fb.className = 'feedback wrong';
+        setTimeout(() => {
+          btn.classList.remove('state-wrong');
+          fb.textContent = '';
+          fb.className = 'feedback';
+        }, 850);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  WIN SCREEN
+    // ═══════════════════════════════════════════════════════════════════
+    function showWinScreen() {
+      document.getElementById('progress-fill').style.width = '100%';
+      playSound('win');
+
+      const emojiEl = document.getElementById('win-emoji');
+      const titleEl = document.getElementById('win-title-el');
+      const scoreEl = document.getElementById('win-score-msg');
+
+      if (score >= TOTAL)     { emojiEl.textContent = '🏆🔍🏆'; titleEl.textContent = 'Perfect Detective!'; }
+      else if (score >= 8)    { emojiEl.textContent = '⭐🔍⭐'; titleEl.textContent = 'Super Thinker!'; }
+      else if (score >= 5)    { emojiEl.textContent = '🌟🔍🌟'; titleEl.textContent = 'Good Thinking!'; }
+      else                    { emojiEl.textContent = '💪🔍💪'; titleEl.textContent = 'Keep Practising!'; }
+
+      scoreEl.textContent = `You got ${score} out of ${TOTAL} right!`;
+      document.getElementById('win-overlay').classList.add('show');
+      launchConfetti();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CONFETTI
+    // ═══════════════════════════════════════════════════════════════════
+    function launchConfetti() {
+      const style = document.createElement('style');
+      style.textContent = `@keyframes confettiFall {
+        0%   { transform:translateY(-20px) rotate(0deg);   opacity:1; }
+        100% { transform:translateY(105vh) rotate(540deg); opacity:0; }
+      }`;
+      document.head.appendChild(style);
+      const layer  = document.getElementById('confetti-layer');
+      layer.innerHTML = '';
+      const colors = ['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa','#fb7185','#4ade80'];
+      for (let i = 0; i < 70; i++) {
+        const el   = document.createElement('div');
+        const size = 7 + Math.random() * 8;
+        el.style.cssText = `
+          position:absolute;left:${Math.random()*100}%;top:-20px;
+          width:${size}px;height:${size}px;
+          border-radius:${Math.random()>0.45?'50%':'2px'};
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          opacity:1;
+          animation:confettiFall ${1.6+Math.random()*2.2}s ease-in ${Math.random()}s forwards;
+        `;
+        layer.appendChild(el);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESTART
+    // ═══════════════════════════════════════════════════════════════════
+    function restartGame() {
+      round = 0;
+      score = 0;
+      document.getElementById('score-val').textContent = '0';
+      document.getElementById('win-overlay').classList.remove('show');
+      document.getElementById('confetti-layer').innerHTML = '';
+      roundQueue = buildRoundQueue();
+      renderRound();
+    }
+
+    restartGame();
+  </script>
+</body>
+</html>
