@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Patterns</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(160deg, #e8f5e9 0%, #fff9c4 60%, #fce4ec 100%);
+      min-height: 100dvh;
+      padding: 0.75rem;
+      overscroll-behavior-y: none;
+    }
+
+    header {
+      max-width: 680px;
+      margin: 0 auto 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      transition: box-shadow 0.15s;
+    }
+    .back-btn:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+
+    .score-badge {
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #15803d;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 6vw, 2.5rem);
+      color: #c0392b;
+      margin-bottom: 0.15rem;
+      text-shadow: 1px 2px 0 rgba(0,0,0,0.08);
+    }
+
+    .subtitle {
+      font-size: clamp(0.85rem, 3.5vw, 1.05rem);
+      color: #555;
+      margin-bottom: 0.3rem;
+    }
+
+    .round-label {
+      font-size: clamp(0.72rem, 2.5vw, 0.9rem);
+      color: #888;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .progress-track {
+      background: #e5e7eb;
+      border-radius: 99px;
+      height: 10px;
+      margin-bottom: 0.9rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(to right, #fbbf24, #f97316);
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* Pattern card */
+    .pattern-card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 1rem 0.7rem 1.1rem;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.11);
+      margin-bottom: 0.9rem;
+    }
+
+    .pattern-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      user-select: none;
+    }
+
+    .apple-cell {
+      width: 72px;
+      height: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      overflow: hidden;
+    }
+
+    .apple-cell img,
+    .choice-btn img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .apple-cell.blank {
+      border: 3px dashed #9ca3af;
+      background: #f0f4ff;
+      font-size: 1.9rem;
+      color: #9ca3af;
+      font-weight: 800;
+    }
+
+    .apple-cell.correct-fill {
+      border-color: #4ade80;
+      background: #f0fff4;
+      animation: cellPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes cellPop {
+      0%   { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    /* Choices */
+    .choices-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #6b7280;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Always 3 equal columns, caps at 380px on wide screens */
+    .choices-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 380px;
+      margin: 0 auto 0.8rem;
+      user-select: none;
+    }
+
+    .choice-btn {
+      width: 100%;
+      aspect-ratio: 9/10;
+      border-radius: 18px;
+      border: 3px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+      transition: transform 0.13s ease, border-color 0.13s ease, box-shadow 0.13s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .choice-btn:hover,
+    .choice-btn:focus-visible {
+      transform: translateY(-4px) scale(1.05);
+      border-color: #f97316;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.15);
+      outline: 3px solid #f97316;
+      outline-offset: 2px;
+    }
+    .choice-btn:active { transform: scale(0.94); }
+
+    .choice-btn.state-correct {
+      border-color: #22c55e;
+      background: #f0fff4;
+      animation: cellPop 0.3s ease;
+    }
+    .choice-btn.state-wrong {
+      border-color: #f87171;
+      background: #fff5f5;
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-7px); }
+      60%       { transform: translateX(7px); }
+    }
+
+    /* Feedback */
+    .feedback {
+      min-height: 2rem;
+      font-size: clamp(1.1rem, 4vw, 1.35rem);
+      font-weight: 800;
+      transition: opacity 0.2s;
+    }
+    .feedback.correct { color: #15803d; }
+    .feedback.wrong   { color: #dc2626; }
+
+    /* Win overlay */
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+    .win-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .win-card {
+      background: #fff;
+      border-radius: 26px;
+      padding: 2rem 1.6rem;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      animation: popCard 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popCard {
+      from { transform: scale(0.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .win-emoji { font-size: 3rem; margin-bottom: 0.4rem; }
+    .win-title {
+      font-size: clamp(1.3rem, 5vw, 1.7rem);
+      font-weight: 800;
+      color: #1f2937;
+      margin-bottom: 0.4rem;
+    }
+    .win-score {
+      font-size: 1rem;
+      color: #6b7280;
+      margin-bottom: 1.2rem;
+    }
+
+    .replay-btn {
+      background: linear-gradient(135deg, #f97316, #ef4444);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 0.75rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 50px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .replay-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.22); }
+    .replay-btn:active { transform: scale(0.96); }
+
+    /* Confetti */
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+
+    /* ── Drag & Touch states ──────────────────────────────────────────────── */
+    .choice-btn              { cursor: grab; touch-action: none; }
+    .choice-btn.dragging     { opacity: 0.3; transform: scale(0.93); box-shadow: none; cursor: grabbing; }
+
+    .apple-cell.blank.drop-target {
+      border-color: #f97316;
+      background: #fff7ed;
+      transform: scale(1.1);
+      box-shadow: 0 0 0 4px rgba(249,115,22,0.3);
+      transition: transform 0.12s, border-color 0.12s, background 0.12s, box-shadow 0.12s;
+    }
+
+    .drag-ghost {
+      position: fixed;
+      width: 82px;
+      height: 90px;
+      border-radius: 18px;
+      border: 3px solid #f97316;
+      background: #fff;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+      transform: scale(1.12);
+    }
+    .drag-ghost img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    /* ── Phones ≤480px ─────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      body          { padding: 0.6rem; }
+      .pattern-card { padding: 0.8rem 0.5rem 1rem; }
+      .pattern-row  { gap: 4px; }
+      .apple-cell   { width: 54px; height: 60px; }
+      .choices-row  { gap: 10px; }
+    }
+
+    /* ── Small phones ≤390px ───────────────────────────────────── */
+    @media (max-width: 390px) {
+      .apple-cell { width: 50px; height: 56px; }
+    }
+
+    /* ── Tiny phones ≤360px ────────────────────────────────────── */
+    @media (max-width: 360px) {
+      body          { padding: 0.4rem; }
+      .pattern-card { padding: 0.6rem 0.35rem 0.8rem; }
+      .pattern-row  { gap: 3px; }
+      .apple-cell   { width: 46px; height: 52px; }
+      .choices-row  { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="score-badge">⭐ <span id="score-val">0</span> / 10</div>
+  </header>
+
+  <main>
+    <h1>🍎 Apple Patterns</h1>
+    <p class="subtitle">What comes next in the pattern?</p>
+    <p class="round-label" id="round-label">Round 1 of 10</p>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="pattern-card">
+      <div class="pattern-row" id="pattern-row"></div>
+    </div>
+
+    <p class="choices-label">Drag or tap the missing apple</p>
+    <div class="choices-row" id="choices-row"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </main>
+
+  <!-- Confetti canvas -->
+  <div class="confetti-layer" id="confetti-layer"></div>
+
+  <!-- Win screen -->
+  <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
+    <div class="win-card">
+      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-title" id="win-title-el">Apple-solutely Amazing!</div>
+      <div class="win-score" id="win-score-msg"></div>
+      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // ─── Apple Image Helper ───────────────────────────────────────────────────
+    const APPLE_LABELS = {
+      whole:   'Whole Red Apple',
+      core:    'Apple Core',
+      worm:    'Apple with Worm',
+      leaf:    'Apple with Big Leaf',
+      green:   'Whole Green Apple',
+      half:    'Apple Half',
+      slice:   'Apple Slice',
+      caramel: 'Caramel Apple',
+      bite:    'Apple with Bite',
+      pie:     'Apple Pie Slice'
+    };
+
+    function appleImgEl(type) {
+      const img = document.createElement('img');
+      img.src = `images/apple_${type}.png`;
+      img.alt = APPLE_LABELS[type];
+      return img;
+    }
+
+    // ─── Sounds ───────────────────────────────────────────────────────────────
+    const SFX = {
+      match: new Audio('sounds/match.mp3'),
+      win:   new Audio('sounds/win.mp3')
+    };
+
+    function playSound(name) {
+      const s = SFX[name];
+      if (!s) return;
+      s.currentTime = 0;
+      s.play().catch(() => {});
+    }
+
+    // ─── Pattern Database ─────────────────────────────────────────────────────
+    const ALL_PATTERNS = [
+      // ── AB patterns – ABAB, guess 5th (A) ────────────────────────────────
+      { seq: ['whole','core','whole','core'],           answer: 'whole'   },
+      { seq: ['core','worm','core','worm'],             answer: 'core'    },
+      { seq: ['worm','leaf','worm','leaf'],             answer: 'worm'    },
+      { seq: ['whole','leaf','whole','leaf'],           answer: 'whole'   },
+      { seq: ['leaf','core','leaf','core'],             answer: 'leaf'    },
+      { seq: ['core','whole','core','whole'],           answer: 'core'    },
+      { seq: ['worm','whole','worm','whole'],           answer: 'worm'    },
+      { seq: ['leaf','worm','leaf','worm'],             answer: 'leaf'    },
+      { seq: ['green','whole','green','whole'],         answer: 'green'   },
+      { seq: ['whole','green','whole','green'],         answer: 'whole'   },
+      { seq: ['green','core','green','core'],           answer: 'green'   },
+      { seq: ['half','slice','half','slice'],           answer: 'half'    },
+      { seq: ['slice','half','slice','half'],           answer: 'slice'   },
+      { seq: ['caramel','bite','caramel','bite'],       answer: 'caramel' },
+      { seq: ['bite','caramel','bite','caramel'],       answer: 'bite'    },
+      { seq: ['pie','whole','pie','whole'],             answer: 'pie'     },
+      { seq: ['whole','pie','whole','pie'],             answer: 'whole'   },
+      { seq: ['green','half','green','half'],           answer: 'green'   },
+      { seq: ['slice','caramel','slice','caramel'],     answer: 'slice'   },
+      { seq: ['bite','pie','bite','pie'],               answer: 'bite'    },
+      { seq: ['caramel','whole','caramel','whole'],     answer: 'caramel' },
+      { seq: ['pie','green','pie','green'],             answer: 'pie'     },
+      { seq: ['half','worm','half','worm'],             answer: 'half'    },
+      { seq: ['leaf','slice','leaf','slice'],           answer: 'leaf'    },
+
+      // ── AAB patterns – AABAA, guess 6th (B) ──────────────────────────────
+      { seq: ['whole','whole','core','whole','whole'],             answer: 'core'    },
+      { seq: ['worm','worm','leaf','worm','worm'],                 answer: 'leaf'    },
+      { seq: ['core','core','worm','core','core'],                 answer: 'worm'    },
+      { seq: ['leaf','leaf','whole','leaf','leaf'],                answer: 'whole'   },
+      { seq: ['green','green','whole','green','green'],            answer: 'whole'   },
+      { seq: ['half','half','slice','half','half'],                answer: 'slice'   },
+      { seq: ['caramel','caramel','pie','caramel','caramel'],      answer: 'pie'     },
+      { seq: ['bite','bite','green','bite','bite'],                answer: 'green'   },
+      { seq: ['pie','pie','caramel','pie','pie'],                  answer: 'caramel' },
+      { seq: ['slice','slice','half','slice','slice'],             answer: 'half'    },
+      { seq: ['whole','whole','worm','whole','whole'],             answer: 'worm'    },
+      { seq: ['green','green','bite','green','green'],             answer: 'bite'    },
+
+      // ── ABB patterns – ABBAB, guess 6th (B) ──────────────────────────────
+      { seq: ['whole','core','core','whole','core'],               answer: 'core'    },
+      { seq: ['worm','leaf','leaf','worm','leaf'],                 answer: 'leaf'    },
+      { seq: ['leaf','worm','worm','leaf','worm'],                 answer: 'worm'    },
+      { seq: ['core','whole','whole','core','whole'],              answer: 'whole'   },
+      { seq: ['green','half','half','green','half'],               answer: 'half'    },
+      { seq: ['half','green','green','half','green'],              answer: 'green'   },
+      { seq: ['caramel','bite','bite','caramel','bite'],           answer: 'bite'    },
+      { seq: ['bite','caramel','caramel','bite','caramel'],        answer: 'caramel' },
+      { seq: ['pie','slice','slice','pie','slice'],                answer: 'slice'   },
+      { seq: ['slice','pie','pie','slice','pie'],                  answer: 'pie'     },
+      { seq: ['whole','green','green','whole','green'],            answer: 'green'   },
+      { seq: ['caramel','whole','whole','caramel','whole'],        answer: 'whole'   },
+
+      // ── ABC patterns – ABCAB, guess 6th (C) ──────────────────────────────
+      { seq: ['whole','core','worm','whole','core'],               answer: 'worm'    },
+      { seq: ['core','worm','leaf','core','worm'],                 answer: 'leaf'    },
+      { seq: ['worm','leaf','whole','worm','leaf'],                answer: 'whole'   },
+      { seq: ['leaf','whole','core','leaf','whole'],               answer: 'core'    },
+      { seq: ['green','half','slice','green','half'],              answer: 'slice'   },
+      { seq: ['half','slice','green','half','slice'],              answer: 'green'   },
+      { seq: ['slice','caramel','bite','slice','caramel'],         answer: 'bite'    },
+      { seq: ['caramel','bite','pie','caramel','bite'],            answer: 'pie'     },
+      { seq: ['bite','pie','caramel','bite','pie'],                answer: 'caramel' },
+      { seq: ['pie','green','whole','pie','green'],                answer: 'whole'   },
+      { seq: ['whole','caramel','green','whole','caramel'],        answer: 'green'   },
+      { seq: ['core','half','pie','core','half'],                  answer: 'pie'     },
+      { seq: ['green','bite','slice','green','bite'],              answer: 'slice'   },
+      { seq: ['half','caramel','worm','half','caramel'],           answer: 'worm'    },
+      { seq: ['worm','pie','core','worm','pie'],                   answer: 'core'    },
+      { seq: ['leaf','bite','half','leaf','bite'],                 answer: 'half'    },
+    ];
+
+    // ─── Game State ───────────────────────────────────────────────────────────
+    const TOTAL = 10;
+    let round = 0;
+    let score = 0;
+    let answered = false;
+    let shuffledPatterns = [];
+    let currentAnswer  = null;
+
+    // ─── Drag & Touch State ───────────────────────────────────────────────────
+    let dragType    = null;
+    let dragBtn     = null;
+    let touchGhost  = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const DRAG_THRESHOLD = 8;
+
+    function createGhost(type) {
+      const g = document.createElement('div');
+      g.className = 'drag-ghost';
+      g.appendChild(appleImgEl(type));
+      document.body.appendChild(g);
+      return g;
+    }
+
+    function placeGhost(g, cx, cy) {
+      g.style.left = (cx - g.offsetWidth  / 2) + 'px';
+      g.style.top  = (cy - g.offsetHeight / 2) + 'px';
+    }
+
+    function removeGhost() {
+      if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+      if (dragBtn)    { dragBtn.classList.remove('dragging'); }
+    }
+
+    // blank cell: accept HTML5 drops
+    function setupDropTarget(blank) {
+      blank.addEventListener('dragover', e => {
+        if (!dragType) return;
+        e.preventDefault();
+        blank.classList.add('drop-target');
+      });
+      blank.addEventListener('dragleave', () => {
+        blank.classList.remove('drop-target');
+      });
+      blank.addEventListener('drop', e => {
+        e.preventDefault();
+        blank.classList.remove('drop-target');
+        if (dragType && dragBtn) handleChoice(dragType, dragBtn, currentAnswer);
+      });
+    }
+
+    // choice button: HTML5 drag (desktop) + touch drag (mobile)
+    function setupDragAndTouch(btn, type) {
+      // ── Desktop HTML5 ──
+      btn.draggable = true;
+      btn.addEventListener('dragstart', e => {
+        if (answered) { e.preventDefault(); return; }
+        dragType = type;
+        dragBtn  = btn;
+        btn.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      btn.addEventListener('dragend', () => {
+        btn.classList.remove('dragging');
+        dragType = null;
+        dragBtn  = null;
+      });
+
+      // ── Touch ──
+      btn.addEventListener('touchstart', e => {
+        if (answered) return;
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        dragType    = type;
+        dragBtn     = btn;
+      }, { passive: true });
+
+      btn.addEventListener('touchmove', e => {
+        if (!dragBtn) return;
+        const t  = e.touches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (!touchGhost && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+          touchGhost = createGhost(dragType);
+          dragBtn.classList.add('dragging');
+        }
+        if (touchGhost) {
+          placeGhost(touchGhost, t.clientX, t.clientY);
+          touchGhost.style.visibility = 'hidden';
+          const el = document.elementFromPoint(t.clientX, t.clientY);
+          touchGhost.style.visibility = '';
+          const blank = document.getElementById('blank-cell');
+          if (blank) blank.classList.toggle('drop-target', !!(el && (el === blank || blank.contains(el))));
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      btn.addEventListener('touchend', e => {
+        if (!touchGhost) {
+          // No drag started — let the tap fire as a click
+          dragType = null;
+          dragBtn  = null;
+          return;
+        }
+        const t = e.changedTouches[0];
+        touchGhost.style.visibility = 'hidden';
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        touchGhost.style.visibility = '';
+        const capturedType = dragType;
+        const capturedBtn  = dragBtn;
+        removeGhost();
+        dragType = null;
+        dragBtn  = null;
+        const blank = document.getElementById('blank-cell');
+        if (blank) {
+          blank.classList.remove('drop-target');
+          if (el && (el === blank || blank.contains(el))) {
+            handleChoice(capturedType, capturedBtn, currentAnswer);
+          }
+        }
+        e.preventDefault();
+      }, { passive: false });
+
+      btn.addEventListener('touchcancel', () => {
+        removeGhost();
+        const blank = document.getElementById('blank-cell');
+        if (blank) blank.classList.remove('drop-target');
+        dragType = null;
+        dragBtn  = null;
+      }, { passive: true });
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // ─── Render ───────────────────────────────────────────────────────────────
+    function renderRound() {
+      answered = false;
+      const { seq, answer } = shuffledPatterns[round];
+      currentAnswer = answer;
+
+      document.getElementById('round-label').textContent =
+        `Round ${round + 1} of ${TOTAL}`;
+      document.getElementById('progress-fill').style.width =
+        `${(round / TOTAL) * 100}%`;
+
+      // Pattern row
+      const patternRow = document.getElementById('pattern-row');
+      patternRow.innerHTML = '';
+
+      seq.forEach(type => {
+        const cell = document.createElement('div');
+        cell.className = 'apple-cell';
+        cell.setAttribute('aria-hidden', 'true');
+        cell.appendChild(appleImgEl(type));
+        patternRow.appendChild(cell);
+      });
+
+      const blank = document.createElement('div');
+      blank.className = 'apple-cell blank';
+      blank.id = 'blank-cell';
+      blank.setAttribute('aria-label', 'Missing apple — choose below');
+      blank.textContent = '?';
+      setupDropTarget(blank);
+      patternRow.appendChild(blank);
+
+      // Choices: correct + 2 unique wrong
+      const allTypes = Object.keys(APPLE_LABELS);
+      const wrongs = shuffle(allTypes.filter(t => t !== answer));
+      const choices = shuffle([answer, wrongs[0], wrongs[1]]);
+
+      const choicesRow = document.getElementById('choices-row');
+      choicesRow.innerHTML = '';
+      choices.forEach(type => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.setAttribute('aria-label', APPLE_LABELS[type]);
+        btn.appendChild(appleImgEl(type));
+        btn.addEventListener('click', () => handleChoice(type, btn, answer));
+        setupDragAndTouch(btn, type);
+        choicesRow.appendChild(btn);
+      });
+
+      const fb = document.getElementById('feedback');
+      fb.textContent = '';
+      fb.className = 'feedback';
+    }
+
+    function handleChoice(type, btn, answer) {
+      if (answered) return;
+
+      const fb = document.getElementById('feedback');
+
+      if (type === answer) {
+        answered = true;
+        btn.classList.add('state-correct');
+        playSound('match');
+
+        const blank = document.getElementById('blank-cell');
+        blank.classList.remove('blank');
+        blank.classList.add('correct-fill');
+        blank.textContent = '';
+        blank.appendChild(appleImgEl(answer));
+
+        const messages = [
+          'Apple-solutely correct! 🍎',
+          'You got it! ⭐',
+          'Great work! 🎉',
+          'Awesome! 🌟',
+          'Perfect! 🎊',
+          'Nice job! 👏'
+        ];
+        fb.textContent = messages[Math.floor(Math.random() * messages.length)];
+        fb.className = 'feedback correct';
+
+        score++;
+        document.getElementById('score-val').textContent = score;
+
+        setTimeout(() => {
+          round++;
+          if (round >= TOTAL) {
+            showWinScreen();
+          } else {
+            renderRound();
+          }
+        }, 1300);
+
+      } else {
+        btn.classList.add('state-wrong');
+        fb.textContent = 'Not quite — try again! 🍏';
+        fb.className = 'feedback wrong';
+
+        setTimeout(() => {
+          btn.classList.remove('state-wrong');
+          fb.textContent = '';
+          fb.className = 'feedback';
+        }, 850);
+      }
+    }
+
+    // ─── Win Screen ───────────────────────────────────────────────────────────
+    function showWinScreen() {
+      const overlay = document.getElementById('win-overlay');
+      const emojiEl = document.getElementById('win-emoji');
+      const titleEl = document.getElementById('win-title-el');
+      const scoreEl = document.getElementById('win-score-msg');
+
+      document.getElementById('progress-fill').style.width = '100%';
+      playSound('win');
+
+      if (score >= TOTAL) {
+        emojiEl.textContent = '🏆🍎🏆';
+        titleEl.textContent = 'Apple-solutely Perfect!';
+      } else if (score >= 8) {
+        emojiEl.textContent = '⭐🍎⭐';
+        titleEl.textContent = 'Apple-solutely Amazing!';
+      } else if (score >= 5) {
+        emojiEl.textContent = '🌟🍎🌟';
+        titleEl.textContent = 'Great Pattern Work!';
+      } else {
+        emojiEl.textContent = '💪🍎💪';
+        titleEl.textContent = 'Keep Practicing!';
+      }
+
+      scoreEl.textContent = `You got ${score} out of ${TOTAL} right!`;
+      overlay.classList.add('show');
+      launchConfetti();
+    }
+
+    // ─── Confetti ─────────────────────────────────────────────────────────────
+    function launchConfetti() {
+      const style = document.createElement('style');
+      style.textContent = `@keyframes confettiFall {
+        0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+        100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+      }`;
+      document.head.appendChild(style);
+
+      const layer = document.getElementById('confetti-layer');
+      layer.innerHTML = '';
+      const colors = ['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa','#fb7185','#4ade80'];
+
+      for (let i = 0; i < 70; i++) {
+        const el = document.createElement('div');
+        const size = 7 + Math.random() * 8;
+        el.style.cssText = `
+          position:absolute;
+          left:${Math.random() * 100}%;
+          top:-20px;
+          width:${size}px;
+          height:${size}px;
+          border-radius:${Math.random() > 0.45 ? '50%' : '2px'};
+          background:${colors[Math.floor(Math.random() * colors.length)]};
+          opacity:1;
+          animation:confettiFall ${1.6 + Math.random() * 2.2}s ease-in ${Math.random() * 1}s forwards;
+        `;
+        layer.appendChild(el);
+      }
+    }
+
+    // ─── Restart ──────────────────────────────────────────────────────────────
+    function restartGame() {
+      round = 0;
+      score = 0;
+      document.getElementById('score-val').textContent = '0';
+      document.getElementById('win-overlay').classList.remove('show');
+      document.getElementById('confetti-layer').innerHTML = '';
+      shuffledPatterns = shuffle(ALL_PATTERNS).slice(0, TOTAL);
+      renderRound();
+    }
+
+    // ─── Start ────────────────────────────────────────────────────────────────
+    restartGame();
+  </script>
+</body>
+</html>
