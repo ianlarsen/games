@@ -115,11 +115,39 @@ main {
   padding: clamp(14px, 4vw, 28px);
 }
 
-/* Game Grid */
-.grid {
-  display: grid;
+/* Category Sections */
+.category-section {
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.category-title {
+  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 0.75rem 2px;
+}
+
+.category-row {
+  display: flex;
+  flex-wrap: nowrap;
   gap: var(--gap);
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 10px;
+  padding-inline: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.category-row::-webkit-scrollbar {
+  height: 4px;
+}
+
+.category-row::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 2px;
 }
 
 /* Game Tiles */
@@ -132,8 +160,9 @@ main {
   display: grid;
   place-items: center;
   gap: .3rem;
-  padding: clamp(16px, 4vw, 28px);
-  min-height: 200px;
+  padding: clamp(12px, 3vw, 20px);
+  min-height: 210px;
+  flex: 0 0 185px;
   transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
   box-shadow: 0 6px 16px rgba(0, 0, 0, .1);
 }
@@ -159,15 +188,23 @@ main {
 }
 
 .label {
-  font-size: clamp(1.1rem, 3.6vw, 1.6rem);
+  font-size: clamp(0.85rem, 2.4vw, 1.1rem);
   font-weight: 800;
   letter-spacing: .5px;
 }
 
 .hint {
   color: var(--muted);
-  font-size: clamp(.9rem, 2.5vw, 1rem);
+  font-size: clamp(0.7rem, 1.8vw, 0.82rem);
   text-align: center;
+}
+
+/* Tile image icons */
+.tile-img {
+  width: 80%;
+  max-width: 145px;
+  height: auto;
+  display: block;
 }
 
 /* Sound Status Indicator */
