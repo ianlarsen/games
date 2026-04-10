@@ -1,0 +1,887 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Possumer â€” Midnight Crossing</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0a0a14;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+        #wrapper {
+            position: relative;
+            width: min(520px, 100vw);
+            aspect-ratio: 520 / 640;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        /* Mobile d-pad overlay */
+        #dpad {
+            position: absolute;
+            bottom: 12px; left: 0; right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .drow { display: flex; gap: 6px; }
+        .dbtn {
+            width: 58px; height: 58px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.28);
+            color: #fff; font-size: 26px;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: all;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+        .dbtn:active { background: rgba(255,255,255,0.38); }
+        #dpad.hidden { display: none; }
+    </style>
+</head>
+<body>
+<div id="wrapper">
+    <canvas id="c" width="520" height="640"></canvas>
+    <div id="dpad" class="hidden">
+        <div class="drow"><div class="dbtn" id="db-up">â–²</div></div>
+        <div class="drow">
+            <div class="dbtn" id="db-left">â—€</div>
+            <div class="dbtn" id="db-down">â–¼</div>
+            <div class="dbtn" id="db-right">â–¶</div>
+        </div>
+    </div>
+</div>
+<script>
+'use strict';
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  POSSUMER â€” Midnight Crossing  (Frogger-style)
+//  Grid: 13 cols Ã— 16 rows.  Cell = 40px.  520Ã—640 canvas.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+const COLS = 13, ROWS = 16, CELL = 40;
+const CW = COLS * CELL;   // 520
+const CH = ROWS * CELL;   // 640
+
+// â”€â”€ Zone rows (0 = top) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Row 0:        goal strip (5 home slots)
+// Rows 1-5:     water  (logs / turtles)
+// Row 6:        median (safe grass)
+// Rows 7-12:    road   (cars / trucks)
+// Row 13:       kerb   (safe)
+// Row 14:       road bottom shoulder
+// Row 15:       start (safe)
+
+const ZONE = {
+    GOAL:   { t:0*CELL, h:CELL },
+    WATER:  { t:1*CELL, h:5*CELL },
+    MEDIAN: { t:6*CELL, h:CELL },
+    ROAD:   { t:7*CELL, h:6*CELL },
+    KERB:   { t:13*CELL, h:CELL },
+    START:  { t:14*CELL, h:2*CELL },
+};
+
+// â”€â”€ Lanes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Each lane: { row, speed(px/frame), dir(+1 right / -1 left), vehicles[] }
+// Water lanes use logs/turtles; road lanes use cars/trucks.
+
+function makeLanes(level) {
+    const spd = 1 + (level - 1) * 0.2;
+    return [
+        // Water rows 1-5 (top = row 1)
+        { row:1, type:'water', speed:1.4*spd, dir:-1, objs:makeObjs('log',   3, 90,  30, CW) },
+        { row:2, type:'water', speed:1.0*spd, dir: 1, objs:makeObjs('log',   4, 70,  30, CW) },
+        { row:3, type:'water', speed:1.6*spd, dir:-1, objs:makeObjs('turtle',3, 80,  20, CW) },
+        { row:4, type:'water', speed:1.1*spd, dir: 1, objs:makeObjs('log',   3,100,  25, CW) },
+        { row:5, type:'water', speed:1.3*spd, dir:-1, objs:makeObjs('turtle',4, 60,  18, CW) },
+        // Road rows 7-12
+        { row:7,  type:'road', speed:2.2*spd, dir: 1, objs:makeObjs('car',   3, 50,  20, CW) },
+        { row:8,  type:'road', speed:1.7*spd, dir:-1, objs:makeObjs('truck', 2, 90,  22, CW) },
+        { row:9,  type:'road', speed:2.5*spd, dir: 1, objs:makeObjs('car',   4, 45,  20, CW) },
+        { row:10, type:'road', speed:1.9*spd, dir:-1, objs:makeObjs('car',   3, 50,  22, CW) },
+        { row:11, type:'road', speed:2.8*spd, dir: 1, objs:makeObjs('truck', 2,100,  22, CW) },
+        { row:12, type:'road', speed:1.5*spd, dir:-1, objs:makeObjs('car',   5, 40,  20, CW) },
+    ];
+}
+
+function makeObjs(type, count, len, h, canvasW) {
+    const spacing = Math.floor(canvasW / count);
+    return Array.from({length: count}, (_, i) => ({
+        type, len, h,
+        x: i * spacing + Math.random() * (spacing * 0.4),
+    }));
+}
+
+// â”€â”€ Goal slots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const NUM_HOMES = 5;
+const HOME_W = 50;
+// 5 evenly spaced slots across 520px
+function makeHomes() {
+    return Array.from({length: NUM_HOMES}, (_, i) => ({
+        x: 26 + i * (CW - 52) / (NUM_HOMES - 1) - HOME_W/2,
+        filled: false,
+    }));
+}
+
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let state = 'MENU';
+let score = 0, lives = 3, level = 1;
+let homes = makeHomes();
+let lanes = makeLanes(1);
+let timeLeft = 0, maxTime = 0;
+let deathAnim = 0;
+let winAnim = 0;
+let flashMsg = '';
+let flashTimer = 0;
+let screenShake = 0;
+
+// Possum grid position
+const player = { col: 6, row: 15, x: 0, y: 0, rideVelX: 0, dead: false, facing: 0 };
+
+function resetPlayer() {
+    player.col = 6; player.row = 15;
+    player.x = player.col * CELL + CELL/2 - 16;
+    player.y = player.row * CELL + 4;
+    player.rideVelX = 0;
+    player.dead = false;
+}
+
+function resetRound() {
+    resetPlayer();
+    timeLeft = maxTime = 30 * 60; // 30 s at 60fps
+}
+
+function startLevel(lv) {
+    level = lv;
+    lanes = makeLanes(lv);
+    homes = makeHomes();
+    resetRound();
+}
+
+// â”€â”€ Input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const keys = {};
+const justPressed = {};
+window.addEventListener('keydown', e => {
+    if (!keys[e.code]) justPressed[e.code] = true;
+    keys[e.code] = true;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// Mobile
+const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (isMobile) document.getElementById('dpad').classList.remove('hidden');
+
+function bindBtn(id, code) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', e => { e.preventDefault(); justPressed[code] = true; keys[code] = true; }, {passive:false});
+    el.addEventListener('touchend',   e => { e.preventDefault(); keys[code] = false; }, {passive:false});
+    el.addEventListener('touchcancel',e => { e.preventDefault(); keys[code] = false; }, {passive:false});
+}
+bindBtn('db-up',    'ArrowUp');
+bindBtn('db-down',  'ArrowDown');
+bindBtn('db-left',  'ArrowLeft');
+bindBtn('db-right', 'ArrowRight');
+
+// Swipe on canvas
+let swipeStart = null;
+canvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) swipeStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, {passive:true});
+canvas.addEventListener('touchend', e => {
+    if (!swipeStart) return;
+    const dx = e.changedTouches[0].clientX - swipeStart.x;
+    const dy = e.changedTouches[0].clientY - swipeStart.y;
+    swipeStart = null;
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) {
+        // tap = move up
+        justPressed['ArrowUp'] = true;
+        return;
+    }
+    if (Math.abs(dx) > Math.abs(dy)) {
+        justPressed[dx > 0 ? 'ArrowRight' : 'ArrowLeft'] = true;
+    } else {
+        justPressed[dy > 0 ? 'ArrowDown' : 'ArrowUp'] = true;
+    }
+}, {passive:true});
+
+// â”€â”€ Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let ac = null;
+function getAC() { if (!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); return ac; }
+function tone(freq, type, dur, vol=0.2, freqEnd=null, delay=0) {
+    try {
+        const a = getAC();
+        const o = a.createOscillator(), g = a.createGain();
+        o.connect(g); g.connect(a.destination);
+        o.type = type;
+        const t = a.currentTime + delay;
+        o.frequency.setValueAtTime(freq, t);
+        if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t + dur);
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o.start(t); o.stop(t + dur + 0.01);
+    } catch(e) {}
+}
+const SFX = {
+    hop:    () => tone(350, 'square', 0.08, 0.18, 550),
+    splash: () => { tone(180,'sine',0.3,0.25,60); tone(240,'sine',0.2,0.15,80,0.05); },
+    squish: () => { tone(220,'sawtooth',0.25,0.3,80); tone(150,'sawtooth',0.15,0.2,60,0.1); },
+    home:   () => { [523,659,784,1047].forEach((f,i)=>tone(f,'square',0.12,0.2,null,i*0.08)); },
+    win:    () => { [262,330,392,523,659,784].forEach((f,i)=>tone(f,'square',0.15,0.22,null,i*0.1)); },
+    over:   () => { [330,294,262,220,196,165].forEach((f,i)=>tone(f,'sawtooth',0.2,0.25,null,i*0.16)); },
+    tick:   () => tone(880,'square',0.04,0.1),
+};
+
+// â”€â”€ UPDATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function update() {
+    if (state === 'MENU') {
+        if (justPressed['ArrowUp']||justPressed['Space']||justPressed['Enter']) {
+            state = 'PLAYING'; score = 0; lives = 3;
+            startLevel(1);
+        }
+        clearJust(); return;
+    }
+    if (state === 'GAMEOVER') {
+        if (justPressed['Enter']||justPressed['Space']||justPressed['ArrowUp']) {
+            state = 'MENU';
+        }
+        clearJust(); return;
+    }
+    if (state === 'LEVELCLEAR') {
+        winAnim--;
+        if (winAnim <= 0) { startLevel(level + 1); state = 'PLAYING'; }
+        clearJust(); return;
+    }
+    if (state !== 'PLAYING') { clearJust(); return; }
+
+    // Move lanes
+    lanes.forEach(lane => {
+        lane.objs.forEach(obj => {
+            obj.x += lane.speed * lane.dir;
+            // wrap
+            if (lane.dir > 0 && obj.x > CW + 20)  obj.x = -obj.len - 20;
+            if (lane.dir < 0 && obj.x < -obj.len - 20) obj.x = CW + 20;
+        });
+    });
+
+    if (screenShake > 0) screenShake -= 0.5;
+    if (flashTimer > 0) flashTimer--;
+
+    // Timer tick
+    if (timeLeft > 0) {
+        timeLeft--;
+        if (timeLeft === 10*60) SFX.tick();
+        if (timeLeft <= 0) { die('timed out'); return; }
+    }
+
+    if (player.dead) {
+        deathAnim--;
+        if (deathAnim <= 0) respawn();
+        clearJust(); return;
+    }
+
+    // Move player
+    let moved = false;
+    if (justPressed['ArrowUp'])    { player.row--; player.facing=0; moved=true; }
+    if (justPressed['ArrowDown'])  { player.row++; player.facing=2; moved=true; }
+    if (justPressed['ArrowLeft'])  { player.col--; player.facing=3; moved=true; }
+    if (justPressed['ArrowRight']) { player.col++; player.facing=1; moved=true; }
+
+    if (moved) {
+        // Clamp columns
+        player.col = Math.max(0, Math.min(COLS-1, player.col));
+        player.row = Math.max(0, Math.min(ROWS-1, player.row));
+        SFX.hop();
+        updatePlayerPixelPos();
+
+        // Score for moving forward (only for upward steps)
+        if (justPressed['ArrowUp']) score += 10;
+
+        checkOutcomes();
+    }
+
+    // Riding â€” player rides with log/turtle in water zone
+    player.rideVelX = 0;
+    if (isWaterRow(player.row) && !player.dead) {
+        const lane = lanes.find(l => l.row === player.row);
+        if (lane) {
+            const ridden = lane.objs.find(obj => isRiding(player, obj, lane.row));
+            if (ridden) {
+                player.rideVelX = lane.speed * lane.dir;
+                player.x += player.rideVelX;
+                player.col = Math.floor((player.x + 16) / CELL);
+                // Fell off side edge while riding
+                if (player.x < -CELL || player.x > CW) { die('splash'); return; }
+            } else {
+                // In water, not on log â†’ splash
+                die('splash');
+                return;
+            }
+        }
+    }
+
+    clearJust();
+}
+
+function updatePlayerPixelPos() {
+    player.x = player.col * CELL + CELL/2 - 16;
+    player.y = player.row * CELL + 4;
+}
+
+function isWaterRow(row) { return row >= 1 && row <= 5; }
+
+function isRiding(pl, obj, row) {
+    const px = pl.x + 4, pw = 24;
+    const ox = obj.x, ow = obj.len;
+    return px + pw > ox + 4 && px < ox + ow - 4;
+}
+
+function checkOutcomes() {
+    const row = player.row, col = player.col;
+
+    // â”€â”€ Goal row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if (row === 0) {
+        // Find nearest home slot
+        const px = player.x + 16;
+        const hi = homes.findIndex(h => px >= h.x && px <= h.x + HOME_W);
+        if (hi === -1) { die('miss'); return; }
+        if (homes[hi].filled) { die('miss'); return; }
+        homes[hi].filled = true;
+        score += 500 + Math.floor(timeLeft / 60) * 50;
+        SFX.home();
+        flashMsg = '+500'; flashTimer = 60;
+        screenShake = 8;
+        // All homes filled?
+        if (homes.every(h => h.filled)) {
+            state = 'LEVELCLEAR';
+            winAnim = 120;
+            SFX.win();
+        } else {
+            resetRound(); // next frog attempt
+        }
+        return;
+    }
+
+    // â”€â”€ Safe rows: median (6), kerb (13), start (14-15) â”€â”€
+    // Nothing to check
+
+    // â”€â”€ Road rows 7-12 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if (row >= 7 && row <= 12) {
+        const lane = lanes.find(l => l.row === row);
+        if (lane) checkRoadCollision(lane);
+    }
+}
+
+function checkRoadCollision(lane) {
+    if (player.dead) return;
+    const px = player.x + 4, pw = 24;
+    for (const obj of lane.objs) {
+        if (px < obj.x + obj.len - 4 && px + pw > obj.x + 4) {
+            die('squish'); return;
+        }
+    }
+}
+
+function die(reason) {
+    if (player.dead) return;
+    player.dead = true;
+    deathAnim = 60;
+    screenShake = 16;
+    lives--;
+    if (reason === 'splash') SFX.splash();
+    else SFX.squish();
+    if (lives <= 0) {
+        setTimeout(() => { state = 'GAMEOVER'; SFX.over(); }, 900);
+    }
+}
+
+function respawn() {
+    if (lives <= 0) return;
+    resetRound();
+}
+
+function clearJust() { for (const k in justPressed) delete justPressed[k]; }
+
+// â”€â”€ Continuous road collision (checked every frame) â”€â”€â”€â”€â”€â”€â”€
+function checkContinuousRoad() {
+    if (!player.dead && player.row >= 7 && player.row <= 12) {
+        const lane = lanes.find(l => l.row === player.row);
+        if (lane) checkRoadCollision(lane);
+    }
+}
+
+// â”€â”€ DRAW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let tick = 0;
+function draw() {
+    tick++;
+    ctx.save();
+    if (screenShake > 0) {
+        ctx.translate((Math.random()-.5)*screenShake, (Math.random()-.5)*screenShake);
+    }
+
+    if (state === 'MENU')     { drawMenu(); ctx.restore(); return; }
+    if (state === 'GAMEOVER') { drawGameOver(); ctx.restore(); return; }
+
+    // â”€â”€ Board â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    drawBoard();
+    drawLanes();
+    drawGoalSlots();
+
+    // Player
+    if (!player.dead || Math.floor(deathAnim/6)%2===0) {
+        drawPossum(player.x, player.y, player.facing, player.dead);
+    }
+
+    // HUD
+    drawHUD();
+
+    // Flash msg
+    if (flashTimer > 0 && flashMsg) {
+        ctx.globalAlpha = Math.min(1, flashTimer/20);
+        ctx.fillStyle = '#ffe066';
+        ctx.font = 'bold 28px "Courier New"';
+        ctx.textAlign = 'center';
+        ctx.fillText(flashMsg, CW/2, CH/2 - 40);
+        ctx.globalAlpha = 1;
+    }
+
+    // Level clear overlay
+    if (state === 'LEVELCLEAR') {
+        ctx.fillStyle = `rgba(0,0,0,${Math.min(0.65,(120-winAnim)/60)})`;
+        ctx.fillRect(0,0,CW,CH);
+        ctx.fillStyle = '#ffe066';
+        ctx.shadowColor = '#fc0'; ctx.shadowBlur = 20;
+        ctx.font = 'bold 40px "Courier New"';
+        ctx.textAlign = 'center';
+        ctx.fillText('LEVEL CLEAR!', CW/2, CH/2);
+        ctx.font = '18px "Courier New"';
+        ctx.fillStyle = '#fff';
+        ctx.shadowBlur = 0;
+        ctx.fillText(`Score: ${score}`, CW/2, CH/2 + 40);
+    }
+
+    ctx.restore();
+}
+
+// â”€â”€ Board background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function drawBoard() {
+    // Goal strip
+    ctx.fillStyle = '#1a3a1a';
+    ctx.fillRect(0, 0, CW, CELL);
+
+    // Water area
+    const wg = ctx.createLinearGradient(0, CELL, 0, 6*CELL);
+    wg.addColorStop(0,'#0a2a4a'); wg.addColorStop(1,'#0d3d60');
+    ctx.fillStyle = wg;
+    ctx.fillRect(0, CELL, CW, 5*CELL);
+    // Water shimmer lines
+    ctx.strokeStyle = 'rgba(80,160,255,0.15)';
+    ctx.lineWidth = 1;
+    for (let r=0; r<5; r++) {
+        for (let x=0; x<CW; x+=30) {
+            const wx = (x + tick * (r%2===0?0.4:-0.3)) % CW;
+            ctx.beginPath();
+            ctx.moveTo(wx, (r+1)*CELL + 10);
+            ctx.lineTo(wx+20, (r+1)*CELL + 10);
+            ctx.stroke();
+        }
+    }
+
+    // Median (safe grass strip)
+    ctx.fillStyle = '#2a5a1a';
+    ctx.fillRect(0, 6*CELL, CW, CELL);
+    drawGrass(0, 6*CELL, CW, CELL);
+
+    // Road area â€” dark asphalt
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(0, 7*CELL, CW, 6*CELL);
+    // Lane dividers (dashed yellow)
+    ctx.setLineDash([18, 14]);
+    ctx.strokeStyle = 'rgba(220,180,0,0.35)';
+    ctx.lineWidth = 2;
+    for (let r=8; r<=12; r++) {
+        ctx.beginPath(); ctx.moveTo(0, r*CELL); ctx.lineTo(CW, r*CELL); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // Kerb
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, 13*CELL, CW, CELL);
+    // Kerb stripes
+    for (let x=0; x<CW; x+=CELL) {
+        ctx.fillStyle = x/CELL%2===0 ? '#666' : '#444';
+        ctx.fillRect(x, 13*CELL, CELL, CELL);
+    }
+
+    // Start area (grass)
+    ctx.fillStyle = '#2a5a1a';
+    ctx.fillRect(0, 14*CELL, CW, 2*CELL);
+    drawGrass(0, 14*CELL, CW, 2*CELL);
+
+    // Road edge lines
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,7*CELL); ctx.lineTo(CW,7*CELL); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,13*CELL); ctx.lineTo(CW,13*CELL); ctx.stroke();
+}
+
+function drawGrass(x, y, w, h) {
+    ctx.fillStyle = 'rgba(60,120,20,0.3)';
+    for (let gx=4; gx<w; gx+=12) {
+        ctx.fillRect(x+gx, y+h-8, 3, 8);
+    }
+}
+
+// â”€â”€ Goal slots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function drawGoalSlots() {
+    homes.forEach(h => {
+        // Dark hollow
+        ctx.fillStyle = h.filled ? '#2d6e2d' : '#0d200d';
+        ctx.beginPath();
+        ctx.roundRect(h.x + 3, 3, HOME_W - 6, CELL - 6, 6);
+        ctx.fill();
+        ctx.strokeStyle = h.filled ? '#4ade80' : '#1a4a1a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        if (h.filled) {
+            // Mini possum in the home
+            drawPossum(h.x + HOME_W/2 - 16, 6, 0, false, 0.7);
+        } else {
+            // Lily pad hint
+            ctx.fillStyle = 'rgba(60,130,60,0.25)';
+            ctx.beginPath();
+            ctx.arc(h.x + HOME_W/2, CELL/2, 12, 0, Math.PI*2);
+            ctx.fill();
+        }
+    });
+}
+
+// â”€â”€ Lane objects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function drawLanes() {
+    lanes.forEach(lane => {
+        const y = lane.row * CELL;
+        lane.objs.forEach(obj => {
+            if (lane.type === 'water') {
+                if (obj.type === 'log')    drawLog(obj.x, y, obj.len);
+                else                       drawTurtle(obj.x, y, obj.len);
+            } else {
+                if (obj.type === 'car')    drawCar(obj.x, y, obj.len, lane.dir);
+                else                       drawTruck(obj.x, y, obj.len, lane.dir);
+            }
+        });
+    });
+}
+
+function drawLog(x, y, len) {
+    // Base log shape
+    const r = ctx.createLinearGradient(x, y+4, x, y+CELL-4);
+    r.addColorStop(0,'#5c3a10'); r.addColorStop(0.5,'#7a5018'); r.addColorStop(1,'#4a2e0a');
+    ctx.fillStyle = r;
+    ctx.beginPath();
+    ctx.roundRect(x+2, y+6, len-4, CELL-12, 8);
+    ctx.fill();
+    // Grain lines
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth=1.5;
+    for (let gx=16; gx<len-8; gx+=22) {
+        ctx.beginPath(); ctx.moveTo(x+gx, y+8); ctx.lineTo(x+gx, y+CELL-8); ctx.stroke();
+    }
+    // End caps
+    ctx.fillStyle='#8a6020';
+    ctx.beginPath(); ctx.ellipse(x+10, y+CELL/2, 8, CELL/2-8, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x+len-10, y+CELL/2, 8, CELL/2-8, 0, 0, Math.PI*2); ctx.fill();
+}
+
+function drawTurtle(x, y, len) {
+    const count = Math.round(len / 36);
+    const tw = len / count;
+    for (let i=0; i<count; i++) {
+        const tx = x + i*tw + tw/2;
+        const ty = y + CELL/2;
+        // Shell
+        ctx.fillStyle = '#2d7a2d';
+        ctx.beginPath(); ctx.ellipse(tx, ty, tw/2-4, CELL/2-5, 0, 0, Math.PI*2); ctx.fill();
+        // Shell pattern
+        ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(tx-tw/4,ty-4); ctx.lineTo(tx,ty+4); ctx.lineTo(tx+tw/4,ty-4); ctx.stroke();
+        // Head
+        ctx.fillStyle='#3dab3d';
+        ctx.beginPath(); ctx.arc(tx + tw/2-6, ty, 5, 0, Math.PI*2); ctx.fill();
+        // Eye
+        ctx.fillStyle='#111';
+        ctx.beginPath(); ctx.arc(tx+tw/2-4, ty-2, 1.5, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+function drawCar(x, y, len, dir) {
+    const colors = ['#c82020','#2060c8','#c8a020','#20a840','#9020b0','#c85020'];
+    const ci = Math.floor((Math.abs(x)/80)%colors.length);
+    // Body
+    ctx.fillStyle = colors[ci];
+    ctx.beginPath(); ctx.roundRect(x+2, y+8, len-4, CELL-10, 6); ctx.fill();
+    // Windshield
+    ctx.fillStyle = 'rgba(180,220,255,0.7)';
+    const winX = dir > 0 ? x + len - 18 : x + 4;
+    ctx.beginPath(); ctx.roundRect(winX, y+10, 14, 12, 3); ctx.fill();
+    // Wheels
+    ctx.fillStyle='#111';
+    [[x+6,y+CELL-5],[x+len-10,y+CELL-5]].forEach(([wx,wy])=>{
+        ctx.beginPath(); ctx.arc(wx, wy, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle='#666'; ctx.beginPath(); ctx.arc(wx,wy,2.5,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#111';
+    });
+    // Headlight
+    ctx.fillStyle='rgba(255,255,180,0.8)';
+    const hlX = dir > 0 ? x+len-4 : x;
+    ctx.fillRect(hlX, y+12, 4, 6);
+}
+
+function drawTruck(x, y, len, dir) {
+    // Cab
+    ctx.fillStyle = '#884410';
+    ctx.beginPath(); ctx.roundRect(x+2, y+4, len-4, CELL-6, 6); ctx.fill();
+    // Trailer stripe
+    ctx.fillStyle='rgba(255,255,255,0.1)';
+    ctx.fillRect(x+4, y+6, len-8, CELL-10);
+    // Windows
+    ctx.fillStyle='rgba(180,220,255,0.65)';
+    const cabW = 26;
+    const wx = dir > 0 ? x+len-cabW+4 : x+4;
+    ctx.beginPath(); ctx.roundRect(wx, y+6, 18, 14, 3); ctx.fill();
+    // Wheels (4)
+    ctx.fillStyle='#111';
+    [x+6,x+len*0.35,x+len*0.65,x+len-10].forEach(wx2=>{
+        ctx.beginPath(); ctx.arc(wx2, y+CELL-4, 5.5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(wx2,y+CELL-4,2.5,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#111';
+    });
+}
+
+// â”€â”€ Possum sprite â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function drawPossum(x, y, facing, dead, scale=1) {
+    ctx.save();
+    ctx.translate(x + 16, y + 18);
+    ctx.scale(scale, scale);
+    // facing: 0=up, 1=right, 2=down, 3=left
+    const angle = facing * Math.PI / 2;
+    ctx.rotate(angle - Math.PI/2); // offset so default sprite faces up
+
+    const bob = dead ? 0 : Math.sin(tick/8)*1.5;
+
+    // Shadow
+    if (!dead) {
+        ctx.fillStyle='rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(0,14+bob,12,4,0,0,Math.PI*2); ctx.fill();
+    }
+
+    // Tail
+    ctx.strokeStyle='#e0d8c8'; ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(-8, 8+bob);
+    ctx.quadraticCurveTo(-18, 18+bob, -6, 24+bob);
+    ctx.stroke();
+
+    // Body
+    ctx.fillStyle='#c8c0b0';
+    ctx.beginPath(); ctx.ellipse(0, 4+bob, 11, 14, 0, 0, Math.PI*2); ctx.fill();
+
+    // Back legs
+    ctx.fillStyle='#a89888';
+    ctx.fillRect(-9, 12+bob, 6, 8);
+    ctx.fillRect(3, 12+bob, 6, 8);
+
+    // Head (top = -y = up direction)
+    ctx.fillStyle='#d4ccbc';
+    ctx.beginPath(); ctx.ellipse(0, -10+bob, 9, 10, 0, 0, Math.PI*2); ctx.fill();
+
+    // Ears
+    ctx.fillStyle='#c4bcac';
+    ctx.beginPath(); ctx.ellipse(-6,-19+bob,4,6,-0.2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(6,-19+bob,4,6,0.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#e8b8b0';
+    ctx.beginPath(); ctx.ellipse(-6,-19+bob,2,4,-0.2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(6,-19+bob,2,4,0.2,0,Math.PI*2); ctx.fill();
+
+    // Eyes
+    if (dead) {
+        ctx.strokeStyle='#444'; ctx.lineWidth=1.5;
+        [[-4,-12],[4,-12]].forEach(([ex,ey])=>{
+            ey+=bob;
+            ctx.beginPath(); ctx.moveTo(ex-2.5,ey-2.5); ctx.lineTo(ex+2.5,ey+2.5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ex+2.5,ey-2.5); ctx.lineTo(ex-2.5,ey+2.5); ctx.stroke();
+        });
+    } else {
+        ctx.fillStyle='#222';
+        ctx.beginPath(); ctx.arc(-4,-12+bob,3,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(4,-12+bob,3,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#fff';
+        ctx.beginPath(); ctx.arc(-3,-13+bob,1,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(5,-13+bob,1,0,Math.PI*2); ctx.fill();
+    }
+
+    // Nose
+    ctx.fillStyle='#e08898';
+    ctx.beginPath(); ctx.ellipse(0,-5+bob,3,2,0,0,Math.PI*2); ctx.fill();
+
+    // Whiskers
+    ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=0.8;
+    for (let s of [-1,1]) {
+        ctx.beginPath(); ctx.moveTo(0,-5+bob); ctx.lineTo(s*13,-6+bob); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,-5+bob); ctx.lineTo(s*12,-4+bob); ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+// â”€â”€ HUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function drawHUD() {
+    // Bottom bar
+    ctx.fillStyle='rgba(0,0,0,0.7)';
+    ctx.fillRect(0, CH - 36, CW, 36);
+
+    // Lives (mini possums)
+    for (let i=0;i<lives;i++) {
+        drawPossum(8 + i*26, CH-32, 0, false, 0.55);
+    }
+
+    // Timer bar
+    const timerW = 120;
+    const pct = timeLeft / maxTime;
+    ctx.fillStyle='#333';
+    ctx.fillRect(CW/2 - timerW/2, CH-26, timerW, 12);
+    ctx.fillStyle = pct > 0.4 ? '#4ade80' : pct > 0.2 ? '#fbbf24' : '#f87171';
+    ctx.fillRect(CW/2 - timerW/2, CH-26, timerW*pct, 12);
+    ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+    ctx.strokeRect(CW/2 - timerW/2, CH-26, timerW, 12);
+    ctx.fillStyle='#fff'; ctx.font='9px "Courier New"'; ctx.textAlign='center';
+    ctx.fillText('TIME', CW/2, CH-17);
+
+    // Score
+    ctx.fillStyle='#ffe066'; ctx.font='bold 14px "Courier New"'; ctx.textAlign='right';
+    ctx.fillText(`${score}`, CW-8, CH-14);
+    ctx.fillStyle='#aaa'; ctx.font='9px "Courier New"';
+    ctx.fillText('GRUBS', CW-8, CH-4);
+
+    // Level
+    ctx.fillStyle='#c084fc'; ctx.font='bold 12px "Courier New"'; ctx.textAlign='right';
+    ctx.fillText(`LV ${level}`, CW-8, CH-24);
+}
+
+// â”€â”€ Menu â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let menuTick=0;
+function drawMenu() {
+    menuTick++;
+    const sg=ctx.createLinearGradient(0,0,0,CH);
+    sg.addColorStop(0,'#0b0820'); sg.addColorStop(1,'#1a0a30');
+    ctx.fillStyle=sg; ctx.fillRect(0,0,CW,CH);
+
+    // Stars
+    ctx.fillStyle='rgba(255,255,255,0.55)';
+    for(let i=0;i<50;i++) ctx.fillRect((i*317)%CW,(i*137)%200,(i%3)+1,1);
+
+    // Road strip
+    ctx.fillStyle='#1e1e1e'; ctx.fillRect(0,CH-180,CW,80);
+    ctx.setLineDash([18,14]); ctx.strokeStyle='rgba(220,180,0,0.3)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,CH-140); ctx.lineTo(CW,CH-140); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Water strip
+    const wg=ctx.createLinearGradient(0,CH-270,0,CH-180);
+    wg.addColorStop(0,'#0a2a4a'); wg.addColorStop(1,'#0d3d60');
+    ctx.fillStyle=wg; ctx.fillRect(0,CH-270,CW,90);
+
+    // Animated possum crossing road
+    const px = ((menuTick*1.5) % (CW+64)) - 32;
+    drawPossum(px, CH-172, 1, false);
+
+    // Title
+    ctx.textAlign='center';
+    ctx.font='bold 54px "Courier New"';
+    ctx.fillStyle='#fff';
+    ctx.shadowColor='#9060ff'; ctx.shadowBlur=28;
+    ctx.fillText('POSSUMER', CW/2, 110);
+    ctx.shadowBlur=0;
+    ctx.font='15px "Courier New"';
+    ctx.fillStyle='#c8b8f0';
+    ctx.fillText('MIDNIGHT CROSSING', CW/2, 142);
+
+    // How to play
+    ctx.font='12px "Courier New"';
+    ctx.fillStyle='rgba(255,255,255,0.65)';
+    const lines = [
+        'â†‘ â†“ â† â†’  /  WASD  to hop',
+        'Cross the road without getting hit',
+        'Ride logs & turtles across the river',
+        'Get all 5 possums safely home!',
+    ];
+    lines.forEach((l,i)=>ctx.fillText(l, CW/2, 210+i*24));
+
+    if (Math.floor(menuTick/25)%2===0) {
+        ctx.fillStyle='#ffe066';
+        ctx.font='bold 18px "Courier New"';
+        ctx.fillText('PRESS  ENTER / SWIPE UP  TO START', CW/2, 360);
+    }
+
+    if (justPressed['ArrowUp']||justPressed['Enter']||justPressed['Space']) {
+        state='PLAYING'; score=0; lives=3;
+        startLevel(1);
+    }
+    clearJust();
+}
+
+// â”€â”€ Game Over â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function drawGameOver() {
+    const sg=ctx.createLinearGradient(0,0,0,CH);
+    sg.addColorStop(0,'#0a0010'); sg.addColorStop(1,'#140020');
+    ctx.fillStyle=sg; ctx.fillRect(0,0,CW,CH);
+
+    ctx.textAlign='center';
+    ctx.fillStyle='#ff4444';
+    ctx.shadowColor='#ff0000'; ctx.shadowBlur=30;
+    ctx.font='bold 52px "Courier New"';
+    ctx.fillText('GAME OVER', CW/2, CH/2-60);
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#fff'; ctx.font='22px "Courier New"';
+    ctx.fillText(`FINAL SCORE: ${score}`, CW/2, CH/2);
+    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='14px "Courier New"';
+    if (Math.floor(Date.now()/600)%2===0)
+        ctx.fillText('PRESS ENTER TO TRY AGAIN', CW/2, CH/2+60);
+
+    if (justPressed['Enter']||justPressed['Space']||justPressed['ArrowUp']) {
+        state='MENU';
+    }
+    clearJust();
+}
+
+// â”€â”€ Loop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function loop() {
+    checkContinuousRoad();
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// â”€â”€ Bootstrap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+resetPlayer();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
