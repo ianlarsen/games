@@ -330,11 +330,11 @@
 
   <header>
     <a href="../index.html" class="back-btn">← Back</a>
-    <div class="score-badge">⭐ <span id="score-val">0</span> / 8</div>
+    <div class="score-badge"><span id="score-val">0</span> / 8</div>
   </header>
 
   <main>
-    <h1>🔷 Shape Hunt</h1>
+    <h1>Shape Hunt</h1>
     <p class="subtitle">Count the hidden shapes!</p>
     <p class="round-label" id="round-label">Round 1 of 8</p>
 
@@ -363,10 +363,10 @@
 
   <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
     <div class="win-card">
-      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-emoji" id="win-emoji">★</div>
       <div class="win-title" id="win-title-el">Amazing!</div>
       <div class="win-score" id="win-score-msg"></div>
-      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+      <button class="replay-btn" onclick="restartGame()">Play Again</button>
     </div>
   </div>
 
@@ -716,8 +716,8 @@
         btn.classList.add('state-correct');
         playSound('match');
         const msgs = [
-          "That's right! 🌟", "You got it! ⭐", "Great counting! 🧠",
-          "Correct! 🎉", "Wonderful! 🎊", "Sharp eyes! 👀",
+          "That's right!", "You got it!", "Great counting!",
+          "Correct!", "Wonderful!", "Sharp eyes!",
         ];
         fb.textContent = msgs[Math.floor(Math.random() * msgs.length)];
         fb.className = 'feedback correct';
@@ -749,10 +749,10 @@
       const emojiEl = document.getElementById('win-emoji');
       const titleEl = document.getElementById('win-title-el');
       const scoreEl = document.getElementById('win-score-msg');
-      if (score >= TOTAL)  { emojiEl.textContent = '🏆🔷🏆'; titleEl.textContent = 'Shape Master!'; }
-      else if (score >= 6) { emojiEl.textContent = '⭐🔷⭐'; titleEl.textContent = 'Super Spotter!'; }
-      else if (score >= 4) { emojiEl.textContent = '🌟🔷🌟'; titleEl.textContent = 'Good Counting!'; }
-      else                 { emojiEl.textContent = '💪🔷💪'; titleEl.textContent = 'Keep Practising!'; }
+      if (score >= TOTAL)  { emojiEl.textContent = '★★★'; titleEl.textContent = 'Shape Master!'; }
+      else if (score >= 6) { emojiEl.textContent = '★★'; titleEl.textContent = 'Super Spotter!'; }
+      else if (score >= 4) { emojiEl.textContent = '★'; titleEl.textContent = 'Good Counting!'; }
+      else                 { emojiEl.textContent = ''; titleEl.textContent = 'Keep Practising!'; }
       scoreEl.textContent = `You got ${score} out of ${TOTAL} right!`;
       document.getElementById('win-overlay').classList.add('show');
       launchConfetti();
