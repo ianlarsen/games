@@ -264,10 +264,18 @@
         }
 
         .selector-row {
-            display: grid;
-            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .color-strip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
-            justify-items: start;
+            margin: 0 0 14px;
         }
 
         .color-btn {
@@ -434,11 +442,6 @@
                 grid-template-columns: 2fr 1fr;
                 align-items: end;
             }
-
-            .layout {
-                grid-template-columns: 320px 1fr;
-                align-items: start;
-            }
         }
     </style>
 </head>
@@ -484,18 +487,14 @@
 
         <div id="status" class="status" aria-live="polite"></div>
 
-        <section class="layout">
-            <div class="panel">
-                <div class="palette-block">
-                    <p class="palette-title">Choose a color</p>
-                    <div id="color-buttons" class="selector-row" aria-label="Color choices"></div>
-                </div>
-            </div>
+        <div class="color-strip">
+            <p class="palette-title">Choose a color</p>
+            <div id="color-buttons" class="selector-row" aria-label="Color choices"></div>
+        </div>
 
-            <div class="panel">
-                <div id="letter-grid" class="grid" aria-label="Letter board"></div>
-            </div>
-        </section>
+        <div class="panel">
+            <div id="letter-grid" class="grid" aria-label="Letter board"></div>
+        </div>
     </main>
 
     <div id="win-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Round complete">
@@ -507,6 +506,7 @@
     </div>
 
     <audio id="flip-sound" src="../sounds/flip.mp3" preload="auto"></audio>
+    <audio id="match-sound" src="../sounds/match.mp3" preload="auto"></audio>
     <audio id="win-sound" src="../sounds/win.mp3" preload="auto"></audio>
 
     <script>
@@ -534,6 +534,7 @@
         const winText = document.getElementById("win-text");
         const nextBtn = document.getElementById("next-btn");
         const flipSound = document.getElementById("flip-sound");
+        const matchSound = document.getElementById("match-sound");
         const winSound = document.getElementById("win-sound");
 
         let currentLetters = [];
@@ -563,6 +564,7 @@
             if (audioUnlocked) return;
             flipSound.play().then(() => {
                 flipSound.pause();
+                matchSound.play().then(() => matchSound.pause()).catch(() => {});
                 winSound.play().then(() => winSound.pause()).catch(() => {});
                 audioUnlocked = true;
             }).catch(() => {});
@@ -700,7 +702,7 @@
         }
 
         function updatePrompt() {
-            promptTextEl.innerHTML = 'Color all the <span class="prompt-target" style="color:' + currentTarget.color + '">' + currentTarget.source + '</span> letters ' + currentTarget.colorName + '.';
+            promptTextEl.innerHTML = 'Color all the <span class="prompt-target" style="color:' + currentTarget.color + '">' + currentTarget.source + '</span> letters <span style="color:' + currentTarget.color + ';font-weight:900">' + currentTarget.colorName + '</span>.';
         }
 
         function renderGrid() {
@@ -733,7 +735,6 @@
                 cell.colored = true;
                 button.classList.add("colored", "good-bump");
                 button.style.background = currentTarget.color;
-                playSound(flipSound);
                 setTimeout(() => button.classList.remove("good-bump"), 180);
 
                 const nextTarget = getNextAvailableTarget();
@@ -745,6 +746,7 @@
                     return;
                 }
 
+                playSound(flipSound);
                 const targetDone = !cells.some((item) => !item.colored && item.letter === currentTarget.board);
                 if (targetDone) {
                     currentTarget = nextTarget;
