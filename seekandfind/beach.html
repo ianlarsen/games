@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Beach Hunt</title>
+    <title>Beach Hunt</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -17,26 +17,35 @@
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
-        /* Custom styles from the original HTML */
-        .emoji-item {
+        /* Custom styles */
+        .item-hotspot {
             position: absolute;
-            font-size: clamp(1.25rem, 5vw, 2.5rem); /* Normalized font size */
+            transform: translate(-50%, -50%);
             cursor: pointer;
-            transition: transform 0.2s ease-in-out, opacity 0.3s;
-            user-select: none;
-            /* Added a subtle drop shadow for visibility on bright areas */
-            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border-radius: 50%;
+            background: transparent;
+            transition: opacity 0.4s, background 0.15s;
         }
-        .emoji-item:hover {
-            transform: scale(1.2);
+        .item-hotspot:hover { background: rgba(255,255,255,0.2); }
+        .item-hotspot.found  { opacity: 0; pointer-events: none; }
+        /* Target strip */
+        .target-card {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            transition: opacity 0.3s;
         }
-        /* Style for the target list at the bottom */
-        .target-emoji {
-            transition: opacity 0.3s, text-decoration 0.3s;
+        .target-card.found { opacity: 0.35; }
+        .target-card.found .target-crop { filter: grayscale(1); outline: 3px solid #22c55e; }
+        .target-crop {
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            background-image: url('images/beach.png');
+            background-repeat: no-repeat;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
-        .target-emoji.found {
-            text-decoration: line-through;
-            opacity: 0.5;
+        .target-label {
+            font-size: 0.72rem; font-weight: 700; color: #374151;
+            text-transform: capitalize; letter-spacing: 0.03em;
         }
         /* Win overlay styles from the original HTML */
         .win-overlay {
@@ -119,8 +128,8 @@
         </div>
 
         <div id="instructions" class="mt-6 text-center">
-            <h2 class="text-xl font-bold text-gray-800">Find these emojis:</h2>
-            <div id="targets" class="flex justify-center flex-wrap gap-4 sm:gap-6 text-4xl sm:text-5xl mt-2"></div>
+            <h2 class="text-xl font-bold text-gray-800">Find these things:</h2>
+            <div id="targets" class="flex justify-center flex-wrap gap-4 mt-3"></div>
         </div>
     </main>
 
@@ -142,30 +151,24 @@
             const winSound = document.getElementById('win-sound');
             let audioUnlocked = false;
 
-            // --- Game Data (NEW for beach.html) ---
-            const allEmojis = [
-                "☀️", "🌴", "⛱️", "📖", "🕊️", "🏄‍♂️", "⛵", "🍦", 
-                "🏐", "🐢", "🤿", "🪙", "🦀", "🐠", "🐙", "⭐"
+            // --- Game Data ---
+            const items = [
+                { key:"surfer"   , label:"surfer"   , top:"28.7%", left:"44.7%", size:194 },
+                { key:"sun"      , label:"sun"      , top:"11.4%", left:"15.7%", size:151 },
+                { key:"umbrella" , label:"umbrella" , top:"35.6%", left:"13.3%", size:135 },
+                { key:"turtle"   , label:"turtle"   , top:"72.8%", left:"17.8%", size:161 },
+                { key:"treasure" , label:"treasure" , top:"90.4%", left:"38.9%", size:132 },
+                { key:"diver"    , label:"diver"    , top:"68.7%", left:"41.7%", size:133 },
+                { key:"octopus"  , label:"octopus"  , top:"75.0%", left:"85.4%", size:122 },
+                { key:"ice_cream", label:"ice cream", top:"28.4%", left:"89.6%", size:55  },
+                { key:"seagull"  , label:"seagull"  , top:"10.6%", left:"67.3%", size:131 },
+                { key:"children" , label:"children" , top:"51.4%", left:"73.8%", size:208 },
+                { key:"ball"     , label:"ball"     , top:"44.9%", left:"60.8%", size:61  },
+                { key:"book"     , label:"book"     , top:"50.2%", left:"10.0%", size:74  },
+                { key:"crab"     , label:"crab"     , top:"91.0%", left:"26.3%", size:96  },
+                { key:"palm_tree", label:"palm tree", top:"25.0%", left:"28.8%", size:109 },
+                { key:"wheel"    , label:"wheel"    , top:"39.2%", left:"90.7%", size:64  },
             ];
-
-            const positions = {
-                "☀️": {top:"8%", left:"10%", size:"45px"},
-                "🌴": {top:"20%", left:"25%", size:"45px"},
-                "⛱️": {top:"30%", left:"11%", size:"35px"},
-                "📖": {top:"53%", left:"7%", size:"25px"},
-                "🕊️": {top:"10%", left:"65%", size:"35px"},
-                "🏄‍♂️": {top:"30%", left:"45%", size:"35px"},
-                "⛵": {top:"30%", left:"75%", size:"35px"},
-                "🍦": {top:"35%", left:"88%", size:"30px"},
-                "🏐": {top:"48%", left:"58%", size:"30px"},
-                "🐢": {top:"65%", left:"15%", size:"40px"},
-                "🤿": {top:"68%", left:"38%", size:"35px"},
-                "🪙": {top:"80%", left:"45%", size:"25px"}, // On treasure
-                "🦀": {top:"82%", left:"25%", size:"30px"},
-                "🐠": {top:"68%", left:"60%", size:"30px"}, // Yellow fish
-                "🐙": {top:"75%", left:"82%", size:"40px"},
-                "⭐": {top:"88%", left:"62%", size:"30px"}, // Starfish
-            };
 
             // --- Game State ---
             let currentTargets = [];
@@ -174,7 +177,6 @@
             // --- Audio & Haptics ---
             function unlockAudio() {
                 if (audioUnlocked) return;
-                // Try playing and pausing sounds to unlock audio on mobile
                 flipSound.play().then(() => {
                     flipSound.pause();
                     winSound.play().then(() => winSound.pause()).catch(() => {});
@@ -190,10 +192,11 @@
             }
             
             function triggerHapticFeedback() {
-                if (navigator.vibrate) {
-                    navigator.vibrate(100);
-                }
+                if (navigator.vibrate) navigator.vibrate(100);
             }
+
+            // Convert "8%" -> 8
+            function pct(s) { return parseFloat(s); }
 
             // --- Game Logic ---
             function startRound() {
@@ -204,70 +207,94 @@
                 
                 // Pick 3 random targets
                 currentTargets = [];
-                let availableEmojis = [...allEmojis];
+                let pool = [...items];
                 while (currentTargets.length < 3) {
-                    const pickIndex = Math.floor(Math.random() * availableEmojis.length);
-                    const pick = availableEmojis.splice(pickIndex, 1)[0];
-                    currentTargets.push(pick);
+                    const i = Math.floor(Math.random() * pool.length);
+                    currentTargets.push(pool.splice(i, 1)[0]);
                 }
 
-                // Display targets at the bottom
-                currentTargets.forEach(target => {
-                    const span = document.createElement('span');
-                    span.textContent = target;
-                    span.classList.add('target-emoji');
-                    span.dataset.emoji = target;
-                    targetsContainer.appendChild(span);
+                // Build target thumbnail cards
+                currentTargets.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'target-card';
+                    card.dataset.key = item.key;
+
+                    const crop = document.createElement('div');
+                    crop.className = 'target-crop';
+                    const cW = document.getElementById('game-container').offsetWidth;
+                    const cH = document.getElementById('game-container').offsetHeight;
+                    const thumbW = 70, thumbH = 70;
+                    const bgW = thumbW * cW / item.size;
+                    const bgH = thumbH * cH / item.size;
+                    crop.style.backgroundSize = `${bgW}px ${bgH}px`;
+                    crop.style.backgroundPosition = `${-(pct(item.left)/100*bgW)+thumbW/2}px ${-(pct(item.top)/100*bgH)+thumbH/2}px`;
+
+                    const lbl = document.createElement('div');
+                    lbl.className = 'target-label';
+                    lbl.textContent = item.label;
+
+                    card.appendChild(crop);
+                    card.appendChild(lbl);
+                    targetsContainer.appendChild(card);
                 });
 
-                // Place all emojis
-                allEmojis.forEach(e => {
-                    const span = document.createElement("span");
-                    span.textContent = e;
-                    span.classList.add("emoji-item");
-                    span.style.top = positions[e].top;
-                    span.style.left = positions[e].left;
-                    
-                    if (positions[e].size) {
-                        span.style.fontSize = positions[e].size;
-                    }
+                // Place invisible hotspots for ALL items
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item-hotspot';
+                    div.dataset.key = item.key;
+                    div.style.top  = item.top;
+                    div.style.left = item.left;
+                    div.style.width  = item.size + 'px';
+                    div.style.height = item.size + 'px';
 
-                    // Add click listener to ALL emojis
-                    span.addEventListener("click", () => {
+                    div.addEventListener('click', () => {
                         if (!audioUnlocked) unlockAudio();
-                        
-                        // Check if it's a target
-                        if (currentTargets.includes(e)) {
-                            // --- CORRECT ---
-                            const targetEl = targetsContainer.querySelector(`[data-emoji="${e}"]`);
-                            // Check if it hasn't been found already
-                            if (targetEl && !targetEl.classList.contains('found')) {
+                        const isTarget = currentTargets.some(t => t.key === item.key);
+                        if (isTarget) {
+                            const cardEl = targetsContainer.querySelector(`[data-key="${item.key}"]`);
+                            if (cardEl && !cardEl.classList.contains('found')) {
                                 playSound(flipSound);
-                                span.style.transform = 'scale(1.2)';
-                                span.style.opacity = '0.5';
-                                
-                                targetEl.classList.add('found');
+                                div.classList.add('found');
+                                cardEl.classList.add('found');
                                 foundCount++;
-
-                                // Check for win
                                 if (foundCount === currentTargets.length) {
                                     playSound(winSound);
                                     setTimeout(() => winOverlay.classList.add('show'), 500);
                                 }
                             }
                         } else {
-                            // --- INCORRECT ---
                             mainEl.classList.add('game-shake');
                             triggerHapticFeedback();
                             setTimeout(() => mainEl.classList.remove('game-shake'), 800);
                         }
                     });
-                    emojiLayer.appendChild(span);
+                    emojiLayer.appendChild(div);
                 });
             }
             
             playAgainBtn.addEventListener('click', startRound);
-            startRound(); // Initial game start
+            startRound();
+
+            // --- Position Debug (?pos in URL) ---
+            if (new URLSearchParams(location.search).has('pos')) {
+                const dbgStyle = document.createElement('style');
+                dbgStyle.textContent = '.item-hotspot { border: 3px solid rgba(255,80,0,0.85) !important; background: rgba(255,80,0,0.12) !important; }';
+                document.head.appendChild(dbgStyle);
+                const hud = document.createElement('div');
+                hud.style.cssText = 'position:fixed;top:4px;right:4px;z-index:9999;background:rgba(0,0,0,0.85);color:#0f0;font:12px monospace;padding:8px 10px;border-radius:6px;max-height:240px;overflow-y:auto;width:200px;';
+                hud.innerHTML = '<b style="color:#fff">Debug: click scene</b><br>';
+                document.body.appendChild(hud);
+                document.getElementById('game-container').addEventListener('click', e => {
+                    const r = document.getElementById('game-container').getBoundingClientRect();
+                    const x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
+                    const y = ((e.clientY - r.top) / r.height * 100).toFixed(1);
+                    const d = document.createElement('div');
+                    d.textContent = `top:"${y}%", left:"${x}%"`;
+                    hud.appendChild(d);
+                    hud.scrollTop = hud.scrollHeight;
+                }, true);
+            }
         });
     </script>
 </body>

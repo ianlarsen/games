@@ -18,24 +18,34 @@
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
         }
-        /* Custom styles from the original HTML */
-        .emoji-item {
+        /* Custom styles */
+        .item-hotspot {
             position: absolute;
-            font-size: clamp(1.25rem, 5vw, 2.5rem); /* Normalized font size */
+            transform: translate(-50%, -50%);
             cursor: pointer;
-            transition: transform 0.2s ease-in-out, opacity 0.3s;
-            user-select: none;
+            border-radius: 50%;
+            background: transparent;
+            transition: opacity 0.4s, background 0.15s;
         }
-        .emoji-item:hover {
-            transform: scale(1.2);
+        .item-hotspot:hover { background: rgba(255,255,255,0.2); }
+        .item-hotspot.found  { opacity: 0; pointer-events: none; }
+        .target-card {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            transition: opacity 0.3s;
         }
-        /* Style for the target list at the bottom */
-        .target-emoji {
-            transition: opacity 0.3s, text-decoration 0.3s;
+        .target-card.found { opacity: 0.35; }
+        .target-card.found .target-crop { filter: grayscale(1); outline: 3px solid #22c55e; }
+        .target-crop {
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            background-image: url('images/castle.png');
+            background-repeat: no-repeat;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
-        .target-emoji.found {
-            text-decoration: line-through;
-            opacity: 0.5;
+        .target-label {
+            font-size: 0.72rem; font-weight: 700; color: #374151;
+            text-transform: capitalize; letter-spacing: 0.03em;
         }
         /* Win overlay styles from the original HTML */
         .win-overlay {
@@ -120,9 +130,9 @@
         </div>
 
         <div id="instructions" class="mt-6 text-center">
-            <h2 class="text-xl font-bold text-gray-800">Find these emojis:</h2>
+            <h2 class="text-xl font-bold text-gray-800">Find these things:</h2>
             <!-- Targets layer is where JS will add the targets -->
-            <div id="targets" class="flex justify-center flex-wrap gap-4 sm:gap-6 text-4xl sm:text-5xl mt-2"></div>
+            <div id="targets" class="flex justify-center flex-wrap gap-4 mt-3"></div>
         </div>
     </main>
 
@@ -144,28 +154,24 @@
             const winSound = document.getElementById('win-sound');
             let audioUnlocked = false;
 
-            // --- Game Data (from castle.js) ---
-            const allEmojis = [
-                '🏰', '🐉', '⚔️', '🛡️', '👑', '🧙‍♂️', '🐎', '🍗', '📜', '🔥', '💎', '🏹', '🔑', '🧭', '🪙'
+            // --- Game Data ---
+            const items = [
+                { key:"wizard"          , label:"wizard"          , top:"75.0%", left:"48.9%", size:92  },
+                { key:"door"            , label:"door"            , top:"65.6%", left:"59.8%", size:125 },
+                { key:"dragon"          , label:"dragon"          , top:"16.0%", left:"79.1%", size:204 },
+                { key:"ball"            , label:"ball"            , top:"88.7%", left:"32.6%", size:63  },
+                { key:"scroll"          , label:"scroll"          , top:"90.9%", left:"41.4%", size:51  },
+                { key:"chicken"         , label:"chicken"         , top:"84.9%", left:"52.4%", size:75  },
+                { key:"knight_on_horse" , label:"knight on horse" , top:"76.4%", left:"29.1%", size:137 },
+                { key:"knight_on_ground", label:"knight on ground", top:"74.4%", left:"40.6%", size:76  },
+                { key:"trees"           , label:"trees"           , top:"59.3%", left:"90.7%", size:179 },
+                { key:"tall_mountain"   , label:"tall mountain"   , top:"35.5%", left:"92.8%", size:124 },
             ];
-            
-            // Predefined positions (from castle.js)
-            const positions = {
-                "🏰": { top: "28%", left: "48%", size: "30px" }, "🐉": { top: "12%", left: "80%", size: "40px" },
-                "⚔️": { top: "65%", left: "30%", size: "25px" }, "🛡️": { top: "25%", left: "75%", size: "20px" },
-                "👑": { top: "5%", left: "38%", size: "20px" }, "🧙‍♂️": { top: "70%", left: "48%", size: "40px" },
-                "🐎": { top: "75%", left: "88%", size: "30px" }, "🍗": { top: "77%", left: "56%", size: "25px" },
-                "📜": { top: "86%", left: "45%", size: "25px" }, "🔥": { top: "82%", left: "52%", size: "25px" },
-                "💎": { top: "90%", left: "10%", size: "15px" }, "🏹": { top: "45%", left: "23%", size: "20px" },
-                "🔑": { top: "68%", left: "68%", size: "15px" }, "🧭": { top: "75%", left: "60%", size: "15px" },
-                "🪙": { top: "88%", left: "80%", size: "15px" }
-            };
 
             // --- Game State ---
             let currentTargets = [];
             let foundCount = 0;
 
-            // --- Audio & Haptics ---
             function unlockAudio() {
                 if (audioUnlocked) return;
                 flipSound.play().then(() => {
@@ -174,90 +180,98 @@
                     audioUnlocked = true;
                 }).catch(() => {});
             }
-
             function playSound(sound) {
-                if (sound && audioUnlocked) {
-                    sound.currentTime = 0;
-                    sound.play().catch(e => console.error("Sound play failed:", e));
-                }
+                if (sound && audioUnlocked) { sound.currentTime = 0; sound.play().catch(()=>{}); }
             }
-            
-            function triggerHapticFeedback() {
-                if (navigator.vibrate) {
-                    navigator.vibrate(100);
-                }
-            }
+            function triggerHapticFeedback() { if (navigator.vibrate) navigator.vibrate(100); }
+            function pct(s) { return parseFloat(s); }
 
-            // --- Game Logic (from castle.js, adapted) ---
             function startRound() {
                 winOverlay.classList.remove('show');
                 emojiLayer.innerHTML = '';
                 targetsContainer.innerHTML = '';
                 foundCount = 0;
-                
-                // Pick 3 random targets
+
                 currentTargets = [];
-                let availableEmojis = [...allEmojis];
+                let pool = [...items];
                 while (currentTargets.length < 3) {
-                    const pickIndex = Math.floor(Math.random() * availableEmojis.length);
-                    const pick = availableEmojis.splice(pickIndex, 1)[0];
-                    currentTargets.push(pick);
+                    const i = Math.floor(Math.random() * pool.length);
+                    currentTargets.push(pool.splice(i, 1)[0]);
                 }
 
-                // Display targets at the bottom
-                currentTargets.forEach(target => {
-                    const span = document.createElement('span');
-                    span.textContent = target;
-                    span.classList.add('target-emoji');
-                    span.dataset.emoji = target;
-                    targetsContainer.appendChild(span);
+                currentTargets.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'target-card';
+                    card.dataset.key = item.key;
+                    const crop = document.createElement('div');
+                    crop.className = 'target-crop';
+                    const cW = document.getElementById('game-container').offsetWidth;
+                    const cH = document.getElementById('game-container').offsetHeight;
+                    const thumbW = 70, thumbH = 70;
+                    const bgW = thumbW * cW / item.size;
+                    const bgH = thumbH * cH / item.size;
+                    crop.style.backgroundSize = `${bgW}px ${bgH}px`;
+                    crop.style.backgroundPosition = `${-(pct(item.left)/100*bgW)+thumbW/2}px ${-(pct(item.top)/100*bgH)+thumbH/2}px`;
+                    const lbl = document.createElement('div');
+                    lbl.className = 'target-label';
+                    lbl.textContent = item.label;
+                    card.appendChild(crop); card.appendChild(lbl);
+                    targetsContainer.appendChild(card);
                 });
 
-                // Place all emojis
-                allEmojis.forEach(e => {
-                    const span = document.createElement("span");
-                    span.textContent = e;
-                    span.classList.add("emoji-item"); // Use class from HTML
-                    span.style.top = positions[e].top;
-                    span.style.left = positions[e].left;
-                    span.style.fontSize = positions[e].size || '30px'; // Apply size
-
-                    // Add click listener to ALL emojis
-                    span.addEventListener("click", () => {
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item-hotspot';
+                    div.dataset.key = item.key;
+                    div.style.top = item.top; div.style.left = item.left;
+                    div.style.width = item.size + 'px'; div.style.height = item.size + 'px';
+                    div.addEventListener('click', () => {
                         if (!audioUnlocked) unlockAudio();
-                        
-                        // Check if it's a target
-                        if (currentTargets.includes(e)) {
-                            // --- CORRECT ---
-                            // Check if already found
-                            const targetEl = targetsContainer.querySelector(`[data-emoji="${e}"]`);
-                            if (targetEl && !targetEl.classList.contains('found')) {
+                        const isTarget = currentTargets.some(t => t.key === item.key);
+                        if (isTarget) {
+                            const cardEl = targetsContainer.querySelector(`[data-key="${item.key}"]`);
+                            if (cardEl && !cardEl.classList.contains('found')) {
                                 playSound(flipSound);
-                                span.style.transform = 'scale(1.2)';
-                                span.style.opacity = '0.5';
-                                
-                                targetEl.classList.add('found');
+                                div.classList.add('found');
+                                cardEl.classList.add('found');
                                 foundCount++;
-
                                 if (foundCount === currentTargets.length) {
                                     playSound(winSound);
                                     setTimeout(() => winOverlay.classList.add('show'), 500);
                                 }
                             }
                         } else {
-                            // --- INCORRECT ---
                             mainEl.classList.add('game-shake');
                             triggerHapticFeedback();
                             setTimeout(() => mainEl.classList.remove('game-shake'), 800);
                         }
                     });
-
-                    emojiLayer.appendChild(span);
+                    emojiLayer.appendChild(div);
                 });
             }
 
             playAgainBtn.addEventListener('click', startRound);
-            startRound(); // Initial game start
+            startRound();
+
+            // --- Position Debug (?pos in URL) ---
+            if (new URLSearchParams(location.search).has('pos')) {
+                const dbgStyle = document.createElement('style');
+                dbgStyle.textContent = '.item-hotspot { border: 3px solid rgba(255,80,0,0.85) !important; background: rgba(255,80,0,0.12) !important; }';
+                document.head.appendChild(dbgStyle);
+                const hud = document.createElement('div');
+                hud.style.cssText = 'position:fixed;top:4px;right:4px;z-index:9999;background:rgba(0,0,0,0.85);color:#0f0;font:12px monospace;padding:8px 10px;border-radius:6px;max-height:240px;overflow-y:auto;width:200px;';
+                hud.innerHTML = '<b style="color:#fff">Debug: click scene</b><br>';
+                document.body.appendChild(hud);
+                document.getElementById('game-container').addEventListener('click', e => {
+                    const r = document.getElementById('game-container').getBoundingClientRect();
+                    const x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
+                    const y = ((e.clientY - r.top) / r.height * 100).toFixed(1);
+                    const d = document.createElement('div');
+                    d.textContent = `top:"${y}%", left:"${x}%"`;
+                    hud.appendChild(d);
+                    hud.scrollTop = hud.scrollHeight;
+                }, true);
+            }
         });
     </script>
 </body>
