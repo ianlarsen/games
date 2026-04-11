@@ -180,6 +180,7 @@
             function triggerHapticFeedback() { if (navigator.vibrate) navigator.vibrate(100); }
             function pct(s) { return parseFloat(s); }
 
+            const REF_W = 800; // container width items were mapped at
             function startRound() {
                 winOverlay.classList.remove('show');
                 emojiLayer.innerHTML = '';
@@ -202,8 +203,9 @@
                     const crop = document.createElement('div');
                     crop.className = 'target-crop';
                     const thumbW = 70, thumbH = 70;
-                    const bgW = thumbW * cW / item.size;
-                    const bgH = thumbH * cH / item.size;
+                    const scaledSz = item.size * cW / REF_W;
+                    const bgW = thumbW * cW / scaledSz;
+                    const bgH = thumbH * cH / scaledSz;
                     crop.style.backgroundSize = `${bgW}px ${bgH}px`;
                     crop.style.backgroundPosition = `${-(pct(item.left)/100*bgW)+thumbW/2}px ${-(pct(item.top)/100*bgH)+thumbH/2}px`;
                     const lbl = document.createElement('div');
@@ -218,7 +220,8 @@
                     div.className = 'item-hotspot';
                     div.dataset.key = item.key;
                     div.style.top = item.top; div.style.left = item.left;
-                    div.style.width = item.size + 'px'; div.style.height = item.size + 'px';
+                    const sz = Math.round(item.size * cW / REF_W);
+                    div.style.width = sz + 'px'; div.style.height = sz + 'px';
                     div.addEventListener('click', () => {
                         if (!audioUnlocked) unlockAudio();
                         const isTarget = currentTargets.some(t => t.key === item.key);
@@ -250,7 +253,16 @@
                     gameContainer.style.height = Math.round(gameContainer.offsetWidth * bgImg.naturalHeight / bgImg.naturalWidth) + 'px';
                 }
             }
-            window.addEventListener('resize', fitContainer);
+            window.addEventListener('resize', () => {
+                fitContainer();
+                const rW = gameContainer.offsetWidth;
+                document.querySelectorAll('#emoji-layer .item-hotspot').forEach(el => {
+                    const it = items.find(i => i.key === el.dataset.key);
+                    if (!it) return;
+                    const sz = Math.round(it.size * rW / REF_W);
+                    el.style.width = sz + 'px'; el.style.height = sz + 'px';
+                });
+            });
             if (bgImg.complete && bgImg.naturalWidth) {
                 fitContainer(); startRound();
             } else {
