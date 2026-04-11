@@ -140,7 +140,22 @@ F<!DOCTYPE html>
             40%, 60% { transform: translateX(4px); }
         }
 
+        .pair-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .pair-controls {
+                grid-template-columns: 1fr auto auto;
+                align-items: end;
+            }
+        }
+
     </style>
+    <link rel="stylesheet" href="../_ios_compat.css">
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
 
@@ -151,9 +166,19 @@ F<!DOCTYPE html>
              <a href="../index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Games</a>
         </header>
 
+        <div class="pair-controls">
+            <div>
+                <label for="pair-select" class="block text-sm font-semibold text-gray-600 mb-2">Choose target letter pair</label>
+                <select id="pair-select" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-lg bg-white"></select>
+            </div>
+            <button id="new-round-btn" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition">New Round</button>
+            <button id="random-pair-btn" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">Random Pair</button>
+        </div>
+
         <div class="text-center mb-6">
             <h2 class="text-2xl font-semibold text-gray-700">Find all the letters that look like this:</h2>
             <div id="target-letter" class="text-8xl font-bold text-blue-600 my-4"></div>
+            <p id="pair-status" class="text-gray-600 font-medium"></p>
         </div>
 
         <div id="letter-grid" class="letter-grid">
@@ -179,6 +204,10 @@ F<!DOCTYPE html>
         document.addEventListener('DOMContentLoaded', () => {
             const grid = document.getElementById('letter-grid');
             const targetLetterEl = document.getElementById('target-letter');
+            const pairStatusEl = document.getElementById('pair-status');
+            const pairSelect = document.getElementById('pair-select');
+            const newRoundBtn = document.getElementById('new-round-btn');
+            const randomPairBtn = document.getElementById('random-pair-btn');
             const mainEl = document.querySelector('main');
             const winOverlay = document.getElementById('win-overlay');
             const continueBtn = document.getElementById('continue-btn');
@@ -186,63 +215,64 @@ F<!DOCTYPE html>
 
             const flipSound = document.getElementById('flip-sound');
             const winSound = document.getElementById('win-sound');
-            let audioUnlocked = false; // We can leave this logic, it won't break anything.
+            const STORAGE_KEY = 'letterReversalGameStateV2';
+            let audioUnlocked = false;
 
             const letterPairs = [
-                { target: 'b', distractor: 'd' }, { target: 'd', distractor: 'b' },
-                { target: 'p', distractor: 'q' }, { target: 'q', distractor: 'p' },
-                { target: 'i', distractor: 'l' }, { target: 'l', distractor: 'i' },
-                { target: 'a', distractor: 'e' }, { target: 'e', distractor: 'a' },
-                { target: 'c', distractor: 'o' }, { target: 'o', distractor: 'c' },
-                { target: 'm', distractor: 'n' }, { target: 'n', distractor: 'm' }
+                { id: 'b-d', label: 'Find b (vs d)', target: 'b', distractor: 'd' },
+                { id: 'd-b', label: 'Find d (vs b)', target: 'd', distractor: 'b' },
+                { id: 'p-q', label: 'Find p (vs q)', target: 'p', distractor: 'q' },
+                { id: 'q-p', label: 'Find q (vs p)', target: 'q', distractor: 'p' },
+                { id: 'l-i', label: 'Find l (vs i)', target: 'l', distractor: 'i' },
+                { id: 'i-l', label: 'Find i (vs l)', target: 'i', distractor: 'l' },
+                { id: 'm-n', label: 'Find m (vs n)', target: 'm', distractor: 'n' },
+                { id: 'n-m', label: 'Find n (vs m)', target: 'n', distractor: 'm' },
+                { id: 'o-c', label: 'Find o (vs c)', target: 'o', distractor: 'c' },
+                { id: 'c-o', label: 'Find c (vs o)', target: 'c', distractor: 'o' },
+                { id: 'a-e', label: 'Find a (vs e)', target: 'a', distractor: 'e' },
+                { id: 'e-a', label: 'Find e (vs a)', target: 'e', distractor: 'a' },
+                { id: 'w-v', label: 'Find w (vs v)', target: 'w', distractor: 'v' },
+                { id: 'v-w', label: 'Find v (vs w)', target: 'v', distractor: 'w' },
+                { id: 's-z', label: 'Find s (vs z)', target: 's', distractor: 'z' },
+                { id: 'z-s', label: 'Find z (vs s)', target: 'z', distractor: 's' },
+                { id: '2-z', label: 'Find 2 (vs z)', target: '2', distractor: 'z' },
+                { id: 'z-2', label: 'Find z (vs 2)', target: 'z', distractor: '2' },
+                { id: '3-8', label: 'Find 3 (vs 8)', target: '3', distractor: '8' },
+                { id: '8-3', label: 'Find 8 (vs 3)', target: '8', distractor: '3' },
+                { id: 'h-n', label: 'Find h (vs n)', target: 'h', distractor: 'n' },
+                { id: 'n-h', label: 'Find n (vs h)', target: 'n', distractor: 'h' },
+                { id: 'r-n', label: 'Find r (vs n)', target: 'r', distractor: 'n' },
+                { id: 'n-r', label: 'Find n (vs r)', target: 'n', distractor: 'r' },
+                { id: 'E-F', label: 'Find E (vs F)', target: 'E', distractor: 'F' },
+                { id: 'F-E', label: 'Find F (vs E)', target: 'F', distractor: 'E' }
             ];
-            
-            let currentPair;
+
+            let currentPair = null;
             let foundCount = 0;
             let totalTargets = 0;
+            let currentLetters = [];
 
             function unlockAudio() {
                 if (audioUnlocked) return;
-                flipSound.play().then(() => { flipSound.pause(); winSound.play().then(() => winSound.pause()).catch(() => {}); audioUnlocked = true; }).catch(() => {});
-                audioUnlocked = true; // Set to true anyway.
+                flipSound.play().then(() => {
+                    flipSound.pause();
+                    winSound.play().then(() => winSound.pause()).catch(() => {});
+                    audioUnlocked = true;
+                }).catch(() => {});
+                audioUnlocked = true;
             }
 
             function playSound(sound) {
                 if (sound && audioUnlocked) {
                     sound.currentTime = 0;
-                    sound.play().catch(e => console.error("Sound play failed:", e));
+                    sound.play().catch(() => {});
                 }
             }
-            
+
             function triggerHapticFeedback() {
                 if (navigator.vibrate) {
                     navigator.vibrate(100);
                 }
-            }
-
-            function initGame() {
-                winOverlay.classList.remove('show');
-                confettiContainer.innerHTML = '';
-                grid.innerHTML = '';
-                foundCount = 0;
-                
-                currentPair = letterPairs[Math.floor(Math.random() * letterPairs.length)];
-                totalTargets = Math.floor(Math.random() * 5) + 8; // 8 to 12 targets
-
-                targetLetterEl.textContent = currentPair.target;
-
-                let letters = Array(totalTargets).fill(currentPair.target);
-                letters = letters.concat(Array(25 - totalTargets).fill(currentPair.distractor));
-                shuffle(letters);
-
-                letters.forEach(letter => {
-                    const cell = document.createElement('div');
-                    cell.classList.add('letter-cell');
-                    cell.textContent = letter;
-                    cell.dataset.letter = letter;
-                    cell.addEventListener('click', handleCellClick);
-                    grid.appendChild(cell);
-                });
             }
 
             function shuffle(array) {
@@ -252,20 +282,168 @@ F<!DOCTYPE html>
                 }
             }
 
+            function getRandomPair() {
+                return letterPairs[Math.floor(Math.random() * letterPairs.length)];
+            }
+
+            function getPairById(id) {
+                return letterPairs.find((pair) => pair.id === id) || null;
+            }
+
+            function getPairGroup(pair) {
+                const hasUppercase = /[A-Z]/.test(pair.target) || /[A-Z]/.test(pair.distractor);
+                const hasNumber = /[0-9]/.test(pair.target) || /[0-9]/.test(pair.distractor);
+
+                if (hasUppercase) return 'uppercase';
+                if (hasNumber) return 'numbers';
+                return 'letters';
+            }
+
+            function renderPairOptions() {
+                pairSelect.innerHTML = '';
+
+                const groupOrder = ['letters', 'numbers', 'uppercase'];
+                const groupLabels = {
+                    letters: 'Letters',
+                    numbers: 'Numbers',
+                    uppercase: 'Uppercase'
+                };
+
+                groupOrder.forEach((groupName) => {
+                    const matchingPairs = letterPairs
+                        .filter((pair) => getPairGroup(pair) === groupName)
+                        .sort((a, b) => a.label.localeCompare(b.label));
+
+                    if (!matchingPairs.length) return;
+
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupLabels[groupName];
+
+                    matchingPairs.forEach((pair) => {
+                        const option = document.createElement('option');
+                        option.value = pair.id;
+                        option.textContent = pair.label;
+                        optgroup.appendChild(option);
+                    });
+
+                    pairSelect.appendChild(optgroup);
+                });
+            }
+
+            function updateTargetDisplay() {
+                targetLetterEl.textContent = currentPair.target;
+                pairStatusEl.textContent = `Target ${currentPair.target} | Distractor ${currentPair.distractor}`;
+            }
+
+            function renderGrid(foundIndices = []) {
+                grid.innerHTML = '';
+                currentLetters.forEach((letter, index) => {
+                    const cell = document.createElement('div');
+                    cell.classList.add('letter-cell');
+                    cell.textContent = letter;
+                    cell.dataset.letter = letter;
+                    cell.dataset.index = String(index);
+                    if (foundIndices.includes(index)) {
+                        cell.classList.add('correct');
+                    }
+                    cell.addEventListener('click', handleCellClick);
+                    grid.appendChild(cell);
+                });
+            }
+
+            function saveState(foundIndices = []) {
+                if (!currentPair || !currentLetters.length) return;
+                const payload = {
+                    pairId: currentPair.id,
+                    letters: currentLetters,
+                    foundIndices
+                };
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                } catch (error) {
+                    console.warn('Unable to save game state', error);
+                }
+            }
+
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    if (!parsed || !Array.isArray(parsed.letters) || !Array.isArray(parsed.foundIndices)) {
+                        return null;
+                    }
+                    return parsed;
+                } catch (error) {
+                    console.warn('Unable to load game state', error);
+                    return null;
+                }
+            }
+
+            function startNewRound(selectedPairId) {
+                winOverlay.classList.remove('show');
+                confettiContainer.innerHTML = '';
+
+                currentPair = getPairById(selectedPairId) || getRandomPair();
+                pairSelect.value = currentPair.id;
+
+                totalTargets = Math.floor(Math.random() * 5) + 8;
+                foundCount = 0;
+
+                currentLetters = Array(totalTargets).fill(currentPair.target)
+                    .concat(Array(25 - totalTargets).fill(currentPair.distractor));
+                shuffle(currentLetters);
+
+                updateTargetDisplay();
+                renderGrid([]);
+                saveState([]);
+            }
+
+            function restoreRoundIfAvailable() {
+                const saved = loadState();
+                if (!saved) return false;
+
+                const savedPair = getPairById(saved.pairId);
+                if (!savedPair || saved.letters.length !== 25) return false;
+
+                currentPair = savedPair;
+                pairSelect.value = currentPair.id;
+                currentLetters = saved.letters;
+                totalTargets = currentLetters.filter((letter) => letter === currentPair.target).length;
+
+                const foundSet = new Set(saved.foundIndices.filter((index) => Number.isInteger(index) && index >= 0 && index < 25));
+                foundCount = [...foundSet].length;
+
+                winOverlay.classList.remove('show');
+                confettiContainer.innerHTML = '';
+                updateTargetDisplay();
+                renderGrid([...foundSet]);
+
+                if (foundCount === totalTargets && totalTargets > 0) {
+                    setTimeout(() => winOverlay.classList.add('show'), 100);
+                }
+
+                return true;
+            }
+
             function handleCellClick(event) {
                 if (!audioUnlocked) unlockAudio();
                 const cell = event.currentTarget;
 
                 if (cell.classList.contains('correct') || cell.classList.contains('incorrect')) return;
-                
+
                 if (cell.dataset.letter === currentPair.target) {
-                     playSound(flipSound); // Sound call commented out
-                    
+                    playSound(flipSound);
                     cell.classList.add('correct');
                     foundCount++;
-                    
+
+                    const foundIndices = Array.from(grid.children)
+                        .filter((node) => node.classList.contains('correct'))
+                        .map((node) => Number(node.dataset.index));
+                    saveState(foundIndices);
+
                     if (foundCount === totalTargets) {
-                        playSound(winSound); // Sound call commented out
+                        playSound(winSound);
                         triggerConfetti();
                         setTimeout(() => winOverlay.classList.add('show'), 300);
                     }
@@ -279,7 +457,7 @@ F<!DOCTYPE html>
                     }, 800);
                 }
             }
-            
+
             function triggerConfetti() {
                 confettiContainer.innerHTML = '';
                 const colors = ['#ff5733', '#33ff57', '#3357ff', '#ff33a1', '#a133ff', '#33fff6'];
@@ -294,8 +472,27 @@ F<!DOCTYPE html>
                 }
             }
 
-            continueBtn.addEventListener('click', initGame);
-            initGame();
+            renderPairOptions();
+
+            if (!restoreRoundIfAvailable()) {
+                startNewRound(getRandomPair().id);
+            }
+
+            pairSelect.addEventListener('change', () => {
+                startNewRound(pairSelect.value);
+            });
+
+            newRoundBtn.addEventListener('click', () => {
+                startNewRound(pairSelect.value);
+            });
+
+            randomPairBtn.addEventListener('click', () => {
+                startNewRound(getRandomPair().id);
+            });
+
+            continueBtn.addEventListener('click', () => {
+                startNewRound(pairSelect.value);
+            });
         });
     </script>
 </body>
