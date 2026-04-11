@@ -267,11 +267,11 @@
 
   <header>
     <a href="../index.html" class="back-btn">← Back</a>
-    <div class="score-badge">⭐ <span id="score-val">0</span> / 10</div>
+    <div class="score-badge"><span id="score-val">0</span> / 10</div>
   </header>
 
   <main>
-    <h1>👁️ Odd One Out</h1>
+    <h1>Odd One Out</h1>
     <p class="subtitle">Find the one that looks different!</p>
     <p class="round-label" id="round-label">Round 1 of 10</p>
 
@@ -290,10 +290,10 @@
   <div class="confetti-layer" id="confetti-layer"></div>
   <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
     <div class="win-card">
-      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-emoji" id="win-emoji">★</div>
       <div class="win-title" id="win-title-el">Amazing!</div>
       <div class="win-score" id="win-score-msg"></div>
-      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+      <button class="replay-btn" onclick="restartGame()">Play Again</button>
     </div>
   </div>
 
@@ -720,7 +720,7 @@
         answered = true;
         btn.classList.add('state-correct');
         playSound('match');
-        const msgs = ["Found it! 🌟","Sharp eyes! 👁️","You got it! ⭐","Correct! 🎉","Nice spotting! 🔍"];
+        const msgs = ["Found it!","Sharp eyes!","You got it!","Correct!","Nice spotting!"];
         fb.textContent = msgs[Math.floor(Math.random()*msgs.length)];
         fb.className = 'feedback correct';
         score++;
@@ -743,10 +743,10 @@
       const emojiEl=document.getElementById('win-emoji');
       const titleEl=document.getElementById('win-title-el');
       const scoreEl=document.getElementById('win-score-msg');
-      if(score>=TOTAL)      {emojiEl.textContent='🏆👁️🏆';titleEl.textContent='Eagle Eyes!';}
-      else if(score>=8)     {emojiEl.textContent='⭐👁️⭐';titleEl.textContent='Super Spotter!';}
-      else if(score>=5)     {emojiEl.textContent='🌟👁️🌟';titleEl.textContent='Good Looking!';}
-      else                  {emojiEl.textContent='💪👁️💪';titleEl.textContent='Keep Practising!';}
+      if(score>=TOTAL)      {emojiEl.textContent='★★★';titleEl.textContent='Eagle Eyes!';}
+      else if(score>=8)     {emojiEl.textContent='★★';titleEl.textContent='Super Spotter!';}
+      else if(score>=5)     {emojiEl.textContent='★';titleEl.textContent='Good Looking!';}
+      else                  {emojiEl.textContent='';titleEl.textContent='Keep Practising!';}
       scoreEl.textContent=`You got ${score} out of ${TOTAL} right!`;
       document.getElementById('win-overlay').classList.add('show');
       launchConfetti();
