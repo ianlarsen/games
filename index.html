@@ -1,329 +1,364 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OTG PlayShift - Occupational Therapy Learning Games</title>
-  <meta name="description" content="A collection of fun, kid-friendly occupational therapy learning games." />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';">
-  <!-- Link to shared CSS -->
-  <link rel="stylesheet" href="style/main-menu.css">
-    <link rel="stylesheet" href="_ios_compat.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTG PlayShift</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #0d1b2a;
+      font-family: system-ui, -apple-system, sans-serif;
+      touch-action: manipulation;
+    }
+
+    /* ── Map wrapper: full screen, centres the canvas ── */
+    #map-wrap {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Map canvas: sized to image aspect ratio by JS ── */
+    #map-canvas {
+      position: relative;
+      flex-shrink: 0;
+      /* Fallback gradient shown until map.png loads */
+      background: linear-gradient(160deg,
+        #1a3a5c 0% 25%,
+        #1a4a2a 25% 50%,
+        #4a2e0a 50% 75%,
+        #2a1a4a 75% 100%
+      );
+    }
+
+    #map-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ── Zone hotspots ── */
+    .zone-hotspot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      z-index: 20;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .zone-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #1a1a2e;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      border: 3px solid #000;
+      box-shadow: 0 0 0 3px #fff, 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Per-zone accent colours */
+    #zone-look     .zone-label { background: #bfdbfe; }
+    #zone-words    .zone-label { background: #fef08a; }
+    #zone-patterns .zone-label { background: #bbf7d0; }
+    #zone-brain    .zone-label { background: #e9d5ff; }
+
+    /* ── Backdrop ── */
+    #drawer-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0);
+      z-index: 200;
+      pointer-events: none;
+      transition: background 0.3s;
+    }
+    #drawer-backdrop.show {
+      background: rgba(0,0,0,0.5);
+      pointer-events: auto;
+    }
+
+    /* ── Drawer ── */
+    #drawer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 300;
+      background: #fff;
+      border-radius: 22px 22px 0 0;
+      box-shadow: 0 -8px 48px rgba(0,0,0,0.35);
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 78vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+    #drawer.show { transform: translateY(0); }
+
+    #drawer-handle {
+      width: 40px; height: 4px;
+      background: #d1d5db;
+      border-radius: 2px;
+      margin: 12px auto 0;
+      flex-shrink: 0;
+    }
+
+    #drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    #drawer-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    #drawer-close {
+      width: 32px; height: 32px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 50%;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+
+    #drawer-games {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .game-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 8px;
+      background: #f9fafb;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.12s, border-color 0.12s, transform 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .game-tile:active {
+      transform: scale(0.95);
+      background: #eff6ff;
+      border-color: #93c5fd;
+    }
+
+    .game-tile img {
+      width: 60px; height: 60px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .game-tile-label {
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #1f2937;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .game-tile-hint {
+      font-size: 0.63rem;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.3;
+    }
+  </style>
 </head>
 <body>
-  <!-- Skip navigation link for screen readers -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-  
-  <header>
-    <div class="header-content">
-        <h1><img src="images/OTG_PlayShift_logo.png" alt="OTGames" style="height:140px;max-width:182px;width:auto;display:block;"></h1>
-    </div>
-  </header>
 
-  <main id="main-content">
+<div id="map-wrap">
+  <div id="map-canvas">
 
-    <!-- Visual Perception -->
-    <section class="category-section" aria-labelledby="cat-visual">
-      <h2 class="category-title" id="cat-visual">Look &amp; Spot</h2>
-      <div class="category-row">
-        <a class="tile" href="seekandfind/index.html" aria-label="Seek and Find. Look for hidden things.">
-          <img src="images/tiles/tile_seek_find.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Seek &amp; Find</div>
-          <div class="hint">Look for hidden things</div>
-        </a>
-        <a class="tile" href="shapes/index.html" aria-label="Shape Finder. Find the hidden shapes.">
-          <img src="images/tiles/tile_shape_finder.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Shape Finder</div>
-          <div class="hint">Find the hidden shapes!</div>
-        </a>
-        <a class="tile" href="shape_hunt/index.html" aria-label="Shape Hunt. Count the hidden shapes.">
-          <img src="images/tiles/tile_shape_hunt.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Shape Hunt</div>
-          <div class="hint">Count the hidden shapes!</div>
-        </a>
-        <a class="tile" href="odd_one_out/index.html" aria-label="Odd One Out. Find the one that is different.">
-          <img src="images/tiles/tile_odd_one_out.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Odd One Out</div>
-          <div class="hint">Find the one that's different!</div>
-        </a>
-        <a class="tile" href="leftright/index.html" aria-label="Left or Right. Which way are they facing?">
-          <img src="images/tiles/tile_left_right.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Left or Right</div>
-          <div class="hint">Which way are they facing?</div>
-        </a>
-        <a class="tile" href="letterreverse/index.html" aria-label="Letter Reversals. Watch out for tricky letters.">
-          <img src="images/tiles/tile_letter_reversals.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Letter Reversals</div>
-          <div class="hint">Watch out for tricky letters!</div>
-        </a>
-      </div>
-    </section>
+    <img id="map-img" src="images/map.png" alt="Adventure Map"
+         onerror="this.style.display='none'">
 
-    <!-- Literacy & Language -->
-    <section class="category-section" aria-labelledby="cat-literacy">
-      <h2 class="category-title" id="cat-literacy">Words &amp; Letters</h2>
-      <div class="category-row">
-        <a class="tile" href="missing_letter/index.html" aria-label="Missing Letter Match. Find the letter that completes the word.">
-          <img src="images/tiles/tile_missing_letter.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Missing Letter</div>
-          <div class="hint">Find the missing letter</div>
-        </a>
-        <a class="tile" href="color_by_letter/index.html" aria-label="Color By Letter Match. Match lowercase letters to uppercase spaces.">
-          <img src="images/tiles/tile_color_by_letter.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Color By Letter</div>
-          <div class="hint">Match lowercase to uppercase</div>
-        </a>
-        <a class="tile" href="spelling_sequence/index.html" aria-label="Picture Spelling Sequence. Tap letters in the right order.">
-          <img src="images/tiles/tile_spelling_sequence.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Picture Spelling</div>
-          <div class="hint">Tap letters in order</div>
-        </a>
-        <a class="tile" href="five_ws/index.html" aria-label="Picture Detective. Look at the scene and answer questions.">
-          <img src="images/tiles/tile_picture_detective.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Picture Detective</div>
-          <div class="hint">Look closely and answer!</div>
-        </a>
-        <a class="tile" href="because/index.html" aria-label="Because! Answer the Why questions.">
-          <img src="images/tiles/tile_because.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Because!</div>
-          <div class="hint">Answer the "Why?" questions</div>
-        </a>
-      </div>
-    </section>
+    <!-- ── Zone pins ── -->
+    <!-- PLACEHOLDER POSITIONS: adjust top/left % once you have the real map image -->
 
-    <!-- Patterns & Sequencing -->
-    <section class="category-section" aria-labelledby="cat-patterns">
-      <h2 class="category-title" id="cat-patterns">What Comes Next?</h2>
-      <div class="category-row">
-        <a class="tile" href="apple_patterns/index.html" aria-label="Apple Patterns. Complete the repeating apple pattern.">
-          <img src="images/tiles/tile_apple_patterns.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Apple Patterns</div>
-          <div class="hint">Complete the pattern!</div>
-        </a>
-        <a class="tile" href="color_code/index.html" aria-label="Color Code. Match the shape pattern.">
-          <img src="images/tiles/tile_color_code.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Color Code</div>
-          <div class="hint">Match the shape pattern</div>
-        </a>
-        <a class="tile" href="sequence/index.html" aria-label="Sequencing. Put the stories in order.">
-          <img src="images/tiles/tile_sequencing.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Sequencing</div>
-          <div class="hint">Put the stories in order</div>
-        </a>
-        <a class="tile" href="dottodot/index.html" aria-label="Dot to Dot. Connect the dots.">
-          <img src="images/tiles/tile_dot_to_dot.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Dot-to-Dot</div>
-          <div class="hint">Connect the dots</div>
-        </a>
-      </div>
-    </section>
+    <div class="zone-hotspot" id="zone-look"     style="top:15.3%; left:18.9%;" data-diam="38.6"><div class="zone-label">Look &amp; See</div></div>
+    <div class="zone-hotspot" id="zone-words"    style="top:13.6%; left:75.6%;" data-diam="46.4"><div class="zone-label">Words to Read</div></div>
+    <div class="zone-hotspot" id="zone-patterns" style="top:62.5%; left:20.1%;" data-diam="64.4"><div class="zone-label">What Comes Next?</div></div>
+    <div class="zone-hotspot" id="zone-brain"    style="top:78.6%; left:72%;"  data-diam="62.2"><div class="zone-label">Puzzle Palace</div></div>
 
-    <!-- Memory & Logic -->
-    <section class="category-section" aria-labelledby="cat-memory">
-      <h2 class="category-title" id="cat-memory">Brain Games</h2>
-      <div class="category-row">
-        <a class="tile" href="concentration/index.html" aria-label="Concentration. Match the cards.">
-          <img src="images/tiles/tile_concentration.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Concentration</div>
-          <div class="hint">Match the cards</div>
-        </a>
-        <a class="tile" href="sudoku/index.html" aria-label="Emoji Sudoku. Fill the grid with matching symbols.">
-          <img src="images/tiles/tile_sudoku.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Sudoku</div>
-          <div class="hint">Fill the grid with symbols</div>
-        </a>
-        <a class="tile" href="clock_time/index.html" aria-label="Time Teacher. Set the hands and read the clock.">
-          <img src="images/tiles/tile_time_teacher.png" alt="" class="tile-img" aria-hidden="true">
-          <div class="label">Time Teacher</div>
-          <div class="hint">Set the hands and read time</div>
-        </a>
-      </div>
-    </section>
+  </div>
+</div>
 
-  </main>
+<div id="drawer-backdrop"></div>
 
-  <footer>
-  </footer>
+<div id="drawer">
+  <div id="drawer-handle"></div>
+  <div id="drawer-header">
+    <h2 id="drawer-title"></h2>
+    <button id="drawer-close" aria-label="Close">✕</button>
+  </div>
+  <div id="drawer-games"></div>
+</div>
 
-  <!-- Audio element for click sound with fallback -->
-  <audio id="flip-sound" preload="auto">
-    <source src="sounds/flip.mp3">
-  </audio>
+<audio id="tap-sound" src="sounds/zone_tap.mp3" preload="auto"></audio>
 
-  <!-- Audio element for background music -->
-  <audio id="background-music" loop preload="auto">
-    <source src="sounds/main_theme.mp3" type="audio/mpeg">
-  </audio>
-
-  <!-- Visual feedback for sound errors -->
-  <div id="sound-status" class="sound-status" aria-live="polite" aria-atomic="true"></div>
-
-  <script>
-window.addEventListener('load', () => {
-  // Preload the flip sound
-  const flip = document.getElementById('flip-sound');
-  flip.load();
-
-  // Prepare the unlock listener
-  const unlockAudio = () => {
-    flip.play().then(() => {
-      flip.pause();
-      flip.currentTime = 0;
-      settings.audioUnlocked = true;
-      audio.startBackgroundMusic(true);
-      console.log('Audio unlocked');
-    }).catch(err => {
-      console.warn('Autoplay blocked:', err);
-    });
-
-    // Remove listeners after first gesture
-    document.removeEventListener('click', unlockAudio);
-    document.removeEventListener('touchstart', unlockAudio);
+<script>
+  // ── Zone data ────────────────────────────────────────────────────
+  const zones = {
+    look: {
+      title: 'Look & See',
+      accent: '#dbeafe',
+      games: [
+        { label: 'Seek & Find',      hint: 'Find hidden things',   href: 'seekandfind/index.html',   img: 'images/tiles/tile_seek_find.png' },
+        { label: 'Shape Finder',     hint: 'Find hidden shapes',   href: 'shapes/index.html',        img: 'images/tiles/tile_shape_finder.png' },
+        { label: 'Shape Hunt',       hint: 'Count shapes',         href: 'shape_hunt/index.html',    img: 'images/tiles/tile_shape_hunt.png' },
+        { label: 'Odd One Out',      hint: "Find the different",   href: 'odd_one_out/index.html',   img: 'images/tiles/tile_odd_one_out.png' },
+        { label: 'Left or Right',    hint: 'Which way are they?',  href: 'leftright/index.html',     img: 'images/tiles/tile_left_right.png' },
+        { label: 'Letter Reversals', hint: 'Tricky letters',       href: 'letterreverse/index.html', img: 'images/tiles/tile_letter_reversals.png' },
+      ]
+    },
+    words: {
+      title: 'Words to Read',
+      accent: '#fef9c3',
+      games: [
+        { label: 'Missing Letter',    hint: 'Complete the word',   href: 'missing_letter/index.html',    img: 'images/tiles/tile_missing_letter.png' },
+        { label: 'Color by Letter',   hint: 'Match the letters',   href: 'color_by_letter/index.html',   img: 'images/tiles/tile_color_by_letter.png' },
+        { label: 'Picture Spelling',  hint: 'Tap letters in order',href: 'spelling_sequence/index.html',  img: 'images/tiles/tile_spelling_sequence.png' },
+        { label: 'Picture Detective', hint: 'Answer questions',    href: 'five_ws/index.html',            img: 'images/tiles/tile_picture_detective.png' },
+        { label: 'Because!',          hint: 'Answer the Why?',     href: 'because/index.html',            img: 'images/tiles/tile_because.png' },
+      ]
+    },
+    patterns: {
+      title: 'What Comes Next?',
+      accent: '#dcfce7',
+      games: [
+        { label: 'Apple Patterns', hint: 'Complete the pattern', href: 'apple_patterns/index.html', img: 'images/tiles/tile_apple_patterns.png' },
+        { label: 'Color Code',     hint: 'Match the pattern',   href: 'color_code/index.html',     img: 'images/tiles/tile_color_code.png' },
+        { label: 'Sequencing',     hint: 'Put it in order',     href: 'sequence/index.html',       img: 'images/tiles/tile_sequencing.png' },
+        { label: 'Dot-to-Dot',     hint: 'Connect the dots',    href: 'dottodot/index.html',       img: 'images/tiles/tile_dot_to_dot.png' },
+      ]
+    },
+    brain: {
+      title: 'Puzzle Palace',
+      accent: '#f3e8ff',
+      games: [
+        { label: 'Concentration', hint: 'Match the cards',    href: 'concentration/index.html', img: 'images/tiles/tile_concentration.png' },
+        { label: 'Sudoku',        hint: 'Fill the grid',      href: 'sudoku/index.html',        img: 'images/tiles/tile_sudoku.png' },
+        { label: 'Time Teacher',  hint: 'Read the clock',     href: 'clock_time/index.html',    img: 'images/tiles/tile_time_teacher.png' },
+      ]
+    }
   };
 
-  // Register unlock on first click/tap
-  document.addEventListener('click', unlockAudio, { once: true });
-  document.addEventListener('touchstart', unlockAudio, { once: true });
-});
+  // ── DOM refs ─────────────────────────────────────────────────────
+  const drawer        = document.getElementById('drawer');
+  const backdrop      = document.getElementById('drawer-backdrop');
+  const drawerTitle   = document.getElementById('drawer-title');
+  const drawerGames   = document.getElementById('drawer-games');
+  const tapSound      = document.getElementById('tap-sound');
+  const mapImg        = document.getElementById('map-img');
+  const mapCanvas     = document.getElementById('map-canvas');
+  const mapWrap       = document.getElementById('map-wrap');
 
-    const settings = {
-      audioUnlocked: false
-    };
+  // ── Audio ────────────────────────────────────────────────────────
+  let audioUnlocked = false;
+  function playTap() {
+    if (!audioUnlocked) {
+      tapSound.play().then(() => {
+        tapSound.pause(); tapSound.currentTime = 0;
+        audioUnlocked = true; playTap();
+      }).catch(() => {});
+      return;
+    }
+    tapSound.currentTime = 0;
+    tapSound.play().catch(() => {});
+  }
 
-    // --- Audio Playback with Error Handling ---
-    const audio = {
-      flipSound: document.getElementById('flip-sound'),
-      backgroundMusic: document.getElementById('background-music'), // Added background music element
-      statusEl: document.getElementById('sound-status'),
-      autoplayAttempts: 0,
-      maxAutoplayAttempts: 8,
-      autoplayTimer: null,
-      
-      unlock() {
-        if (settings.audioUnlocked) return;
-        
-        const testPlay = () => {
-          if (!this.flipSound) return;
-          
-          this.flipSound.play()
-            .then(() => {
-              this.flipSound.pause();
-              this.flipSound.currentTime = 0;
-              settings.audioUnlocked = true;
-              
-              // Now that audio is unlocked, check if we should play background music
-              this.startBackgroundMusic(true);
-            })
-            .catch(e => {
-              console.warn('Audio unlock failed:', e);
-              this.showStatus('Sound effects unavailable', 'error');
-            });
-        };
-        
-        testPlay();
-        document.body.removeEventListener('click', this.unlock);
-        document.body.removeEventListener('touchstart', this.unlock);
-      },
-      
-      play(sound) {
-        if (!sound || !settings.audioUnlocked) return;
-        
-        // Check if sound is loaded
-        if (sound.readyState >= 2) {
-          sound.currentTime = 0;
-          sound.play().catch(e => {
-            console.error('Sound play failed:', e);
-            this.showStatus('mute', 'visual-only');
-          });
-        } else {
-          // Sound not ready, show visual feedback
-          this.showStatus('sound', 'visual-only');
-        }
-      },
-
-      clearAutoplayRetry() {
-        if (this.autoplayTimer) {
-          clearTimeout(this.autoplayTimer);
-          this.autoplayTimer = null;
-        }
-      },
-
-      scheduleAutoplayRetry() {
-        if (this.autoplayAttempts >= this.maxAutoplayAttempts || this.autoplayTimer) return;
-        const delayMs = 350 * (this.autoplayAttempts + 1);
-        this.autoplayTimer = setTimeout(() => {
-          this.autoplayTimer = null;
-          this.startBackgroundMusic();
-        }, delayMs);
-      },
-
-      startBackgroundMusic(force = false) {
-        if (!this.backgroundMusic) return;
-        if (document.hidden) {
-          this.backgroundMusic.pause();
-          return;
-        }
-
-        if (this.backgroundMusic.paused || force) {
-          this.backgroundMusic.volume = 0.35;
-          const playAttempt = this.backgroundMusic.play();
-
-          if (playAttempt && typeof playAttempt.then === 'function') {
-            playAttempt.then(() => {
-              settings.audioUnlocked = true;
-              this.autoplayAttempts = 0;
-              this.clearAutoplayRetry();
-            }).catch(() => {
-              this.autoplayAttempts += 1;
-              this.scheduleAutoplayRetry();
-            });
-          }
-        }
-      },
-
-      // New function to control background music
-      updateBackgroundMusic() {
-        this.startBackgroundMusic();
-      },
-      
-      showStatus(message, type = 'info') {
-        if (!this.statusEl) return;
-        
-        this.statusEl.textContent = message;
-        this.statusEl.className = `sound-status ${type}`;
-        this.statusEl.style.opacity = '1';
-        
-        setTimeout(() => {
-          this.statusEl.style.opacity = '0';
-        }, 1000);
-      }
-    };
-
-    // --- Initialize on DOM Ready ---
-    document.addEventListener('DOMContentLoaded', () => {
-      audio.startBackgroundMusic();
-      window.addEventListener('pageshow', () => audio.startBackgroundMusic());
-      window.addEventListener('focus', () => audio.startBackgroundMusic());
-      
-      // Set up audio unlock listeners
-      document.body.addEventListener('click', () => audio.unlock(), { once: true });
-      document.body.addEventListener('touchstart', () => audio.unlock(), { once: true });
-      document.body.addEventListener('keydown', () => audio.unlock(), { once: true });
-      
-      // --- Tile Interactions ---
-      document.querySelectorAll('.tile').forEach(tile => {
-        tile.addEventListener('click', (e) => {
-          audio.play(audio.flipSound);
-        });
-      });
+  // ── Drawer ───────────────────────────────────────────────────────
+  function openZone(key) {
+    const zone = zones[key];
+    playTap();
+    drawerTitle.textContent = zone.title;
+    drawerGames.style.background = zone.accent;
+    drawerGames.innerHTML = '';
+    zone.games.forEach(g => {
+      const a = document.createElement('a');
+      a.className = 'game-tile';
+      a.href = g.href;
+      const img = document.createElement('img');
+      img.src = g.img; img.alt = g.label;
+      img.onerror = () => img.style.display = 'none';
+      const lbl = document.createElement('div');
+      lbl.className = 'game-tile-label'; lbl.textContent = g.label;
+      const hint = document.createElement('div');
+      hint.className = 'game-tile-hint'; hint.textContent = g.hint;
+      a.append(img, lbl, hint);
+      drawerGames.appendChild(a);
     });
+    drawer.classList.add('show');
+    backdrop.classList.add('show');
+  }
 
-    // --- Handle Page Visibility for Audio ---
-    document.addEventListener('visibilitychange', () => {
-      // Pause or resume background music when tab visibility changes
-      audio.updateBackgroundMusic();
+  function closeDrawer() {
+    drawer.classList.remove('show');
+    backdrop.classList.remove('show');
+  }
+
+  document.querySelectorAll('.zone-hotspot').forEach(el => {
+    el.addEventListener('click', () => openZone(el.id.replace('zone-', '')));
+  });
+  document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+
+  // ── Fit map to screen ────────────────────────────────────────────
+  function fitMap() {
+    const iw = mapImg.naturalWidth  || 1080;
+    const ih = mapImg.naturalHeight || 1920;
+    const scale = Math.min(mapWrap.clientWidth / iw, mapWrap.clientHeight / ih);
+    const cw = Math.round(iw * scale);
+    const ch = Math.round(ih * scale);
+    mapCanvas.style.width  = cw + 'px';
+    mapCanvas.style.height = ch + 'px';
+    // Scale each invisible hotspot proportionally with the displayed map
+    document.querySelectorAll('.zone-hotspot').forEach(el => {
+      const diamPct = parseFloat(el.dataset.diam || '12');
+      const diam = Math.round(cw * diamPct / 100);
+      el.style.width  = diam + 'px';
+      el.style.height = diam + 'px';
     });
-  </script>
+  }
+
+  window.addEventListener('resize', fitMap);
+  if (mapImg.complete && mapImg.naturalWidth) {
+    fitMap();
+  } else {
+    mapImg.addEventListener('load',  fitMap);
+    mapImg.addEventListener('error', fitMap);
+  }
+</script>
 </body>
 </html>
-
