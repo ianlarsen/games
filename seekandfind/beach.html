@@ -92,7 +92,7 @@
             inset: 0;
             width: 100%;
             height: 100% !important;
-            object-fit: cover;
+            object-fit: fill;
             z-index: 1;
         }
 
@@ -107,14 +107,14 @@
 
 <a href="../index.html" style="position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));z-index:9999;background:rgba(255,255,255,0.92);color:#111;padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:700;border:1px solid #d1d5db;">&larr; All Games</a>
 
-    <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
-        <header class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <main class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-2 sm:p-4 md:p-6">
+        <header class="flex flex-wrap items-center justify-between gap-4 mb-2">
             <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-sm hover:bg-gray-300 transition">&larr; Back to Seek & Find</a>
         </header>
         
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4">Beach Hunt</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-2">Beach Hunt</h1>
 
-<div id="game-container" class="relative w-full max-w-full h-[70vh] sm:h-[80vh] bg-gray-200 rounded-lg overflow-hidden border">
+<div id="game-container" class="relative w-full max-w-full bg-gray-200 rounded-lg overflow-hidden border">
             <!-- Updated image path and alt text -->
             <img id="background-img" src="images/beach.png" alt="Beach Background" class="absolute top-0 left-0 w-full h-full object-cover" onerror="this.style.display='none';document.getElementById('game-container').style.background='linear-gradient(135deg,#dbeafe,#bfdbfe)'">
             <div id="emoji-layer"></div>
@@ -145,6 +145,8 @@
             const winOverlay = document.getElementById('win-overlay');
             const playAgainBtn = document.getElementById('play-again-btn');
             const mainEl = document.querySelector('main');
+            const bgImg = document.getElementById('background-img');
+            const gameContainer = document.getElementById('game-container');
 
             // --- Audio Elements ---
             const flipSound = document.getElementById('flip-sound');
@@ -274,7 +276,17 @@
             }
             
             playAgainBtn.addEventListener('click', startRound);
-            startRound();
+            function fitContainer() {
+                if (bgImg.naturalWidth && bgImg.naturalHeight) {
+                    gameContainer.style.height = Math.round(gameContainer.offsetWidth * bgImg.naturalHeight / bgImg.naturalWidth) + 'px';
+                }
+            }
+            window.addEventListener('resize', fitContainer);
+            if (bgImg.complete && bgImg.naturalWidth) {
+                fitContainer(); startRound();
+            } else {
+                bgImg.addEventListener('load', () => { fitContainer(); startRound(); });
+            }
 
             // --- Position Debug (?pos in URL) ---
             if (new URLSearchParams(location.search).has('pos')) {
