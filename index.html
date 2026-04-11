@@ -143,7 +143,6 @@
   </main>
 
   <footer>
-    <small>Press TAB to move. ENTER to pick. Big buttons for kids and early readers.</small>
   </footer>
 
   <!-- Audio element for click sound with fallback -->
@@ -234,11 +233,11 @@ window.addEventListener('load', () => {
           sound.currentTime = 0;
           sound.play().catch(e => {
             console.error('Sound play failed:', e);
-            this.showStatus('🔇', 'visual-only');
+            this.showStatus('mute', 'visual-only');
           });
         } else {
           // Sound not ready, show visual feedback
-          this.showStatus('🔊', 'visual-only');
+          this.showStatus('sound', 'visual-only');
         }
       },
 
