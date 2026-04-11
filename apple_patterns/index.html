@@ -368,7 +368,7 @@
   </header>
 
   <main>
-    <h1>🍎 Apple Patterns</h1>
+    <h1>Apple Patterns</h1>
     <p class="subtitle">What comes next in the pattern?</p>
     <p class="round-label" id="round-label">Round 1 of 10</p>
 
@@ -391,7 +391,7 @@
   <!-- Win screen -->
   <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
     <div class="win-card">
-      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-emoji" id="win-emoji">★</div>
       <div class="win-title" id="win-title-el">Apple-solutely Amazing!</div>
       <div class="win-score" id="win-score-msg"></div>
       <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
@@ -721,12 +721,12 @@
         blank.appendChild(appleImgEl(answer));
 
         const messages = [
-          'Apple-solutely correct! 🍎',
-          'You got it! ⭐',
-          'Great work! 🎉',
-          'Awesome! 🌟',
-          'Perfect! 🎊',
-          'Nice job! 👏'
+          'Apple-solutely correct!',
+          'You got it!',
+          'Great work!',
+          'Awesome!',
+          'Perfect!',
+          'Nice job!'
         ];
         fb.textContent = messages[Math.floor(Math.random() * messages.length)];
         fb.className = 'feedback correct';
@@ -767,16 +767,16 @@
       playSound('win');
 
       if (score >= TOTAL) {
-        emojiEl.textContent = '🏆🍎🏆';
+        emojiEl.textContent = '★';
         titleEl.textContent = 'Apple-solutely Perfect!';
       } else if (score >= 8) {
-        emojiEl.textContent = '⭐🍎⭐';
+        emojiEl.textContent = '★';
         titleEl.textContent = 'Apple-solutely Amazing!';
       } else if (score >= 5) {
-        emojiEl.textContent = '🌟🍎🌟';
+        emojiEl.textContent = '★';
         titleEl.textContent = 'Great Pattern Work!';
       } else {
-        emojiEl.textContent = '💪🍎💪';
+        emojiEl.textContent = '★';
         titleEl.textContent = 'Keep Practicing!';
       }
 
