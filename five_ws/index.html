@@ -451,10 +451,10 @@
 
   <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
     <div class="win-card">
-      <div class="win-emoji" id="win-emoji">🌟</div>
+      <div class="win-emoji" id="win-emoji">★</div>
       <div class="win-title" id="win-title-el">Amazing Work!</div>
       <div class="win-score" id="win-score-msg"></div>
-      <button class="replay-btn" onclick="restartGame()">Play Again 🔄</button>
+      <button class="replay-btn" onclick="restartGame()">Play Again</button>
     </div>
   </div>
 
@@ -661,12 +661,12 @@
         playSound('match');
 
         const messages = [
-          'That\'s right! 🌟',
-          'You got it! ⭐',
-          'Great thinking! 🧠',
-          'Correct! 🎉',
-          'Wonderful! 🎊',
-          'Nice work! 👏',
+          'That\'s right!',
+          'You got it!',
+          'Great thinking!',
+          'Correct!',
+          'Wonderful!',
+          'Nice work!',
         ];
         fb.textContent = messages[Math.floor(Math.random() * messages.length)];
         fb.className = 'feedback correct';
@@ -703,10 +703,10 @@
       const titleEl = document.getElementById('win-title-el');
       const scoreEl = document.getElementById('win-score-msg');
 
-      if (score >= TOTAL)     { emojiEl.textContent = '🏆🔍🏆'; titleEl.textContent = 'Perfect Detective!'; }
-      else if (score >= 8)    { emojiEl.textContent = '⭐🔍⭐'; titleEl.textContent = 'Super Thinker!'; }
-      else if (score >= 5)    { emojiEl.textContent = '🌟🔍🌟'; titleEl.textContent = 'Good Thinking!'; }
-      else                    { emojiEl.textContent = '💪🔍💪'; titleEl.textContent = 'Keep Practising!'; }
+      if (score >= TOTAL)     { emojiEl.textContent = '★'; titleEl.textContent = 'Perfect Detective!'; }
+      else if (score >= 8)    { emojiEl.textContent = '★'; titleEl.textContent = 'Super Thinker!'; }
+      else if (score >= 5)    { emojiEl.textContent = '★'; titleEl.textContent = 'Good Thinking!'; }
+      else                    { emojiEl.textContent = '★'; titleEl.textContent = 'Keep Practising!'; }
 
       scoreEl.textContent = `You got ${score} out of ${TOTAL} right!`;
       document.getElementById('win-overlay').classList.add('show');
