@@ -1,5 +1,29 @@
 # Robot Bunny Platformer — Moon Edition (Endless)
 
+## Phaser Migration Baseline
+
+The repository now includes a Vite + Phaser migration workspace in [phaser/index.html](phaser/index.html) while the legacy shipped runtime remains in [index.html](index.html).
+
+### Commands
+
+1. `npm install`
+2. `npm run dev`
+3. `npm run build`
+4. `npm run preview`
+
+### GitHub Pages
+
+1. `npm run build` outputs the deployable site to `docs/`.
+2. Configure GitHub Pages to serve from the `main` branch and `/docs`.
+3. `.env.pages` sets `VITE_BASE_PATH=/robotbunny/` so asset URLs resolve correctly on Pages.
+4. If the repository name changes, update `.env.pages`.
+
+### Why This Structure
+
+1. The current canvas runtime stays available for reference during migration.
+2. Existing `images/` and `sounds/` folders are copied unchanged into the Pages build.
+3. The new Phaser scene can be expanded incrementally without breaking the asset layout used later by iOS packaging.
+
 ## Version 2.0 - Endless Mode Update
 
 Transform from a fixed 3-level platformer into an infinite, self-scaling platformer with dynamic music and procedural generation.
@@ -129,7 +153,16 @@ Defines procedural generation parameters:
 
 ## 🚀 Running the Game
 
-Simply open `index.html` in a modern web browser.
+### Legacy Runtime
+
+Open `index.html` in a modern web browser.
+
+### Phaser Runtime
+
+1. Install Node.js 20 or newer.
+2. Run `npm install`.
+3. Run `npm run dev` for local development.
+4. Run `npm run build` to generate the GitHub Pages build in `docs/`.
 
 **Requirements**:
 - Modern browser with Canvas and Audio support
