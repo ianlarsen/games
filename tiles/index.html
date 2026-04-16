@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layers</title>
+
+<style>
+    :root {
+        --bg: #ffd1dc;
+        --tile-bg: rgba(255, 255, 255, 0.4);
+        --accent: #000000;
+        --error-color: #ff4d4d;
+        --text-color: #222222;
+    }
+
+    body {
+        background-color: var(--bg);
+        color: var(--text-color);
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        user-select: none;
+        transition: background-color 1s ease;
+    }
+
+    .stats-bar {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 20px;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+
+    #grid {
+        display: grid;
+        grid-template-columns: repeat(4, 120px);
+        grid-template-rows: repeat(4, 120px);
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.05);
+        padding: 10px;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .tile {
+        width: 120px;
+        height: 120px;
+        background: var(--tile-bg);
+        position: relative;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: transform 0.1s;
+    }
+
+    .tile.selected {
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    .tile.empty { opacity: 0; pointer-events: none; }
+
+    .layer {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        pointer-events: none;
+        /* REMOVED OPACITY LEVELS - ALL SYMBOLS NOW 100% OPAQUE */
+        opacity: 1; 
+        transition: opacity 0.3s, transform 0.4s;
+        /* Added a small shadow so overlapping same-colored symbols stay distinct */
+        text-shadow: 1px 1px 0px rgba(255,255,255,0.8), -1px -1px 0px rgba(255,255,255,0.8);
+    }
+
+    .removed { opacity: 0 !important; transform: scale(1.6) rotate(20deg); }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-8px); }
+        75% { transform: translateX(8px); }
+    }
+    .shake { animation: shake 0.2s; border-color: var(--error-color) !important; }
+
+    #win-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.9);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        border-radius: 12px;
+    }
+
+    button {
+        background: #222;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+</style>
+
+</head>
+<body>
+
+<p>Layers</p>
+
+<div class="stats-bar">
+    <div>Streak: <span id="streak" class="stat-val">0</span></div>
+    <div>Errors: <span id="errors" class="stat-val">0</span></div>
+    <div>Remaining: <span id="remain" class="stat-val">0</span></div>
+</div>
+
+<div id="grid">
+    <div id="win-overlay">
+        <h2 style="margin:0">LEVEL CLEAR</h2>
+        <div id="final-stats" style="margin: 10px 0; font-size: 0.8rem; color: #888;"></div>
+        <button onclick="initGame()">Next Shuffle</button>
+    </div>
+</div>
+
+<script>
+    const symbols = ['⬡', '⬢', '◈', '◇', '△', '▽', '▷', '◁', '✖', '✚', '⛒', '⛖', '⛗', '⛝', '⛞', '⛟', '❂', '⦿', '⦾', '◎'];
+    let firstSelection = null;
+    let streak = 0;
+    let errors = 0;
+    let layersTotal = 0;
+
+    const symbolColors = ['#1A1A1A', '#4A0E0E', '#0E2A4A', '#0E4A1E', '#4A0E46', '#5E3500', '#222222', '#311B92', '#BF360C', '#1B5E20'];
+
+    function initGame() {
+        const lightColors = ['#FFD1DC', '#B3E5FC', '#C8E6C9', '#FFF9C4', '#E1BEE7', '#FFCCBC', '#B2DFDB'];
+        document.documentElement.style.setProperty('--bg', lightColors[Math.floor(Math.random() * lightColors.length)]);
+
+        const grid = document.getElementById('grid');
+        const overlay = document.getElementById('win-overlay');
+        
+        const shuffledIcons = [...symbols].sort(() => 0.5 - Math.random()).slice(0, 10);
+        const iconPalette = {};
+        shuffledIcons.forEach((icon, index) => iconPalette[icon] = symbolColors[index]);
+
+        // 1. GENERATE DECK (40 pairs = 80 total)
+        let pool = [];
+        for (let i = 0; i < 40; i++) {
+            const s = shuffledIcons[i % shuffledIcons.length];
+            pool.push(s, s);
+        }
+        
+        // Shuffle
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        const tileData = Array.from({ length: 16 }, () => []);
+        for (let i = 0; i < 80; i++) {
+            tileData[i % 16].push(pool[i]);
+        }
+
+        // 2. RENDER
+        grid.querySelectorAll('.tile').forEach(t => t.remove());
+        overlay.style.display = 'none';
+        
+        firstSelection = null;
+        streak = 0;
+        errors = 0;
+        layersTotal = 80;
+        
+        tileData.forEach((layerSet) => {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            layerSet.forEach((icon, j) => {
+                const l = document.createElement('div');
+                l.className = `layer`; // Removed specific opacity classes
+                l.innerText = icon;
+                l.dataset.val = icon;
+                l.style.color = iconPalette[icon]; 
+                l.style.fontWeight = '900';
+                l.style.zIndex = j; // Layers still stack vertically
+                tile.appendChild(l);
+            });
+            tile.addEventListener('click', () => handleTile(tile));
+            grid.appendChild(tile);
+        });
+        updateUI();
+    }
+
+    function handleTile(tile) {
+        if (tile.classList.contains('empty') || tile.classList.contains('shake')) return;
+        if (firstSelection === tile) {
+            tile.classList.remove('selected');
+            firstSelection = null;
+            return;
+        }
+        if (!firstSelection) {
+            setSelection(tile);
+        } else {
+            compare(firstSelection, tile);
+        }
+    }
+
+    function setSelection(tile) {
+        if (firstSelection) firstSelection.classList.remove('selected');
+        firstSelection = tile;
+        tile.classList.add('selected');
+    }
+
+    function compare(t1, t2) {
+        const active1 = Array.from(t1.querySelectorAll('.layer:not(.removed)'));
+        const active2 = Array.from(t2.querySelectorAll('.layer:not(.removed)'));
+        
+        const vals1 = active1.map(l => l.dataset.val);
+        const vals2 = active2.map(l => l.dataset.val);
+
+        // Find common symbols
+        const common = vals1.filter(v => vals2.includes(v));
+
+        if (common.length > 0) {
+            // MATCH FOUND
+            // Important: We clear ALL common pairs, but we do it 1-to-1 to keep count even
+            common.forEach(matchVal => {
+                const l1 = Array.from(t1.querySelectorAll('.layer:not(.removed)')).reverse().find(l => l.dataset.val === matchVal);
+                const l2 = Array.from(t2.querySelectorAll('.layer:not(.removed)')).reverse().find(l => l.dataset.val === matchVal);
+                
+                if (l1 && l2) {
+                    l1.classList.add('removed');
+                    l2.classList.add('removed');
+                    layersTotal -= 2; // Always subtract 2 per match
+                }
+            });
+
+            streak++;
+            const t2Cleared = checkTileState(t2);
+            checkTileState(t1);
+
+            if (!t2Cleared) {
+                t1.classList.remove('selected');
+                setSelection(t2); 
+            } else {
+                t1.classList.remove('selected');
+                firstSelection = null;
+            }
+        } else {
+            errors++;
+            streak = 0;
+            t2.classList.add('shake');
+            t1.classList.remove('selected');
+            setTimeout(() => {
+                t2.classList.remove('shake');
+                firstSelection = null;
+            }, 250);
+        }
+        updateUI();
+    }
+
+    function checkTileState(tile) {
+        const stillActive = tile.querySelectorAll('.layer:not(.removed)');
+        if (stillActive.length === 0) {
+            tile.classList.add('empty');
+            tile.classList.remove('selected');
+            return true;
+        }
+        return false;
+    }
+
+    function updateUI() {
+        document.getElementById('streak').innerText = streak;
+        document.getElementById('errors').innerText = errors;
+        document.getElementById('remain').innerText = layersTotal;
+        if (layersTotal <= 0) {
+            document.getElementById('win-overlay').style.display = 'flex';
+        }
+    }
+
+    initGame();
+</script>
+
+</body>
+</html>
