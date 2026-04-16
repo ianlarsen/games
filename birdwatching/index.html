@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bird Watching | Premium Nature Edition</title>
+    <style>
+        :root {
+            --forest-deep: #1b2e1b;
+            --sage-green: #718355;
+            --moss-green: #97a97c;
+            --earth-brown: #583101;
+            --clay-tan: #f0ead2;
+            --cream: #fefae0;
+            --gold: #c89f2d;
+            --sky: #d8e2dc;
+            --peach: #ffe5d9;
+            --danger: #b23a48;
+            --shadow: rgba(27, 46, 27, 0.22);
+
+            --bg-gradient: linear-gradient(135deg, #d8e2dc 0%, #ffe5d9 100%);
+            --board-bg: rgba(113, 131, 85, 0.17);
+
+            --tile-size: 60px;
+            --gap: 8px;
+            --container-size: calc(8 * var(--tile-size) + (9 * var(--gap)));
+        }
+
+        @media (max-width: 900px), (max-height: 900px) {
+            :root {
+                --tile-size: min(
+                    calc((100vw - 32px - 9 * 8px) / 8),
+                    calc((100vh - 260px - 9 * 8px) / 8),
+                    60px
+                );
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Georgia, serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+            color: var(--forest-deep);
+            background: var(--bg-gradient);
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .ambient-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .leaf {
+            position: absolute;
+            opacity: 0.22;
+            animation: drift linear infinite;
+            font-size: 18px;
+            filter: blur(0.2px);
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translateY(-12vh) translateX(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(55vh) translateX(30px) rotate(180deg);
+            }
+            100% {
+                transform: translateY(112vh) translateX(-15px) rotate(360deg);
+            }
+        }
+
+        .header,
+        .stats-container,
+        #game-container,
+        #overlay-message {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            min-width: 110px;
+            text-align: center;
+            padding: 12px 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.74);
+            border: 2px solid rgba(151, 169, 124, 0.8);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .stat-card.low {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 5px rgba(178, 58, 72, 0.12);
+            animation: pulse-warn 0.9s infinite alternate;
+        }
+
+        @keyframes pulse-warn {
+            from { transform: scale(1); }
+            to { transform: scale(1.03); }
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--sage-green);
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--earth-brown);
+            margin-top: 3px;
+        }
+
+        #game-container {
+            position: relative;
+            max-width: 100%;
+            padding-bottom: 8px;
+        }
+
+        #game-board-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        #game-board {
+            position: relative;
+            width: var(--container-size);
+            height: var(--container-size);
+            min-width: 240px;
+            min-height: 240px;
+            margin: 0 auto;
+            border-radius: 22px;
+            border: 4px solid var(--sage-green);
+            background:
+                radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 32%),
+                linear-gradient(180deg, rgba(255,255,255,0.08), transparent 45%),
+                var(--board-bg);
+            box-shadow: 0 22px 55px var(--shadow);
+            backdrop-filter: blur(6px);
+            overflow: hidden;
+        }
+
+        #game-board::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+            background-size: calc(var(--tile-size) + var(--gap)) calc(var(--tile-size) + var(--gap));
+            background-position: var(--gap) var(--gap);
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        .board-shake {
+            animation: board-shake 0.28s linear;
+        }
+
+        @keyframes board-shake {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-3px, 2px); }
+            40% { transform: translate(3px, -2px); }
+            60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(2px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .tile {
+            position: absolute;
+            width: var(--tile-size);
+            height: var(--tile-size);
+            border-radius: 14px;
+            background: var(--cream);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 0 #ccd5ae, 0 10px 16px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            user-select: none;
+            z-index: 2;
+            transition:
+                top 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+                left 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                opacity 0.18s ease;
+        }
+
+        .tile:hover {
+            transform: scale(1.05);
+        }
+
+        .tile img {
+            width: 72%;
+            height: 72%;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.12));
+        }
+
+        .selected {
+            z-index: 12;
+            box-shadow: 0 0 0 6px rgba(88, 49, 1, 0.65), 0 10px 16px rgba(0, 0, 0, 0.1);
+            animation: selected-bob 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes selected-bob {
+            from { transform: translateY(0) scale(1.12); }
+            to { transform: translateY(-4px) scale(1.16); }
+        }
+
+        .neighbor-hint {
+            box-shadow: 0 0 0 4px rgba(113, 131, 85, 0.45), 0 10px 16px rgba(0,0,0,0.08);
+            animation: neighbor-pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes neighbor-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        .tile-landed {
+            animation: landing-squish 0.38s ease-out;
+        }
+
+        @keyframes landing-squish {
+            0% { transform: scaleY(1.28) scaleX(0.82); }
+            50% { transform: scaleY(0.82) scaleX(1.16); }
+            100% { transform: scaleY(1) scaleX(1); }
+        }
+
+        .matching {
+            animation: match-pop 0.38s forwards;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        @keyframes match-pop {
+            0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+            50% { transform: scale(1.25); opacity: 1; filter: brightness(1.55); }
+            100% { transform: scale(0.15); opacity: 0; filter: brightness(1.9); }
+        }
+
+        .glow-hit {
+            animation: glow-hit 0.32s ease-out;
+        }
+
+        @keyframes glow-hit {
+            0% { box-shadow: 0 0 0 rgba(255,255,255,0), 0 4px 0 #ccd5ae; }
+            50% { box-shadow: 0 0 24px rgba(255,255,255,0.8), 0 4px 0 #ccd5ae; }
+            100% { box-shadow: 0 4px 0 #ccd5ae, 0 10px 16px rgba(0,0,0,0.08); }
+        }
+
+        .hint-pulse {
+            animation: hint-pulse 1s ease-in-out infinite;
+            z-index: 11;
+        }
+
+        @keyframes hint-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(200,159,45,0.35), 0 4px 0 #ccd5ae; }
+            50% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(200,159,45,0.12), 0 4px 0 #ccd5ae; }
+        }
+
+        .special-badge {
+            position: absolute;
+            right: 4px;
+            bottom: 3px;
+            font-size: 12px;
+            font-weight: 900;
+            color: white;
+            background: rgba(88, 49, 1, 0.78);
+            border-radius: 999px;
+            padding: 1px 5px;
+            line-height: 1.1;
+            pointer-events: none;
+        }
+
+        .special-rainbow {
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #5f27cd);
+        }
+
+        .special-bomb {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+        }
+
+        .special-row,
+        .special-col {
+            background: linear-gradient(135deg, #718355, #97a97c);
+        }
+
+        .particle,
+        .score-popup,
+        .combo-popup,
+        .banner-popup {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .particle {
+            transition: transform 0.6s ease, opacity 0.6s ease;
+            opacity: 1;
+        }
+
+        .score-popup {
+            font-weight: 900;
+            color: var(--earth-brown);
+            text-shadow: 0 2px 6px rgba(255,255,255,0.6);
+            animation: float-up 0.9s ease-out forwards;
+            font-size: 22px;
+        }
+
+        .combo-popup {
+            left: 50%;
+            top: 14px;
+            transform: translateX(-50%);
+            color: var(--earth-brown);
+            background: rgba(255,255,255,0.8);
+            border: 2px solid rgba(200,159,45,0.6);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-size: 18px;
+            font-weight: 900;
+            animation: combo-flash 1s ease-out forwards;
+            white-space: nowrap;
+        }
+
+        .banner-popup {
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 14px 20px;
+            border-radius: 16px;
+            background: rgba(27, 46, 27, 0.9);
+            color: #fff;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-align: center;
+            animation: banner-flash 1.3s ease forwards;
+            white-space: nowrap;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(0.85); opacity: 0; }
+            15% { opacity: 1; }
+            100% { transform: translateY(-36px) scale(1.05); opacity: 0; }
+        }
+
+        @keyframes combo-flash {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.65); }
+            18% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+            100% { opacity: 0; transform: translateX(-50%) scale(1.02) translateY(-18px); }
+        }
+
+        @keyframes banner-flash {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+            15% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+            100% { opacity: 0; transform: translate(-50%, calc(-50% - 16px)) scale(1); }
+        }
+
+        #overlay-message {
+            min-height: 28px;
+            font-weight: 700;
+            color: var(--earth-brown);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .subtle {
+            opacity: 0.85;
+            font-size: 14px;
+        }
+
+        #intro-flash {
+            position: fixed;
+            inset: 0;
+            display: none;
+            z-index: 1800;
+            justify-content: center;
+            align-items: center;
+            background: rgba(27, 46, 27, 0.72);
+            color: white;
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            animation: intro-fade 1s ease forwards;
+        }
+
+        @keyframes intro-fade {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        #landing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: var(--bg-gradient);
+            text-align: center;
+            padding: 20px;
+        }
+
+        #landing .tagline {
+            margin: 8px 0 18px;
+            color: var(--earth-brown);
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        #gameover-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0,0,0,0.45);
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        #gameover-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 22px;
+            padding: 30px 26px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: min(520px, 100%);
+        }
+
+        #gameover-stats {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(110px, 1fr));
+            gap: 10px;
+            margin: 14px 0 18px;
+        }
+
+        .end-stat {
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(216, 226, 220, 0.5);
+            border: 1px solid rgba(113, 131, 85, 0.25);
+        }
+
+        .end-stat strong {
+            display: block;
+            font-size: 20px;
+            color: var(--earth-brown);
+        }
+
+        .hint-text {
+            font-size: 13px;
+            color: var(--sage-green);
+            font-weight: 700;
+        }
+
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-layer" id="ambient-layer"></div>
+
+    <div id="landing">
+        <img src="assets/images/logo.png" alt="Birdwatching Logo" style="width:320px;max-width:80vw;margin-bottom:18px;" />
+        <div class="tagline">Discover rare birds, chain dazzling sightings, and keep the journal alive.</div>
+        <div style="margin-bottom:18px;">
+            <span style="font-size:1.1rem;color:var(--sage-green);font-weight:bold;">High Score: </span>
+            <span id="highscore-landing" style="font-size:2rem;color:var(--earth-brown);font-weight:900;">0</span>
+        </div>
+        <button id="start-btn" style="background:none;border:none;padding:0;outline:none;">
+            <img src="assets/images/button_start.png" alt="Start" style="width:220px;max-width:70vw;" />
+        </button>
+        <div class="subtle" style="margin-top:12px;">Match birds • build combos • trigger special sightings</div>
+    </div>
+
+    <div id="intro-flash">Begin Birding</div>
+
+    <div class="header" id="game-header" style="display:none;">
+        <img src="assets/images/logo.png" alt="Birdwatching Logo" style="width:180px;max-width:60vw;" />
+        <div class="hint-text" id="status-line">Listen for movement, watch for chains, and hunt the high score.</div>
+    </div>
+
+    <div class="stats-container" id="stats-bar" style="display:none;">
+        <div class="stat-card">
+            <span class="stat-label">Journal Score</span>
+            <span id="score" class="stat-value">0</span>
+        </div>
+        <div class="stat-card" id="moves-card">
+            <span class="stat-label">Energy</span>
+            <span id="moves" class="stat-value">20</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Best</span>
+            <span id="highscore" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Species Seen</span>
+            <span id="species" class="stat-value">0/6</span>
+        </div>
+    </div>
+
+    <div id="overlay-message"></div>
+
+    <div id="game-container" style="display:none;">
+        <div id="game-board-wrap">
+            <div id="game-board"></div>
+        </div>
+    </div>
+
+    <div id="gameover-modal">
+        <div id="gameover-card">
+            <img src="assets/images/logo.png" alt="Birdwatching Logo" style="width:160px;max-width:60vw;margin-bottom:14px;" />
+            <div style="font-size:1.7rem;color:var(--sage-green);font-weight:900;">Field Journal Complete</div>
+            <div style="font-size:1.12rem;margin-top:8px;">Your run has ended. Here’s the full birding report.</div>
+
+            <div id="gameover-stats">
+                <div class="end-stat"><span>Final Score</span><strong id="final-score">0</strong></div>
+                <div class="end-stat"><span>High Score</span><strong id="final-highscore">0</strong></div>
+                <div class="end-stat"><span>Best Combo</span><strong id="final-best-combo">0x</strong></div>
+                <div class="end-stat"><span>Biggest Cascade</span><strong id="final-biggest-cascade">0</strong></div>
+                <div class="end-stat"><span>Birds Collected</span><strong id="final-birds">0</strong></div>
+                <div class="end-stat"><span>Species Seen</span><strong id="final-species">0/6</strong></div>
+            </div>
+
+            <button id="restart-btn" style="background:none;border:none;padding:0;outline:none;">
+                <img src="assets/images/button_restart.png" alt="Restart" style="width:180px;max-width:60vw;" />
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const birdSprites = [
+            "assets/images/bird_red.png",
+            "assets/images/bird_blue.png",
+            "assets/images/bird_green.png",
+            "assets/images/bird_yellow.png",
+            "assets/images/bird_purple.png",
+            "assets/images/bird_orange.png"
+        ];
+
+        const matchEffectSprite = "assets/images/match_effect.png";
+
+        const sounds = {
+            match: new Audio("assets/sounds/match.wav"),
+            swap: new Audio("assets/sounds/swap.wav"),
+            click: new Audio("assets/sounds/click.wav"),
+            clickmp3: new Audio("assets/sounds/click.mp3"),
+            combo: new Audio("assets/sounds/combo.wav"),
+            bgm: new Audio("assets/sounds/bgm.mp3")
+        };
+
+        sounds.bgm.loop = true;
+        sounds.bgm.preload = "auto";
+        sounds.bgm.volume = 0.35;
+        sounds.match.volume = 0.65;
+        sounds.swap.volume = 0.55;
+        sounds.combo.volume = 0.8;
+        sounds.click.volume = 0.7;
+        sounds.clickmp3.volume = 0.7;
+
+        const ambientLayer = document.getElementById("ambient-layer");
+        const landing = document.getElementById("landing");
+        const startBtn = document.getElementById("start-btn");
+        const gameHeader = document.getElementById("game-header");
+        const statsBar = document.getElementById("stats-bar");
+        const gameContainer = document.getElementById("game-container");
+        const gameBoard = document.getElementById("game-board");
+        const gameoverModal = document.getElementById("gameover-modal");
+        const restartBtn = document.getElementById("restart-btn");
+        const introFlash = document.getElementById("intro-flash");
+        const overlayMessage = document.getElementById("overlay-message");
+        const statusLine = document.getElementById("status-line");
+
+        const scoreEl = document.getElementById("score");
+        const movesEl = document.getElementById("moves");
+        const highscoreLandingEl = document.getElementById("highscore-landing");
+        const highscoreGameEl = document.getElementById("highscore");
+        const speciesEl = document.getElementById("species");
+        const movesCard = document.getElementById("moves-card");
+
+        const finalScoreEl = document.getElementById("final-score");
+        const finalHighscoreEl = document.getElementById("final-highscore");
+        const finalBestComboEl = document.getElementById("final-best-combo");
+        const finalBiggestCascadeEl = document.getElementById("final-biggest-cascade");
+        const finalBirdsEl = document.getElementById("final-birds");
+        const finalSpeciesEl = document.getElementById("final-species");
+
+        const width = 8;
+        const boardSize = width * width;
+        const initialMoves = 20;
+
+        let board = [];
+        let score = 0;
+        let moves = initialMoves;
+        let highscore = Number(localStorage.getItem("birdwatching-highscore") || 0);
+
+        let selectedIndex = null;
+        let isProcessing = false;
+        let isGameActive = false;
+
+        let cascadeDepth = 0;
+        let bestCombo = 0;
+        let biggestCascade = 0;
+        let birdsCollected = 0;
+        let discoveredSpecies = new Set();
+
+        let hintTimer = null;
+        let messageTimer = null;
+        let currentHintPair = null;
+
+        function bootAmbient() {
+            ambientLayer.innerHTML = "";
+            const leaves = 18;
+            for (let i = 0; i < leaves; i++) {
+                const leaf = document.createElement("div");
+                leaf.className = "leaf";
+                leaf.textContent = Math.random() > 0.5 ? "🍃" : "🪶";
+                leaf.style.left = Math.random() * 100 + "vw";
+                leaf.style.animationDuration = 10 + Math.random() * 12 + "s";
+                leaf.style.animationDelay = -(Math.random() * 12) + "s";
+                leaf.style.fontSize = 14 + Math.random() * 18 + "px";
+                ambientLayer.appendChild(leaf);
+            }
+        }
+
+        function getTileMetrics() {
+            const rootStyle = getComputedStyle(document.documentElement);
+            const size = parseFloat(rootStyle.getPropertyValue("--tile-size")) || 60;
+            const gap = parseFloat(rootStyle.getPropertyValue("--gap")) || 8;
+            return { size, gap };
+        }
+
+        function updateBoardSizeVars() {
+            const gap = 8;
+            const boardPadding = 32;
+            const reservedHeight = 270;
+            const maxWidth = Math.max(260, window.innerWidth - boardPadding);
+            const maxHeight = Math.max(260, window.innerHeight - reservedHeight);
+
+            const tileSize = Math.max(
+                24,
+                Math.min(
+                    Math.floor((maxWidth - 9 * gap) / 8),
+                    Math.floor((maxHeight - 9 * gap) / 8),
+                    60
+                )
+            );
+
+            document.documentElement.style.setProperty("--tile-size", tileSize + "px");
+            const containerSize = 8 * tileSize + 9 * gap;
+            document.documentElement.style.setProperty("--container-size", containerSize + "px");
+            gameBoard.style.width = containerSize + "px";
+            gameBoard.style.height = containerSize + "px";
+        }
+
+        function getXY(index) {
+            const row = Math.floor(index / width);
+            const col = index % width;
+            const { size, gap } = getTileMetrics();
+            return {
+                top: row * (size + gap) + gap + "px",
+                left: col * (size + gap) + gap + "px"
+            };
+        }
+
+        function randomType() {
+            return Math.floor(Math.random() * birdSprites.length);
+        }
+
+        function updateHighscoreUI() {
+            highscoreLandingEl.textContent = highscore;
+            highscoreGameEl.textContent = highscore;
+            finalHighscoreEl.textContent = highscore;
+        }
+
+        function updateHUD() {
+            scoreEl.textContent = score;
+            movesEl.textContent = moves;
+            speciesEl.textContent = `${discoveredSpecies.size}/${birdSprites.length}`;
+
+            movesCard.classList.toggle("low", moves <= 5);
+
+            if (score > highscore) {
+                highscore = score;
+                localStorage.setItem("birdwatching-highscore", String(highscore));
+                updateHighscoreUI();
+            }
+        }
+
+        function showStatus(text, duration = 1400) {
+            clearTimeout(messageTimer);
+            overlayMessage.textContent = text;
+            messageTimer = setTimeout(() => {
+                overlayMessage.textContent = "";
+            }, duration);
+        }
+
+        function playAudio(audio, reset = true) {
+            if (!audio) return;
+            try {
+                if (reset) audio.currentTime = 0;
+                const p = audio.play();
+                if (p && typeof p.catch === "function") p.catch(() => {});
+            } catch (e) {}
+        }
+
+        function buzz(ms = 20) {
+            if (navigator.vibrate) navigator.vibrate(ms);
+        }
+
+        let audioCtx = null;
+        function beep(freq = 220, length = 0.1, type = "triangle", volume = 0.02) {
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.value = volume;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + length);
+                osc.stop(audioCtx.currentTime + length);
+            } catch (e) {}
+        }
+
+        function invalidMoveFX() {
+            beep(180, 0.07, "sawtooth", 0.018);
+            setTimeout(() => beep(130, 0.08, "sawtooth", 0.015), 50);
+            buzz(14);
+        }
+
+        function comboFX(depth) {
+            const freq = Math.min(780, 360 + depth * 70);
+            beep(freq, 0.09, "triangle", 0.02);
+        }
+
+        function clearHintVisuals() {
+            if (!currentHintPair) return;
+            currentHintPair.forEach(idx => {
+                const tile = board[idx];
+                if (tile?.el) tile.el.classList.remove("hint-pulse");
+            });
+            currentHintPair = null;
+        }
+
+        function scheduleHint() {
+            clearTimeout(hintTimer);
+            clearHintVisuals();
+            if (!isGameActive || isProcessing || moves <= 0) return;
+
+            hintTimer = setTimeout(() => {
+                if (!isGameActive || isProcessing || moves <= 0) return;
+                const hint = findPossibleMove();
+                if (!hint) return;
+                currentHintPair = hint;
+                hint.forEach(idx => {
+                    const tile = board[idx];
+                    if (tile?.el) tile.el.classList.add("hint-pulse");
+                });
+                showStatus("A subtle rustle reveals a possible match.", 1600);
+            }, 6500);
+        }
+
+        function resetInteractionTimers() {
+            clearHintVisuals();
+            scheduleHint();
+        }
+
+        function createTile(type = randomType(), special = null) {
+            const el = document.createElement("div");
+            el.className = "tile";
+            const img = document.createElement("img");
+            img.alt = "Bird";
+            img.src = birdSprites[type];
+            el.appendChild(img);
+
+            const tile = { type, special, el };
+            el.addEventListener("click", onTileClick);
+            updateTileDisplay(tile);
+            return tile;
+        }
+
+        function updateTileDisplay(tile) {
+            if (!tile || !tile.el) return;
+            const img = tile.el.querySelector("img");
+            img.src = birdSprites[tile.type];
+            img.alt = `Bird ${tile.type}`;
+
+            let badge = tile.el.querySelector(".special-badge");
+            if (tile.special) {
+                if (!badge) {
+                    badge = document.createElement("div");
+                    badge.className = "special-badge";
+                    tile.el.appendChild(badge);
+                }
+                badge.className = "special-badge special-" + tile.special;
+                if (tile.special === "row") badge.textContent = "→";
+                if (tile.special === "col") badge.textContent = "↓";
+                if (tile.special === "bomb") badge.textContent = "✦";
+                if (tile.special === "rainbow") badge.textContent = "★";
+            } else if (badge) {
+                badge.remove();
+            }
+        }
+
+        function setTileAt(index, tile, isNew = false) {
+            board[index] = tile;
+            if (!tile) return;
+            tile.el.dataset.index = String(index);
+            const pos = getXY(index);
+
+            if (!tile.el.parentNode) {
+                gameBoard.appendChild(tile.el);
+            }
+
+            if (isNew) {
+                tile.el.style.top = "-80px";
+                tile.el.style.left = pos.left;
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        tile.el.style.top = pos.top;
+                        tile.el.style.left = pos.left;
+                        tile.el.classList.add("tile-landed");
+                        setTimeout(() => tile.el?.classList.remove("tile-landed"), 420);
+                    });
+                });
+            } else {
+                tile.el.style.top = pos.top;
+                tile.el.style.left = pos.left;
+            }
+        }
+
+        function positionAllTiles() {
+            board.forEach((tile, index) => {
+                if (!tile) return;
+                tile.el.dataset.index = String(index);
+                const pos = getXY(index);
+                tile.el.style.top = pos.top;
+                tile.el.style.left = pos.left;
+            });
+        }
+
+        function clearBoard() {
+            gameBoard.innerHTML = "";
+            board = new Array(boardSize).fill(null);
+            selectedIndex = null;
+        }
+
+        function removeSelection() {
+            if (selectedIndex !== null && board[selectedIndex]?.el) {
+                board[selectedIndex].el.classList.remove("selected");
+            }
+            selectedIndex = null;
+            clearNeighborHighlights();
+        }
+
+        function highlightNeighbors(index) {
+            clearNeighborHighlights();
+            neighborsOf(index).forEach(n => {
+                if (board[n]?.el) board[n].el.classList.add("neighbor-hint");
+            });
+        }
+
+        function clearNeighborHighlights() {
+            board.forEach(tile => tile?.el?.classList.remove("neighbor-hint"));
+        }
+
+        function neighborsOf(index) {
+            const list = [];
+            const row = Math.floor(index / width);
+            const col = index % width;
+            if (col > 0) list.push(index - 1);
+            if (col < width - 1) list.push(index + 1);
+            if (row > 0) list.push(index - width);
+            if (row < width - 1) list.push(index + width);
+            return list;
+        }
+
+        function isNeighbor(a, b) {
+            return neighborsOf(a).includes(b);
+        }
+
+        function swapBoardEntries(a, b) {
+            const temp = board[a];
+            board[a] = board[b];
+            board[b] = temp;
+            if (board[a]) board[a].el.dataset.index = String(a);
+            if (board[b]) board[b].el.dataset.index = String(b);
+        }
+
+        async function animateSwap(a, b) {
+            swapBoardEntries(a, b);
+            const posA = getXY(a);
+            const posB = getXY(b);
+
+            if (board[a]) {
+                board[a].el.style.top = posA.top;
+                board[a].el.style.left = posA.left;
+            }
+            if (board[b]) {
+                board[b].el.style.top = posB.top;
+                board[b].el.style.left = posB.left;
+            }
+            return wait(220);
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function getMatchData(boardRef = board) {
+            const matched = new Set();
+            const groups = [];
+
+            for (let r = 0; r < width; r++) {
+                let c = 0;
+                while (c < width) {
+                    const i = r * width + c;
+                    const tile = boardRef[i];
+                    if (!tile) { c++; continue; }
+
+                    let end = c + 1;
+                    while (end < width) {
+                        const j = r * width + end;
+                        if (!boardRef[j] || boardRef[j].type !== tile.type) break;
+                        end++;
+                    }
+
+                    const len = end - c;
+                    if (len >= 3) {
+                        const indices = [];
+                        for (let k = c; k < end; k++) {
+                            const idx = r * width + k;
+                            matched.add(idx);
+                            indices.push(idx);
+                        }
+                        groups.push({ orientation: "row", indices, type: tile.type });
+                    }
+                    c = end;
+                }
+            }
+
+            for (let c = 0; c < width; c++) {
+                let r = 0;
+                while (r < width) {
+                    const i = r * width + c;
+                    const tile = boardRef[i];
+                    if (!tile) { r++; continue; }
+
+                    let end = r + 1;
+                    while (end < width) {
+                        const j = end * width + c;
+                        if (!boardRef[j] || boardRef[j].type !== tile.type) break;
+                        end++;
+                    }
+
+                    const len = end - r;
+                    if (len >= 3) {
+                        const indices = [];
+                        for (let k = r; k < end; k++) {
+                            const idx = k * width + c;
+                            matched.add(idx);
+                            indices.push(idx);
+                        }
+                        groups.push({ orientation: "col", indices, type: tile.type });
+                    }
+                    r = end;
+                }
+            }
+
+            return { matched, groups };
+        }
+
+        function hasImmediateMatchAt(index) {
+            const tile = board[index];
+            if (!tile) return false;
+            const type = tile.type;
+            const row = Math.floor(index / width);
+            const col = index % width;
+
+            if (col >= 2) {
+                const a = board[index - 1];
+                const b = board[index - 2];
+                if (a && b && a.type === type && b.type === type) return true;
+            }
+            if (row >= 2) {
+                const a = board[index - width];
+                const b = board[index - width * 2];
+                if (a && b && a.type === type && b.type === type) return true;
+            }
+            return false;
+        }
+
+        function buildFreshBoard() {
+            clearBoard();
+
+            for (let i = 0; i < boardSize; i++) {
+                let tile;
+                do {
+                    tile = createTile(randomType(), null);
+                    board[i] = tile;
+                } while (hasImmediateMatchAt(i));
+            }
+
+            board.forEach((tile, index) => setTileAt(index, tile));
+
+            while (!hasPossibleMoves()) {
+                reshuffleBoard(true);
+            }
+        }
+
+        function cloneSimpleBoard(source) {
+            return source.map(tile => tile ? { type: tile.type, special: tile.special } : null);
+        }
+
+        function boardHasMatchAfterSwap(simpleBoard, a, b) {
+            const temp = simpleBoard[a];
+            simpleBoard[a] = simpleBoard[b];
+            simpleBoard[b] = temp;
+
+            const { matched } = getMatchData(simpleBoard);
+            return matched.size > 0;
+        }
+
+        function findPossibleMove() {
+            const simple = cloneSimpleBoard(board);
+            for (let i = 0; i < boardSize; i++) {
+                const row = Math.floor(i / width);
+                const col = i % width;
+
+                if (col < width - 1) {
+                    const j = i + 1;
+                    const boardCopy = simple.map(tile => tile ? { ...tile } : null);
+                    if (boardHasMatchAfterSwap(boardCopy, i, j)) return [i, j];
+                }
+                if (row < width - 1) {
+                    const j = i + width;
+                    const boardCopy = simple.map(tile => tile ? { ...tile } : null);
+                    if (boardHasMatchAfterSwap(boardCopy, i, j)) return [i, j];
+                }
+            }
+            return null;
+        }
+
+        function hasPossibleMoves() {
+            return !!findPossibleMove();
+        }
+
+        function chooseSpecialAnchor(group, preferredIndex = null) {
+            if (preferredIndex !== null && group.indices.includes(preferredIndex)) return preferredIndex;
+            return group.indices[Math.floor(group.indices.length / 2)];
+        }
+
+        function decideSpecialCreations(groups, swapA = null, swapB = null) {
+            const creations = new Map();
+
+            groups.forEach(group => {
+                if (group.indices.length >= 5) {
+                    const anchor = chooseSpecialAnchor(group, swapA !== null && group.indices.includes(swapA) ? swapA : swapB);
+                    creations.set(anchor, "rainbow");
+                } else if (group.indices.length === 4) {
+                    const anchor = chooseSpecialAnchor(group, swapA !== null && group.indices.includes(swapA) ? swapA : swapB);
+                    creations.set(anchor, group.orientation === "row" ? "row" : "col");
+                }
+            });
+
+            const hitMap = new Map();
+            groups.forEach(group => {
+                group.indices.forEach(idx => {
+                    const entry = hitMap.get(idx) || { row: false, col: false };
+                    entry[group.orientation] = true;
+                    hitMap.set(idx, entry);
+                });
+            });
+
+            hitMap.forEach((entry, idx) => {
+                if (entry.row && entry.col) creations.set(idx, "bomb");
+            });
+
+            return creations;
+        }
+
+        function collectSpecialExpansion(initialSet) {
+            const expanded = new Set(initialSet);
+            const queue = [...initialSet];
+            const rainbowTargets = new Map();
+
+            while (queue.length) {
+                const idx = queue.shift();
+                const tile = board[idx];
+                if (!tile || !tile.special) continue;
+
+                if (tile.special === "row") {
+                    const row = Math.floor(idx / width);
+                    for (let c = 0; c < width; c++) {
+                        const target = row * width + c;
+                        if (!expanded.has(target)) {
+                            expanded.add(target);
+                            queue.push(target);
+                        }
+                    }
+                } else if (tile.special === "col") {
+                    const col = idx % width;
+                    for (let r = 0; r < width; r++) {
+                        const target = r * width + col;
+                        if (!expanded.has(target)) {
+                            expanded.add(target);
+                            queue.push(target);
+                        }
+                    }
+                } else if (tile.special === "bomb") {
+                    const row = Math.floor(idx / width);
+                    const col = idx % width;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            const nr = row + dr;
+                            const nc = col + dc;
+                            if (nr >= 0 && nr < width && nc >= 0 && nc < width) {
+                                const target = nr * width + nc;
+                                if (!expanded.has(target)) {
+                                    expanded.add(target);
+                                    queue.push(target);
+                                }
+                            }
+                        }
+                    }
+                } else if (tile.special === "rainbow") {
+                    let targetType = null;
+                    for (const otherIdx of initialSet) {
+                        if (otherIdx === idx) continue;
+                        const other = board[otherIdx];
+                        if (other && other.type !== tile.type) {
+                            targetType = other.type;
+                            break;
+                        }
+                    }
+                    if (targetType === null) {
+                        for (const other of board) {
+                            if (other && other.type !== tile.type) {
+                                targetType = other.type;
+                                break;
+                            }
+                        }
+                    }
+                    if (targetType !== null) {
+                        rainbowTargets.set(idx, targetType);
+                    }
+                }
+            }
+
+            rainbowTargets.forEach(targetType => {
+                board.forEach((tile, index) => {
+                    if (tile && tile.type === targetType && !expanded.has(index)) {
+                        expanded.add(index);
+                        queue.push(index);
+                    }
+                });
+            });
+
+            return expanded;
+        }
+
+        async function removeMatches(matchSet, groups, swapA = null, swapB = null) {
+            const creations = decideSpecialCreations(groups, swapA, swapB);
+            let finalSet = collectSpecialExpansion(matchSet);
+
+            creations.forEach((special, anchor) => {
+                if (!board[anchor]) creations.delete(anchor);
+                finalSet.delete(anchor);
+            });
+
+            const removedCount = finalSet.size;
+            const chainMultiplier = Math.max(1, cascadeDepth);
+            const points = removedCount * 10 * chainMultiplier;
+            score += points;
+            birdsCollected += removedCount;
+            removedCount > biggestCascade && (biggestCascade = removedCount);
+
+            finalSet.forEach(idx => {
+                const tile = board[idx];
+                if (tile) discoveredSpecies.add(tile.type);
+            });
+
+            updateHUD();
+
+            const scoreAnchor = [...matchSet][0] ?? 0;
+            createScorePopup(scoreAnchor, `+${points}`);
+            if (cascadeDepth > 1) {
+                bestCombo = Math.max(bestCombo, cascadeDepth);
+                createComboPopup(`Combo x${cascadeDepth}`);
+                comboFX(cascadeDepth);
+            } else if (removedCount >= 5) {
+                createComboPopup("Big Sighting!");
+            }
+
+            if (removedCount >= 6) gameBoard.classList.add("board-shake");
+            setTimeout(() => gameBoard.classList.remove("board-shake"), 280);
+
+            playAudio(removedCount >= 5 ? sounds.combo : sounds.match);
+
+            finalSet.forEach(idx => {
+                const tile = board[idx];
+                if (!tile) return;
+                tile.el.classList.add("glow-hit");
+                createMatchEffect(idx);
+                createBirdBurst(idx);
+                setTimeout(() => tile?.el?.classList.add("matching"), 20);
+                setTimeout(() => tile?.el?.remove(), 380);
+                board[idx] = null;
+            });
+
+            await wait(420);
+
+            creations.forEach((special, anchor) => {
+                const existing = board[anchor];
+                if (!existing) {
+                    const newTile = createTile(randomType(), special);
+                    discoveredSpecies.add(newTile.type);
+                    setTileAt(anchor, newTile, false);
+                    board[anchor].el.classList.add("glow-hit");
+                } else {
+                    existing.special = special;
+                    updateTileDisplay(existing);
+                    existing.el.classList.add("glow-hit");
+                }
+            });
+
+            await dropTiles();
+        }
+
+        async function dropTiles() {
+            for (let c = 0; c < width; c++) {
+                let writeRow = width - 1;
+
+                for (let r = width - 1; r >= 0; r--) {
+                    const idx = r * width + c;
+                    const tile = board[idx];
+                    if (!tile) continue;
+
+                    if (writeRow !== r) {
+                        board[writeRow * width + c] = tile;
+                        board[idx] = null;
+                        tile.el.style.transitionDelay = ((width - writeRow) * 0.02) + "s";
+                    }
+                    writeRow--;
+                }
+
+                for (let r = writeRow; r >= 0; r--) {
+                    const idx = r * width + c;
+                    const tile = createTile(randomType(), null);
+                    discoveredSpecies.add(tile.type);
+                    board[idx] = tile;
+                    setTileAt(idx, tile, true);
+                }
+            }
+
+            positionAllTiles();
+
+            setTimeout(() => {
+                board.forEach(tile => {
+                    if (tile?.el) tile.el.style.transitionDelay = "0s";
+                });
+            }, 520);
+
+            await wait(520);
+            await resolveBoard();
+        }
+
+        async function resolveBoard(swapA = null, swapB = null) {
+            const { matched, groups } = getMatchData();
+
+            if (matched.size === 0) {
+                isProcessing = false;
+
+                if (moves <= 0) {
+                    showGameOver();
+                    return;
+                }
+
+                if (!hasPossibleMoves()) {
+                    await handleDeadBoard();
+                } else {
+                    statusLine.textContent = "Listen for movement, watch for chains, and hunt the high score.";
+                    resetInteractionTimers();
+                }
+                return;
+            }
+
+            cascadeDepth++;
+            await removeMatches(matched, groups, swapA, swapB);
+        }
+
+        async function handleDeadBoard() {
+            isProcessing = true;
+            showBanner("No Moves — Flock Reshuffling");
+            showStatus("The forest has gone quiet. New patterns are arriving.", 1500);
+            await wait(600);
+            reshuffleBoard(false);
+            await wait(300);
+            isProcessing = false;
+            scheduleHint();
+        }
+
+        function reshuffleBoard(silent = false) {
+            const tiles = board.filter(Boolean);
+            if (!tiles.length) return;
+
+            removeSelection();
+            clearHintVisuals();
+
+            let attempts = 0;
+            do {
+                attempts++;
+                for (let i = tiles.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+                }
+                for (let i = 0; i < boardSize; i++) {
+                    board[i] = tiles[i];
+                }
+            } while ((getMatchData().matched.size > 0 || !hasPossibleMoves()) && attempts < 200);
+
+            positionAllTiles();
+
+            if (!silent) {
+                board.forEach(tile => tile?.el?.classList.add("glow-hit"));
+                setTimeout(() => board.forEach(tile => tile?.el?.classList.remove("glow-hit")), 320);
+            }
+        }
+
+        function createMatchEffect(index) {
+            const pos = getXY(index);
+            const effect = document.createElement("img");
+            effect.src = matchEffectSprite;
+            effect.className = "particle";
+            effect.style.left = parseInt(pos.left, 10) + 12 + "px";
+            effect.style.top = parseInt(pos.top, 10) + 12 + "px";
+            effect.style.width = "44px";
+            effect.style.height = "44px";
+            gameBoard.appendChild(effect);
+
+            requestAnimationFrame(() => {
+                effect.style.transform = "scale(1.45)";
+                effect.style.opacity = "0";
+            });
+
+            setTimeout(() => effect.remove(), 620);
+        }
+
+        function createBirdBurst(index) {
+            const pos = getXY(index);
+            const centerX = parseInt(pos.left, 10) + 28;
+            const centerY = parseInt(pos.top, 10) + 28;
+            const glyphs = ["🍃", "🪶", "✨"];
+
+            for (let i = 0; i < 5; i++) {
+                const p = document.createElement("div");
+                p.className = "particle";
+                p.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+                p.style.left = centerX + "px";
+                p.style.top = centerY + "px";
+                gameBoard.appendChild(p);
+
+                const dx = (Math.random() - 0.5) * 70;
+                const dy = (Math.random() - 0.5) * 70;
+
+                requestAnimationFrame(() => {
+                    p.style.transform = `translate(${dx}px, ${dy}px) scale(${0.9 + Math.random() * 0.8})`;
+                    p.style.opacity = "0";
+                });
+
+                setTimeout(() => p.remove(), 620);
+            }
+        }
+
+        function createScorePopup(index, text) {
+            const pos = getXY(index);
+            const popup = document.createElement("div");
+            popup.className = "score-popup";
+            popup.textContent = text;
+            popup.style.left = parseInt(pos.left, 10) + 8 + "px";
+            popup.style.top = parseInt(pos.top, 10) + 12 + "px";
+            gameBoard.appendChild(popup);
+            setTimeout(() => popup.remove(), 900);
+        }
+
+        function createComboPopup(text) {
+            const popup = document.createElement("div");
+            popup.className = "combo-popup";
+            popup.textContent = text;
+            gameBoard.appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+        }
+
+        function showBanner(text) {
+            const banner = document.createElement("div");
+            banner.className = "banner-popup";
+            banner.textContent = text;
+            gameBoard.appendChild(banner);
+            setTimeout(() => banner.remove(), 1300);
+        }
+
+        function onTileClick(event) {
+            if (!isGameActive || isProcessing || moves <= 0) return;
+
+            const tileEl = event.currentTarget;
+            const index = Number(tileEl.dataset.index);
+            if (!Number.isInteger(index) || !board[index]) return;
+
+            resetInteractionTimers();
+            playAudio(sounds.clickmp3);
+            handleSelection(index);
+        }
+
+        async function handleSelection(index) {
+            if (selectedIndex === null) {
+                selectedIndex = index;
+                board[index].el.classList.add("selected");
+                highlightNeighbors(index);
+                return;
+            }
+
+            if (selectedIndex === index) {
+                removeSelection();
+                return;
+            }
+
+            const first = selectedIndex;
+            const second = index;
+            removeSelection();
+
+            if (!isNeighbor(first, second)) {
+                selectedIndex = second;
+                board[second].el.classList.add("selected");
+                highlightNeighbors(second);
+                return;
+            }
+
+            isProcessing = true;
+            moves--;
+            updateHUD();
+            playAudio(sounds.swap);
+            buzz(10);
+
+            const firstSpecial = board[first]?.special;
+            const secondSpecial = board[second]?.special;
+
+            await animateSwap(first, second);
+
+            if (firstSpecial || secondSpecial) {
+                await activateSwappedSpecials(first, second, firstSpecial, secondSpecial);
+                return;
+            }
+
+            const { matched } = getMatchData();
+            if (matched.size === 0) {
+                await animateSwap(first, second);
+                invalidMoveFX();
+                showStatus("No sighting there. Try another swap.", 900);
+                isProcessing = false;
+                if (moves <= 0) showGameOver();
+                else scheduleHint();
+                return;
+            }
+
+            statusLine.textContent = "A movement pattern formed — keep the chain alive.";
+            cascadeDepth = 0;
+            await resolveBoard(first, second);
+        }
+
+        async function activateSwappedSpecials(a, b, specialA, specialB) {
+            const activation = new Set([a, b]);
+
+            const addBySpecial = (idx, special, otherIdx) => {
+                if (!special) return;
+                if (special === "row") {
+                    const row = Math.floor(idx / width);
+                    for (let c = 0; c < width; c++) activation.add(row * width + c);
+                } else if (special === "col") {
+                    const col = idx % width;
+                    for (let r = 0; r < width; r++) activation.add(r * width + col);
+                } else if (special === "bomb") {
+                    const row = Math.floor(idx / width);
+                    const col = idx % width;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            const nr = row + dr;
+                            const nc = col + dc;
+                            if (nr >= 0 && nr < width && nc >= 0 && nc < width) {
+                                activation.add(nr * width + nc);
+                            }
+                        }
+                    }
+                } else if (special === "rainbow") {
+                    const targetType = board[otherIdx]?.type ?? randomType();
+                    board.forEach((tile, index) => {
+                        if (tile && tile.type === targetType) activation.add(index);
+                    });
+                }
+            };
+
+            addBySpecial(a, specialA, b);
+            addBySpecial(b, specialB, a);
+
+            if (specialA && specialB) {
+                for (let i = 0; i < boardSize; i++) activation.add(i);
+            }
+
+            statusLine.textContent = "Special sighting triggered!";
+            cascadeDepth = 1;
+            await removeMatches(activation, [], a, b);
+        }
+
+        function fadeBGM(target = 0.35, duration = 240) {
+            const start = sounds.bgm.volume;
+            const diff = target - start;
+            const steps = 12;
+            let step = 0;
+
+            const timer = setInterval(() => {
+                step++;
+                sounds.bgm.volume = Math.max(0, Math.min(1, start + diff * (step / steps)));
+                if (step >= steps) clearInterval(timer);
+            }, duration / steps);
+        }
+
+        function showIntroFlash() {
+            introFlash.style.display = "flex";
+            setTimeout(() => {
+                introFlash.style.display = "none";
+            }, 1000);
+        }
+
+        function startGame() {
+            playAudio(sounds.click);
+            playAudio(sounds.bgm, false);
+            fadeBGM(0.35, 300);
+
+            landing.style.display = "none";
+            gameHeader.style.display = "";
+            statsBar.style.display = "flex";
+            gameContainer.style.display = "";
+            gameoverModal.style.display = "none";
+
+            showIntroFlash();
+
+            score = 0;
+            moves = initialMoves;
+            birdsCollected = 0;
+            discoveredSpecies = new Set();
+            bestCombo = 0;
+            biggestCascade = 0;
+            selectedIndex = null;
+            isProcessing = false;
+            isGameActive = true;
+            cascadeDepth = 0;
+
+            updateBoardSizeVars();
+            buildFreshBoard();
+            board.forEach(tile => discoveredSpecies.add(tile.type));
+            updateHUD();
+            showStatus("Welcome back to the hide. Look for chains and special sightings.", 1600);
+            statusLine.textContent = "Listen for movement, watch for chains, and hunt the high score.";
+            scheduleHint();
+        }
+
+        function showGameOver() {
+            isGameActive = false;
+            isProcessing = true;
+            clearTimeout(hintTimer);
+            clearHintVisuals();
+            sounds.bgm.pause();
+
+            finalScoreEl.textContent = score;
+            finalHighscoreEl.textContent = highscore;
+            finalBestComboEl.textContent = `${Math.max(bestCombo, cascadeDepth)}x`;
+            finalBiggestCascadeEl.textContent = biggestCascade;
+            finalBirdsEl.textContent = birdsCollected;
+            finalSpeciesEl.textContent = `${discoveredSpecies.size}/${birdSprites.length}`;
+            finalHighscoreEl.textContent = highscore;
+
+            gameoverModal.style.display = "flex";
+        }
+
+        function restartGame() {
+            playAudio(sounds.click);
+            sounds.bgm.currentTime = 0;
+            startGame();
+        }
+
+        function tryPrimeAudio() {
+            if (audioCtx && audioCtx.state === "suspended") {
+                audioCtx.resume().catch(() => {});
+            }
+
+            try {
+                if (sounds.bgm.paused) {
+                    const p = sounds.bgm.play();
+                    if (p && typeof p.then === "function") {
+                        p.then(() => {
+                            sounds.bgm.pause();
+                            sounds.bgm.currentTime = 0;
+                        }).catch(() => {});
+                    }
+                }
+            } catch (e) {}
+        }
+
+        window.addEventListener("resize", () => {
+            updateBoardSizeVars();
+            if (isGameActive) positionAllTiles();
+        });
+
+        startBtn.addEventListener("click", () => {
+            tryPrimeAudio();
+            startGame();
+        });
+
+        restartBtn.addEventListener("click", restartGame);
+
+        document.addEventListener("pointerdown", tryPrimeAudio, { once: true });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            bootAmbient();
+            updateBoardSizeVars();
+            updateHighscoreUI();
+            overlayMessage.textContent = "";
+        });
+    </script>
+</body>
+</html>
