@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro-Sequence: Independent Flow</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #1a1a1c;
+            color: #ecf0f1;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #ui {
+            margin-top: 15px;
+            text-align: center;
+            z-index: 5;
+        }
+
+        canvas {
+            border: 4px solid #444;
+            border-radius: 12px;
+            cursor: crosshair;
+            background: #020202;
+        }
+
+        .hud {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #e74c3c;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .overlay {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 100;
+            border: 3px solid white;
+            min-width: 280px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        #win-screen {
+            background: rgba(46, 204, 113, 0.95);
+        }
+
+        #fail-screen {
+            background: rgba(231, 76, 60, 0.96);
+        }
+
+        button {
+            padding: 12px 24px;
+            cursor: pointer;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 12px;
+        }
+
+        p {
+            margin: 10px 0 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div class="hud">Target: Fill Cup <span id="target-cup">1</span></div>
+    </div>
+
+    <div id="win-screen" class="overlay">
+        <h1>SEQUENCE COMPLETE! 🏆</h1>
+        <p>All containers filled in order.</p>
+        <button onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+
+    <div id="fail-screen" class="overlay">
+        <h1>SEQUENCE ERROR</h1>
+        <p id="fail-message">A later cup filled too early.</p>
+        <button onclick="location.reload()">TRY AGAIN</button>
+    </div>
+
+    <script>
+        const {
+            Engine,
+            Render,
+            Runner,
+            Bodies,
+            Composite,
+            Body,
+            Events,
+            Vector,
+            Query
+        } = Matter;
+
+        const engine = Engine.create();
+        const world = engine.world;
+
+        const render = Render.create({
+            element: document.body,
+            engine: engine,
+            options: {
+                width: 500,
+                height: 750,
+                wireframes: false,
+                background: '#020202'
+            }
+        });
+
+        Render.run(render);
+        Runner.run(Runner.create(), engine);
+
+        let currentGoal = 1;
+        let isActive = true;
+        let selectedPipe = null;
+
+        const fillLevels = { 1: 0, 2: 0, 3: 0 };
+        const WIN_THRESHOLD = 50;
+
+        const targetCupEl = document.getElementById('target-cup');
+        const winScreenEl = document.getElementById('win-screen');
+        const failScreenEl = document.getElementById('fail-screen');
+        const failMessageEl = document.getElementById('fail-message');
+
+        function showFail(message) {
+            if (!isActive) return;
+            isActive = false;
+            failMessageEl.textContent = message;
+            failScreenEl.style.display = 'block';
+        }
+
+        function showWin() {
+            if (!isActive) return;
+            isActive = false;
+            winScreenEl.style.display = 'block';
+        }
+
+        function createHollowPipe(x, y, angle = 0, isSource = false) {
+            const length = 110;
+            const thickness = 16;
+            const gap = 45;
+
+            const wallA = Bodies.rectangle(0, -gap / 2, length, thickness);
+            const wallB = Bodies.rectangle(0, gap / 2, length, thickness);
+
+            const pipe = Body.create({
+                parts: [wallA, wallB],
+                isStatic: true,
+                label: isSource ? 'source' : 'pipe',
+                render: {
+                    fillStyle: isSource ? '#e74c3c' : '#f1c40f',
+                    strokeStyle: isSource ? '#c0392b' : '#d4ac0d',
+                    lineWidth: 2
+                }
+            });
+
+            Body.setPosition(pipe, { x, y });
+            Body.setAngle(pipe, angle);
+
+            return pipe;
+        }
+
+        const pipeGrid = [
+            createHollowPipe(250, 40, Math.PI / 2, true),
+            createHollowPipe(250, 160, 0),
+            createHollowPipe(120, 280, Math.PI / 2),
+            createHollowPipe(380, 280, Math.PI / 2),
+            createHollowPipe(250, 420, 0),
+            createHollowPipe(150, 560, 0),
+            createHollowPipe(350, 560, 0)
+        ];
+
+        Composite.add(world, pipeGrid);
+
+        const cupData = [
+            { x: 80,  y: 690, id: 1 },
+            { x: 250, y: 690, id: 2 },
+            { x: 420, y: 690, id: 3 }
+        ];
+
+        cupData.forEach(data => {
+            const floor = Bodies.rectangle(data.x, data.y + 25, 100, 10, {
+                isStatic: true,
+                render: { fillStyle: '#7f8c8d' }
+            });
+
+            const left = Bodies.rectangle(data.x - 45, data.y, 10, 60, {
+                isStatic: true,
+                render: { fillStyle: '#7f8c8d' }
+            });
+
+            const right = Bodies.rectangle(data.x + 45, data.y, 10, 60, {
+                isStatic: true,
+                render: { fillStyle: '#7f8c8d' }
+            });
+
+            const sensor = Bodies.rectangle(data.x, data.y - 10, 85, 75, {
+                isStatic: true,
+                isSensor: true,
+                label: 'cup-' + data.id,
+                render: { visible: false }
+            });
+
+            Composite.add(world, [floor, left, right, sensor]);
+        });
+
+        const sourcePipe = pipeGrid[0];
+        let spawnTimer = 0;
+        const SPAWN_INTERVAL = 80;
+
+        function getSourceSpawnPoint(pipe) {
+            const dir = {
+                x: Math.cos(pipe.angle),
+                y: Math.sin(pipe.angle)
+            };
+
+            return {
+                x: pipe.position.x + dir.x * 55,
+                y: pipe.position.y + dir.y * 55
+            };
+        }
+
+        Events.on(engine, 'beforeUpdate', () => {
+            if (isActive) {
+                spawnTimer += engine.timing.lastDelta;
+
+                while (spawnTimer >= SPAWN_INTERVAL) {
+                    spawnTimer -= SPAWN_INTERVAL;
+
+                    const spawn = getSourceSpawnPoint(sourcePipe);
+
+                    const water = Bodies.circle(spawn.x, spawn.y, 4, {
+                        friction: 0.0001,
+                        restitution: 0,
+                        label: 'water',
+                        render: { fillStyle: '#3498db' }
+                    });
+
+                    Composite.add(world, water);
+                }
+            }
+
+            const bodies = Composite.allBodies(world);
+            for (const b of bodies) {
+                if (b.label === 'water' && (b.position.y > 800 || b.position.x < -50 || b.position.x > 550)) {
+                    Composite.remove(world, b);
+                }
+            }
+        });
+
+        const canvas = render.canvas;
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!isActive) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouse = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+
+            const found = Query.point(pipeGrid, mouse).find(p => p.label !== 'source');
+            if (found) {
+                selectedPipe = found;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!selectedPipe || !isActive) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouse = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+
+            let angle = Math.atan2(
+                mouse.y - selectedPipe.position.y,
+                mouse.x - selectedPipe.position.x
+            );
+
+            const snaps = [
+                0,
+                Math.PI / 4,
+                Math.PI / 2,
+                3 * Math.PI / 4,
+                Math.PI,
+                -Math.PI / 4,
+                -Math.PI / 2,
+                -3 * Math.PI / 4
+            ];
+
+            for (const s of snaps) {
+                if (Math.abs(angle - s) < 0.087) {
+                    angle = s;
+                    break;
+                }
+            }
+
+            Body.setAngle(selectedPipe, angle);
+        });
+
+        window.addEventListener('mouseup', () => {
+            selectedPipe = null;
+        });
+
+        Events.on(render, 'afterRender', () => {
+            const ctx = render.context;
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 15px Arial';
+
+            cupData.forEach(data => {
+                const percentVal = Math.floor((fillLevels[data.id] / WIN_THRESHOLD) * 100);
+                const isTarget = data.id === currentGoal;
+
+                ctx.fillStyle = isTarget ? '#3498db' : '#ecf0f1';
+                ctx.fillText(`${percentVal}%`, data.x, data.y - 45);
+                ctx.fillText(`CUP ${data.id}`, data.x, data.y + 55);
+
+                ctx.fillStyle = '#111';
+                ctx.fillRect(data.x - 40, data.y + 65, 80, 10);
+
+                const fillWidth = 80 * Math.min(fillLevels[data.id] / WIN_THRESHOLD, 1);
+                ctx.fillStyle = isTarget
+                    ? '#3498db'
+                    : (percentVal >= 100 ? '#2ecc71' : '#f39c12');
+
+                ctx.fillRect(data.x - 40, data.y + 65, fillWidth, 10);
+            });
+        });
+
+        Events.on(engine, 'collisionStart', (event) => {
+            if (!isActive) return;
+
+            for (const pair of event.pairs) {
+                const { bodyA, bodyB } = pair;
+
+                const water = bodyA.label === 'water'
+                    ? bodyA
+                    : (bodyB.label === 'water' ? bodyB : null);
+
+                const sensor = bodyA.label && bodyA.label.startsWith('cup-')
+                    ? bodyA
+                    : (bodyB.label && bodyB.label.startsWith('cup-') ? bodyB : null);
+
+                if (!water || !sensor) continue;
+
+                const id = parseInt(sensor.label.split('-')[1], 10);
+
+                if (fillLevels[id] < WIN_THRESHOLD) {
+                    fillLevels[id]++;
+                }
+
+                Composite.remove(world, water);
+
+                if (id > currentGoal &&
+                    fillLevels[id] >= WIN_THRESHOLD &&
+                    fillLevels[currentGoal] < WIN_THRESHOLD) {
+                    showFail(`Cup ${id} reached 100% before Cup ${currentGoal}.`);
+                    return;
+                }
+
+                if (id === currentGoal && fillLevels[id] >= WIN_THRESHOLD) {
+                    if (currentGoal === 3) {
+                        showWin();
+                        return;
+                    }
+
+                    currentGoal++;
+                    targetCupEl.textContent = currentGoal;
+
+                    for (let later = currentGoal + 1; later <= 3; later++) {
+                        if (fillLevels[later] >= WIN_THRESHOLD &&
+                            fillLevels[currentGoal] < WIN_THRESHOLD) {
+                            showFail(`Cup ${later} reached 100% before Cup ${currentGoal}.`);
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
