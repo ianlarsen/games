@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Puzzle Architect</title>
+    <style>
+        :root { 
+            --cell-size: 38px; 
+            --bg: #f8f9fa; 
+            --accent: #007bff; 
+            --success: #28a745; 
+            --sidebar-w: 360px;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); display: flex; height: 100vh; margin: 0; overflow: hidden; }
+        
+        #sidebar { width: var(--sidebar-w); background: white; padding: 25px; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
+        h2 { margin: 0 0 20px 0; color: #333; font-weight: 800; }
+        
+        .switch-container { display: flex; align-items: center; background: #eee; border-radius: 30px; padding: 5px; margin-bottom: 20px; position: relative; cursor: pointer; }
+        .switch-label { flex: 1; text-align: center; font-size: 11px; font-weight: 800; z-index: 2; transition: color 0.3s; color: #888; pointer-events: none; }
+        .switch-label.active { color: white; }
+        .slider { 
+            position: absolute; width: 50%; height: 80%; background: var(--accent); 
+            border-radius: 25px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 1; left: 5px; 
+        }
+        .mode-ws .slider { transform: translateX(90%); background: #6f42c1; }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #666; margin-bottom: 6px; }
+        input { width: 100%; padding: 10px; border: 2px solid #eee; border-radius: 6px; box-sizing: border-box; }
+        
+        button { padding: 12px; cursor: pointer; border: none; border-radius: 6px; font-weight: 600; transition: all 0.2s; margin-bottom: 8px; }
+        .btn-add { background: var(--success); color: white; width: 100%; }
+        .btn-export { background: #333; color: white; margin-top: auto; padding: 15px; font-size: 14px; }
+        
+        #wordList { flex-grow: 1; overflow-y: auto; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .word-item { background: #fdfdfd; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+
+        #main-view { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #e9ecef; }
+        #grid { 
+            display: grid; grid-template-columns: repeat(15, var(--cell-size)); 
+            grid-template-rows: repeat(15, var(--cell-size)); 
+            background: #222; border: 8px solid #222; gap: 1px;
+        }
+        .cell { 
+            width: var(--cell-size); height: var(--cell-size); background: #1a1a1a; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; font-size: 18px; color: #444; user-select: none;
+        }
+        .cell.active { background: white; color: #333; }
+        .cell.drag-handle { cursor: move; border: 2px dashed var(--accent); box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>Architect</h2>
+    <div class="switch-container" id="modeSwitch" onclick="toggleMode()">
+        <div class="slider"></div>
+        <div class="switch-label active" id="label-cw">CROSSWORD</div>
+        <div class="switch-label" id="label-ws">WORD SEARCH</div>
+    </div>
+
+    <div class="input-group">
+        <label>Puzzle Name</label>
+        <input type="text" id="puzzleName" placeholder="My Masterpiece">
+    </div>
+    <div class="input-group">
+        <label>Word</label>
+        <input type="text" id="wordIn" placeholder="HELLO">
+    </div>
+    <div class="input-group">
+        <label id="clueLabel">Clue</label>
+        <input type="text" id="clueIn" placeholder="..." onkeydown="if(event.key==='Enter') addWordToPuzzle()">
+    </div>
+    <button class="btn-add" onclick="addWordToPuzzle()">Add Word (Enter)</button>
+    <div id="wordList"></div>
+    <button class="btn-export" onclick="exportWithSaveAs()">Export & Save As...</button>
+</div>
+
+<div id="main-view"><div id="grid"></div></div>
+
+<script>
+    const GRID_SIZE = 15;
+    let puzzleWords = []; 
+    let currentMode = 'crossword';
+    const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    function toggleMode() {
+        currentMode = (currentMode === 'crossword') ? 'wordsearch' : 'crossword';
+        document.getElementById('modeSwitch').classList.toggle('mode-ws');
+        document.getElementById('label-cw').classList.toggle('active');
+        document.getElementById('label-ws').classList.toggle('active');
+        document.getElementById('clueLabel').innerText = (currentMode === 'wordsearch') ? "Hidden Hint" : "Clue";
+        renderAll();
+    }
+
+    function initGrid() {
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${y}-${x}`;
+                if(currentMode === 'wordsearch') {
+                    cell.innerText = ALPHABET[Math.floor(Math.random() * 26)];
+                    cell.style.opacity = "0.3";
+                }
+                cell.ondragover = (e) => e.preventDefault();
+                cell.ondrop = (e) => {
+                    const idx = e.dataTransfer.getData("text");
+                    puzzleWords[idx].x = x;
+                    puzzleWords[idx].y = y;
+                    renderAll();
+                };
+                gridEl.appendChild(cell);
+            }
+        }
+    }
+
+    function addWordToPuzzle() {
+        const wordEl = document.getElementById('wordIn');
+        const clueEl = document.getElementById('clueIn');
+        const word = wordEl.value.toUpperCase().replace(/\s/g, '');
+        if (!word) return;
+        puzzleWords.push({ word, clue: clueEl.value || "Hidden", x: 2, y: Math.min(puzzleWords.length, 14), dir: 'across' });
+        wordEl.value = ''; clueEl.value = ''; wordEl.focus();
+        renderAll();
+    }
+
+    function renderAll() {
+        initGrid();
+        const listEl = document.getElementById('wordList');
+        listEl.innerHTML = '';
+        puzzleWords.forEach((pw, idx) => {
+            for (let i = 0; i < pw.word.length; i++) {
+                let curX = pw.dir === 'across' ? pw.x + i : pw.x;
+                let curY = pw.dir === 'across' ? pw.y : pw.y + i;
+                if(curX < GRID_SIZE && curY < GRID_SIZE) {
+                    let cell = document.getElementById(`cell-${curY}-${curX}`);
+                    cell.innerText = pw.word[i];
+                    cell.style.opacity = "1";
+                    cell.classList.add('active');
+                    if (i === 0) {
+                        cell.setAttribute('draggable', 'true');
+                        cell.classList.add('drag-handle');
+                        cell.ondragstart = (e) => e.dataTransfer.setData("text", idx);
+                    }
+                }
+            }
+            const item = document.createElement('div');
+            item.className = 'word-item';
+            item.innerHTML = `<span><b>${pw.word}</b> (${pw.dir})</span> <div>
+                <button onclick="rotate(${idx})" style="font-size:10px; padding:4px">🔄</button>
+                <button onclick="remove(${idx})" style="font-size:10px; padding:4px; color:red">X</button>
+            </div>`;
+            listEl.appendChild(item);
+        });
+    }
+
+    function rotate(i) { puzzleWords[i].dir = puzzleWords[i].dir === 'across' ? 'down' : 'across'; renderAll(); }
+    function remove(i) { puzzleWords.splice(i,1); renderAll(); }
+
+    async function exportWithSaveAs() {
+        const gameName = document.getElementById('puzzleName').value || "My_Puzzle";
+        const isWS = currentMode === 'wordsearch';
+        
+        let cellNumbers = {};
+        if(!isWS) {
+            let numCount = 1;
+            let sortedWords = [...puzzleWords].sort((a,b) => a.y - b.y || a.x - b.x);
+            sortedWords.forEach(w => {
+                const key = `${w.y}-${w.x}`;
+                if(!cellNumbers[key]) cellNumbers[key] = numCount++;
+                w.number = cellNumbers[key];
+            });
+        }
+
+        // Deep copy of words to avoid modifying the original during export
+        const exportWords = JSON.parse(JSON.stringify(puzzleWords));
+        const gridData = Array(15).fill().map(() => Array(15).fill().map(() => isWS ? ALPHABET[Math.floor(Math.random()*26)] : ''));
+        
+        exportWords.forEach(w => {
+            for(let i=0; i<w.word.length; i++) {
+                let x = w.dir === 'across' ? w.x+i : w.x;
+                let y = w.dir === 'across' ? w.y : w.y+i;
+                if(y<15 && x<15) gridData[y][x] = w.word[i];
+            }
+        });
+
+        const template = `<!DOCTYPE html><html><head><title>${gameName}</title>
+        <style>
+            body { font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle, #ffffff 0%, #a5d8ff 100%); height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; overflow: hidden; }
+            h1 { color: #004085; text-transform: uppercase; letter-spacing: 2px; margin: 5px 0; font-size: 22px; }
+            .game-container { display: flex; flex-direction: row; gap: 20px; width: 98vw; height: 85vh; justify-content: center; }
+            .grid { display: grid; grid-template-columns: repeat(15, min(5.5vh, 42px)); gap: 0px; background: transparent; user-select: none; }
+            .c { width: min(5.5vh, 42px); height: min(5.5vh, 42px); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; position: relative; box-sizing: border-box; }
+            .c.empty { visibility: hidden; }
+            .c.active { background: white; border: 1.5px solid #000; margin: -0.75px; z-index: 1; }
+            .c.ws-cell { background: white; border: 1px solid #ddd; cursor: pointer; }
+            .num { position: absolute; top: 1px; left: 2px; font-size: 10px; color: #333; font-weight: 700; line-height: 1; z-index: 2; }
+            .c input { width: 100%; height: 100%; text-align: center; border: none; text-transform: uppercase; font-weight: 900; font-size: min(3vh, 22px); outline: none; background: transparent; padding-top: 5px; }
+            .highlight { background: #ffe066 !important; }
+            .found { background: #28a745 !important; color: white !important; }
+            .clue-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow-y: auto; flex: 1; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+            .clue-col h3 { margin: 0 0 10px 0; font-size: 16px; border-bottom: 2px solid #a5d8ff; color: #004085; }
+            .clue-item { margin: 5px 0; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; padding-bottom: 2px; }
+            .done { text-decoration: line-through; color: #28a745; font-weight: bold; opacity: 0.6; }
+            #win { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 25px; box-shadow: 0 0 150px rgba(0,0,0,0.6); text-align: center; z-index: 100; border: 5px solid #28a745; }
+        </style></head><body>
+        <div id="win"><h2>GREAT JOB!!!</h2><p>Puzzle Solved Perfectly!</p><button onclick="location.reload()">PLAY AGAIN</button></div>
+        <h1>${gameName}</h1>
+        <div class="game-container">
+            <div class="grid" id="g"></div>
+            <div class="clue-box">
+                ${isWS ? '<div class="clue-col"><h3>Words to Find</h3><div id="ws-l"></div></div>' : 
+                '<div class="clue-col"><h3>Across</h3><div id="across-l"></div></div><div class="clue-col"><h3>Down</h3><div id="down-l"></div></div>'}
+            </div>
+        </div>
+        <script>
+            const words = ${JSON.stringify(exportWords)};
+            const isWS = ${isWS};
+            const grid = ${JSON.stringify(gridData)};
+            const cellNums = ${JSON.stringify(cellNumbers)};
+            const g = document.getElementById('g');
+            let isDragging = false, startCell = null;
+
+            grid.forEach((row, y) => row.forEach((char, x) => {
+                const d = document.createElement('div'); d.className = 'c';
+                d.dataset.x = x; d.dataset.y = y;
+                if(!isWS) {
+                    if(char !== "") {
+                        d.classList.add('active');
+                        if(cellNums[y+"-"+x]) d.innerHTML += '<span class="num">'+cellNums[y+"-"+x]+'</span>';
+                        const i = document.createElement('input'); i.maxLength = 1;
+                        i.oninput = (e) => { if(e.target.value) moveFocus(x, y); check(); };
+                        d.appendChild(i);
+                    } else d.classList.add('empty');
+                } else {
+                    d.innerText = char; d.classList.add('ws-cell');
+                    d.onmousedown = () => { isDragging = true; startCell = {x, y}; d.classList.add('highlight'); };
+                    d.onmouseover = () => { if(isDragging) handleDragOver(x, y); };
+                }
+                g.appendChild(d);
+            }));
+
+            window.onmouseup = () => { if(isWS && isDragging) { validateSelection(); isDragging = false; clearHighlights(); } };
+
+            function handleDragOver(x, y) {
+                clearHighlights();
+                const dx = Math.sign(x - startCell.x), dy = Math.sign(y - startCell.y);
+                let cx = startCell.x, cy = startCell.y;
+                while(true) {
+                    const el = document.querySelector(\`.c[data-x="\${cx}"][data-y="\${cy}"]\`);
+                    if(el) el.classList.add('highlight');
+                    if(cx === x && cy === y) break;
+                    cx += dx; cy += dy;
+                    if(Math.abs(cx)>20 || Math.abs(cy)>20) break;
+                }
+            }
+            function clearHighlights() { document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight')); }
+
+            function validateSelection() {
+                let str = "";
+                document.querySelectorAll('.highlight').forEach(el => str += el.innerText);
+                words.forEach((w, i) => {
+                    if(str === w.word || str.split("").reverse().join("") === w.word) {
+                        document.querySelectorAll('.highlight').forEach(el => el.classList.add('found'));
+                        document.getElementById('w'+i).classList.add('done');
+                    }
+                });
+                check();
+            }
+
+            function moveFocus(x, y) {
+                const word = words.find(w => (x >= w.x && x < w.x + w.word.length && y === w.y && w.dir === 'across') || (y >= w.y && y < w.y + w.word.length && x === w.x && w.dir === 'down'));
+                if(!word) return;
+                const nextX = word.dir === 'across' ? x+1 : x, nextY = word.dir === 'down' ? y+1 : y;
+                const next = document.querySelector(\`input[data-x="\${nextX}"][data-y="\${nextY}"]\`);
+                if(next) next.focus();
+            }
+
+            function check() {
+                let allDone = true;
+                words.forEach((w, i) => {
+                    if(!document.getElementById('w'+i).classList.contains('done')) {
+                        if(!isWS) {
+                            let current = "";
+                            for(let k=0; k<w.word.length; k++){
+                                let cx = w.dir==='across'?w.x+k:w.x, cy = w.dir==='across'?w.y:w.y+k;
+                                current += document.querySelector(\`.c[data-x="\${cx}"][data-y="\${cy}"] input\`).value.toUpperCase();
+                            }
+                            if(current === w.word) document.getElementById('w'+i).classList.add('done');
+                            else allDone = false;
+                        } else allDone = false;
+                    }
+                });
+                if(allDone) document.getElementById('win').style.display='block';
+            }
+
+            words.forEach((w, i) => {
+                const li = document.createElement('div'); li.className = 'clue-item'; li.id = 'w'+i;
+                li.innerText = (isWS ? "" : w.number + ". ") + (isWS ? w.word : w.clue);
+                document.getElementById((isWS ? "ws" : w.dir) + "-l").appendChild(li);
+            });
+        <\/script></body></html>`;
+
+        try {
+            const handle = await window.showSaveFilePicker({ suggestedName: gameName + '.html', types: [{ description: 'HTML', accept: {'text/html': ['.html']} }] });
+            const writable = await handle.createWritable();
+            await writable.write(template);
+            await writable.close();
+        } catch (err) {
+            const blob = new Blob([template], { type: 'text/html' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = gameName + '.html'; a.click();
+        }
+    }
+    renderAll();
+</script>
+</body>
+</html>
