@@ -5,13 +5,29 @@
     <title>STORY SYSTEM V1.0</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        :root { --kaypro-green: #33ff33; --kaypro-dim: #125512; --kaypro-bg: #0a0a0a; }
+        /* P39-style phosphor (~525nm): soft yellow-green, not matrix-neon */
+        :root {
+            --kaypro-green: #6ed888;
+            --kaypro-green-bright: #8ef0a4;
+            --kaypro-dim: #1a3d22;
+            --kaypro-bg: #050705;
+            --kaypro-glow: rgba(110, 216, 136, 0.42);
+        }
+        @keyframes phos-flicker {
+            0%, 100% { filter: brightness(1); }
+            41% { filter: brightness(0.992); }
+            42% { filter: brightness(0.975); }
+            43% { filter: brightness(1); }
+            76% { filter: brightness(0.988); }
+            77% { filter: brightness(1); }
+        }
         body { background-color: #000; color: var(--kaypro-green); font-family: 'VT323', monospace; font-size: 1.4rem; margin: 0; display: flex; height: 100vh; overflow: hidden; text-transform: uppercase; }
-        body::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 10; background-size: 100% 4px, 3px 100%; pointer-events: none; }
-        .crt-container { flex: 1; display: flex; padding: 20px; gap: 20px; text-shadow: 0 0 5px var(--kaypro-green); }
+        body::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05)); z-index: 10; background-size: 100% 4px, 3px 100%; pointer-events: none; }
+        .crt-container { position: relative; z-index: 15; flex: 1; display: flex; padding: 20px; gap: 20px; text-shadow: 0 0 6px var(--kaypro-glow); animation: phos-flicker 5.4s ease-in-out infinite; }
         #editor-panel { flex: 2; border: 2px solid var(--kaypro-green); padding: 20px; display: flex; flex-direction: column; overflow-y: auto; z-index: 20; }
         #tree-panel { flex: 1; border: 2px solid var(--kaypro-green); padding: 20px; background: var(--kaypro-bg); overflow-y: auto; z-index: 20; }
         h1, h2 { border-bottom: 1px solid var(--kaypro-green); margin-top: 0; }
+        .tree-panel-sub { font-size: 0.85rem; color: var(--kaypro-green-bright); opacity: 0.75; margin: -6px 0 14px; text-transform: none; letter-spacing: 0.02em; }
         label { display: block; margin: 10px 0 5px; color: #fff; }
         
         /* THE FIXED DROPDOWN STYLING */
@@ -36,12 +52,24 @@
         .btn-group { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
         button { background: var(--kaypro-green); color: #000; border: none; font-family: 'VT323', monospace; font-size: 1.2rem; padding: 10px 20px; cursor: pointer; min-width: 150px; }
         button.export-btn { background: #fff; }
-        .node-item { cursor: pointer; padding: 5px; margin-bottom: 5px; border-bottom: 1px solid var(--kaypro-dim); }
-        .status-tag { float: right; font-size: 0.8rem; padding: 0 5px; border: 1px solid; }
-        .todo { color: #ff3333; border-color: #ff3333; }
-        .win { color: #33ffff; border-color: #33ffff; }
-        .die { color: #ff3333; border-color: #ff3333; }
-        .current-node-highlight { color: #fff; background: var(--kaypro-dim); }
+        .tree-section-head { font-size: 0.72rem; letter-spacing: 0.12em; color: var(--kaypro-green-bright); opacity: 0.8; margin-bottom: 10px; }
+        .tree-section-head.orphan-head { color: #ff8a7a; opacity: 0.95; margin-top: 18px; }
+        .tree-row { margin-bottom: 10px; padding-left: calc(4px + var(--depth, 0) * 14px); border-left: 2px solid var(--kaypro-dim); }
+        .tree-row.orphan { border-left-color: #4a2820; }
+        .tree-row-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 6px; margin: 0; border: none; border-bottom: 1px solid var(--kaypro-dim); background: transparent; color: inherit; font: inherit; text-transform: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
+        .tree-row-head:hover { background: rgba(110, 216, 136, 0.08); }
+        .tree-node-id { font-weight: bold; letter-spacing: 0.04em; }
+        .tree-badge { flex-shrink: 0; font-size: 0.65rem; padding: 2px 6px; border: 1px solid; letter-spacing: 0.06em; }
+        .tree-badge.neutral-tag { color: var(--kaypro-green-bright); border-color: var(--kaypro-dim); }
+        .tree-badge.todo { color: #ff8a7a; border-color: #aa5544; }
+        .tree-badge.win { color: #7ee8e8; border-color: #3a8a8a; }
+        .tree-badge.die { color: #ff8a7a; border-color: #aa5544; }
+        .tree-preview { font-size: 0.78rem; color: #9ee0b0; opacity: 0.88; padding: 4px 6px 2px; text-transform: none; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tree-edge { font-size: 0.72rem; color: var(--kaypro-green); opacity: 0.72; padding: 2px 0 6px calc(10px + var(--depth, 0) * 14px); text-transform: none; letter-spacing: 0.02em; }
+        .tree-edge.tree-edge-bad { color: #ff8a7a; opacity: 1; }
+        .tree-orphan-hint { font-size: 0.72rem; color: #b0b0b0; text-transform: none; margin: 0 0 10px; line-height: 1.35; opacity: 0.85; }
+        .current-node-highlight { border-left-color: var(--kaypro-green) !important; background: rgba(110, 216, 136, 0.12); }
+        .current-node-highlight .tree-row-head { border-bottom-color: var(--kaypro-green); }
     </style>
 </head>
 <body>
@@ -73,13 +101,79 @@
     </div>
     <div id="tree-panel">
         <h2>STORY TREE</h2>
+        <p class="tree-panel-sub">Flow from START · branch lines show how players reach each scene · tap any row to edit</p>
         <div id="node-list"></div>
     </div>
 </div>
 
 <script>
-    let storyData = JSON.parse(localStorage.getItem('savedStory')) || { "START": { text: "", type: "neutral", choices: [] } };
-    let storyTitle = localStorage.getItem('savedTitle') || "MY NEW STORY";
+    const STORAGE_STORY = 'savedStory';
+    const STORAGE_TITLE = 'savedTitle';
+
+    function loadStoryFromStorage() {
+        const raw = localStorage.getItem(STORAGE_STORY);
+        if (!raw) return { START: { text: "", type: "neutral", choices: [null, null, null] } };
+        try {
+            const data = JSON.parse(raw);
+            if (!data || typeof data !== 'object' || !data.START) {
+                return { START: { text: "", type: "neutral", choices: [null, null, null] } };
+            }
+            return data;
+        } catch (e) {
+            return { START: { text: "", type: "neutral", choices: [null, null, null] } };
+        }
+    }
+
+    function choiceSlotFromNextId(nodeId, nextId) {
+        if (!nodeId || !nextId) return null;
+        const s = String(nextId);
+        if (!s.startsWith(nodeId + '_B')) return null;
+        const m = s.match(/_B([1-3])$/);
+        if (!m) return null;
+        const slot = parseInt(m[1], 10) - 1;
+        return slot >= 0 && slot <= 2 ? slot : null;
+    }
+
+    function normalizeNode(node, nodeId) {
+        if (!node || typeof node !== 'object') return { text: "", type: "neutral", choices: [null, null, null] };
+        const type = node.type === 'win' || node.type === 'die' ? node.type : 'neutral';
+        let choices = node.choices;
+        if (type === 'neutral') {
+            const arr = Array.isArray(choices) ? choices : [];
+            const out = [null, null, null];
+            arr.forEach((c) => {
+                if (!c || typeof c !== 'object' || String(c.text || '').trim() === '') return;
+                const slot = choiceSlotFromNextId(nodeId, c.nextId);
+                if (slot != null && !out[slot]) {
+                    out[slot] = { text: String(c.text).trim(), nextId: String(c.nextId || '') };
+                }
+            });
+            if (arr.length === 3) {
+                for (let i = 0; i < 3; i++) {
+                    const c = arr[i];
+                    if (!c || typeof c !== 'object' || String(c.text || '').trim() === '') continue;
+                    if (!out[i]) out[i] = { text: String(c.text).trim(), nextId: String(c.nextId || '') };
+                }
+            } else {
+                let k = 0;
+                arr.forEach((c) => {
+                    if (!c || typeof c !== 'object' || String(c.text || '').trim() === '') return;
+                    if (choiceSlotFromNextId(nodeId, c.nextId) != null) return;
+                    while (k < 3 && out[k]) k++;
+                    if (k < 3) out[k++] = { text: String(c.text).trim(), nextId: String(c.nextId || '') };
+                });
+            }
+            choices = out;
+        } else {
+            choices = [null, null, null];
+        }
+        return { text: String(node.text || ''), type, choices };
+    }
+
+    let storyData = loadStoryFromStorage();
+    Object.keys(storyData).forEach((id) => { storyData[id] = normalizeNode(storyData[id], id); });
+
+    let storyTitle = localStorage.getItem(STORAGE_TITLE) || "MY NEW STORY";
     let activeNodeId = "START";
 
     document.getElementById('story-title-input').value = storyTitle;
@@ -95,22 +189,25 @@
         let nextNodeToEdit = null;
 
         if (type === 'neutral') {
+            choices = [null, null, null];
             ['c1', 'c2', 'c3'].forEach((id, i) => {
                 const val = document.getElementById(id).value.trim();
                 if (val !== "") {
                     const newId = `${activeNodeId}_B${i + 1}`;
-                    choices.push({ text: val, nextId: newId });
-                    if (!storyData[newId]) storyData[newId] = { text: "", type: "neutral", choices: [] };
+                    choices[i] = { text: val, nextId: newId };
+                    if (!storyData[newId]) storyData[newId] = { text: "", type: "neutral", choices: [null, null, null] };
                     if (!nextNodeToEdit) nextNodeToEdit = newId;
                 }
             });
+        } else {
+            choices = [null, null, null];
         }
 
         storyData[activeNodeId] = { text, type, choices };
         storyTitle = document.getElementById('story-title-input').value;
         
-        localStorage.setItem('savedStory', JSON.stringify(storyData));
-        localStorage.setItem('savedTitle', storyTitle);
+        localStorage.setItem(STORAGE_STORY, JSON.stringify(storyData));
+        localStorage.setItem(STORAGE_TITLE, storyTitle);
         
         renderTree();
         if (type === 'neutral' && nextNodeToEdit) {
@@ -120,53 +217,194 @@
         }
     }
 
+    function treePreviewText(text, maxLen) {
+        const s = String(text || '').replace(/\s+/g, ' ').trim();
+        if (!s) return '— NO COPY YET —';
+        return s.length <= maxLen ? s : s.slice(0, maxLen - 1) + '…';
+    }
+
+    function childBranchesInSlotOrder(nodeId) {
+        const n = storyData[nodeId];
+        if (!n || n.type !== 'neutral') return [];
+        const ch = Array.isArray(n.choices) ? n.choices : [];
+        const out = [];
+        for (let i = 0; i < 3; i++) {
+            const c = ch[i];
+            if (c && c.nextId) out.push({ nextId: c.nextId, label: c.text || ('BRANCH ' + (i + 1)) });
+        }
+        return out;
+    }
+
+    function treeBadgeFor(node) {
+        if (node.type === 'win') return { text: 'WIN', cls: 'win' };
+        if (node.type === 'die') return { text: 'LOSE', cls: 'die' };
+        if (!String(node.text || '').trim()) return { text: 'TODO', cls: 'todo' };
+        return { text: 'SCENE', cls: 'neutral-tag' };
+    }
+
+    function appendTreeNodeRow(container, id, depth, isOrphan) {
+        const node = storyData[id];
+        if (!node) return;
+        const row = document.createElement('div');
+        row.className = 'tree-row' + (id === activeNodeId ? ' current-node-highlight' : '');
+        if (isOrphan) row.classList.add('orphan');
+        row.style.setProperty('--depth', String(depth));
+
+        const head = document.createElement('button');
+        head.type = 'button';
+        head.className = 'tree-row-head';
+        head.onclick = () => loadNode(id);
+
+        const idSpan = document.createElement('span');
+        idSpan.className = 'tree-node-id';
+        idSpan.textContent = id;
+        head.appendChild(idSpan);
+
+        const b = treeBadgeFor(node);
+        const badge = document.createElement('span');
+        badge.className = 'tree-badge ' + b.cls;
+        badge.textContent = b.text;
+        head.appendChild(badge);
+
+        row.appendChild(head);
+
+        const preview = document.createElement('div');
+        preview.className = 'tree-preview';
+        preview.textContent = treePreviewText(node.text, 54);
+        row.appendChild(preview);
+
+        container.appendChild(row);
+    }
+
     function renderTree() {
         const list = document.getElementById('node-list');
-        list.innerHTML = "";
-        Object.keys(storyData).forEach(id => {
+        list.innerHTML = '';
+        if (!storyData.START) {
+            const p = document.createElement('p');
+            p.className = 'tree-orphan-hint';
+            p.textContent = 'Add a START node to the saved story data.';
+            list.appendChild(p);
+            return;
+        }
+
+        const placed = new Set();
+
+        function walk(id, depth) {
+            if (!storyData[id] || placed.has(id)) return;
+            placed.add(id);
+            appendTreeNodeRow(list, id, depth, false);
             const node = storyData[id];
-            const div = document.createElement('div');
-            div.className = `node-item ${id === activeNodeId ? 'current-node-highlight' : ''}`;
-            let status = (node.text === "" && node.type === "neutral") ? '<span class="status-tag todo">TODO</span>' : (node.type !== 'neutral' ? `<span class="status-tag ${node.type}">${node.type}</span>` : '');
-            div.innerHTML = `${id} ${status}`;
-            div.onclick = () => loadNode(id);
-            list.appendChild(div);
+            if (node.type !== 'neutral') return;
+            const links = childBranchesInSlotOrder(id);
+            links.forEach((link, idx) => {
+                const edge = document.createElement('div');
+                edge.className = 'tree-edge' + (!storyData[link.nextId] ? ' tree-edge-bad' : '');
+                edge.style.setProperty('--depth', String(depth));
+                const isLast = idx === links.length - 1;
+                const prefix = isLast ? '└' : '├';
+                const lab = link.label.length > 38 ? link.label.slice(0, 37) + '…' : link.label;
+                edge.textContent = prefix + ' VIA: "' + lab + '" → ' + link.nextId;
+                list.appendChild(edge);
+                if (storyData[link.nextId]) walk(link.nextId, depth + 1);
+            });
+        }
+
+        const head = document.createElement('div');
+        head.className = 'tree-section-head';
+        head.textContent = 'REACHABLE FROM START';
+        list.appendChild(head);
+
+        walk('START', 0);
+
+        const unreachable = Object.keys(storyData).filter((id) => !placed.has(id)).sort();
+        if (unreachable.length === 0) return;
+
+        const oh = document.createElement('div');
+        oh.className = 'tree-section-head orphan-head';
+        oh.textContent = 'NOT LINKED FROM START (' + unreachable.length + ')';
+        list.appendChild(oh);
+
+        const hint = document.createElement('p');
+        hint.className = 'tree-orphan-hint';
+        hint.textContent = 'These scenes are not on any path from START (old branches or renames). You can still open them to edit or fold their text back into the main tree.';
+        list.appendChild(hint);
+
+        unreachable.forEach((id) => {
+            appendTreeNodeRow(list, id, 0, true);
         });
     }
 
     function loadNode(id) {
+        if (!storyData[id]) {
+            alert("NODE NOT FOUND: " + id);
+            return;
+        }
         activeNodeId = id;
-        const node = storyData[id];
+        const node = normalizeNode(storyData[id], id);
+        storyData[id] = node;
         document.getElementById('ui-current-id').innerText = `EDITING: ${id}`;
         document.getElementById('story-text').value = node.text;
         document.getElementById('node-type').value = node.type;
-        ['c1', 'c2', 'c3'].forEach((el, i) => { 
-            document.getElementById(el).value = (node.choices && node.choices[i]) ? node.choices[i].text : ""; 
+        ['c1', 'c2', 'c3'].forEach((el, i) => {
+            const c = node.choices && node.choices[i];
+            document.getElementById(el).value = c && c.text ? c.text : "";
         });
         toggleChoices(node.type);
         renderTree();
         document.getElementById('story-text').focus();
     }
 
-    function clearStorage() { if(confirm("Wipe everything?")) { localStorage.clear(); location.reload(); } }
+    function clearStorage() {
+        if (!confirm("Wipe everything?")) return;
+        localStorage.removeItem(STORAGE_STORY);
+        localStorage.removeItem(STORAGE_TITLE);
+        location.reload();
+    }
 
     function exportGame() {
-        const jsonContent = JSON.stringify(storyData);
+        const exportData = {};
+        Object.keys(storyData).forEach((id) => { exportData[id] = normalizeNode(storyData[id], id); });
+        function encodeStoryForExport(obj) {
+            const json = JSON.stringify(obj);
+            const bytes = new TextEncoder().encode(json);
+            let bin = '';
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin);
+        }
+        const storyPayloadB64 = encodeStoryForExport(exportData);
+        const safeTitle = String(storyTitle || 'story').replace(/[^\w\- ]+/g, '').trim() || 'story';
+        const crt = {
+            green: '#6ed888',
+            dim: '#1a3d22',
+            bg: '#050705',
+            glow: 'rgba(110, 216, 136, 0.42)',
+            win: '#7adcdc',
+            die: '#ff8a7a'
+        };
         const playerHtml = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>${storyTitle}</title>
+    <title>${safeTitle}</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; color: #33ff33; font-family: 'VT323', monospace; margin: 0; text-transform: uppercase; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        body::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 10; background-size: 100% 4px, 3px 100%; pointer-events: none; }
-        #screen { width: 90%; max-width: 700px; border: 2px solid #33ff33; padding: 30px; position: relative; text-shadow: 0 0 5px #33ff33; }
-        .text { font-size: 1.8rem; min-height: 120px; margin-bottom: 20px; line-height: 1.2; }
-        .choice { cursor: pointer; display: block; margin: 10px 0; font-size: 1.5rem; color: #33ff33; }
-        .choice:hover { background: #125512; }
-        .cursor { display: inline-block; width: 12px; height: 24px; background: #33ff33; vertical-align: middle; animation: blink 1s infinite; }
+        @keyframes phos-flicker {
+            0%, 100% { filter: brightness(1); }
+            41% { filter: brightness(0.992); }
+            42% { filter: brightness(0.975); }
+            43% { filter: brightness(1); }
+            76% { filter: brightness(0.988); }
+            77% { filter: brightness(1); }
+        }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        body { position: relative; background: #000; color: ${crt.green}; font-family: 'VT323', monospace; margin: 0; text-transform: uppercase; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        body::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05)); z-index: 0; background-size: 100% 4px, 3px 100%; pointer-events: none; }
+        #screen { width: 90%; max-width: 700px; max-height: 92vh; overflow-y: auto; border: 2px solid ${crt.green}; padding: 30px; position: relative; z-index: 1; text-shadow: 0 0 6px ${crt.glow}; -webkit-overflow-scrolling: touch; animation: phos-flicker 5.4s ease-in-out infinite; background: ${crt.bg}; }
+        .text { font-size: 1.8rem; min-height: 120px; margin-bottom: 20px; line-height: 1.2; position: relative; z-index: 0; }
+        #options { position: relative; z-index: 1; }
+        .choice { cursor: pointer; display: block; margin: 10px 0; font-size: 1.5rem; color: ${crt.green}; }
+        .choice:hover { background: ${crt.dim}; }
+        .cursor { display: inline-block; width: 12px; height: 24px; background: ${crt.green}; vertical-align: middle; animation: blink 1s infinite; }
     </style>
 </head>
 <body>
@@ -174,21 +412,48 @@
         <div id="output" class="text"></div>
         <div id="options"></div>
     </div>
+    <div id="story-export-data" style="display:none" aria-hidden="true">${storyPayloadB64}</div>
     <script>
-        const story = ${jsonContent};
+        function decodeStoryExport(b64) {
+            const bin = atob(b64.replace(/\\s+/g, ''));
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return JSON.parse(new TextDecoder().decode(bytes));
+        }
+        let story;
+        try {
+            story = decodeStoryExport(document.getElementById('story-export-data').textContent);
+        } catch (err) {
+            document.getElementById('output').textContent = 'STORY DATA ERROR: ' + (err && err.message ? err.message : String(err));
+        }
+        function setOutputWithCursor(txt, len) {
+            const out = document.getElementById("output");
+            out.textContent = "";
+            out.appendChild(document.createTextNode(txt.substring(0, len)));
+            const cur = document.createElement("span");
+            cur.className = "cursor";
+            out.appendChild(cur);
+        }
         function type(txt, i, callback) {
-            if (i < txt.length) {
-                document.getElementById("output").innerHTML = txt.substring(0, i+1) + '<span class="cursor"></span>';
-                setTimeout(() => type(txt, i + 1, callback), 35);
+            const t = txt || "";
+            if (i < t.length) {
+                setOutputWithCursor(t, i + 1);
+                setTimeout(() => type(t, i + 1, callback), 35);
             } else if (callback) callback();
         }
         function play(id) {
             const node = story[id];
             document.getElementById('options').innerHTML = '';
+            if (!node) {
+                document.getElementById("output").textContent = "ERROR: MISSING NODE " + JSON.stringify(id);
+                return;
+            }
             type(node.text || "...", 0, () => {
-                document.getElementById("output").innerHTML = node.text;
+                document.getElementById("output").textContent = node.text || "";
                 if (node.type === 'neutral') {
-                    node.choices.forEach(c => {
+                    const ch = Array.isArray(node.choices) ? node.choices : [];
+                    ch.forEach((c) => {
+                        if (!c || !c.text) return;
                         const d = document.createElement('div');
                         d.className = 'choice';
                         d.innerText = '> ' + c.text;
@@ -197,7 +462,7 @@
                     });
                 } else {
                     const status = document.createElement('div');
-                    status.style.color = node.type === 'win' ? '#33ffff' : '#ff3333';
+                    status.style.color = node.type === 'win' ? '${crt.win}' : '${crt.die}';
                     status.style.fontSize = '2rem';
                     status.innerText = node.type === 'win' ? 'MISSION SUCCESS' : 'MISSION FAILURE';
                     document.getElementById('options').appendChild(status);
@@ -209,16 +474,18 @@
                 }
             });
         }
-        play('START');
+        if (story) play('START');
     <\/script>
 </body>
 </html>`;
 
         const blob = new Blob([playerHtml], {type: 'text/html'});
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = storyTitle.toLowerCase().replace(/ /g, '_') + ".html";
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = safeTitle.toLowerCase().replace(/ /g, '_') + ".html";
         a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2500);
     }
 
     renderTree();
