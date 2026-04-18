@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shape Match</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(160deg, #ecfeff 0%, #cffafe 45%, #e0e7ff 100%);
+      min-height: 100dvh;
+      padding: 1rem 1rem 2rem;
+      scroll-behavior: smooth;
+    }
+
+    header {
+      max-width: 760px;
+      margin: 0 auto 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .score-badge {
+      background: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f766e;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(1.35rem, 5.5vw, 2.1rem);
+      color: #0f766e;
+      margin-bottom: 0.1rem;
+      text-shadow: 1px 2px 0 rgba(0,0,0,0.06);
+    }
+
+    .subtitle {
+      font-size: clamp(0.8rem, 3.1vw, 0.95rem);
+      color: #555;
+      margin-bottom: 0.35rem;
+      line-height: 1.35;
+      padding: 0 0.25rem;
+    }
+
+    .progress-track {
+      background: #e5e7eb;
+      border-radius: 99px;
+      height: 10px;
+      margin-bottom: 0.65rem;
+      overflow: hidden;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .progress-fill {
+      background: linear-gradient(to right, #2dd4bf, #0d9488);
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.45s ease;
+    }
+
+    .board {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: stretch;
+      gap: clamp(8px, 2vw, 16px);
+      max-width: 720px;
+      margin: 0 auto 0.6rem;
+    }
+
+    .board-col {
+      flex: 1;
+      min-width: 0;
+      max-width: 340px;
+    }
+
+    .col-title {
+      font-size: clamp(0.72rem, 2.8vw, 0.88rem);
+      font-weight: 800;
+      color: #115e59;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.35rem;
+    }
+
+    .column-cells {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .match-cell {
+      width: 100%;
+      border-radius: 16px;
+      border: 3px solid #cbd5e1;
+      background: #fff;
+      cursor: pointer;
+      padding: 0.35rem 0.45rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      position: relative;
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .match-cell svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 86px;
+    }
+
+    .match-cell:hover:not(:disabled),
+    .match-cell:focus-visible:not(:disabled) {
+      border-color: #2dd4bf;
+      box-shadow: 0 6px 16px rgba(13,148,136,0.2);
+      outline: none;
+    }
+
+    .match-cell.is-selected:not(:disabled) {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(45,212,191,0.55);
+    }
+
+    .match-cell.is-matched {
+      border-color: #22c55e;
+      background: #f0fdf4;
+      cursor: default;
+      opacity: 0.92;
+    }
+
+    .match-cell.is-matched::after {
+      content: '✓';
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #16a34a;
+    }
+
+    .match-cell:disabled {
+      cursor: default;
+    }
+
+    .match-cell.state-wrong {
+      animation: shake 0.38s ease;
+      border-color: #f87171;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      60%       { transform: translateX(6px); }
+    }
+
+    .feedback {
+      min-height: 2.1rem;
+      font-size: clamp(0.95rem, 3.8vw, 1.15rem);
+      font-weight: 800;
+      padding: 0 0.5rem;
+    }
+    .feedback.hint { color: #0f766e; }
+    .feedback.ok { color: #15803d; }
+    .feedback.bad { color: #dc2626; }
+
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+    .win-overlay.show { opacity: 1; pointer-events: auto; }
+
+    .win-card {
+      background: #fff;
+      border-radius: 26px;
+      padding: 2rem 1.6rem;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      animation: popCard 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popCard {
+      from { transform: scale(0.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .win-emoji  { font-size: 3rem; margin-bottom: 0.4rem; }
+    .win-title  { font-size: clamp(1.3rem,5vw,1.7rem); font-weight: 800; color: #1f2937; margin-bottom: 0.4rem; }
+    .win-score  { font-size: 1rem; color: #6b7280; margin-bottom: 1.2rem; }
+
+    .replay-btn {
+      background: linear-gradient(135deg, #14b8a6, #0f766e);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 0.75rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 50px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      transition: transform 0.12s;
+    }
+    .replay-btn:hover  { transform: translateY(-2px); }
+    .replay-btn:active { transform: scale(0.96); }
+
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0.35rem 0.35rem 0;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        overscroll-behavior-y: none;
+      }
+      header { flex-shrink: 0; margin-bottom: 0.2rem; }
+      .back-btn, .score-badge {
+        min-height: 38px;
+        padding: 0.3rem 0.65rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+      }
+      main {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      h1 { font-size: 1rem; margin-bottom: 0; }
+      .subtitle { font-size: 0.65rem; margin-bottom: 0.2rem; }
+      .progress-track { height: 6px; margin-bottom: 0.2rem; flex-shrink: 0; }
+      .board {
+        flex: 1;
+        min-height: 0;
+        gap: 6px;
+        margin-bottom: 0.2rem;
+        overflow: hidden;
+      }
+      .col-title { font-size: 0.58rem; margin-bottom: 0.2rem; }
+      .column-cells { gap: 5px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+      .match-cell {
+        min-height: 0;
+        padding: 0.22rem 0.3rem;
+        border-radius: 12px;
+        border-width: 2px;
+      }
+      .match-cell svg { max-height: 72px; }
+      .feedback {
+        flex-shrink: 0;
+        min-height: 1.25rem;
+        font-size: 0.78rem;
+        padding-bottom: env(safe-area-inset-bottom, 0.2rem);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html#map" class="back-btn">← Back</a>
+    <div class="score-badge">Pairs <span id="pairs-val">0</span> / 5</div>
+  </header>
+
+  <main>
+    <h1>Shape Match</h1>
+    <p class="subtitle">Each stack has three classic shapes, centered and neatly piled (biggest on the bottom, smaller toward the top). Find the same three shapes spread in a row. Tap a stack, then tap the matching row.</p>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="board">
+      <div class="board-col">
+        <div class="col-title">Stacked</div>
+        <div id="left-column" class="column-cells" role="group" aria-label="Stacked shape sets"></div>
+      </div>
+      <div class="board-col">
+        <div class="col-title">Separated</div>
+        <div id="right-column" class="column-cells" role="group" aria-label="Separated shape sets"></div>
+      </div>
+    </div>
+
+    <div class="feedback hint" id="feedback" aria-live="polite"></div>
+  </main>
+
+  <div class="confetti-layer" id="confetti-layer"></div>
+
+  <div class="win-overlay" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title-el">
+    <div class="win-card">
+      <div class="win-emoji" id="win-emoji">★</div>
+      <div class="win-title" id="win-title-el">You matched them all!</div>
+      <div class="win-score" id="win-score-msg"></div>
+      <button class="replay-btn" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const NS = 'http://www.w3.org/2000/svg';
+    const NUM_PAIRS = 5;
+    const LAYERS = 3;
+
+    const KINDS = [
+      'square', 'circle', 'diamond', 'star', 'heart', 'rhombus',
+      'trapezoid', 'rectangle', 'triangle', 'pentagon', 'hexagon', 'octagon',
+    ];
+
+    const SFX = {
+      match: new Audio('../sounds/match.mp3'),
+      win:   new Audio('../sounds/win.mp3'),
+    };
+    function playSound(name) {
+      const s = SFX[name];
+      if (!s) return;
+      s.currentTime = 0;
+      s.play().catch(() => {});
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function starPoints(cx, cy, outer, inner, n) {
+      const pts = [];
+      for (let i = 0; i < n * 2; i++) {
+        const r = i % 2 === 0 ? outer : inner;
+        const ang = (-Math.PI / 2) + (i * Math.PI) / n;
+        pts.push(`${cx + r * Math.cos(ang)},${cy + r * Math.sin(ang)}`);
+      }
+      return pts.join(' ');
+    }
+
+    /** Regular n-gon, first vertex at top (pointy top). */
+    function ngonPoints(cx, cy, R, n) {
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const ang = (-Math.PI / 2) + (i * 2 * Math.PI) / n;
+        pts.push(`${cx + R * Math.cos(ang)},${cy + R * Math.sin(ang)}`);
+      }
+      return pts.join(' ');
+    }
+
+    /** Shape centered in 100×100 local box (origin top-left of box). */
+    function shapeEl(kind, fill, stroke, sw) {
+      let el;
+      if (kind === 'circle') {
+        el = document.createElementNS(NS, 'circle');
+        el.setAttribute('cx', '50'); el.setAttribute('cy', '50'); el.setAttribute('r', '38');
+      } else if (kind === 'square') {
+        el = document.createElementNS(NS, 'rect');
+        el.setAttribute('x', '14'); el.setAttribute('y', '14');
+        el.setAttribute('width', '72'); el.setAttribute('height', '72');
+      } else if (kind === 'rectangle') {
+        el = document.createElementNS(NS, 'rect');
+        el.setAttribute('x', '6'); el.setAttribute('y', '32');
+        el.setAttribute('width', '88'); el.setAttribute('height', '36');
+      } else if (kind === 'triangle') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', '50,12 90,88 10,88');
+      } else if (kind === 'diamond') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', '50,8 92,50 50,92 8,50');
+      } else if (kind === 'rhombus') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', '14,50 50,20 86,50 50,80');
+      } else if (kind === 'trapezoid') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', '28,32 72,32 90,78 10,78');
+      } else if (kind === 'pentagon') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', ngonPoints(50, 50, 38, 5));
+      } else if (kind === 'hexagon') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', ngonPoints(50, 50, 38, 6));
+      } else if (kind === 'octagon') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', ngonPoints(50, 50, 38, 8));
+      } else if (kind === 'star') {
+        el = document.createElementNS(NS, 'polygon');
+        el.setAttribute('points', starPoints(50, 50, 40, 16, 5));
+      } else if (kind === 'heart') {
+        el = document.createElementNS(NS, 'path');
+        /* Classic two-lobe heart: two upper bumps meeting at a centre notch, one point below. */
+        el.setAttribute('d', 'M50,90 C20,58 10,42 22,30 C30,18 40,20 50,36 C60,20 70,18 78,30 C90,42 80,58 50,90 Z');
+      } else {
+        el = document.createElementNS(NS, 'circle');
+        el.setAttribute('cx', '50'); el.setAttribute('cy', '50'); el.setAttribute('r', '38');
+      }
+      el.setAttribute('fill', fill);
+      el.setAttribute('stroke', stroke);
+      el.setAttribute('stroke-width', sw);
+      el.setAttribute('stroke-linejoin', 'round');
+      return el;
+    }
+
+    /** Neat centered stack: bottom largest, each layer above slightly smaller, all same center. */
+    function renderStackSvg(layers, fills) {
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 100 100');
+      svg.setAttribute('xmlns', NS);
+      /* Bottom largest → top smallest; wide gaps so every outline stays easy to see. */
+      const scales = [0.95, 0.52, 0.30];
+      for (let i = 0; i < LAYERS; i++) {
+        const g = document.createElementNS(NS, 'g');
+        const sc = scales[i];
+        g.setAttribute('transform', `translate(50,50) scale(${sc}) translate(-50,-50)`);
+        g.appendChild(shapeEl(layers[i], fills[i], '#0f172a', 3));
+        svg.appendChild(g);
+      }
+      return svg;
+    }
+
+    /** Same three shapes in a horizontal row, centered vertically. */
+    function renderSpreadSvg(layers, fills) {
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 156 56');
+      svg.setAttribute('xmlns', NS);
+      const xs = [26, 78, 130];
+      const sc = 0.24;
+      for (let i = 0; i < LAYERS; i++) {
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('transform', `translate(${xs[i]}, 30) scale(${sc}) translate(-50,-50)`);
+        g.appendChild(shapeEl(layers[i], fills[i], '#0f172a', 3));
+        svg.appendChild(g);
+      }
+      return svg;
+    }
+
+    function randomPuzzleList() {
+      const seen = new Set();
+      const out = [];
+      let guard = 0;
+      while (out.length < NUM_PAIRS && guard < 500) {
+        guard++;
+        const tri = shuffle([...KINDS]).slice(0, LAYERS);
+        const key = tri.join('|');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const fills = [pick(FILLS), pick(FILLS), pick(FILLS)];
+        out.push({
+          id: out.length,
+          layers: tri,
+          fills,
+          key,
+        });
+      }
+      return out;
+    }
+
+    const FILLS = ['#38bdf8', '#f472b6', '#a78bfa', '#fbbf24', '#4ade80', '#fb923c', '#60a5fa', '#c084fc'];
+
+    let puzzles = [];
+    let rightOrder = [];
+    let matched = new Set();
+    let selection = null;
+    let leftButtons = [];
+    let rightButtons = [];
+
+    function setFeedback(text, cls) {
+      const fb = document.getElementById('feedback');
+      fb.textContent = text;
+      fb.className = 'feedback ' + (cls || 'hint');
+    }
+
+    function updateProgress() {
+      const n = matched.size;
+      document.getElementById('pairs-val').textContent = n;
+      document.getElementById('progress-fill').style.width = `${(n / NUM_PAIRS) * 100}%`;
+    }
+
+    function clearSelectionUI() {
+      leftButtons.forEach(b => b.classList.remove('is-selected'));
+      rightButtons.forEach(b => b.classList.remove('is-selected'));
+      selection = null;
+    }
+
+    function tryPair(leftSlot, rightSlot) {
+      const leftPuzzle = puzzles[leftSlot];
+      const rightPuzzle = rightOrder[rightSlot];
+      if (leftPuzzle.id !== rightPuzzle.id) {
+        const btnL = leftButtons[leftSlot];
+        const btnR = rightButtons[rightSlot];
+        btnL.classList.add('state-wrong');
+        btnR.classList.add('state-wrong');
+        setFeedback('Not a match — try another pair!', 'bad');
+        setTimeout(() => {
+          btnL.classList.remove('state-wrong');
+          btnR.classList.remove('state-wrong');
+          clearSelectionUI();
+          setFeedback('Tap a stack, then the row with the same shapes.', 'hint');
+        }, 700);
+        return;
+      }
+
+      playSound('match');
+      matched.add(leftPuzzle.id);
+      leftButtons[leftSlot].classList.add('is-matched');
+      leftButtons[leftSlot].disabled = true;
+      rightButtons[rightSlot].classList.add('is-matched');
+      rightButtons[rightSlot].disabled = true;
+      clearSelectionUI();
+      updateProgress();
+      setFeedback('Nice — that pair matches!', 'ok');
+      setTimeout(() => {
+        if (matched.size >= NUM_PAIRS) {
+          showWinScreen();
+        } else {
+          setFeedback('Tap a stack, then the row with the same shapes.', 'hint');
+        }
+      }, 650);
+    }
+
+    function onPick(side, slot) {
+      const btn = side === 'left' ? leftButtons[slot] : rightButtons[slot];
+      if (btn.disabled || btn.classList.contains('is-matched')) return;
+
+      if (!selection) {
+        selection = { side, slot };
+        btn.classList.add('is-selected');
+        setFeedback(side === 'left'
+          ? 'Now tap the separated row that matches.'
+          : 'Now tap the stacked set that matches.', 'hint');
+        return;
+      }
+
+      if (selection.side === side && selection.slot === slot) {
+        btn.classList.remove('is-selected');
+        selection = null;
+        setFeedback('Tap a stack, then the row with the same shapes.', 'hint');
+        return;
+      }
+
+      if (selection.side === side) {
+        leftButtons.forEach(b => b.classList.remove('is-selected'));
+        rightButtons.forEach(b => b.classList.remove('is-selected'));
+        selection = { side, slot };
+        btn.classList.add('is-selected');
+        setFeedback(side === 'left'
+          ? 'Now tap the separated row that matches.'
+          : 'Now tap the stacked set that matches.', 'hint');
+        return;
+      }
+
+      const first = selection;
+      clearSelectionUI();
+      let leftSlot;
+      let rightSlot;
+      if (first.side === 'left' && side === 'right') {
+        leftSlot = first.slot;
+        rightSlot = slot;
+      } else if (first.side === 'right' && side === 'left') {
+        leftSlot = slot;
+        rightSlot = first.slot;
+      } else {
+        return;
+      }
+      tryPair(leftSlot, rightSlot);
+    }
+
+    function buildBoard() {
+      puzzles = randomPuzzleList();
+      rightOrder = shuffle([...puzzles]);
+
+      const leftCol = document.getElementById('left-column');
+      const rightCol = document.getElementById('right-column');
+      leftCol.innerHTML = '';
+      rightCol.innerHTML = '';
+      leftButtons = [];
+      rightButtons = [];
+
+      puzzles.forEach((pz, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'match-cell';
+        btn.appendChild(renderStackSvg(pz.layers, pz.fills));
+        btn.setAttribute('aria-label', `Stacked set ${i + 1}`);
+        btn.addEventListener('click', () => onPick('left', i));
+        leftCol.appendChild(btn);
+        leftButtons.push(btn);
+      });
+
+      rightOrder.forEach((pz, j) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'match-cell';
+        btn.appendChild(renderSpreadSvg(pz.layers, pz.fills));
+        btn.setAttribute('aria-label', `Separated set ${j + 1}`);
+        btn.addEventListener('click', () => onPick('right', j));
+        rightCol.appendChild(btn);
+        rightButtons.push(btn);
+      });
+
+      matched = new Set();
+      selection = null;
+      updateProgress();
+      setFeedback('Tap a stack, then the row with the same shapes.', 'hint');
+    }
+
+    function showWinScreen() {
+      document.getElementById('progress-fill').style.width = '100%';
+      playSound('win');
+      document.getElementById('win-emoji').textContent = '★★★';
+      document.getElementById('win-title-el').textContent = 'Shape champion!';
+      document.getElementById('win-score-msg').textContent =
+        'You matched all five stacks to their shapes!';
+      document.getElementById('win-overlay').classList.add('show');
+      launchConfetti();
+    }
+
+    function launchConfetti() {
+      const style = document.createElement('style');
+      style.textContent = `@keyframes confettiFall {
+        0%   { transform:translateY(-20px) rotate(0deg);   opacity:1; }
+        100% { transform:translateY(105vh) rotate(540deg); opacity:0; }
+      }`;
+      document.head.appendChild(style);
+      const layer = document.getElementById('confetti-layer');
+      layer.innerHTML = '';
+      const colors = ['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa','#fb7185','#2dd4bf'];
+      for (let i = 0; i < 70; i++) {
+        const el = document.createElement('div');
+        const size = 7 + Math.random() * 8;
+        el.style.cssText = `
+          position:absolute;left:${Math.random()*100}%;top:-20px;
+          width:${size}px;height:${size}px;
+          border-radius:${Math.random()>0.45?'50%':'2px'};
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          animation:confettiFall ${1.6+Math.random()*2.2}s ease-in ${Math.random()}s forwards;
+        `;
+        layer.appendChild(el);
+      }
+    }
+
+    function restartGame() {
+      document.getElementById('win-overlay').classList.remove('show');
+      document.getElementById('confetti-layer').innerHTML = '';
+      buildBoard();
+    }
+
+    buildBoard();
+  </script>
+</body>
+</html>
