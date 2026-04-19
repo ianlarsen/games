@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Tangrams</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(165deg, #faf5ff 0%, #e9d5ff 35%, #ddd6fe 100%);
+      min-height: 100dvh;
+      height: 100dvh;
+      padding: max(0.35rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.35rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+      touch-action: manipulation;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto 0.2rem;
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #334155;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+    h1 {
+      font-size: clamp(1.25rem, 5vw, 1.85rem);
+      color: #1e1b4b;
+      text-align: center;
+      flex: 1;
+    }
+    main {
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0 0.25rem;
+    }
+    .section-label {
+      text-align: center;
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin: 0.06rem 0 0.04rem;
+      flex: 0 0 auto;
+    }
+    .mode-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.28rem;
+      justify-content: center;
+      margin-bottom: 0.08rem;
+      flex: 0 0 auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0.1rem;
+      scrollbar-width: none;
+    }
+    .mode-row::-webkit-scrollbar { display: none; }
+    .mode-row button {
+      border: 2px solid #94a3b8;
+      background: #fff;
+      border-radius: 999px;
+      padding: 0.32rem 0.65rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #334155;
+      min-height: 40px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .mode-row button[aria-pressed="true"] {
+      background: linear-gradient(135deg, #7c3aed, #6366f1);
+      color: #fff;
+      border-color: #5b21b6;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.3rem;
+      justify-content: center;
+      align-items: center;
+      margin: 0.1rem 0 0.12rem;
+      flex: 0 0 auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .toolbar::-webkit-scrollbar { display: none; }
+    .toolbar button, .toolbar label {
+      border: 2px solid #cbd5e1;
+      background: #fff;
+      border-radius: 10px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #334155;
+      min-height: 40px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .toolbar label { cursor: pointer; user-select: none; }
+    .toolbar button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .toolbar .tool-primary {
+      border-color: #c7d2fe;
+      background: linear-gradient(180deg, #fff 0%, #eef2ff 100%);
+      color: #312e81;
+      min-height: 44px;
+      padding: 0.42rem 0.9rem;
+      gap: 0.45rem;
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(79, 70, 229, 0.12);
+    }
+    .toolbar .tool-primary:not(:disabled):active {
+      transform: scale(0.97);
+    }
+    .toolbar .tool-primary .tool-glyph {
+      flex-shrink: 0;
+      font-size: 1.45rem;
+      line-height: 1;
+      font-weight: 800;
+      color: #4f46e5;
+      min-width: 1.35rem;
+      text-align: center;
+    }
+    .toolbar .tool-primary:disabled .tool-glyph { color: #94a3b8; }
+    .toolbar .tool-primary[hidden] { display: none !important; }
+    .canvas-wrap {
+      background: #fff;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+      padding: min(0.35rem, 1.2vw);
+      margin: 0 auto;
+      width: 100%;
+      max-width: 100%;
+      flex: 1 1 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Display size is set in JS so width/height scale together (no non-uniform stretch). */
+    canvas {
+      display: block;
+      touch-action: none;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+    .help {
+      margin-top: 0.08rem;
+      font-size: clamp(0.6rem, 2.4vw, 0.68rem);
+      color: #64748b;
+      text-align: center;
+      line-height: 1.3;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      flex: 0 0 auto;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .done-badge {
+      text-align: center;
+      font-weight: 800;
+      color: #15803d;
+      font-size: 0.72rem;
+      margin-bottom: 0.04rem;
+      min-height: 0.95em;
+      flex: 0 0 auto;
+    }
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+      background: rgba(15, 23, 42, 0.42);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+    .win-overlay[hidden] {
+      display: none !important;
+    }
+    .win-confetti {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .confetti-bit {
+      position: absolute;
+      width: 9px;
+      height: 14px;
+      top: -8vh;
+      left: calc(var(--cx) * 100%);
+      background: var(--bg, #6366f1);
+      border-radius: 2px;
+      opacity: 0.95;
+      animation: confetti-drop var(--dur, 2.1s) ease-in forwards;
+      animation-delay: var(--delay, 0s);
+    }
+    .confetti-bit.round { border-radius: 50%; width: 10px; height: 10px; }
+    @keyframes confetti-drop {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      100% { transform: translate3d(var(--tx), 115vh, 0) rotate(3turn); opacity: 0.75; }
+    }
+    .win-card {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 1.35rem 1.5rem 1.25rem;
+      max-width: 20rem;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+    }
+    .win-card h2 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #1e1b4b;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    .win-card .btn-play-again {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 0.65rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #7c3aed, #6366f1);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+      min-height: 48px;
+    }
+    .win-card .btn-play-again:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="back-btn" href="../index.html#map">Back</a>
+    <h1>Tangrams</h1>
+    <span style="width:72px;flex-shrink:0" aria-hidden="true"></span>
+  </header>
+  <main>
+    <div class="done-badge" id="done-msg" aria-live="polite"></div>
+
+    <div class="section-label">Puzzles</div>
+    <div class="mode-row" id="puzzle-row" role="group" aria-label="Choose puzzle"></div>
+
+    <div class="toolbar" role="toolbar" aria-label="Piece controls">
+      <button type="button" id="btn-rotate" class="tool-primary" disabled
+        title="Rotate 45° clockwise" aria-label="Rotate selected piece 45 degrees clockwise">
+        <span class="tool-glyph" aria-hidden="true">↻</span>
+        <span>Rotate</span>
+      </button>
+      <button type="button" id="btn-flip" class="tool-primary" hidden disabled
+        title="Flip parallelogram" aria-label="Flip selected parallelogram piece">
+        <span class="tool-glyph" aria-hidden="true">⇄</span>
+        <span>Flip</span>
+      </button>
+      <button type="button" id="btn-scatter">Scatter</button>
+      <label><input type="checkbox" id="snap-ang" checked> Snap angles</label>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="c" width="2048" height="2048" aria-label="Tangram play area"></canvas>
+    </div>
+    <p class="help" id="help-text"></p>
+  </main>
+
+  <div id="win-overlay" class="win-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="win-title">
+    <div class="win-confetti" id="win-confetti" aria-hidden="true"></div>
+    <div class="win-card">
+      <h2 id="win-title">Great job!</h2>
+      <button type="button" class="btn-play-again" id="btn-play-again">Play again</button>
+    </div>
+  </div>
+
+  <!-- Bundled puzzle JSON: used when tangram_data.json cannot be fetched (e.g. file://). Replace this block if you change tangram_data.json and need offline play. -->
+  <script type="application/json" id="tangram-embedded-data">{"version":1,"puzzles":[{"id":"square","label":"Square","kind":"shape","matShape":"square","flex":"none","help":"Snap the seven palette pieces to match the dashed outline.","pieceIds":["p1","p2","p3","p4","p5","p6","p7"],"pieceRotMod":{"yellow_square":90,"green_triangle":180,"red_triangle":180,"blue_triangle":180,"teal_triangle":180,"violet_triangle":180,"orange_rhombus":180},"shapeDefs":{"green_triangle":{"color":"#16a34a","para":false,"local":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]]},"red_triangle":{"color":"#dc2626","para":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},"blue_triangle":{"color":"#2563eb","para":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},"teal_triangle":{"color":"#0d9488","para":false,"local":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]]},"violet_triangle":{"color":"#7c3aed","para":false,"local":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]]},"yellow_square":{"color":"#eab308","para":false,"local":[[-70,0],[0,70],[70,0],[0,-70]]},"orange_rhombus":{"color":"#ea580c","para":true,"local":[[-100,-50],[0,-50],[100,50],[0,50]]}},"snaps":[{"id":"p1","shape":"green_triangle","mx":293.4,"my":297.6,"r":180,"flip":false},{"id":"p2","shape":"red_triangle","mx":199.8,"my":102.4,"r":-135,"flip":false},{"id":"p3","shape":"blue_triangle","mx":104.6,"my":196.8,"r":135,"flip":false},{"id":"p4","shape":"teal_triangle","mx":319,"my":127.2,"r":-45,"flip":false},{"id":"p5","shape":"violet_triangle","mx":199.8,"my":249.6,"r":-45,"flip":false},{"id":"p6","shape":"yellow_square","mx":271,"my":198.4,"r":0,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":164.6,"my":308.8,"r":-45,"flip":false}],"solutions":[[{"id":"p1","shape":"green_triangle","mx":293.4,"my":297.6,"r":180,"flip":false},{"id":"p2","shape":"red_triangle","mx":199.8,"my":102.4,"r":-135,"flip":false},{"id":"p3","shape":"blue_triangle","mx":104.6,"my":196.8,"r":135,"flip":false},{"id":"p4","shape":"teal_triangle","mx":319,"my":127.2,"r":-45,"flip":false},{"id":"p5","shape":"violet_triangle","mx":199.8,"my":249.6,"r":-45,"flip":false},{"id":"p6","shape":"yellow_square","mx":271,"my":198.4,"r":0,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":164.6,"my":308.8,"r":-45,"flip":false}]]}]}</script>
+
+  <script type="application/json" id="tangram-animals-embedded-data">{"version":1,"note":"Author snapshots: cat.json, fish.json, turtle.json, swan.json, dog.json (straightened). Re-run this script after edits.","snapshots":[{"format":"otg-tangram-author-snapshot","version":1,"exportedAt":"2026-04-19T22:04:31.452Z","matFrame":{"logicalCanvas":{"w":560,"h":520},"mat":{"x":30,"y":30,"w":400,"h":400},"matShape":"square","note":"Game uses mat origin top-left; piece canvas (x,y) is transform origin before rotate/flip, same as this author."},"draftFields":{"id":"cat","label":"Cat","kind":"shape","flex":"none"},"matPieces":[{"pieceId":"p5","shapeId":"violet_triangle","color":"#7c3aed","para":false,"isCustom":false,"canvas":{"x":169.2,"y":74},"mat":{"mx":139.2,"my":44},"r":45,"flip":false,"local":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]],"baseLocal":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]]},{"pieceId":"p6","shapeId":"yellow_square","color":"#eab308","para":false,"isCustom":false,"canvas":{"x":218.8,"y":145.2},"mat":{"mx":188.8,"my":115.2},"r":0,"flip":false,"local":[[-70,0],[0,70],[70,0],[0,-70]],"baseLocal":[[-100,0],[0,100],[100,0],[0,-100]],"pieceScale":0.7},{"pieceId":"p4","shapeId":"teal_triangle","color":"#0d9488","para":false,"isCustom":false,"canvas":{"x":272.4,"y":78},"mat":{"mx":242.4,"my":48},"r":-45,"flip":false,"local":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]],"baseLocal":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]]},{"pieceId":"p1","shapeId":"green_triangle","color":"#16a34a","para":false,"isCustom":false,"canvas":{"x":186,"y":318},"mat":{"mx":156,"my":288},"r":-45,"flip":false,"local":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]],"baseLocal":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]]},{"pieceId":"p2","shapeId":"red_triangle","color":"#dc2626","para":false,"isCustom":false,"canvas":{"x":269.2,"y":358.8},"mat":{"mx":239.2,"my":328.8},"r":135,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p3","shapeId":"blue_triangle","color":"#2563eb","para":false,"isCustom":false,"canvas":{"x":362,"y":429.2},"mat":{"mx":332,"my":399.2},"r":180,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p7","shapeId":"orange_rhombus","color":"#ea580c","para":true,"isCustom":false,"canvas":{"x":479.6,"y":400.4},"mat":{"mx":449.6,"my":370.4},"r":90,"flip":false,"local":[[-100,-50],[0,-50],[100,50],[0,50]],"baseLocal":[[-100,-50],[0,-50],[100,50],[0,50]]}],"customTemplates":{},"capturedSolutions":[[{"id":"p1","shape":"green_triangle","mx":156,"my":288,"r":-45,"flip":false},{"id":"p2","shape":"red_triangle","mx":239.2,"my":328.8,"r":135,"flip":false},{"id":"p3","shape":"blue_triangle","mx":332,"my":399.2,"r":180,"flip":false},{"id":"p4","shape":"teal_triangle","mx":242.4,"my":48,"r":-45,"flip":false},{"id":"p5","shape":"violet_triangle","mx":139.2,"my":44,"r":45,"flip":false},{"id":"p6","shape":"yellow_square","mx":188.8,"my":115.2,"r":0,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":449.6,"my":370.4,"r":90,"flip":false}]]},{"format":"otg-tangram-author-snapshot","version":1,"exportedAt":"2026-04-19T22:02:40.995Z","matFrame":{"logicalCanvas":{"w":560,"h":520},"mat":{"x":30,"y":30,"w":400,"h":400},"matShape":"square","note":"Game uses mat origin top-left; piece canvas (x,y) is transform origin before rotate/flip, same as this author."},"draftFields":{"id":"fish","label":"Fish","kind":"shape","flex":"none"},"matPieces":[{"pieceId":"p3","shapeId":"blue_triangle","color":"#2563eb","para":false,"isCustom":false,"canvas":{"x":407.6,"y":149.2},"mat":{"mx":377.6,"my":119.2},"r":-90,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p1","shapeId":"green_triangle","color":"#16a34a","para":false,"isCustom":false,"canvas":{"x":388.4,"y":265.2},"mat":{"mx":358.4,"my":235.2},"r":0,"flip":false,"local":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]],"baseLocal":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]]},{"pieceId":"p7","shapeId":"orange_rhombus","color":"#ea580c","para":true,"isCustom":false,"canvas":{"x":288.4,"y":217.2},"mat":{"mx":258.4,"my":187.2},"r":90,"flip":false,"local":[[-100,-50],[0,-50],[100,50],[0,50]],"baseLocal":[[-100,-50],[0,-50],[100,50],[0,50]]},{"pieceId":"p5","shapeId":"violet_triangle","color":"#7c3aed","para":false,"isCustom":false,"canvas":{"x":273.2,"y":146.8},"mat":{"mx":243.2,"my":116.8},"r":-90,"flip":false,"local":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]],"baseLocal":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]]},{"pieceId":"p4","shapeId":"teal_triangle","color":"#0d9488","para":false,"isCustom":false,"canvas":{"x":304.4,"y":286.8},"mat":{"mx":274.4,"my":256.8},"r":180,"flip":false,"local":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]],"baseLocal":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]]},{"pieceId":"p6","shapeId":"yellow_square","color":"#eab308","para":false,"isCustom":false,"canvas":{"x":188.4,"y":222},"mat":{"mx":158.4,"my":192},"r":45,"flip":false,"local":[[-70,0],[0,70],[70,0],[0,-70]],"baseLocal":[[-100,0],[0,100],[100,0],[0,-100]],"pieceScale":0.7},{"pieceId":"p2","shapeId":"red_triangle","color":"#dc2626","para":false,"isCustom":false,"canvas":{"x":42.8,"y":229.2},"mat":{"mx":12.8,"my":199.2},"r":135,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]}],"customTemplates":{},"capturedSolutions":[[{"id":"p1","shape":"green_triangle","mx":358.4,"my":235.2,"r":0,"flip":false},{"id":"p2","shape":"red_triangle","mx":12.8,"my":199.2,"r":135,"flip":false},{"id":"p3","shape":"blue_triangle","mx":377.6,"my":119.2,"r":-90,"flip":false},{"id":"p4","shape":"teal_triangle","mx":274.4,"my":256.8,"r":180,"flip":false},{"id":"p5","shape":"violet_triangle","mx":243.2,"my":116.8,"r":-90,"flip":false},{"id":"p6","shape":"yellow_square","mx":158.4,"my":192,"r":45,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":258.4,"my":187.2,"r":90,"flip":false}]]},{"format":"otg-tangram-author-snapshot","version":1,"exportedAt":"2026-04-19T22:13:38.590Z","matFrame":{"logicalCanvas":{"w":560,"h":520},"mat":{"x":30,"y":30,"w":400,"h":400},"matShape":"square","note":"Game uses mat origin top-left; piece canvas (x,y) is transform origin before rotate/flip, same as this author."},"draftFields":{"id":"turtle","label":"Turtle","kind":"shape","flex":"none"},"matPieces":[{"pieceId":"p6","shapeId":"yellow_square","color":"#eab308","para":false,"isCustom":false,"canvas":{"x":85.2,"y":83.6},"mat":{"mx":55.2,"my":53.6},"r":45,"flip":false,"local":[[-70,0],[0,70],[70,0],[0,-70]],"baseLocal":[[-100,0],[0,100],[100,0],[0,-100]],"pieceScale":0.7},{"pieceId":"p2","shapeId":"red_triangle","color":"#dc2626","para":false,"isCustom":false,"canvas":{"x":271.6,"y":202},"mat":{"mx":241.6,"my":172},"r":90,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p3","shapeId":"blue_triangle","color":"#2563eb","para":false,"isCustom":false,"canvas":{"x":206,"y":274.8},"mat":{"mx":176,"my":244.8},"r":-90,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p7","shapeId":"orange_rhombus","color":"#ea580c","para":true,"isCustom":false,"canvas":{"x":88.4,"y":239.6},"mat":{"mx":58.4,"my":209.6},"r":90,"flip":false,"local":[[-100,-50],[0,-50],[100,50],[0,50]],"baseLocal":[[-100,-50],[0,-50],[100,50],[0,50]]},{"pieceId":"p1","shapeId":"green_triangle","color":"#16a34a","para":false,"isCustom":false,"canvas":{"x":221.2,"y":44.4},"mat":{"mx":191.2,"my":14.4},"r":0,"flip":false,"local":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]],"baseLocal":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]]},{"pieceId":"p5","shapeId":"violet_triangle","color":"#7c3aed","para":false,"isCustom":false,"canvas":{"x":314,"y":410},"mat":{"mx":284,"my":380},"r":-135,"flip":false,"local":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]],"baseLocal":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]]},{"pieceId":"p4","shapeId":"teal_triangle","color":"#0d9488","para":false,"isCustom":false,"canvas":{"x":411.6,"y":314.8},"mat":{"mx":381.6,"my":284.8},"r":45,"flip":false,"local":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]],"baseLocal":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]]}],"customTemplates":{},"capturedSolutions":[[{"id":"p1","shape":"green_triangle","mx":191.2,"my":14.4,"r":0,"flip":false},{"id":"p2","shape":"red_triangle","mx":241.6,"my":172,"r":90,"flip":false},{"id":"p3","shape":"blue_triangle","mx":176,"my":244.8,"r":-90,"flip":false},{"id":"p4","shape":"teal_triangle","mx":381.6,"my":284.8,"r":45,"flip":false},{"id":"p5","shape":"violet_triangle","mx":284,"my":380,"r":-135,"flip":false},{"id":"p6","shape":"yellow_square","mx":55.2,"my":53.6,"r":45,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":58.4,"my":209.6,"r":90,"flip":false}]]},{"format":"otg-tangram-author-snapshot","version":1,"exportedAt":"2026-04-19T22:12:00.908Z","matFrame":{"logicalCanvas":{"w":560,"h":520},"mat":{"x":30,"y":30,"w":400,"h":400},"matShape":"square","note":"Game uses mat origin top-left; piece canvas (x,y) is transform origin before rotate/flip, same as this author."},"draftFields":{"id":"swan","label":"Swan","kind":"shape","flex":"none"},"matPieces":[{"pieceId":"p7","shapeId":"orange_rhombus","color":"#ea580c","para":true,"isCustom":false,"canvas":{"x":272.4,"y":134.8},"mat":{"mx":242.4,"my":104.8},"r":45,"flip":false,"local":[[-100,-50],[0,-50],[100,50],[0,50]],"baseLocal":[[-100,-50],[0,-50],[100,50],[0,50]]},{"pieceId":"p5","shapeId":"violet_triangle","color":"#7c3aed","para":false,"isCustom":false,"canvas":{"x":200.4,"y":93.2},"mat":{"mx":170.4,"my":63.2},"r":90,"flip":false,"local":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]],"baseLocal":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]]},{"pieceId":"p6","shapeId":"yellow_square","color":"#eab308","para":false,"isCustom":false,"canvas":{"x":234,"y":242.8},"mat":{"mx":204,"my":212.8},"r":0,"flip":false,"local":[[-70,0],[0,70],[70,0],[0,-70]],"baseLocal":[[-100,0],[0,100],[100,0],[0,-100]],"pieceScale":0.7},{"pieceId":"p4","shapeId":"teal_triangle","color":"#0d9488","para":false,"isCustom":false,"canvas":{"x":182,"y":317.2},"mat":{"mx":152,"my":287.2},"r":135,"flip":false,"local":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]],"baseLocal":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]]},{"pieceId":"p1","shapeId":"green_triangle","color":"#16a34a","para":false,"isCustom":false,"canvas":{"x":198.8,"y":415.6},"mat":{"mx":168.8,"my":385.6},"r":-45,"flip":false,"local":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]],"baseLocal":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]]},{"pieceId":"p2","shapeId":"red_triangle","color":"#dc2626","para":false,"isCustom":false,"canvas":{"x":376.4,"y":369.2},"mat":{"mx":346.4,"my":339.2},"r":-135,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p3","shapeId":"blue_triangle","color":"#2563eb","para":false,"isCustom":false,"canvas":{"x":302,"y":457.2},"mat":{"mx":272,"my":427.2},"r":-90,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]}],"customTemplates":{},"capturedSolutions":[[{"id":"p1","shape":"green_triangle","mx":168.8,"my":385.6,"r":-45,"flip":false},{"id":"p2","shape":"red_triangle","mx":346.4,"my":339.2,"r":-135,"flip":false},{"id":"p3","shape":"blue_triangle","mx":272,"my":427.2,"r":-90,"flip":false},{"id":"p4","shape":"teal_triangle","mx":152,"my":287.2,"r":135,"flip":false},{"id":"p5","shape":"violet_triangle","mx":170.4,"my":63.2,"r":90,"flip":false},{"id":"p6","shape":"yellow_square","mx":204,"my":212.8,"r":0,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":242.4,"my":104.8,"r":45,"flip":false}]]},{"format":"otg-tangram-author-snapshot","version":1,"exportedAt":"2026-04-19T22:09:27.851Z","matFrame":{"logicalCanvas":{"w":560,"h":520},"mat":{"x":30,"y":30,"w":400,"h":400},"matShape":"square","note":"Game uses mat origin top-left; piece canvas (x,y) is transform origin before rotate/flip, same as this author."},"draftFields":{"id":"dog","label":"Dog","kind":"shape","flex":"none"},"matPieces":[{"pieceId":"p1","shapeId":"green_triangle","color":"#16a34a","para":false,"isCustom":false,"canvas":{"x":110.8,"y":430.8},"mat":{"mx":80.8,"my":400.8},"r":45,"flip":false,"local":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]],"baseLocal":[[-47.1405,-47.1405],[94.2809,-47.1405],[-47.1405,94.2809]]},{"pieceId":"p3","shapeId":"blue_triangle","color":"#2563eb","para":false,"isCustom":false,"canvas":{"x":213.2,"y":368.4},"mat":{"mx":183.2,"my":338.4},"r":-135,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p2","shapeId":"red_triangle","color":"#dc2626","para":false,"isCustom":false,"canvas":{"x":354,"y":397.2},"mat":{"mx":324,"my":367.2},"r":180,"flip":false,"local":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]],"baseLocal":[[-66.6667,-66.6667],[133.3333,-66.6667],[-66.6667,133.3333]]},{"pieceId":"p7","shapeId":"orange_rhombus","color":"#ea580c","para":true,"isCustom":false,"canvas":{"x":470,"y":258.8},"mat":{"mx":440,"my":228.8},"r":90,"flip":false,"local":[[-100,-50],[0,-50],[100,50],[0,50]],"baseLocal":[[-100,-50],[0,-50],[100,50],[0,50]]},{"pieceId":"p6","shapeId":"yellow_square","color":"#eab308","para":false,"isCustom":false,"canvas":{"x":78,"y":249.2},"mat":{"mx":48,"my":219.2},"r":0,"flip":false,"local":[[-70,0],[0,70],[70,0],[0,-70]],"baseLocal":[[-100,0],[0,100],[100,0],[0,-100]],"pieceScale":0.7},{"pieceId":"p5","shapeId":"violet_triangle","color":"#7c3aed","para":false,"isCustom":false,"canvas":{"x":149.2,"y":213.2},"mat":{"mx":119.2,"my":183.2},"r":0,"flip":false,"local":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]],"baseLocal":[[33.3333,-33.3333],[33.3333,66.6667],[-66.6667,-33.3333]]},{"pieceId":"p4","shapeId":"teal_triangle","color":"#0d9488","para":false,"isCustom":false,"canvas":{"x":8.399999999999999,"y":212.4},"mat":{"mx":-21.6,"my":182.4},"r":0,"flip":false,"local":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]],"baseLocal":[[-33.3333,-33.3333],[66.6667,-33.3333],[-33.3333,66.6667]]}],"customTemplates":{},"capturedSolutions":[[{"id":"p1","shape":"green_triangle","mx":80.8,"my":400.8,"r":45,"flip":false},{"id":"p2","shape":"red_triangle","mx":324,"my":367.2,"r":180,"flip":false},{"id":"p3","shape":"blue_triangle","mx":183.2,"my":338.4,"r":-135,"flip":false},{"id":"p4","shape":"teal_triangle","mx":-21.6,"my":182.4,"r":0,"flip":false},{"id":"p5","shape":"violet_triangle","mx":119.2,"my":183.2,"r":0,"flip":false},{"id":"p6","shape":"yellow_square","mx":48,"my":219.2,"r":0,"flip":false},{"id":"p7","shape":"orange_rhombus","mx":440,"my":228.8,"r":90,"flip":false}]]}]}</script>
+
+  <audio id="snd-flip" src="../sounds/flip.mp3" preload="auto" playsinline></audio>
+  <audio id="snd-win" src="../sounds/win.mp3" preload="auto" playsinline></audio>
+
+  <script>
+(function () {
+  const canvas = document.getElementById('c');
+  const canvasWrap = document.querySelector('.canvas-wrap');
+  const winOverlay = document.getElementById('win-overlay');
+  const winConfetti = document.getElementById('win-confetti');
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  /** Uniform scale for mat, pieces, snaps, and tolerances (author JSON stays in 400×400 space). */
+  const LAYOUT_SCALE = 2;
+  const MAT_W = 400 * LAYOUT_SCALE;
+  const MAT_H = 400 * LAYOUT_SCALE;
+  /** Half-bounding size so every tan stays on-canvas at any rotation when center is clamped. Grows for large palette silhouettes. */
+  let PIECE_EDGE = 245 * LAYOUT_SCALE;
+  let MAT = { x: PIECE_EDGE, y: PIECE_EDGE, w: MAT_W, h: MAT_H };
+  let W = MAT.x + MAT.w + PIECE_EDGE;
+  let H = MAT.y + MAT.h + PIECE_EDGE;
+  const SNAP_D = 42 * LAYOUT_SCALE;
+  const SNAP_A = 28;
+  let TRAY = {
+    x0: MAT.x + MAT.w + 12 * LAYOUT_SCALE,
+    x1: W - 12 * LAYOUT_SCALE,
+    y0: MAT.y + 20 * LAYOUT_SCALE,
+    y1: MAT.y + MAT.h - 20 * LAYOUT_SCALE
+  };
+
+  function scaleSnapRows(rows, s) {
+    return rows.map(r => ({ ...r, mx: r.mx * s, my: r.my * s }));
+  }
+
+  function scaleTanDefLocals(defs, s) {
+    const o = {};
+    for (const [k, v] of Object.entries(defs)) {
+      o[k] = {
+        color: v.color,
+        para: v.para,
+        local: v.local.map(([x, y]) => [x * s, y * s])
+      };
+    }
+    return o;
+  }
+
+  const TAN_DEFS = scaleTanDefLocals({
+    lp: { color: '#7c3aed', para: false, local: [[-66.67, 200], [-66.67, -200], [133.33, 0]] },
+    lb: { color: '#2563eb', para: false, local: [[-200, -66.67], [200, -66.67], [0, 133.33]] },
+    me: { color: '#16a34a', para: false, local: [[-133.33, 66.67], [66.67, -133.33], [66.67, 66.67]] },
+    st: { color: '#ea580c', para: false, local: [[-100, 33.33], [100, 33.33], [0, -66.67]] },
+    sr: { color: '#ca8a04', para: false, local: [[33.33, 100], [33.33, -100], [-66.67, 0]] },
+    sq: { color: '#db2777', para: false, local: [[-100, 0], [0, 100], [100, 0], [0, -100]] },
+    pa: { color: '#0d9488', para: true,  local: [[-150, 50], [50, 50], [150, -50], [-50, -50]] }
+  }, LAYOUT_SCALE);
+
+  const SQUARE_SNAPS = scaleSnapRows([
+    { id: 'lp', mx: 67, my: 200, r: 0, flip: false },
+    { id: 'lb', mx: 200, my: 67, r: 0, flip: false },
+    { id: 'me', mx: 333, my: 333, r: 0, flip: false },
+    { id: 'st', mx: 200, my: 267, r: 0, flip: false },
+    { id: 'sr', mx: 367, my: 100, r: 0, flip: false },
+    { id: 'sq', mx: 300, my: 200, r: 0, flip: false },
+    { id: 'pa', mx: 150, my: 350, r: 0, flip: false }
+  ], LAYOUT_SCALE);
+
+  /** Big right isosceles triangle on the mat: right angle at top-left of mat, legs along top and left edges. */
+  const TRIANGLE_SNAPS = scaleSnapRows([
+    { id: 'lp', mx: 67, my: 200, r: 0, flip: false },
+    { id: 'lb', mx: 200, my: 67, r: 0, flip: false }
+  ], LAYOUT_SCALE);
+
+  /**
+   * House: square body (multiple tiles) + triangular roof (multiple tiles).
+   * Mat coords; roof triangle roughly (100,40)-(300,40)-(200,175), body band below.
+   */
+  const HOUSE_SNAPS = scaleSnapRows([
+    { id: 'lb', mx: 200, my: 92, r: 0, flip: false },
+    { id: 'me', mx: 200, my: 168, r: 180, flip: false },
+    { id: 'lp', mx: 118, my: 268, r: 90, flip: false },
+    { id: 'sr', mx: 282, my: 268, r: 90, flip: true },
+    { id: 'sq', mx: 200, my: 305, r: 45, flip: false },
+    { id: 'st', mx: 200, my: 358, r: 0, flip: false },
+    { id: 'pa', mx: 318, my: 338, r: 45, flip: false }
+  ], LAYOUT_SCALE);
+
+  /** Classic-style tangram animals (seven pieces); poses tuned to read as duck / crane / fish on the mat. */
+  const DUCK_SNAPS = scaleSnapRows([
+    { id: 'lb', mx: 210, my: 120, r: 45, flip: false },
+    { id: 'me', mx: 130, my: 200, r: 135, flip: false },
+    { id: 'lp', mx: 280, my: 210, r: 0, flip: false },
+    { id: 'sr', mx: 200, my: 255, r: 180, flip: false },
+    { id: 'sq', mx: 310, my: 300, r: 45, flip: false },
+    { id: 'st', mx: 120, my: 310, r: 90, flip: false },
+    { id: 'pa', mx: 200, my: 340, r: 0, flip: true }
+  ], LAYOUT_SCALE);
+
+  const CRANE_SNAPS = scaleSnapRows([
+    { id: 'lp', mx: 120, my: 140, r: 0, flip: false },
+    { id: 'lb', mx: 300, my: 100, r: 180, flip: false },
+    { id: 'me', mx: 200, my: 200, r: 45, flip: false },
+    { id: 'sr', mx: 200, my: 120, r: 0, flip: true },
+    { id: 'st', mx: 330, my: 240, r: 135, flip: false },
+    { id: 'sq', mx: 200, my: 300, r: 0, flip: false },
+    { id: 'pa', mx: 90, my: 300, r: 315, flip: false }
+  ], LAYOUT_SCALE);
+
+  const FISH_SNAPS = scaleSnapRows([
+    { id: 'lp', mx: 200, my: 200, r: 90, flip: false },
+    { id: 'lb', mx: 200, my: 320, r: 270, flip: false },
+    { id: 'me', mx: 320, my: 220, r: 0, flip: true },
+    { id: 'sr', mx: 90, my: 220, r: 90, flip: false },
+    { id: 'st', mx: 350, my: 300, r: 0, flip: false },
+    { id: 'sq', mx: 200, my: 120, r: 45, flip: false },
+    { id: 'pa', mx: 200, my: 380, r: 0, flip: true }
+  ], LAYOUT_SCALE);
+
+  const RAW_ACTIVITIES = [
+    {
+      id: 'square',
+      label: 'Square',
+      kind: 'shape',
+      matShape: 'square',
+      flex: 'square4',
+      pieceRotMod: { sq: 90 },
+      help: 'Classic seven-piece square. Snaps match the outline in any of four rotations (same shape, turned on the mat).',
+      pieceIds: ['lp', 'lb', 'me', 'st', 'sr', 'sq', 'pa'],
+      snaps: SQUARE_SNAPS
+    },
+    {
+      id: 'triangle',
+      label: 'Triangle',
+      kind: 'shape',
+      matShape: 'triangle',
+      flex: 'triangle2',
+      help: 'Triangular play area. Two large triangles fill it — either large piece can finish either half once rotated correctly.',
+      pieceIds: ['lp', 'lb'],
+      snaps: TRIANGLE_SNAPS
+    },
+    {
+      id: 'house',
+      label: 'House',
+      kind: 'picture',
+      matShape: 'house',
+      flex: 'none',
+      pieceRotMod: { sq: 90 },
+      help: 'Square wall and pointed roof, built from several tiles. Match each dashed tan.',
+      pieceIds: ['lb', 'me', 'lp', 'sr', 'sq', 'st', 'pa'],
+      snaps: HOUSE_SNAPS
+    },
+    {
+      id: 'duck',
+      label: 'Duck',
+      kind: 'picture',
+      matShape: 'square',
+      flex: 'none',
+      pieceRotMod: { sq: 90 },
+      help: 'Seven-piece tangram duck — head, body, and tail.',
+      pieceIds: ['lb', 'me', 'lp', 'sr', 'sq', 'st', 'pa'],
+      snaps: DUCK_SNAPS
+    },
+    {
+      id: 'crane',
+      label: 'Crane',
+      kind: 'picture',
+      matShape: 'square',
+      flex: 'none',
+      pieceRotMod: { sq: 90 },
+      help: 'Seven-piece tangram crane — wings, neck, and legs.',
+      pieceIds: ['lp', 'lb', 'me', 'sr', 'st', 'sq', 'pa'],
+      snaps: CRANE_SNAPS
+    },
+    {
+      id: 'fish',
+      label: 'Fish',
+      kind: 'picture',
+      matShape: 'square',
+      flex: 'none',
+      pieceRotMod: { sq: 90 },
+      help: 'Seven-piece tangram fish — body and fins.',
+      pieceIds: ['lp', 'lb', 'me', 'sr', 'st', 'sq', 'pa'],
+      snaps: FISH_SNAPS
+    }
+  ];
+
+  const DEFAULT_ACTIVITIES = RAW_ACTIVITIES.map(a => ({ ...a, snaps: a.snaps.map(s => ({ ...s })) }));
+  let ACTIVITIES = [];
+
+  function cloneShapeDefs(raw) {
+    if (!raw || typeof raw !== 'object') return {};
+    const out = {};
+    for (const k of Object.keys(raw)) {
+      const v = raw[k];
+      if (!v || !Array.isArray(v.local)) continue;
+      out[k] = {
+        color: typeof v.color === 'string' ? v.color : '#64748b',
+        para: !!v.para,
+        local: v.local.map(p => [Number(p[0]), Number(p[1])])
+      };
+    }
+    return out;
+  }
+
+  /** Built-in tangram set; anything else must appear under puzzle.shapeDefs. */
+  function resolveTanDef(act, shape) {
+    if (act && act.shapeDefs && act.shapeDefs[shape]) return act.shapeDefs[shape];
+    return TAN_DEFS[shape];
+  }
+
+  function normalizePuzzleFromFile(pz) {
+    const primary = pz.primarySnaps || pz.snaps || [];
+    const snaps = primary.map(s => ({
+      id: s.id,
+      shape: s.shape || s.id,
+      mx: s.mx,
+      my: s.my,
+      r: s.r,
+      flip: !!s.flip
+    }));
+    const solutions = (pz.solutions && pz.solutions.length)
+      ? pz.solutions.map(sol => sol.map(s => ({
+          id: s.id,
+          shape: s.shape || s.id,
+          mx: s.mx,
+          my: s.my,
+          r: s.r,
+          flip: !!s.flip
+        })))
+      : [snaps.map(s => ({ ...s }))];
+    return {
+      id: pz.id,
+      label: pz.label,
+      kind: pz.kind || 'shape',
+      matShape: pz.matShape || 'square',
+      flex: pz.flex || 'none',
+      help: pz.help != null ? pz.help : 'Snap pieces to the dashed outlines.',
+      pieceIds: pz.pieceIds.slice(),
+      pieceRotMod: pz.pieceRotMod && typeof pz.pieceRotMod === 'object' ? { ...pz.pieceRotMod } : {},
+      shapeDefs: cloneShapeDefs(pz.shapeDefs),
+      snaps,
+      solutions
+    };
+  }
+
+  /** Scale file/embedded puzzles from author 400×400 space into logical play space. */
+  function scaleLoadedPuzzleLayout(act, s) {
+    if (!act || s === 1) return act;
+    const scRow = r => ({ ...r, mx: r.mx * s, my: r.my * s });
+    const out = { ...act };
+    out.snaps = (act.snaps || []).map(scRow);
+    out.solutions = (act.solutions || []).map(sol => sol.map(scRow));
+    if (act.shapeDefs) {
+      out.shapeDefs = { ...act.shapeDefs };
+      for (const k of Object.keys(out.shapeDefs)) {
+        const v = out.shapeDefs[k];
+        if (v && Array.isArray(v.local)) {
+          out.shapeDefs[k] = { ...v, local: v.local.map(p => [p[0] * s, p[1] * s]) };
+        }
+      }
+    }
+    return out;
+  }
+
+  /** Rotation symmetry for author palette shapes (matches tangram_author defaults). */
+  const PALETTE_PIECE_ROT_MOD = {
+    yellow_square: 90,
+    green_triangle: 180,
+    red_triangle: 180,
+    blue_triangle: 180,
+    teal_triangle: 180,
+    violet_triangle: 180,
+    orange_rhombus: 180
+  };
+
+  function scalePts(pts, s) {
+    return pts.map(p => [p[0] * s, p[1] * s]);
+  }
+
+  function localVertexToMat(mx, my, rDeg, flip, lx, ly) {
+    let x = lx;
+    let y = ly;
+    if (flip) x = -x;
+    const rad = (rDeg * Math.PI) / 180;
+    const c = Math.cos(rad);
+    const s = Math.sin(rad);
+    return [x * c - y * s + mx, x * s + y * c + my];
+  }
+
+  function convertAuthorSnapshotToPuzzle(snap) {
+    if (!snap || snap.format !== 'otg-tangram-author-snapshot') throw new Error('bad snapshot format');
+    const draft = snap.draftFields || {};
+    const matF = snap.matFrame || {};
+    const authorMat = { w: 400, h: 400 };
+    const matDims = matF.mat || authorMat;
+    const matW = Number(matDims.w) || authorMat.w;
+    const matH = Number(matDims.h) || authorMat.h;
+    const byId = Object.fromEntries((snap.matPieces || []).map(p => [p.pieceId, p]));
+    const sol0 = snap.capturedSolutions && snap.capturedSolutions[0] ? snap.capturedSolutions[0] : null;
+    if (!sol0 || !sol0.length) throw new Error('snapshot missing capturedSolutions[0]');
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const row of sol0) {
+      const pc = byId[row.id];
+      if (!pc || !pc.local) continue;
+      for (const [lx, ly] of pc.local) {
+        const [gx, gy] = localVertexToMat(row.mx, row.my, row.r, !!row.flip, lx, ly);
+        minX = Math.min(minX, gx);
+        maxX = Math.max(maxX, gx);
+        minY = Math.min(minY, gy);
+        maxY = Math.max(maxY, gy);
+      }
+    }
+    if (!Number.isFinite(minX)) throw new Error('snapshot bbox');
+
+    const margin = 14;
+    const bw = Math.max(1, maxX - minX);
+    const bh = Math.max(1, maxY - minY);
+    const scale = Math.min((matW - 2 * margin) / bw, (matH - 2 * margin) / bh, 1);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    const tx = matW / 2 - scale * cx;
+    const ty = matH / 2 - scale * cy;
+
+    const shapeDefs = {};
+    for (const row of sol0) {
+      const pc = byId[row.id];
+      if (!pc) continue;
+      const sh = row.shape || pc.shapeId;
+      shapeDefs[sh] = {
+        color: pc.color,
+        para: !!pc.para,
+        local: scalePts(pc.local, scale)
+      };
+    }
+
+    const newSol = sol0.map(row => {
+      const pc = byId[row.id];
+      const sh = row.shape || (pc && pc.shapeId);
+      return {
+        id: row.id,
+        shape: sh,
+        mx: row.mx * scale + tx,
+        my: row.my * scale + ty,
+        r: row.r,
+        flip: !!row.flip
+      };
+    });
+
+    function pieceNum(id) {
+      const m = /^p(\d+)$/.exec(String(id));
+      return m ? parseInt(m[1], 10) : 0;
+    }
+    const pieceIds = [...new Set(newSol.map(r => r.id))].sort((a, b) => pieceNum(a) - pieceNum(b));
+    const byRow = Object.fromEntries(newSol.map(r => [r.id, r]));
+    const ordered = pieceIds.map(pid => {
+      const u = byRow[pid];
+      return { id: u.id, shape: u.shape, mx: u.mx, my: u.my, r: u.r, flip: u.flip };
+    });
+
+    const slug = String(draft.id || 'animal')
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_-]/gi, '') || 'animal';
+    const label = (draft.label && String(draft.label).trim()) || slug;
+    return normalizePuzzleFromFile({
+      id: slug,
+      label,
+      kind: draft.kind || 'picture',
+      matShape: matF.matShape || 'square',
+      flex: draft.flex || 'none',
+      help: `Match the dashed ${label} silhouette.`,
+      pieceIds,
+      solutions: [ordered.map(r => ({ ...r }))],
+      primarySnaps: ordered.map(r => ({ ...r })),
+      shapeDefs,
+      pieceRotMod: { ...PALETTE_PIECE_ROT_MOD }
+    });
+  }
+
+  function snapshotBundleToPuzzles(bundle) {
+    const snaps = bundle && bundle.snapshots;
+    if (!Array.isArray(snaps)) return [];
+    const out = [];
+    for (const s of snaps) {
+      try {
+        out.push(convertAuthorSnapshotToPuzzle(s));
+      } catch (e) {
+        const id = (s && s.draftFields && s.draftFields.id) || '?';
+        console.warn('Skipping animal snapshot "' + id + '":', e.message || e);
+      }
+    }
+    return out;
+  }
+
+  function computePieceEdgeForActivities(acts) {
+    let maxR = 0;
+    for (const act of acts) {
+      const snaps = act.snaps || [];
+      for (const s of snaps) {
+        const sh = s.shape || s.id;
+        const def = resolveTanDef(act, sh);
+        if (!def || !def.local) continue;
+        for (const p of def.local) maxR = Math.max(maxR, Math.hypot(p[0], p[1]));
+      }
+    }
+    return Math.max(245 * LAYOUT_SCALE, Math.ceil(maxR * 1.22) + 40 * LAYOUT_SCALE);
+  }
+
+  function resizeCanvas() {
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  /** Fit the square logical canvas into the wrap with one scale on both axes (preserves aspect ratio). */
+  function layoutCanvasDisplay() {
+    if (!canvasWrap) {
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      return;
+    }
+    const cs = getComputedStyle(canvasWrap);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) || 0;
+    const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) || 0;
+    const aw = Math.max(1, canvasWrap.clientWidth - padX);
+    const ah = Math.max(1, canvasWrap.clientHeight - padY);
+    const scale = Math.min(aw / W, ah / H, 1);
+    let dw = Math.round(W * scale);
+    let dh = Math.round(H * scale);
+    if (W === H) {
+      const side = Math.min(dw, dh);
+      dw = side;
+      dh = side;
+    }
+    canvas.style.width = dw + 'px';
+    canvas.style.height = dh + 'px';
+  }
+
+  function refitCanvas() {
+    resizeCanvas();
+    layoutCanvasDisplay();
+  }
+
+  function syncLayoutFromEdge(edge) {
+    PIECE_EDGE = edge;
+    MAT.x = edge;
+    MAT.y = edge;
+    MAT.w = MAT_W;
+    MAT.h = MAT_H;
+    W = MAT.x + MAT.w + PIECE_EDGE;
+    H = MAT.y + MAT.h + PIECE_EDGE;
+    TRAY.x0 = MAT.x + MAT.w + 12 * LAYOUT_SCALE;
+    TRAY.x1 = W - 12 * LAYOUT_SCALE;
+    TRAY.y0 = MAT.y + 20 * LAYOUT_SCALE;
+    TRAY.y1 = MAT.y + MAT.h - 20 * LAYOUT_SCALE;
+    refitCanvas();
+  }
+  syncLayoutFromEdge(computePieceEdgeForActivities(DEFAULT_ACTIVITIES));
+
+  function layoutCanvasDisplayAndDraw() {
+    layoutCanvasDisplay();
+    if (ACTIVITIES.length) draw();
+  }
+
+  window.addEventListener('resize', layoutCanvasDisplayAndDraw);
+  if (typeof ResizeObserver !== 'undefined' && canvasWrap) {
+    new ResizeObserver(layoutCanvasDisplayAndDraw).observe(canvasWrap);
+  }
+
+  function rotXY(x, y, deg) {
+    const rad = deg * Math.PI / 180;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    return [x * c - y * s, x * s + y * c];
+  }
+
+  function normRot(r) {
+    let x = r % 360;
+    if (x > 180) x -= 360;
+    if (x <= -180) x += 360;
+    return x;
+  }
+
+  function rotateSnapAround(s, cx, cy, deg) {
+    const rad = deg * Math.PI / 180;
+    const c = Math.cos(rad), si = Math.sin(rad);
+    const dx = s.mx - cx, dy = s.my - cy;
+    return {
+      id: s.id,
+      shape: s.shape || s.id,
+      mx: c * dx - si * dy + cx,
+      my: si * dx + c * dy + cy,
+      r: normRot(s.r + deg),
+      flip: s.flip
+    };
+  }
+
+  function cloneSnaps(snaps) {
+    return snaps.map(s => ({ ...s }));
+  }
+
+  /** All rigid rotations of the whole solution about center (mat px). */
+  function expandSquareRotations(snaps) {
+    const cx = MAT.w / 2, cy = MAT.h / 2;
+    const list = [];
+    for (const deg of [0, 90, 180, 270]) {
+      list.push(snaps.map(s => rotateSnapAround(s, cx, cy, deg)));
+    }
+    return list;
+  }
+
+  /** Triangle: two halves; allow 180° rotation of both pieces together, and swap which large occupies which half. */
+  function expandTriangleTargets(snaps) {
+    const cx = MAT.w / 3;
+    const cy = MAT.h / 3;
+    const v0 = cloneSnaps(snaps);
+    const v180 = v0.map(s => rotateSnapAround(s, cx, cy, 180));
+    const swap = [snaps[1], snaps[0]];
+    const swap180 = swap.map(s => rotateSnapAround(s, cx, cy, 180));
+    return [v0, v180, swap, swap180];
+  }
+
+  function dedupeTargets(list) {
+    const seen = new Set();
+    const out = [];
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i];
+      const k = '' + t.mx + ',' + t.my + ',' + t.r + ',' + t.flip;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ mx: t.mx, my: t.my, r: t.r, flip: t.flip });
+    }
+    return out;
+  }
+
+  function isImportedPuzzle(act) {
+    return !!(act.solutions && act.pieceIds && act.pieceIds.length && /^p\d+$/.test(String(act.pieceIds[0])));
+  }
+
+  /** Per piece index: list of acceptable {mx,my,r,flip} poses (mat space). */
+  function buildTargetsForActivity(act) {
+    const pieceIds = act.pieceIds || [];
+    const n = pieceIds.length;
+    const per = Array.from({ length: n }, () => []);
+
+    if (isImportedPuzzle(act)) {
+      if (act.flex === 'square4') {
+        const merged = pieceIds.map(() => []);
+        for (let s = 0; s < act.solutions.length; s++) {
+          const sol = act.solutions[s];
+          const byId = Object.fromEntries(sol.map(row => [row.id, row]));
+          const ordered = pieceIds.map(pid => {
+            const row = byId[pid];
+            if (!row) return null;
+            return {
+              id: row.id,
+              shape: row.shape || row.id,
+              mx: row.mx,
+              my: row.my,
+              r: row.r,
+              flip: !!row.flip
+            };
+          }).filter(Boolean);
+          for (const variant of expandSquareRotations(ordered)) {
+            for (let i = 0; i < n; i++) {
+              merged[i].push({ mx: variant[i].mx, my: variant[i].my, r: variant[i].r, flip: !!variant[i].flip });
+            }
+          }
+        }
+        for (let i = 0; i < n; i++) per[i] = dedupeTargets(merged[i]);
+      } else {
+        for (let s = 0; s < act.solutions.length; s++) {
+          const sol = act.solutions[s];
+          const byId = Object.fromEntries(sol.map(row => [row.id, row]));
+          for (let i = 0; i < n; i++) {
+            const row = byId[pieceIds[i]];
+            if (!row) continue;
+            per[i].push({ mx: row.mx, my: row.my, r: row.r, flip: !!row.flip });
+          }
+        }
+        for (let i = 0; i < n; i++) per[i] = dedupeTargets(per[i]);
+      }
+      return per;
+    }
+
+    const snaps = act.snaps;
+    const ns = snaps.length;
+    if (act.flex === 'square4') {
+      const vars = expandSquareRotations(snaps);
+      for (const variant of vars) {
+        for (let i = 0; i < ns; i++) per[i].push({ mx: variant[i].mx, my: variant[i].my, r: variant[i].r, flip: !!variant[i].flip });
+      }
+    } else if (act.flex === 'triangle2') {
+      const vars = expandTriangleTargets(snaps);
+      for (const variant of vars) {
+        for (let i = 0; i < ns; i++) per[i].push({ mx: variant[i].mx, my: variant[i].my, r: variant[i].r, flip: !!variant[i].flip });
+      }
+    } else {
+      for (let i = 0; i < ns; i++) per[i].push({ mx: snaps[i].mx, my: snaps[i].my, r: snaps[i].r, flip: !!snaps[i].flip });
+    }
+    return per;
+  }
+
+  let activityId = 'square';
+  let pieces = [];
+  let pieceTargets = [];
+  let selected = null;
+  let dragging = null;
+  let dragOff = { dx: 0, dy: 0 };
+  let completed = false;
+  let wonPlayed = false;
+  let winUiShown = false;
+
+  function hideWinCelebration() {
+    if (!winOverlay) return;
+    winOverlay.hidden = true;
+    winOverlay.setAttribute('aria-hidden', 'true');
+    if (winConfetti) winConfetti.innerHTML = '';
+  }
+
+  function burstConfetti() {
+    if (!winConfetti) return;
+    winConfetti.innerHTML = '';
+    const colors = ['#7c3aed', '#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#0ea5e9', '#db2777', '#14b8a6', '#eab308'];
+    const n = 72;
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      d.className = 'confetti-bit' + (Math.random() > 0.55 ? ' round' : '');
+      d.style.setProperty('--cx', (Math.random() * 0.92 + 0.04).toFixed(3));
+      d.style.setProperty('--tx', ((Math.random() - 0.5) * 70).toFixed(1) + 'vw');
+      d.style.setProperty('--bg', colors[i % colors.length]);
+      d.style.setProperty('--delay', (Math.random() * 0.35).toFixed(2) + 's');
+      d.style.setProperty('--dur', (1.85 + Math.random() * 0.9).toFixed(2) + 's');
+      winConfetti.appendChild(d);
+    }
+  }
+
+  function showWinCelebration() {
+    if (!winOverlay) return;
+    winOverlay.hidden = false;
+    winOverlay.setAttribute('aria-hidden', 'false');
+    burstConfetti();
+    const again = document.getElementById('btn-play-again');
+    if (again) {
+      try { again.focus({ preventScroll: true }); } catch (_) { again.focus(); }
+    }
+  }
+
+  function currentActivity() {
+    return ACTIVITIES.find(a => a.id === activityId) || ACTIVITIES[0];
+  }
+
+  function snapShape(snap) {
+    return snap.shape || snap.id;
+  }
+
+  function buildPiecesFromActivity() {
+    const act = currentActivity();
+    pieceTargets = buildTargetsForActivity(act);
+    const bySnapId = Object.fromEntries((act.snaps || []).map(s => [s.id, s]));
+    pieces = act.pieceIds.map((pid, i) => {
+      const snapRow = bySnapId[pid] || act.snaps[i];
+      const shape = snapShape(snapRow);
+      const def = resolveTanDef(act, shape);
+      if (!def) {
+        console.warn('Unknown tangram shape:', shape);
+        return null;
+      }
+      return {
+        tanId: shape,
+        color: def.color,
+        para: def.para,
+        local: def.local.map(p => [p[0], p[1]]),
+        targets: pieceTargets[i],
+        x: 0,
+        y: 0,
+        r: 0,
+        flip: false,
+        snapped: false,
+        snapIndex: 0
+      };
+    }).filter(Boolean);
+    scatterPieces(true);
+  }
+
+  function scatterPieces(silent) {
+    const n = pieces.length;
+    for (let i = 0; i < n; i++) {
+      const t = i / Math.max(n - 1, 1);
+      const px = TRAY.x0 + (TRAY.x1 - TRAY.x0) * (0.15 + 0.7 * t);
+      const py = TRAY.y0 + (TRAY.y1 - TRAY.y0) * (0.2 + 0.6 * ((i * 37) % 100) / 100);
+      pieces[i].x = px;
+      pieces[i].y = py;
+      pieces[i].r = snapAngle([0, 45, -45, 90, 135, 180, 225][i % 7]);
+      pieces[i].flip = false;
+      pieces[i].snapped = false;
+      pieces[i].snapIndex = 0;
+    }
+    completed = false;
+    wonPlayed = false;
+    winUiShown = false;
+    hideWinCelebration();
+    document.getElementById('done-msg').textContent = '';
+    selected = null;
+    dragging = null;
+    updateToolbar();
+    if (!silent) playFlip();
+    draw();
+  }
+
+  function snapAngle(r) {
+    const el = document.getElementById('snap-ang');
+    if (!el || !el.checked) return r;
+    return Math.round(r / 45) * 45;
+  }
+
+  function playFlip() {
+    const a = document.getElementById('snd-flip');
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  }
+
+  function playWin() {
+    const a = document.getElementById('snd-win');
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  }
+
+  function angDist(a, b) {
+    let d = Math.abs(a - b) % 360;
+    if (d > 180) d = 360 - d;
+    return d;
+  }
+
+  function pieceRotModFor(act) {
+    return act && act.pieceRotMod && typeof act.pieceRotMod === 'object' ? act.pieceRotMod : {};
+  }
+
+  /** Smallest circular distance from pr to (tr + k·period) for integer k. */
+  function minAngDistWithRotMod(pr, tr, tanId, act) {
+    const period = pieceRotModFor(act)[tanId];
+    if (period == null || period <= 0) return angDist(pr, tr);
+    let best = 360;
+    for (let k = -4; k <= 4; k++) {
+      const d = angDist(pr, tr + k * period);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
+  function nearestSnappedTargetR(pr, tr, tanId, act) {
+    const period = pieceRotModFor(act)[tanId];
+    if (period == null || period <= 0) return snapAngle(tr);
+    let bestR = snapAngle(tr);
+    let bestD = angDist(pr, bestR);
+    for (let k = -4; k <= 4; k++) {
+      const cand = snapAngle(tr + k * period);
+      const d = angDist(pr, cand);
+      if (d < bestD) {
+        bestD = d;
+        bestR = cand;
+      }
+    }
+    return bestR;
+  }
+
+  function trySnapPiece(p) {
+    const act = currentActivity();
+    let best = null;
+    let bestD = Infinity;
+    for (let k = 0; k < p.targets.length; k++) {
+      const t = p.targets[k];
+      const px = MAT.x + t.mx;
+      const py = MAT.y + t.my;
+      const d = Math.hypot(p.x - px, p.y - py);
+      if (d > SNAP_D) continue;
+      if (minAngDistWithRotMod(p.r, t.r, p.tanId, act) > SNAP_A) continue;
+      if (!!p.flip !== !!t.flip) continue;
+      if (d < bestD) {
+        bestD = d;
+        best = { t, k, px, py };
+      }
+    }
+    if (!best) return false;
+    p.x = best.px;
+    p.y = best.py;
+    p.r = nearestSnappedTargetR(p.r, best.t.r, p.tanId, act);
+    p.flip = best.t.flip;
+    p.snapped = true;
+    p.snapIndex = best.k;
+    return true;
+  }
+
+  function checkWin() {
+    if (pieces.every(p => p.snapped)) {
+      completed = true;
+      if (!wonPlayed) {
+        wonPlayed = true;
+        playWin();
+      }
+      if (!winUiShown) {
+        winUiShown = true;
+        showWinCelebration();
+      }
+    }
+  }
+
+  function globalToLocal(gx, gy, piece) {
+    const dx = gx - piece.x, dy = gy - piece.y;
+    const rad = -piece.r * Math.PI / 180;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    let lx = dx * c - dy * s;
+    let ly = dx * s + dy * c;
+    if (piece.flip) lx = -lx;
+    return [lx, ly];
+  }
+
+  function pointInPoly(lx, ly, local) {
+    let inside = false;
+    const n = local.length;
+    for (let i = 0, j = n - 1; i < n; j = i++) {
+      const xi = local[i][0], yi = local[i][1];
+      const xj = local[j][0], yj = local[j][1];
+      if ((yi > ly) !== (yj > ly) && lx < (xj - xi) * (ly - yi) / (yj - yi + 1e-9) + xi) inside = !inside;
+    }
+    return inside;
+  }
+
+  function hitTest(gx, gy) {
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      const p = pieces[i];
+      const [lx, ly] = globalToLocal(gx, gy, p);
+      if (pointInPoly(lx, ly, p.local)) return p;
+    }
+    return null;
+  }
+
+  function beginMatClip(act) {
+    ctx.save();
+    ctx.beginPath();
+    if (act.matShape === 'triangle') {
+      ctx.moveTo(MAT.x, MAT.y);
+      ctx.lineTo(MAT.x + MAT.w, MAT.y);
+      ctx.lineTo(MAT.x, MAT.y + MAT.h);
+      ctx.closePath();
+    } else if (act.matShape === 'house') {
+      const inset = 95 * LAYOUT_SCALE;
+      const roofL = MAT.x + inset;
+      const roofR = MAT.x + MAT.w - inset;
+      const roofY = MAT.y + 38 * LAYOUT_SCALE;
+      const eaveY = MAT.y + 188 * LAYOUT_SCALE;
+      ctx.moveTo(MAT.x, eaveY);
+      ctx.lineTo(MAT.x, MAT.y + MAT.h);
+      ctx.lineTo(MAT.x + MAT.w, MAT.y + MAT.h);
+      ctx.lineTo(MAT.x + MAT.w, eaveY);
+      ctx.lineTo(roofR, eaveY);
+      ctx.lineTo(MAT.x + MAT.w / 2, roofY);
+      ctx.lineTo(roofL, eaveY);
+      ctx.closePath();
+    } else {
+      ctx.rect(MAT.x, MAT.y, MAT.w, MAT.h);
+    }
+    ctx.clip();
+  }
+
+  function drawMatBorder(act) {
+    ctx.save();
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2.5 * LAYOUT_SCALE;
+    ctx.beginPath();
+    if (act.matShape === 'triangle') {
+      ctx.moveTo(MAT.x, MAT.y);
+      ctx.lineTo(MAT.x + MAT.w, MAT.y);
+      ctx.lineTo(MAT.x, MAT.y + MAT.h);
+      ctx.closePath();
+    } else if (act.matShape === 'house') {
+      const inset = 95 * LAYOUT_SCALE;
+      const roofL = MAT.x + inset;
+      const roofR = MAT.x + MAT.w - inset;
+      const roofY = MAT.y + 38 * LAYOUT_SCALE;
+      const eaveY = MAT.y + 188 * LAYOUT_SCALE;
+      ctx.moveTo(MAT.x, eaveY);
+      ctx.lineTo(MAT.x, MAT.y + MAT.h);
+      ctx.lineTo(MAT.x + MAT.w, MAT.y + MAT.h);
+      ctx.lineTo(MAT.x + MAT.w, eaveY);
+      ctx.lineTo(roofR, eaveY);
+      ctx.lineTo(MAT.x + MAT.w / 2, roofY);
+      ctx.lineTo(roofL, eaveY);
+      ctx.closePath();
+    } else {
+      ctx.rect(MAT.x, MAT.y, MAT.w, MAT.h);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawHouseGuideOutline() {
+    const S = LAYOUT_SCALE;
+    ctx.save();
+    ctx.translate(MAT.x, MAT.y);
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.55)';
+    ctx.lineWidth = 2 * S;
+    ctx.setLineDash([8 * S, 6 * S]);
+    ctx.beginPath();
+    ctx.rect(40 * S, 195 * S, 320 * S, 185 * S);
+    ctx.moveTo(100 * S, 195 * S);
+    ctx.lineTo(300 * S, 195 * S);
+    ctx.lineTo(200 * S, 35 * S);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawPieceOutlineMat(snap, style) {
+    ctx.save();
+    ctx.translate(MAT.x, MAT.y);
+    ctx.translate(snap.mx, snap.my);
+    ctx.rotate(snap.r * Math.PI / 180);
+    if (snap.flip) ctx.scale(-1, 1);
+    const act = currentActivity();
+    const def = resolveTanDef(act, snapShape(snap));
+    if (!def) return;
+    const v = def.local;
+    ctx.beginPath();
+    ctx.moveTo(v[0][0], v[0][1]);
+    for (let i = 1; i < v.length; i++) ctx.lineTo(v[i][0], v[i][1]);
+    ctx.closePath();
+    ctx.strokeStyle = style.color;
+    ctx.lineWidth = style.lineWidth;
+    ctx.setLineDash(style.dash);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawFilledPiece(p, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.r * Math.PI / 180);
+    if (p.flip) ctx.scale(-1, 1);
+    ctx.beginPath();
+    const v = p.local;
+    ctx.moveTo(v[0][0], v[0][1]);
+    for (let i = 1; i < v.length; i++) ctx.lineTo(v[i][0], v[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    ctx.lineWidth = selected === p ? 3 * LAYOUT_SCALE : 1.5 * LAYOUT_SCALE;
+    ctx.strokeStyle = selected === p ? '#1e1b4b' : 'rgba(30,27,59,0.35)';
+    ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const act = currentActivity();
+
+    ctx.fillStyle = '#e8eef5';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    beginMatClip(act);
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(MAT.x, MAT.y, MAT.w, MAT.h);
+    ctx.restore();
+    drawMatBorder(act);
+
+    if (act.matShape === 'house') drawHouseGuideOutline();
+
+    const dashStyle = {
+      color: 'rgba(71, 85, 105, 0.92)',
+      lineWidth: 2.5 * LAYOUT_SCALE,
+      dash: [10 * LAYOUT_SCALE, 7 * LAYOUT_SCALE]
+    };
+    const shown = new Set();
+    for (let i = 0; i < act.snaps.length; i++) {
+      const s = act.snaps[i];
+      const key = snapShape(s) + '|' + s.mx + '|' + s.my + '|' + s.r + '|' + s.flip;
+      if (shown.has(key)) continue;
+      shown.add(key);
+      drawPieceOutlineMat(act.snaps[i], dashStyle);
+    }
+
+    pieces.forEach(p => drawFilledPiece(p, 1));
+
+    document.getElementById('help-text').textContent = act.help;
+  }
+
+  function updateToolbar() {
+    document.getElementById('btn-rotate').disabled = !selected;
+    const flipBtn = document.getElementById('btn-flip');
+    const showFlip = !!(selected && selected.para);
+    flipBtn.hidden = !showFlip;
+    flipBtn.disabled = !showFlip;
+  }
+
+  function setActivity(id) {
+    hideWinCelebration();
+    winUiShown = false;
+    wonPlayed = false;
+    activityId = id;
+    document.querySelectorAll('#puzzle-row button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.act === id ? 'true' : 'false');
+    });
+    buildPiecesFromActivity();
+  }
+
+  function buildNav() {
+    const row = document.getElementById('puzzle-row');
+    row.innerHTML = '';
+    for (const a of ACTIVITIES) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = a.label;
+      b.dataset.act = a.id;
+      b.setAttribute('aria-pressed', a.id === activityId ? 'true' : 'false');
+      b.addEventListener('click', () => setActivity(a.id));
+      row.appendChild(b);
+    }
+  }
+
+  function canvasCoords(ev) {
+    const r = canvas.getBoundingClientRect();
+    return [
+      (ev.clientX - r.left) * (W / r.width),
+      (ev.clientY - r.top) * (H / r.height)
+    ];
+  }
+
+  function onDown(ev) {
+    ev.preventDefault();
+    const [cx, cy] = canvasCoords(ev);
+    const hit = hitTest(cx, cy);
+    selected = hit;
+    if (hit) {
+      try { canvas.setPointerCapture(ev.pointerId); } catch (_) {}
+      const z = pieces.indexOf(hit);
+      pieces.splice(z, 1);
+      pieces.push(hit);
+      dragging = hit;
+      dragOff.dx = cx - hit.x;
+      dragOff.dy = cy - hit.y;
+    } else dragging = null;
+    updateToolbar();
+    draw();
+  }
+
+  function onMove(ev) {
+    if (!dragging) return;
+    ev.preventDefault();
+    const [cx, cy] = canvasCoords(ev);
+    let nx = cx - dragOff.dx;
+    let ny = cy - dragOff.dy;
+    nx = Math.max(PIECE_EDGE, Math.min(W - PIECE_EDGE, nx));
+    ny = Math.max(PIECE_EDGE, Math.min(H - PIECE_EDGE, ny));
+    dragging.x = nx;
+    dragging.y = ny;
+    dragging.snapped = false;
+    draw();
+  }
+
+  function onUp(ev) {
+    try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
+    if (dragging) {
+      const snapped = trySnapPiece(dragging);
+      if (snapped) playFlip();
+      dragging = null;
+      checkWin();
+    }
+    draw();
+  }
+
+  document.getElementById('btn-scatter').addEventListener('click', () => scatterPieces(false));
+  document.getElementById('btn-play-again').addEventListener('click', () => scatterPieces(false));
+  document.getElementById('btn-rotate').addEventListener('click', () => {
+    if (!selected) return;
+    selected.r = snapAngle(selected.r + 45);
+    selected.snapped = false;
+    playFlip();
+    draw();
+  });
+  document.getElementById('btn-flip').addEventListener('click', () => {
+    if (!selected || !selected.para) return;
+    selected.flip = !selected.flip;
+    selected.snapped = false;
+    playFlip();
+    draw();
+  });
+
+  canvas.addEventListener('pointerdown', onDown);
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+
+  function startTangrams() {
+    buildNav();
+    setActivity(activityId);
+  }
+
+  function readEmbeddedTangramDoc() {
+    const el = document.getElementById('tangram-embedded-data');
+    if (!el) return null;
+    const raw = el.textContent.trim();
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('tangram embedded JSON parse failed', e);
+      return null;
+    }
+  }
+
+  function applyTangramDoc(doc, animalsBundle) {
+    const base = (doc.puzzles || []).map(normalizePuzzleFromFile).map(p => scaleLoadedPuzzleLayout(p, LAYOUT_SCALE));
+    const extra = (animalsBundle ? snapshotBundleToPuzzles(animalsBundle) : []).map(p => scaleLoadedPuzzleLayout(p, LAYOUT_SCALE));
+    const list = base.concat(extra);
+    if (!list.length) throw new Error('empty puzzles');
+    ACTIVITIES = list;
+    activityId = ACTIVITIES[0].id;
+    const edge = computePieceEdgeForActivities(ACTIVITIES);
+    syncLayoutFromEdge(edge);
+  }
+
+  function readEmbeddedAnimalsDoc() {
+    const el = document.getElementById('tangram-animals-embedded-data');
+    if (!el) return null;
+    const raw = el.textContent.trim();
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('tangram animals embedded JSON parse failed', e);
+      return null;
+    }
+  }
+
+  function loadAnimalsBundle() {
+    return fetch('tangram_animals.json')
+      .then(r => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then(b => b || readEmbeddedAnimalsDoc());
+  }
+
+  fetch('tangram_data.json')
+    .then(r => (r.ok ? r.json() : Promise.reject(new Error('bad status'))))
+    .then(doc => {
+      if (!doc.puzzles || !doc.puzzles.length) throw new Error('empty puzzles');
+      return loadAnimalsBundle().then(anim => ({ doc, anim }));
+    })
+    .then(({ doc, anim }) => applyTangramDoc(doc, anim))
+    .catch(() => {
+      const emb = readEmbeddedTangramDoc();
+      const anim = readEmbeddedAnimalsDoc();
+      if (emb && emb.puzzles && emb.puzzles.length) {
+        try {
+          applyTangramDoc(emb, anim);
+          return;
+        } catch (e2) {
+          console.warn('embedded tangram apply failed', e2);
+        }
+      }
+      ACTIVITIES = DEFAULT_ACTIVITIES.slice();
+      activityId = 'square';
+      syncLayoutFromEdge(computePieceEdgeForActivities(ACTIVITIES));
+    })
+    .finally(() => startTangrams());
+})();
+  </script>
+</body>
+</html>
