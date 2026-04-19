@@ -2,17 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1b2a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>OTG PlayShift</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html {
+      height: 100%;
+      height: 100dvh;
+    }
+
     html, body {
-      width: 100%; height: 100%;
+      width: 100%;
+      min-height: 100%;
+      min-height: 100dvh;
       overflow: hidden;
       background: #0d1b2a;
       font-family: system-ui, -apple-system, sans-serif;
       touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     /* ── Map wrapper: full screen, centres the canvas ── */
@@ -22,6 +34,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+           env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
     }
 
     /* ── Map canvas: sized to image aspect ratio by JS ── */
@@ -53,6 +67,7 @@
       background: transparent;
       cursor: pointer;
       z-index: 20;
+      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -110,18 +125,28 @@
     #drawer.show { transform: translateY(0); }
 
     #drawer-handle {
-      width: 40px; height: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      padding: 14px 48px 10px;
+      touch-action: manipulation;
+    }
+    #drawer-handle::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 4px;
       background: #d1d5db;
       border-radius: 2px;
-      margin: 12px auto 0;
-      flex-shrink: 0;
     }
 
     #drawer-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 18px 10px;
+      padding: 10px max(18px, env(safe-area-inset-right)) 10px max(18px, env(safe-area-inset-left));
       flex-shrink: 0;
       border-bottom: 1px solid #f3f4f6;
     }
@@ -133,23 +158,30 @@
     }
 
     #drawer-close {
-      width: 32px; height: 32px;
+      min-width: 44px;
+      min-height: 44px;
+      width: 44px;
+      height: 44px;
       background: #f3f4f6;
       border: none;
       border-radius: 50%;
-      font-size: 15px;
+      font-size: 16px;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       color: #6b7280;
       flex-shrink: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     #drawer-games {
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 14px;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y;
+      padding: 14px max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left));
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(118px, 100%), 1fr));
       gap: 10px;
     }
 
@@ -157,7 +189,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 5px;
+      min-height: 5.5rem;
       padding: 12px 8px;
       background: #f9fafb;
       border-radius: 16px;
@@ -193,14 +227,192 @@
       text-align: center;
       line-height: 1.3;
     }
+
+    /* ── Landing (splash) ───────────────────────────────────────────── */
+    #landing {
+      position: fixed;
+      inset: 0;
+      z-index: 4000;
+      min-height: 100%;
+      min-height: 100dvh;
+      padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      text-align: center;
+      color: #e2e8f0;
+      background: #0d1b2a;
+      isolation: isolate;
+      touch-action: manipulation;
+      transition: opacity 0.88s ease, visibility 0s linear 0.88s;
+    }
+    #landing.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .landing-map-bg {
+      position: absolute;
+      inset: -14%;
+      z-index: 0;
+      background: url('images/map.png') center / cover no-repeat;
+      filter: blur(56px);
+      -webkit-filter: blur(56px);
+      transform: scale(1.06);
+      pointer-events: none;
+    }
+    .landing-scrim {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(165deg,
+        rgba(15, 39, 68, 0.82) 0%,
+        rgba(13, 27, 42, 0.78) 45%,
+        rgba(21, 38, 66, 0.84) 100%);
+      pointer-events: none;
+    }
+    .landing-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 100%;
+      min-height: 100dvh;
+      width: 100%;
+      touch-action: manipulation;
+    }
+    .splash-icon-wrap {
+      width: fit-content;
+      max-width: min(94vw, 480px);
+      max-height: min(58vh, 360px);
+      border-radius: 22px;
+      flex-shrink: 0;
+      margin-bottom: 0.35rem;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Beveled / raised frame */
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(165deg,
+        rgba(71, 85, 105, 0.5) 0%,
+        rgba(30, 41, 59, 0.72) 48%,
+        rgba(15, 23, 42, 0.85) 100%);
+      box-shadow:
+        inset 0 2px 1px rgba(255, 255, 255, 0.32),
+        inset 0 -3px 2px rgba(0, 0, 0, 0.42),
+        inset 2px 0 1px rgba(255, 255, 255, 0.14),
+        inset -2px 0 2px rgba(0, 0, 0, 0.38),
+        0 14px 40px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(0, 0, 0, 0.4);
+    }
+    .splash-icon-wrap img {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: min(88vw, 440px);
+      max-height: min(52vh, min(320px, 70dvh));
+      object-fit: contain;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+    }
+    .splash-icon-wrap.is-fallback img { display: none; }
+    .splash-icon-fallback {
+      display: none;
+      font-size: clamp(2.4rem, 11vw, 3.1rem);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.05em;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.28);
+    }
+    .splash-icon-wrap.is-fallback .splash-icon-fallback { display: block; }
+
+    #landing h1 {
+      font-size: clamp(1.55rem, 5.5vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+    }
+    #landing .tagline {
+      font-size: clamp(0.88rem, 3.2vw, 1rem);
+      color: #94a3b8;
+      max-width: 20rem;
+      line-height: 1.45;
+      margin-bottom: 0.5rem;
+    }
+    #open-app {
+      margin-top: 0.35rem;
+      font-size: 1.12rem;
+      font-weight: 800;
+      min-height: 48px;
+      min-width: 120px;
+      padding: 0.85rem 2.5rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      box-shadow: 0 6px 26px rgba(2, 132, 199, 0.5);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #open-app:active {
+      transform: scale(0.97);
+    }
+
+    /* ── Narrow phones: lighter blur (GPU / battery) ───────────────── */
+    @media (max-width: 480px) {
+      .landing-map-bg {
+        filter: blur(40px);
+        -webkit-filter: blur(40px);
+      }
+    }
+
+    @media (max-width: 380px) {
+      .landing-map-bg {
+        filter: blur(32px);
+        -webkit-filter: blur(32px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #landing {
+        transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+      }
+      .landing-map-bg {
+        filter: blur(24px);
+        -webkit-filter: blur(24px);
+      }
+      #drawer {
+        transition-duration: 0.22s;
+      }
+      .game-tile:active,
+      #open-app:active {
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body>
 
+<div id="landing" role="dialog" aria-modal="true" aria-labelledby="landing-title" aria-describedby="landing-desc">
+  <div class="landing-map-bg" aria-hidden="true"></div>
+  <div class="landing-scrim" aria-hidden="true"></div>
+  <div class="landing-content">
+    <div class="splash-icon-wrap" id="splash-icon-wrap">
+      <img id="splash-icon" src="images/OTG_download_appStore.png" alt="" decoding="async" fetchpriority="high">
+      <span class="splash-icon-fallback" aria-hidden="true">OTG</span>
+    </div>
+    <h1 id="landing-title">OTG PlayShift</h1>
+    <p id="landing-desc" class="tagline">Occupational therapy learning games for kids.</p>
+    <button type="button" id="open-app">Open</button>
+  </div>
+</div>
+
 <div id="map-wrap">
   <div id="map-canvas">
 
-    <img id="map-img" src="images/map.png" alt="Adventure Map"
+    <img id="map-img" src="images/map.png" alt="Adventure Map" decoding="async"
          onerror="this.style.display='none'">
 
     <!-- ── Zone pins ── -->
@@ -225,7 +437,8 @@
   <div id="drawer-games"></div>
 </div>
 
-<audio id="tap-sound" src="sounds/zone_tap.mp3" preload="auto"></audio>
+<audio id="bg-music" src="sounds/main_theme.mp3" loop preload="metadata" playsinline></audio>
+<audio id="tap-sound" src="sounds/zone_tap.mp3" preload="auto" playsinline></audio>
 
 <script>
   // ── Zone data ────────────────────────────────────────────────────
@@ -237,6 +450,8 @@
         { label: 'Seek & Find',      hint: 'Find hidden things',   href: 'seekandfind/index.html',   img: 'images/tiles/tile_seek_find.png' },
         { label: 'Shape Finder',     hint: 'Find hidden shapes',   href: 'shapes/index.html',        img: 'images/tiles/tile_shape_finder.png' },
         { label: 'Shape Hunt',       hint: 'Count shapes',         href: 'shape_hunt/index.html',    img: 'images/tiles/tile_shape_hunt.png' },
+        { label: 'Shape Match',      hint: 'Match the shape',      href: 'shape_match/index.html',   img: 'images/tiles/tile_shape_match.png' },
+        { label: 'Shadow Match',     hint: 'Drag onto the shadow', href: 'shadow_match/index.html',  img: 'images/tiles/tile_shadow_match.png' },
         { label: 'Odd One Out',      hint: "Find the different",   href: 'odd_one_out/index.html',   img: 'images/tiles/tile_odd_one_out.png' },
         { label: 'Left or Right',    hint: 'Which way are they?',  href: 'leftright/index.html',     img: 'images/tiles/tile_left_right.png' },
         { label: 'Letter Reversals', hint: 'Tricky letters',       href: 'letterreverse/index.html', img: 'images/tiles/tile_letter_reversals.png' },
@@ -269,6 +484,7 @@
       games: [
         { label: 'Concentration', hint: 'Match the cards',    href: 'concentration/index.html', img: 'images/tiles/tile_concentration.png' },
         { label: 'Sudoku',        hint: 'Fill the grid',      href: 'sudoku/index.html',        img: 'images/tiles/tile_sudoku.png' },
+        { label: 'Tangrams',      hint: 'Snap shapes together', href: 'tangrams/index.html',      img: 'images/tiles/tile_tangrams.png' },
         { label: 'Time Teacher',  hint: 'Read the clock',     href: 'clock_time/index.html',    img: 'images/tiles/tile_time_teacher.png' },
       ]
     }
@@ -280,9 +496,18 @@
   const drawerTitle   = document.getElementById('drawer-title');
   const drawerGames   = document.getElementById('drawer-games');
   const tapSound      = document.getElementById('tap-sound');
+  const bgMusic       = document.getElementById('bg-music');
   const mapImg        = document.getElementById('map-img');
   const mapCanvas     = document.getElementById('map-canvas');
   const mapWrap       = document.getElementById('map-wrap');
+  const landing       = document.getElementById('landing');
+  const openAppBtn    = document.getElementById('open-app');
+  const splashIcon    = document.getElementById('splash-icon');
+  const splashIconWrap = document.getElementById('splash-icon-wrap');
+
+  splashIcon.addEventListener('error', () => {
+    splashIconWrap.classList.add('is-fallback');
+  }, { once: true });
 
   // ── Audio ────────────────────────────────────────────────────────
   let audioUnlocked = false;
@@ -353,12 +578,67 @@
   }
 
   window.addEventListener('resize', fitMap);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitMap);
+  }
+
   if (mapImg.complete && mapImg.naturalWidth) {
     fitMap();
   } else {
     mapImg.addEventListener('load',  fitMap);
     mapImg.addEventListener('error', fitMap);
   }
+
+  // ── Map + music (after Open, or when returning from a game) ───────
+  const MAP_SESSION_KEY = 'otgPlayShiftMap';
+
+  function showMapAndStartMusic() {
+    landing.classList.add('hide');
+    landing.setAttribute('aria-hidden', 'true');
+    bgMusic.volume = 0.4;
+    bgMusic.play().catch(() => {});
+    const reflowDelay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 400;
+    requestAnimationFrame(() => {
+      fitMap();
+      setTimeout(fitMap, reflowDelay);
+    });
+  }
+
+  function tryReturnToMapFromGame() {
+    let fromSession = false;
+    try {
+      fromSession = sessionStorage.getItem(MAP_SESSION_KEY) === '1';
+    } catch (e) { /* private mode */ }
+    const fromHash = location.hash === '#map';
+    if (!fromSession && !fromHash) return;
+    if (fromHash) {
+      try {
+        history.replaceState(null, '', location.pathname + location.search);
+      } catch (e) { /* ignore */ }
+    }
+    showMapAndStartMusic();
+  }
+
+  tryReturnToMapFromGame();
+
+  window.addEventListener('pageshow', (ev) => {
+    if (ev.persisted) tryReturnToMapFromGame();
+  });
+
+  // ── Landing: Open starts background music (requires user gesture) ─
+  openAppBtn.addEventListener('click', () => {
+    tapSound.play().then(() => {
+      tapSound.pause();
+      tapSound.currentTime = 0;
+      audioUnlocked = true;
+    }).catch(() => {});
+
+    try {
+      sessionStorage.setItem(MAP_SESSION_KEY, '1');
+    } catch (e) { /* ignore */ }
+
+    showMapAndStartMusic();
+  });
 </script>
 </body>
 </html>
