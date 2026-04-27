@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Hangman</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg-elevated: #1e293b;
+            --primary: #38bdf8;
+            --primary-dim: rgba(56, 189, 248, 0.15);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #f87171;
+            --success: #34d399;
+            --ink: #e2e8f0;
+            --radius: 14px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(56, 189, 248, 0.12), transparent 55%), var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            background: var(--bg-elevated);
+            padding: clamp(1.25rem, 4vw, 2rem);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 880px;
+            display: flex;
+            gap: clamp(1.25rem, 4vw, 2rem);
+            border: 1px solid var(--border);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+        }
+
+        .visual-side {
+            flex: 0 0 min(240px, 44vw);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+            padding: clamp(14px, 3vw, 20px);
+            border: 1px solid var(--border);
+        }
+
+        #hangman-svg {
+            width: 100%;
+            height: auto;
+            max-height: 240px;
+        }
+
+        /* One drawing: gallows + rope + stick figure share the same chalk-like stroke */
+        #hangman-svg .gallows line,
+        #hangman-svg .figure-part {
+            stroke: var(--ink);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        #hangman-svg .gallows line {
+            stroke-width: 5;
+        }
+
+        #hangman-svg .figure-part {
+            stroke-width: 5;
+            opacity: 0;
+            transition: opacity 0.22s ease;
+        }
+
+        #hangman-svg .figure-part.visible {
+            opacity: 1;
+        }
+
+        #hangman-svg #head.figure-part {
+            fill: rgba(226, 232, 240, 0.08);
+        }
+
+        #guess-meter {
+            margin-top: 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            width: 100%;
+        }
+
+        #guess-meter.warning {
+            color: #fbbf24;
+        }
+
+        #guess-meter.danger {
+            color: var(--danger);
+        }
+
+        .clue-box {
+            margin-top: 14px;
+            width: 100%;
+        }
+
+        .clue-label {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        #clue-text {
+            font-size: 0.88rem;
+            font-weight: 500;
+            line-height: 1.45;
+            color: #cbd5e1;
+        }
+
+        .game-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        #stats {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #stats span {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        #word-display {
+            font-family: ui-monospace, "Cascadia Code", "Courier New", monospace;
+            font-size: clamp(1.35rem, 5vw, 2.35rem);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin: 0.35rem 0 1.25rem;
+            color: var(--text-main);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            line-height: 1.35;
+        }
+
+        #keyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(2rem, 1fr));
+            gap: 8px;
+            margin-bottom: 1rem;
+            max-width: 520px;
+        }
+
+        @media (min-width: 420px) {
+            #keyboard {
+                grid-template-columns: repeat(9, 1fr);
+            }
+        }
+
+        .key {
+            padding: 11px 4px;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            touch-action: manipulation;
+        }
+
+        .key:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .key:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: var(--primary-dim);
+        }
+
+        .key:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        .key:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .key.correct {
+            background: rgba(52, 211, 153, 0.25) !important;
+            color: var(--success) !important;
+            border-color: rgba(52, 211, 153, 0.5) !important;
+        }
+
+        .key.wrong {
+            background: rgba(248, 113, 113, 0.2) !important;
+            color: var(--danger) !important;
+            border-color: rgba(248, 113, 113, 0.45) !important;
+        }
+
+        .key.key-flash-used {
+            animation: key-shake 0.35s ease;
+        }
+
+        @keyframes key-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        #message {
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            min-height: 1.75rem;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+        }
+
+        #message.win { color: var(--success); }
+        #message.lose { color: var(--danger); }
+
+        .reset-btn {
+            background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            padding: 12px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+            transition: filter 0.15s, transform 0.1s;
+            touch-action: manipulation;
+        }
+
+        .reset-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        .reset-btn:active {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 720px) {
+            .container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .visual-side {
+                flex: none;
+                width: 100%;
+                max-width: 340px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="visual-side">
+        <svg id="hangman-svg" viewBox="0 0 200 260" aria-hidden="true">
+            <!-- Gallows + rope: always visible, same stroke as the figure -->
+            <g class="gallows">
+                <line x1="20" y1="235" x2="180" y2="235" />
+                <line x1="50" y1="235" x2="50" y2="25" />
+                <line x1="50" y1="25" x2="130" y2="25" />
+                <line x1="130" y1="25" x2="130" y2="52" />
+            </g>
+            <circle id="head" class="figure-part" cx="130" cy="72" r="20" />
+            <line id="body" class="figure-part" x1="130" y1="92" x2="130" y2="162" />
+            <line id="arm-l" class="figure-part" x1="130" y1="112" x2="100" y2="142" />
+            <line id="arm-r" class="figure-part" x1="130" y1="112" x2="160" y2="142" />
+            <line id="leg-l" class="figure-part" x1="130" y1="162" x2="100" y2="202" />
+            <line id="leg-r" class="figure-part" x1="130" y1="162" x2="160" y2="202" />
+        </svg>
+        <div id="guess-meter" aria-live="polite"></div>
+        <div class="clue-box">
+            <span class="clue-label">Clue</span>
+            <div id="clue-text"></div>
+        </div>
+    </div>
+
+    <div class="game-side">
+        <div id="stats">Win streak: <span id="streak-num">0</span> · Total wins: <span id="wins-num">0</span></div>
+        <div id="message" role="status" aria-live="polite"></div>
+        <div id="word-display" aria-label="Word progress"></div>
+        <div id="keyboard" role="group" aria-label="Letter keyboard"></div>
+        <div>
+            <button type="button" class="reset-btn" id="btn-new-game" onclick="initGame()">New game</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var STORAGE_KEY = 'hangman_stats_v1';
+
+    var WORDS = [
+        { w: 'SYNERGY', c: 'Combined effect greater than sum.' },
+        { w: 'QUORUM', c: 'Minimum members for valid meeting.' },
+        { w: 'LIABILITY', c: 'Legal or financial responsibility.' },
+        { w: 'LIQUIDITY', c: 'Ease of conversion to cash.' },
+        { w: 'ARBITRAGE', c: 'Profit from price differences.' },
+        { w: 'AMORTIZE', c: 'Gradually write off debt.' },
+        { w: 'DERIVATIVE', c: 'Value from underlying asset.' },
+        { w: 'ANNUITY', c: 'Fixed yearly payment.' },
+        { w: 'FIDUCIARY', c: 'Relationship of legal trust.' },
+        { w: 'HEGEMONY', c: 'Dominance of one group.' },
+        { w: 'SOLVENCY', c: 'Ability to pay debts.' },
+        { w: 'BULLION', c: 'Bulk gold or silver.' },
+        { w: 'CARTEL', c: 'Suppliers fixing high prices.' },
+        { w: 'SCALABILITY', c: 'Ability to grow easily.' },
+        { w: 'OUTSOURCING', c: 'Using outside suppliers.' },
+        { w: 'BENCHMARKING', c: 'Evaluating against a standard.' },
+        { w: 'LEVERAGED', c: 'Using borrowed capital.' },
+        { w: 'PROPRIETARY', c: 'Relating to ownership.' },
+        { w: 'VOLATILITY', c: 'Rapid or unpredictable change.' },
+        { w: 'REQUISITION', c: 'Official order for materials.' },
+        { w: 'ABYSS', c: 'Bottomless chasm or low point.' },
+        { w: 'AWRY', c: 'Away from expected course.' },
+        { w: 'CRYPT', c: 'Underground burial vault.' },
+        { w: 'DWARF', c: 'Below average species size.' },
+        { w: 'ECHO', c: 'Reflected sound waves.' },
+        { w: 'FJORD', c: 'Narrow inlet between cliffs.' },
+        { w: 'GNU', c: 'Large African antelope.' },
+        { w: 'HYENA', c: 'Doglike mammal with laugh.' },
+        { w: 'IOTA', c: 'An extremely small amount.' },
+        { w: 'JINX', c: 'Brings bad luck.' },
+        { w: 'KAYAK', c: 'Light watertight canoe.' },
+        { w: 'LYNX', c: 'Cat with tufted ears.' },
+        { w: 'MYRRH', c: 'Fragrant resin for incense.' },
+        { w: 'NYMPH', c: 'Mythological nature maiden.' },
+        { w: 'ONYX', c: 'Layered semi-precious agate.' },
+        { w: 'PHLEGM', c: 'Thick respiratory mucus.' },
+        { w: 'QUARTZ', c: 'Hard silicon dioxide mineral.' },
+        { w: 'RHYTHM', c: 'Repeated pattern of sound.' },
+        { w: 'SPHINX', c: "Woman's head, lion's body." },
+        { w: 'TYRO', c: 'A beginner or novice.' },
+        { w: 'ACQUIESCE', c: 'Accept without protest.' },
+        { w: 'ANOMALOUS', c: 'Deviating from standard.' },
+        { w: 'CACOPHONY', c: 'Harsh discordant mixture sounds.' },
+        { w: 'DICHOTOMY', c: 'Division between two opposites.' },
+        { w: 'EPHEMERAL', c: 'Lasting very short time.' },
+        { w: 'FACETIOUS', c: 'Inappropriately flippant humor.' },
+        { w: 'GARRULOUS', c: 'Excessively talkative.' },
+        { w: 'HUBRIS', c: 'Excessive pride or confidence.' },
+        { w: 'IDIOSYNCRASY', c: 'Peculiar individual behavior.' },
+        { w: 'JUXTAPOSE', c: 'Place together for contrast.' },
+        { w: 'KINETIC', c: 'Resulting from motion.' },
+        { w: 'LOQUACIOUS', c: 'Tending to talk much.' },
+        { w: 'MNEMONICS', c: 'Systems for improving memory.' },
+        { w: 'NEFARIOUS', c: 'Wicked or criminal.' },
+        { w: 'OBFUSCATE', c: 'Render obscure or unclear.' },
+        { w: 'PARADIGM', c: 'Typical example or model.' },
+        { w: 'QUINTESSENTIAL', c: 'Perfect typical example.' },
+        { w: 'RHETORIC', c: 'Art of persuasive speaking.' },
+        { w: 'SYNECDOCHE', c: 'Part representing the whole.' },
+        { w: 'UBIQUITOUS', c: 'Found everywhere.' },
+        { w: 'VICARIOUS', c: "Imagined through others' actions." },
+        { w: 'ZEPHYR', c: 'Soft gentle breeze.' },
+        { w: 'ZENITH', c: 'The most powerful point.' },
+        { w: 'WIZENED', c: 'Shriveled with age.' },
+        { w: 'VERACITY', c: 'Conformity to facts.' },
+        { w: 'UNCTUOUS', c: 'Excessively flattering or oily.' },
+        { w: 'TREPIDATION', c: 'Fear about future events.' },
+        { w: 'SURREPTITIOUS', c: 'Kept secret; unauthorized.' },
+        { w: 'RECALCITRANT', c: 'Obstinately uncooperative attitude.' },
+        { w: 'QUIXOTIC', c: 'Idealistic and impractical.' },
+        { w: 'ALGORITHM', c: 'Rules for problem solving.' },
+        { w: 'BYTE', c: 'Eight binary digits.' },
+        { w: 'CATALYST', c: 'Increases reaction rate.' },
+        { w: 'DIFFUSION', c: 'Spreading something widely.' },
+        { w: 'ENTROPY', c: 'Lack of order; decline.' },
+        { w: 'FREQUENCY', c: 'Rate of occurrence.' },
+        { w: 'GALAXY', c: 'System of stars.' },
+        { w: 'HYPOTENUSE', c: 'Longest triangle side.' },
+        { w: 'ISOTOPE', c: 'Form of chemical element.' },
+        { w: 'JOULE', c: 'Unit of energy.' },
+        { w: 'KILOBYTE', c: '1024 bytes of data.' },
+        { w: 'LYMPHOCYTE', c: 'White blood cell.' },
+        { w: 'MOLECULE', c: 'Smallest unit of compound.' },
+        { w: 'NEBULA', c: 'Outer space gas cloud.' },
+        { w: 'OXIDATION', c: 'Loss of electrons.' },
+        { w: 'PHOTON', c: 'Quantum of light.' },
+        { w: 'QUANTUM', c: 'Discrete quantity of energy.' },
+        { w: 'REFRACTION', c: 'Bending of a wave.' },
+        { w: 'SPECTRUM', c: 'Band of colors.' },
+        { w: 'TOPOLOGY', c: 'Study of spatial relations.' },
+        { w: 'BAGUETTE', c: 'Long narrow French loaf.' },
+        { w: 'CROISSANT', c: 'Flaky crescent-shaped pastry.' },
+        { w: 'DAIQUIRI', c: 'Rum and lime cocktail.' },
+        { w: 'ESPLANADE', c: 'Long open level walkway.' },
+        { w: 'FALAFEL', c: 'Fried spiced chickpea balls.' },
+        { w: 'GAZEBO', c: 'Roofed open-view structure.' },
+        { w: 'HAIKU', c: 'Seventeen syllable Japanese poem.' },
+        { w: 'IMPROMPTU', c: 'Done without being planned.' },
+        { w: 'JUGGERNAUT', c: 'Overwhelmingly powerful force.' },
+        { w: 'KNAPSACK', c: "Soldier's or hiker's bag." }
+    ];
+
+    var FIGURE_PART_IDS = ['head', 'body', 'arm-l', 'arm-r', 'leg-l', 'leg-r'];
+    var KEYBOARD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    var current = null;
+    var guessed = [];
+    var mistakes = 0;
+    var letterButtons = {};
+    var stats = { streak: 0, wins: 0 };
+
+    function msgEl() {
+        return document.getElementById('message');
+    }
+
+    function loadStats() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            var o = JSON.parse(raw);
+            if (typeof o.streak === 'number') stats.streak = o.streak;
+            if (typeof o.wins === 'number') stats.wins = o.wins;
+        } catch (e) { /* ignore */ }
+    }
+
+    function saveStats() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+        } catch (e) { /* ignore */ }
+    }
+
+    function renderStats() {
+        document.getElementById('streak-num').textContent = String(stats.streak);
+        document.getElementById('wins-num').textContent = String(stats.wins);
+    }
+
+    function resetMessage() {
+        var el = msgEl();
+        el.textContent = '';
+        el.className = '';
+    }
+
+    function gameIsOver() {
+        var m = msgEl();
+        return m.classList.contains('win') || m.classList.contains('lose');
+    }
+
+    function updateGuessMeter() {
+        var el = document.getElementById('guess-meter');
+        if (!el) return;
+        var left = FIGURE_PART_IDS.length - mistakes;
+        el.className = '';
+        el.textContent = 'Wrong guesses left: ' + left + ' / ' + FIGURE_PART_IDS.length;
+        if (left <= 2) el.classList.add('danger');
+        else if (left <= 3) el.classList.add('warning');
+    }
+
+    function initGame() {
+        current = WORDS[Math.floor(Math.random() * WORDS.length)];
+        guessed = [];
+        mistakes = 0;
+
+        FIGURE_PART_IDS.forEach(function (id) {
+            document.getElementById(id).classList.remove('visible');
+        });
+
+        resetMessage();
+        document.getElementById('clue-text').textContent = current.c;
+        createKeyboard();
+        updateDisplay();
+        updateGuessMeter();
+    }
+
+    function createKeyboard() {
+        letterButtons = {};
+        var kb = document.getElementById('keyboard');
+        kb.replaceChildren();
+        KEYBOARD.split('').forEach(function (letter) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = letter;
+            btn.className = 'key';
+            btn.setAttribute('data-letter', letter);
+            btn.setAttribute('aria-label', 'Guess letter ' + letter);
+            btn.addEventListener('click', function () {
+                handleGuess(letter, btn);
+            });
+            letterButtons[letter] = btn;
+            kb.appendChild(btn);
+        });
+    }
+
+    function handleGuess(letter, btn) {
+        if (!current || !btn || btn.disabled) return;
+
+        btn.disabled = true;
+        var word = current.w;
+
+        if (word.indexOf(letter) !== -1) {
+            guessed.push(letter);
+            btn.classList.add('correct');
+        } else {
+            if (mistakes < FIGURE_PART_IDS.length) {
+                document.getElementById(FIGURE_PART_IDS[mistakes]).classList.add('visible');
+            }
+            mistakes++;
+            btn.classList.add('wrong');
+        }
+
+        updateDisplay();
+        updateGuessMeter();
+        checkStatus();
+    }
+
+    function flashUsedLetter(letter) {
+        var btn = letterButtons[letter];
+        if (!btn) return;
+        btn.classList.add('key-flash-used');
+        setTimeout(function () {
+            btn.classList.remove('key-flash-used');
+        }, 400);
+    }
+
+    function guessFromKeyboard(letter) {
+        if (!current || gameIsOver()) return;
+        var btn = letterButtons[letter];
+        if (!btn) return;
+        if (btn.disabled) {
+            flashUsedLetter(letter);
+            return;
+        }
+        handleGuess(letter, btn);
+    }
+
+    function onKeyDown(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
+        var key = e.key;
+
+        if (e.repeat) return;
+        if (key.length !== 1) return;
+
+        var upper = key.toUpperCase();
+        if (upper < 'A' || upper > 'Z') return;
+
+        e.preventDefault();
+        guessFromKeyboard(upper);
+    }
+
+    function updateDisplay() {
+        if (!current) return;
+        var display = current.w.split('').map(function (ch) {
+            return guessed.indexOf(ch) !== -1 ? ch : '_';
+        }).join('\u00A0');
+        document.getElementById('word-display').textContent = display;
+    }
+
+    function checkStatus() {
+        if (!current) return;
+
+        var letters = current.w.split('');
+        var won = letters.every(function (ch) {
+            return guessed.indexOf(ch) !== -1;
+        });
+
+        if (won) {
+            stats.wins++;
+            stats.streak++;
+            saveStats();
+            renderStats();
+            var el = msgEl();
+            el.textContent = 'You got it!';
+            el.className = 'win';
+            disableKeys();
+            return;
+        }
+
+        if (mistakes >= FIGURE_PART_IDS.length) {
+            stats.streak = 0;
+            saveStats();
+            renderStats();
+            var loseEl = msgEl();
+            loseEl.textContent = 'Game over — the word was ' + current.w;
+            loseEl.className = 'lose';
+            disableKeys();
+        }
+    }
+
+    function disableKeys() {
+        document.querySelectorAll('#keyboard .key').forEach(function (k) {
+            k.disabled = true;
+        });
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+
+    loadStats();
+    renderStats();
+    window.initGame = initGame;
+    initGame();
+})();
+</script>
+</body>
+</html>
