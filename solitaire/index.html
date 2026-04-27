@@ -135,18 +135,111 @@
         .card.red { color: #d40000; }
         .card.black { color: #000; }
 
-        .card-back {
-            background: repeating-linear-gradient(
-                45deg,
-                #606dbc,
-                #606dbc 5px,
-                #465298 5px,
-                #465298 10px
-            );
-            border: 1px solid #fff;
+        /* Card back: white deck border + inner pattern (no inner DOM — pseudo-elements only) */
+        .card.card-back {
+            background: #0c1433;
+            border: 3px solid #f5f5f5;
+            box-shadow:
+                0 2px 6px rgba(0, 0, 0, 0.35),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+                inset 0 0 0 4px #fafafa;
+            overflow: hidden;
         }
-        
+
+        .card.card-back::before {
+            content: '';
+            position: absolute;
+            inset: 7px;
+            border-radius: 2px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background:
+                radial-gradient(circle at 50% 42%, rgba(120, 160, 255, 0.35) 0%, transparent 38%),
+                radial-gradient(circle at 20% 75%, rgba(255, 255, 255, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 80% 78%, rgba(255, 255, 255, 0.06) 0%, transparent 22%),
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.04) 0 5px,
+                    transparent 5px 10px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(0, 0, 0, 0.12) 0 4px,
+                    transparent 4px 8px
+                ),
+                linear-gradient(160deg, #1a2b64 0%, #0e1738 45%, #152a5c 100%);
+            pointer-events: none;
+        }
+
+        .card.card-back::after {
+            content: '';
+            position: absolute;
+            inset: 16%;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                inset 0 0 0 6px rgba(15, 25, 60, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            background:
+                conic-gradient(
+                    from 0deg,
+                    rgba(255, 255, 255, 0.07) 0deg,
+                    transparent 40deg,
+                    rgba(255, 255, 255, 0.05) 80deg,
+                    transparent 120deg,
+                    rgba(255, 255, 255, 0.06) 160deg,
+                    transparent 200deg,
+                    rgba(255, 255, 255, 0.05) 240deg,
+                    transparent 280deg,
+                    rgba(255, 255, 255, 0.07) 320deg,
+                    transparent 360deg
+                ),
+                radial-gradient(circle at 50% 50%, rgba(80, 110, 200, 0.25) 0%, transparent 55%);
+            pointer-events: none;
+        }
+
         .card-back * { display: none; }
+
+        /* Win: all face-up cards on the board join a short dance */
+        @keyframes card-dance {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            15% { transform: translateY(-14px) rotate(-7deg) scale(1.03); }
+            30% { transform: translateY(-22px) rotate(5deg) scale(1.02); }
+            45% { transform: translateY(-10px) rotate(-4deg) scale(1.04); }
+            60% { transform: translateY(-18px) rotate(6deg) scale(1.02); }
+            75% { transform: translateY(-6px) rotate(-3deg) scale(1.03); }
+        }
+
+        body.game-won #game-board .card:not(.card-back) {
+            animation: card-dance 0.85s ease-in-out infinite;
+            transform-origin: center bottom;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        body.game-won #win-banner {
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        #win-banner {
+            position: fixed;
+            left: 50%;
+            top: 18%;
+            transform: translateX(-50%);
+            z-index: 3000;
+            background: rgba(255, 255, 255, 0.96);
+            color: #0a3d1f;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: clamp(1.1rem, 4vw, 1.5rem);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            border: 3px solid #2e8b57;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
 
         .top-corner { text-align: left; line-height: 1; }
         .center-suit { 
@@ -186,6 +279,8 @@
     <button onclick="initGame()">New Game</button>
 </div>
 
+<div id="win-banner" role="status" aria-live="polite">You win — nice game!</div>
+
 <div id="game-board">
     <div class="top-row">
         <div id="stock" class="pile"></div>
@@ -217,8 +312,16 @@
     let drawCount = 1;
     let dragOffset = { x: 0, y: 0 };
     let activeCard = null;
+    function clearWinState() {
+        document.body.classList.remove('game-won');
+        document.querySelectorAll('.card[data-dance-delay]').forEach(el => {
+            el.removeAttribute('data-dance-delay');
+            el.style.animationDelay = '';
+        });
+    }
 
     function initGame() {
+        clearWinState();
         drawCount = parseInt(document.getElementById('difficulty').value);
         createDeck();
         shuffleDeck();
@@ -589,9 +692,18 @@
     }
 
     function checkWin() {
+        if (document.body.classList.contains('game-won')) return;
         let total = 0;
-        foundations.forEach(f => total += f.length);
-        if (total === 52) setTimeout(() => alert("You Win!"), 100);
+        foundations.forEach(f => { total += f.length; });
+        if (total !== 52) return;
+
+        requestAnimationFrame(() => {
+            document.body.classList.add('game-won');
+            document.querySelectorAll('#game-board .card:not(.card-back)').forEach((el, i) => {
+                el.style.animationDelay = `${i * 0.09}s`;
+                el.dataset.danceDelay = '1';
+            });
+        });
     }
 
     initGame();
