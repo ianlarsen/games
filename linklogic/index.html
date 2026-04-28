@@ -97,8 +97,8 @@
             background: var(--bg-game);
             position: relative;
             overflow: hidden;
-            cursor: default;
-            touch-action: manipulation;
+            cursor: grab;
+            touch-action: none;
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
         }
@@ -112,6 +112,8 @@
         }
 
         #game-container.placement-mode { cursor: crosshair; }
+        #game-container:active { cursor: grabbing; }
+        .placement-mode:active { cursor: crosshair; }
 
         #ui-bottom {
             flex-shrink: 0;
@@ -127,7 +129,7 @@
         .controls-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 
         .tile-slot {
-            width: 30px; height: 30px;
+            width: 56px; height: 56px;
             background: #0f172a;
             border: 2px solid var(--border);
             border-radius: 10px;
@@ -273,10 +275,10 @@
 
         @media (pointer: coarse) {
             .tile-slot {
-                width: 34px;
-                height: 34px;
-                min-width: 30px;
-                min-height: 30px;
+                width: 58px;
+                height: 58px;
+                min-width: 48px;
+                min-height: 48px;
             }
             .btn {
                 min-height: 44px;
@@ -361,10 +363,10 @@
     const container = document.getElementById('game-container');
     const canvas = document.getElementById('gameBoard');
     const ctx = canvas.getContext('2d');
-    const TILE_SIZE = 38;
+    const TILE_SIZE = 72;
     const GRID_SIZE = 40;
     const WORLD = TILE_SIZE * GRID_SIZE;
-    const HAND_PREVIEW = 30;
+    const HAND_PREVIEW = 56;
 
     const COLORS = ['#FF003C', '#0055FF', '#FFD700', '#D000FF', '#00FF9D'];
     const SHAPES = ['rings', 'plus', 'waves', 'hex', 'frame'];
@@ -378,6 +380,7 @@
     let viewW = 400, viewH = 400, dpr = 1;
     let particles = [];
     let hintPos = null, hintTimeoutId = null, msgTimeoutId = null;
+    let panBeforeHint = null;
     let rafId = null;
     let isMouseDown = false, dragStarted = false, startX, startY, startTime;
 
@@ -493,20 +496,39 @@
     }
 
     function centerPan() {
-        panX = Math.max(0, Math.min(WORLD - viewW, WORLD / 2 - viewW / 2));
-        panY = Math.max(0, Math.min(WORLD - viewH, WORLD / 2 - viewH / 2));
+        const maxX = Math.max(0, WORLD - viewW);
+        const maxY = Math.max(0, WORLD - viewH);
+        panX = Math.max(0, Math.min(maxX, WORLD / 2 - viewW / 2));
+        panY = Math.max(0, Math.min(maxY, WORLD / 2 - viewH / 2));
+    }
+
+    /** Scroll view so the hinted cell is centered (clamped to world bounds). */
+    function panToHintTile(tx, ty) {
+        const maxX = Math.max(0, WORLD - viewW);
+        const maxY = Math.max(0, WORLD - viewH);
+        panX = Math.max(0, Math.min(maxX, tx + TILE_SIZE / 2 - viewW / 2));
+        panY = Math.max(0, Math.min(maxY, ty + TILE_SIZE / 2 - viewH / 2));
+    }
+
+    function applyPanDelta(dx, dy) {
+        const maxX = Math.max(0, WORLD - viewW);
+        const maxY = Math.max(0, WORLD - viewH);
+        panX = Math.max(0, Math.min(maxX, panX - dx));
+        panY = Math.max(0, Math.min(maxY, panY - dy));
+        requestRender();
     }
 
     function draw() {
         ctx.setTransform(dpr, 0, 0, dpr, -panX * dpr, -panY * dpr);
-        ctx.clearRect(panX, panY, viewW, viewH);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(panX, panY, viewW, viewH);
 
         const gx0 = Math.max(0, Math.floor(panX / TILE_SIZE) * TILE_SIZE);
         const gy0 = Math.max(0, Math.floor(panY / TILE_SIZE) * TILE_SIZE);
         const gx1 = Math.min(WORLD, panX + viewW + TILE_SIZE);
         const gy1 = Math.min(WORLD, panY + viewH + TILE_SIZE);
 
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.2)";
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
         ctx.lineWidth = 1;
         for (let i = gx0; i <= gx1; i += TILE_SIZE) {
             ctx.beginPath();
@@ -678,7 +700,7 @@
     function findPossibleMove() {
         const keys = Object.keys(board);
         if (keys.length === 0) {
-            return { x: WORLD / 2 - TILE_SIZE / 2, y: WORLD / 2 - TILE_SIZE / 2 };
+            return { x: Math.floor((WORLD / 2) / TILE_SIZE) * TILE_SIZE, y: Math.floor((WORLD / 2) / TILE_SIZE) * TILE_SIZE };
         }
         const potentials = new Set();
         for (const k of keys) {
@@ -712,13 +734,26 @@
         if (hintTimeoutId) {
             clearTimeout(hintTimeoutId);
             hintTimeoutId = null;
+            if (panBeforeHint) {
+                panX = panBeforeHint.x;
+                panY = panBeforeHint.y;
+                panBeforeHint = null;
+            }
+            hintPos = null;
         }
         const move = findPossibleMove();
         if (move) {
+            panBeforeHint = { x: panX, y: panY };
+            panToHintTile(move.x, move.y);
             hintPos = move;
             hintTimeoutId = setTimeout(() => {
                 hintPos = null;
                 hintTimeoutId = null;
+                if (panBeforeHint) {
+                    panX = panBeforeHint.x;
+                    panY = panBeforeHint.y;
+                    panBeforeHint = null;
+                }
                 requestRender();
             }, 2000);
         } else {
@@ -770,6 +805,9 @@
     }
 
     function validateMove(tile, x, y) {
+        if (x < 0 || y < 0 || x + TILE_SIZE > WORLD + 1e-6 || y + TILE_SIZE > WORLD + 1e-6) {
+            return { err: "Stay on the board" };
+        }
         if (board[x + ',' + y]) return null;
         if (Object.keys(board).length === 0) return { score: 1 };
         const getL = (dx, dy) => {
@@ -805,6 +843,23 @@
         const p = e.touches ? e.touches[0] : e;
         startX = p.clientX; startY = p.clientY; startTime = Date.now();
     }
+    function onWheel(e) {
+        if (!gameActive) return;
+        if (e.ctrlKey) return;
+        let dx = e.deltaX;
+        let dy = e.deltaY;
+        if (e.deltaMode === 1) {
+            dx *= 16;
+            dy *= 16;
+        } else if (e.deltaMode === 2) {
+            dx *= viewW || 1;
+            dy *= viewH || 1;
+        }
+        if (dx === 0 && dy === 0) return;
+        if (e.cancelable) e.preventDefault();
+        applyPanDelta(dx, dy);
+    }
+
     function onMove(e) {
         if (!gameActive || !isMouseDown) return;
         const p = e.touches ? e.touches[0] : e;
@@ -812,6 +867,8 @@
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
             if (e.cancelable) e.preventDefault();
             dragStarted = true;
+            applyPanDelta(dx, dy);
+            startX = p.clientX; startY = p.clientY;
         }
     }
     function onUp(e) {
@@ -880,6 +937,7 @@
         if (msgTimeoutId) { clearTimeout(msgTimeoutId); msgTimeoutId = null; }
         if (hintTimeoutId) { clearTimeout(hintTimeoutId); hintTimeoutId = null; }
         hintPos = null;
+        panBeforeHint = null;
         particles = [];
         document.getElementById('msg').textContent = "";
         cancelRenderLoop();
@@ -894,14 +952,18 @@
     container.addEventListener('mousedown', onDown);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+    container.addEventListener('wheel', onWheel, { passive: false });
     container.addEventListener('touchstart', onDown, { passive: false });
     container.addEventListener('touchmove', onMove, { passive: false });
     container.addEventListener('touchend', onUp, { passive: false });
 
     window.addEventListener('resize', () => {
+        const ox = (panX + viewW / 2) / (viewW || 1);
+        const oy = (panY + viewH / 2) / (viewH || 1);
         cancelRenderLoop();
         sizeCanvas();
-        centerPan();
+        panX = Math.max(0, Math.min(WORLD - viewW, ox * viewW - viewW / 2));
+        panY = Math.max(0, Math.min(WORLD - viewH, oy * viewH - viewH / 2));
         requestRender();
     });
 
