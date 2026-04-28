@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Link Logic</title>
     <style>
         :root {
@@ -95,8 +97,8 @@
             background: var(--bg-game);
             position: relative;
             overflow: hidden;
-            cursor: grab;
-            touch-action: none;
+            cursor: default;
+            touch-action: manipulation;
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
         }
@@ -110,8 +112,6 @@
         }
 
         #game-container.placement-mode { cursor: crosshair; }
-        #game-container:active { cursor: grabbing; }
-        .placement-mode:active { cursor: crosshair; }
 
         #ui-bottom {
             flex-shrink: 0;
@@ -127,7 +127,7 @@
         .controls-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 
         .tile-slot {
-            width: 58px; height: 58px;
+            width: 30px; height: 30px;
             background: #0f172a;
             border: 2px solid var(--border);
             border-radius: 10px;
@@ -273,10 +273,10 @@
 
         @media (pointer: coarse) {
             .tile-slot {
-                width: 64px;
-                height: 64px;
-                min-width: 48px;
-                min-height: 48px;
+                width: 34px;
+                height: 34px;
+                min-width: 30px;
+                min-height: 30px;
             }
             .btn {
                 min-height: 44px;
@@ -291,9 +291,23 @@
             #ui-top {
                 flex-wrap: wrap;
                 gap: 8px;
+                margin: max(8px, env(safe-area-inset-top, 0px)) 10px 0 10px;
+                padding: 10px 12px;
             }
             .brand { flex: 1 1 100%; text-align: center; order: -1; }
             .scoreline { order: 0; }
+            .hand-row { gap: 6px; }
+            #ui-bottom { padding-top: 10px; gap: 10px; }
+        }
+
+        @media (orientation: portrait) {
+            body {
+                max-height: 100dvh;
+            }
+            #game-container {
+                flex: 1 1 auto;
+                min-height: min(52vh, 420px);
+            }
         }
     </style>
 </head>
@@ -347,9 +361,10 @@
     const container = document.getElementById('game-container');
     const canvas = document.getElementById('gameBoard');
     const ctx = canvas.getContext('2d');
-    const TILE_SIZE = 75;
+    const TILE_SIZE = 38;
     const GRID_SIZE = 40;
     const WORLD = TILE_SIZE * GRID_SIZE;
+    const HAND_PREVIEW = 30;
 
     const COLORS = ['#FF003C', '#0055FF', '#FFD700', '#D000FF', '#00FF9D'];
     const SHAPES = ['rings', 'plus', 'waves', 'hex', 'frame'];
@@ -384,7 +399,7 @@
             c.globalAlpha = this.life;
             c.fillStyle = this.color;
             c.beginPath();
-            c.arc(this.x, this.y, 4, 0, Math.PI * 2);
+            c.arc(this.x, this.y, Math.max(2, TILE_SIZE / 19), 0, Math.PI * 2);
             c.fill();
             c.globalAlpha = 1;
         }
@@ -419,15 +434,19 @@
     }
 
     function drawShape(c, x, y, size, color, shape) {
+        const pad = Math.max(1, size * (4 / 75));
+        const outerR = Math.max(4, size * (12 / 75));
+        const lineOuter = Math.max(1, size / 50);
+        const lineShape = Math.max(1.5, size / 25);
         c.fillStyle = "#111827";
-        addRoundRectPath(c, x + 4, y + 4, size - 8, size - 8, 12);
+        addRoundRectPath(c, x + pad, y + pad, size - pad * 2, size - pad * 2, outerR);
         c.fill();
-        c.strokeStyle = "rgba(255,255,255,0.2)"; c.lineWidth = 1.5;
+        c.strokeStyle = "rgba(255,255,255,0.2)"; c.lineWidth = lineOuter;
         c.stroke();
         const cx = x + size / 2, cy = y + size / 2, r = size * 0.22;
         c.lineCap = "round";
         c.lineJoin = "round";
-        c.strokeStyle = color; c.lineWidth = 3; c.fillStyle = color;
+        c.strokeStyle = color; c.lineWidth = lineShape; c.fillStyle = color;
 
         c.beginPath();
         if (shape === 'rings') {
@@ -503,8 +522,10 @@
         }
 
         if (hintPos) {
+            const hp = Math.max(1, TILE_SIZE * (2 / 75));
+            const hr = Math.max(4, TILE_SIZE * (8 / 75));
             ctx.fillStyle = "rgba(56, 189, 248, 0.28)";
-            addRoundRectPath(ctx, hintPos.x + 2, hintPos.y + 2, TILE_SIZE - 4, TILE_SIZE - 4, 8);
+            addRoundRectPath(ctx, hintPos.x + hp, hintPos.y + hp, TILE_SIZE - hp * 2, TILE_SIZE - hp * 2, hr);
             ctx.fill();
         }
 
@@ -778,32 +799,6 @@
         return { score: p, firework: fw };
     }
 
-    function applyPanDelta(dx, dy) {
-        const maxX = Math.max(0, WORLD - viewW);
-        const maxY = Math.max(0, WORLD - viewH);
-        panX = Math.max(0, Math.min(maxX, panX - dx));
-        panY = Math.max(0, Math.min(maxY, panY - dy));
-        requestRender();
-    }
-
-    /** Trackpad two-finger scroll (wheel); deltaMode normalizes line/page deltas. */
-    function onWheel(e) {
-        if (!gameActive) return;
-        if (e.ctrlKey) return;
-        let dx = e.deltaX;
-        let dy = e.deltaY;
-        if (e.deltaMode === 1) {
-            dx *= 16;
-            dy *= 16;
-        } else if (e.deltaMode === 2) {
-            dx *= viewW || 1;
-            dy *= viewH || 1;
-        }
-        if (dx === 0 && dy === 0) return;
-        if (e.cancelable) e.preventDefault();
-        applyPanDelta(dx, dy);
-    }
-
     function onDown(e) {
         if (!gameActive) return;
         isMouseDown = true; dragStarted = false;
@@ -817,8 +812,6 @@
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
             if (e.cancelable) e.preventDefault();
             dragStarted = true;
-            applyPanDelta(dx, dy);
-            startX = p.clientX; startY = p.clientY;
         }
     }
     function onUp(e) {
@@ -851,9 +844,9 @@
         const slot = document.getElementById('slot-' + i);
         slot.innerHTML = '';
         const can = document.createElement('canvas');
-        can.width = 60; can.height = 60;
+        can.width = HAND_PREVIEW; can.height = HAND_PREVIEW;
         const c2 = can.getContext('2d');
-        drawShape(c2, 0, 0, 60, hand[i].color, hand[i].shape);
+        drawShape(c2, 0, 0, HAND_PREVIEW, hand[i].color, hand[i].shape);
         slot.appendChild(can);
     }
 
@@ -901,18 +894,14 @@
     container.addEventListener('mousedown', onDown);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-    container.addEventListener('wheel', onWheel, { passive: false });
     container.addEventListener('touchstart', onDown, { passive: false });
     container.addEventListener('touchmove', onMove, { passive: false });
     container.addEventListener('touchend', onUp, { passive: false });
 
     window.addEventListener('resize', () => {
-        const ox = (panX + viewW / 2) / (viewW || 1);
-        const oy = (panY + viewH / 2) / (viewH || 1);
         cancelRenderLoop();
         sizeCanvas();
-        panX = Math.max(0, Math.min(WORLD - viewW, ox * viewW - viewW / 2));
-        panY = Math.max(0, Math.min(WORLD - viewH, oy * viewH - viewH / 2));
+        centerPan();
         requestRender();
     });
 
