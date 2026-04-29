@@ -165,7 +165,7 @@
 
         #keyboard {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(2rem, 1fr));
+            grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 8px;
             margin-bottom: 1rem;
             max-width: 520px;
@@ -180,6 +180,7 @@
         .key {
             padding: 11px 4px;
             min-height: 44px;
+            min-width: 42px;
             border: 1px solid var(--border);
             background: rgba(30, 41, 59, 0.9);
             color: var(--text-main);
@@ -265,6 +266,17 @@
             transform: scale(0.98);
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            #hangman-svg .figure-part,
+            .key,
+            .reset-btn {
+                transition: none !important;
+            }
+            .key.key-flash-used {
+                animation: none;
+            }
+        }
+
         @media (max-width: 720px) {
             .container {
                 flex-direction: column;
@@ -276,6 +288,10 @@
                 width: 100%;
                 max-width: 340px;
                 margin: 0 auto;
+            }
+
+            #keyboard {
+                max-width: 100%;
             }
         }
     </style>
@@ -312,7 +328,7 @@
         <div id="word-display" aria-label="Word progress"></div>
         <div id="keyboard" role="group" aria-label="Letter keyboard"></div>
         <div>
-            <button type="button" class="reset-btn" id="btn-new-game" onclick="initGame()">New game</button>
+            <button type="button" class="reset-btn" id="btn-new-game">New game</button>
         </div>
     </div>
 </div>
@@ -430,6 +446,7 @@
     var KEYBOARD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var current = null;
+    var lastWord = null;
     var guessed = [];
     var mistakes = 0;
     var letterButtons = {};
@@ -482,7 +499,7 @@
     }
 
     function initGame() {
-        current = WORDS[Math.floor(Math.random() * WORDS.length)];
+        current = pickWord();
         guessed = [];
         mistakes = 0;
 
@@ -491,10 +508,24 @@
         });
 
         resetMessage();
+        msgEl().textContent = 'Guess a letter to start.';
         document.getElementById('clue-text').textContent = current.c;
         createKeyboard();
         updateDisplay();
         updateGuessMeter();
+    }
+
+    function pickWord() {
+        var next = WORDS[Math.floor(Math.random() * WORDS.length)];
+        if (WORDS.length > 1) {
+            var tries = 0;
+            while (next.w === lastWord && tries < 8) {
+                next = WORDS[Math.floor(Math.random() * WORDS.length)];
+                tries++;
+            }
+        }
+        lastWord = next.w;
+        return next;
     }
 
     function createKeyboard() {
@@ -623,7 +654,7 @@
 
     loadStats();
     renderStats();
-    window.initGame = initGame;
+    document.getElementById('btn-new-game').addEventListener('click', initGame);
     initGame();
 })();
 </script>
