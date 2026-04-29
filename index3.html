@@ -188,6 +188,7 @@
     <ul class="games-grid" aria-label="Games list">
       <li><a class="game-card" href="./birdwatching/index.html"><canvas class="game-art" data-game="birdwatching" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">birdwatching</span><div class="play">Tap to play</div></div></a></li>
       <li><a class="game-card" href="./deadttrail/index.html"><canvas class="game-art" data-game="deadttrail" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">deadttrail</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./chipschallenge/index.html"><canvas class="game-art" data-game="chipschallenge" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">chipschallenge</span><div class="play">Tap to play</div></div></a></li>
       <li><a class="game-card" href="./hangman/index.html"><canvas class="game-art" data-game="hangman" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">hangman</span><div class="play">Tap to play</div></div></a></li>
       <li><a class="game-card" href="./ladder/index.html"><canvas class="game-art" data-game="ladder" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">ladder</span><div class="play">Tap to play</div></div></a></li>
       <li><a class="game-card" href="./linklogic/index.html"><canvas class="game-art" data-game="linklogic" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">linklogic</span><div class="play">Tap to play</div></div></a></li>
@@ -247,6 +248,16 @@
         ctx.fillRect(50, 10, 16, 16);
         ctx.fillStyle = "#b4f0ff";
         ctx.fillRect(54, 14, 3, 3);
+      } else if (game === "chipschallenge") {
+        ctx.strokeStyle = "#b8f1ff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(12, 10, 58, 40);
+        for (let x = 26; x <= 56; x += 15) line(ctx, x, 10, x, 50, "#78c6e8", 1.5);
+        for (let y = 23; y <= 36; y += 13) line(ctx, 12, y, 70, y, "#78c6e8", 1.5);
+        ctx.fillStyle = "#ffd84d";
+        ctx.beginPath(); ctx.arc(28, 30, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ff6b7b";
+        ctx.fillRect(50, 24, 12, 12);
       } else if (game === "hangman") {
         line(ctx, 14, 48, 34, 48, "#f7f5e8", 3);
         line(ctx, 24, 48, 24, 12, "#f7f5e8", 3);
