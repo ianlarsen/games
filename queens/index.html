@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queens</title>
+    <style>
+        :root {
+            --bg: #f3f7fc;
+            --card: #ffffff;
+            --primary: #1f6feb;
+            --text: #1f2a36;
+            --border: #dde3ec;
+            --status: #5a6472;
+            --ok: #16803c;
+            --warn: #b26c00;
+            --bad: #c62828;
+            --c0: #ffadad; --c1: #ffd6a5; --c2: #fdffb6;
+            --c3: #caffbf; --c4: #9bf6ff; --c5: #a0c4ff;
+            --c6: #bdb2ff; --c7: #ffc6ff;
+            --cell-size: 50px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Inter", -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at top, #ffffff, var(--bg) 60%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 14px;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(25, 42, 70, 0.1);
+            border: 1px solid var(--border);
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--primary);
+            letter-spacing: 0.02em;
+        }
+
+        .subtitle {
+            margin: 6px 0 10px;
+            color: #6c7684;
+            font-size: 0.92rem;
+        }
+
+        #game-board {
+            display: grid;
+            gap: 4px;
+            margin: 14px auto;
+            padding: 4px;
+            background: #4a5462;
+            border-radius: 10px;
+            width: fit-content;
+            touch-action: manipulation;
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            user-select: none;
+            border-radius: 5px;
+            font-weight: 700;
+            transition: transform 0.08s ease;
+        }
+
+        .cell:active {
+            transform: scale(0.97);
+        }
+
+        .cell.locked {
+            box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25);
+        }
+
+        .marker-x {
+            color: rgba(0, 0, 0, 0.45);
+            font-family: Arial, sans-serif;
+        }
+
+        .queen-icon {
+            font-size: 28px;
+            filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.25));
+        }
+
+        .reg-0 { background: var(--c0); } .reg-1 { background: var(--c1); }
+        .reg-2 { background: var(--c2); } .reg-3 { background: var(--c3); }
+        .reg-4 { background: var(--c4); } .reg-5 { background: var(--c5); }
+        .reg-6 { background: var(--c6); } .reg-7 { background: var(--c7); }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+
+        button {
+            padding: 10px 16px;
+            cursor: pointer;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-bottom: 4px;
+            font-weight: 600;
+            min-height: 22px;
+            color: var(--status);
+        }
+
+        #status.ok { color: var(--ok); }
+        #status.warn { color: var(--warn); }
+        #status.bad { color: var(--bad); }
+
+        @media (max-width: 520px) {
+            :root { --cell-size: 39px; }
+            .container { padding: 14px; }
+            .queen-icon { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Queens</h2>
+        <p class="subtitle">Tap cycle: X, crown, clear</p>
+        <div id="status">Tap once for X, twice for crown, third to clear.</div>
+        
+        <div id="game-board"></div>
+
+        <div class="controls">
+            <label class="toggle-container">
+                <input type="checkbox" id="autoMark" checked> Auto-mark with 'X'
+            </label>
+            <div class="btn-group">
+                <button id="check-btn" type="button">Check Solution</button>
+                <button id="new-btn" type="button" style="background:#5f6977">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SIZE = 8;
+        const boardEl = document.getElementById('game-board');
+        const statusEl = document.getElementById('status');
+        const autoMarkEl = document.getElementById('autoMark');
+        const checkBtn = document.getElementById('check-btn');
+        const newBtn = document.getElementById('new-btn');
+
+        let boardState = [];
+        function initGame() {
+            generatePuzzle();
+            renderBoard();
+            setStatus("Tap once for X, twice for crown, third to clear.", "default");
+        }
+
+        function generatePuzzle() {
+            const solution = [];
+            const rows = [...Array(SIZE).keys()].sort(() => Math.random() - 0.5);
+            for (let c = 0; c < SIZE; c += 1) solution.push({ r: rows[c], c });
+
+            const regions = Array(SIZE * SIZE).fill(-1);
+            const queue = solution.map((pos, i) => {
+                regions[pos.r * SIZE + pos.c] = i;
+                return { idx: pos.r * SIZE + pos.c, reg: i };
+            });
+
+            while (queue.length > 0) {
+                queue.sort(() => Math.random() - 0.5);
+                const { idx, reg } = queue.shift();
+                const r = Math.floor(idx / SIZE);
+                const c = idx % SIZE;
+                [[0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([dr, dc]) => {
+                    const nr = r + dr;
+                    const nc = c + dc;
+                    if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && regions[nr * SIZE + nc] === -1) {
+                        regions[nr * SIZE + nc] = reg;
+                        queue.push({ idx: nr * SIZE + nc, reg });
+                    }
+                });
+            }
+
+            boardState = regions.map((region) => ({
+                region,
+                isQueen: false,
+                isLocked: false,
+                isXManual: false,
+                isXAuto: false
+            }));
+
+            const revealed = [...Array(SIZE).keys()].sort(() => Math.random() - 0.5).slice(0, 2);
+            revealed.forEach(i => {
+                const idx = solution[i].r * SIZE + solution[i].c;
+                boardState[idx].isQueen = true;
+                boardState[idx].isLocked = true;
+            });
+            recomputeAutoMarks();
+        }
+
+        function renderBoard() {
+            boardEl.style.gridTemplateColumns = `repeat(${SIZE}, var(--cell-size))`;
+            boardEl.innerHTML = '';
+            boardState.forEach((cell, i) => {
+                const div = document.createElement('div');
+                div.className = `cell reg-${cell.region}${cell.isLocked ? ' locked' : ''}`;
+                const isMarkedX = !cell.isQueen && (cell.isXManual || cell.isXAuto);
+                if (cell.isQueen) {
+                    div.innerHTML = '<span class="queen-icon">👑</span>';
+                } else if (isMarkedX) {
+                    div.innerHTML = '<span class="marker-x">✕</span>';
+                }
+
+                div.addEventListener('click', () => handleTap(i));
+                boardEl.appendChild(div);
+            });
+        }
+
+        function handleTap(i) {
+            if (boardState[i].isLocked) return;
+            const cell = boardState[i];
+            if (!cell.isXManual && !cell.isQueen) {
+                cell.isXManual = true;      // empty -> X
+            } else if (cell.isXManual && !cell.isQueen) {
+                cell.isXManual = false;     // X -> crown
+                cell.isQueen = true;
+            } else {
+                cell.isQueen = false;       // crown -> empty
+                cell.isXManual = false;
+            }
+            recomputeAutoMarks();
+            renderBoard();
+            setStatus('Cell updated.', 'default');
+        }
+
+        function recomputeAutoMarks() {
+            boardState.forEach((cell) => { cell.isXAuto = false; });
+            const queensToMarkFrom = boardState
+                .map((cell, i) => cell.isQueen ? { ...cell, i } : null)
+                .filter(Boolean)
+                .filter((cell) => autoMarkEl.checked || cell.isLocked);
+
+            if (queensToMarkFrom.length === 0) return;
+
+            queensToMarkFrom.forEach((queenCell) => {
+                const row = Math.floor(queenCell.i / SIZE);
+                const col = queenCell.i % SIZE;
+                boardState.forEach((target, j) => {
+                    if (target.isQueen) return;
+                    const r = Math.floor(j / SIZE);
+                    const c = j % SIZE;
+                    const isSameRow = r === row;
+                    const isSameCol = c === col;
+                    const isAdjacent = Math.abs(r - row) <= 1 && Math.abs(c - col) <= 1;
+                    if (isSameRow || isSameCol || isAdjacent) {
+                        target.isXAuto = true;
+                    }
+                });
+            });
+        }
+
+        function setStatus(text, tone) {
+            statusEl.textContent = text;
+            statusEl.className = '';
+            if (tone === 'ok') statusEl.classList.add('ok');
+            else if (tone === 'warn') statusEl.classList.add('warn');
+            else if (tone === 'bad') statusEl.classList.add('bad');
+        }
+
+        function checkWin() {
+            const queens = boardState
+                .map((cell, i) => cell.isQueen ? { r: Math.floor(i / SIZE), c: i % SIZE, reg: cell.region } : null)
+                .filter(Boolean);
+
+            if (queens.length !== SIZE) {
+                setStatus(`Need ${SIZE} queens. You have ${queens.length}.`, 'warn');
+                return;
+            }
+
+            for (let i = 0; i < queens.length; i += 1) {
+                for (let j = i + 1; j < queens.length; j += 1) {
+                    const a = queens[i];
+                    const b = queens[j];
+                    const conflict =
+                        a.r === b.r ||
+                        a.c === b.c ||
+                        a.reg === b.reg ||
+                        (Math.abs(a.r - b.r) <= 1 && Math.abs(a.c - b.c) <= 1);
+                    if (conflict) {
+                        setStatus('Conflict detected. Check rows, columns, regions, and adjacency.', 'bad');
+                        return;
+                    }
+                }
+            }
+            setStatus('Winner! Grid complete.', 'ok');
+        }
+
+        autoMarkEl.addEventListener('change', () => {
+            recomputeAutoMarks();
+            renderBoard();
+        });
+        checkBtn.addEventListener('click', checkWin);
+        newBtn.addEventListener('click', initGame);
+
+        initGame();
+    </script>
+</body>
+</html>
