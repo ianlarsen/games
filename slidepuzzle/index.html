@@ -101,6 +101,8 @@
         /* ── Board ── */
         .board-wrap {
             position: relative;
+            max-width: 100%;
+            min-width: 0;
         }
         #grid {
             display: grid;
@@ -392,11 +394,34 @@ const SHUFFLE_MOVES = { 3: 150, 4: 300, 5: 500 };
 const TILE_SIZES   = { 3: 110, 4: 85,  5: 68  };
 
 function calcTileSize() {
-    const hPad = 32; // horizontal body padding
-    const gap  = 6;
+    const gap = 6;
     const boardGap = (SIZE + 1) * gap;
-    const maxFromW = Math.floor((window.innerWidth - hPad - boardGap) / SIZE);
+    const bodyHorizontal = 32;
+    let avail = Math.max(120, window.innerWidth - bodyHorizontal);
+    const wide = window.matchMedia('(min-width: 601px)').matches;
+    if (wide) {
+        avail -= 230;
+    }
+    const boardWrap = document.querySelector('.board-wrap');
+    if (boardWrap && boardWrap.clientWidth > 60) {
+        avail = Math.min(avail, boardWrap.clientWidth);
+    }
+    const maxFromW = Math.floor((avail - boardGap) / SIZE);
     return Math.max(Math.min(TILE_SIZES[SIZE], maxFromW), 44);
+}
+
+function syncTileCssVars(gridEl) {
+    if (gridEl) {
+        gridEl.style.setProperty('--tile-size', `${tileSize}px`);
+    }
+}
+
+function rescaleImageCanvas(newTotalPx) {
+    if (!imageCanvas || imageCanvas.width === newTotalPx) return imageCanvas;
+    const scaled = document.createElement('canvas');
+    scaled.width = scaled.height = newTotalPx;
+    scaled.getContext('2d').drawImage(imageCanvas, 0, 0, newTotalPx, newTotalPx);
+    return scaled;
 }
 
 // ── Touch drag state ──
@@ -459,6 +484,7 @@ function buildImage(totalPx) {
 // ── Render board ──
 function render() {
     const grid = document.getElementById('grid');
+    syncTileCssVars(grid);
     grid.style.gridTemplateColumns = `repeat(${SIZE}, ${tileSize}px)`;
     grid.innerHTML = '';
     board.forEach((val, i) => {
@@ -613,6 +639,17 @@ function startGame() {
 
     render();
     updateBestDisplay();
+
+    requestAnimationFrame(() => {
+        const next = calcTileSize();
+        if (next !== tileSize) {
+            tileSize = next;
+            const totalPx = tileSize * SIZE;
+            imageCanvas = rescaleImageCanvas(totalPx);
+            drawPreview(totalPx);
+            render();
+        }
+    });
 }
 
 // ── Preview canvas ──
@@ -812,9 +849,8 @@ window.addEventListener('resize', () => {
     if (newSize !== tileSize) {
         tileSize = newSize;
         const totalPx = tileSize * SIZE;
-        if (imageCanvas) {
-            drawPreview(totalPx);
-        }
+        imageCanvas = rescaleImageCanvas(totalPx);
+        drawPreview(totalPx);
         render();
     }
 });
