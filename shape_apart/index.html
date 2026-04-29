@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Match</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 1s ease;
+            overflow: hidden;
+            user-select: none;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            pointer-events: none;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 800px;
+            padding: 20px;
+        }
+        canvas {
+            cursor: pointer;
+            border: 3px solid transparent;
+            border-radius: 12px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        canvas:hover {
+            transform: scale(1.05);
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            text-align: center;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #333;
+        }
+        h1 { color: #000; font-size: 2.5rem; margin: 0; }
+        h2 { color: #444; margin: 0; }
+        p { color: #666; font-size: 1.1rem; margin-top: 5px; }
+
+        .firework {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #000;
+            border-radius: 50%;
+            animation: explode 0.8s ease-out forwards;
+        }
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(25); opacity: 0; }
+        }
+
+        @media (max-width: 980px) {
+            #game-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+                padding: 14px;
+            }
+            canvas {
+                width: min(26vw, 150px);
+                height: min(26vw, 150px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            #ui-layer {
+                top: 12px;
+            }
+            #game-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 10px;
+            }
+            h2 { font-size: 1.05rem; }
+            p { font-size: 0.95rem; }
+            canvas {
+                width: min(40vw, 136px);
+                height: min(40vw, 136px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui-layer">
+    <h2 id="level-display">Round: 1</h2>
+    <p>Find the two identical shapes</p>
+</div>
+
+<div id="game-container"></div>
+
+<div id="overlay">
+    <div id="firework-container"></div>
+    <h1 id="overlay-text"></h1>
+    <button id="overlay-btn" onclick="resetGame()">Continue</button>
+</div>
+
+<script>
+    const container = document.getElementById('game-container');
+    const levelDisplay = document.getElementById('level-display');
+    const overlay = document.getElementById('overlay');
+    const overlayText = document.getElementById('overlay-text');
+    const overlayBtn = document.getElementById('overlay-btn');
+    const fireworkContainer = document.getElementById('firework-container');
+
+    let round = 1;
+    let similarityFactor = 0.05; 
+    let winningIndex1, winningIndex2;
+    let selectedIdx = null;
+    let isRoundActive = true;
+
+    function initRound() {
+        container.innerHTML = '';
+        updateBackground();
+        levelDisplay.innerText = `Round: ${round}`;
+        selectedIdx = null;
+        isRoundActive = true;
+
+        const shapeTypes = [5, 6, 8]; 
+        const sides = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+        const masterShape = generateShapeDNA(sides);
+
+        const shapesData = [];
+        winningIndex1 = Math.floor(Math.random() * 12);
+        do {
+            winningIndex2 = Math.floor(Math.random() * 12);
+        } while (winningIndex1 === winningIndex2);
+
+        for (let i = 0; i < 12; i++) {
+            if (i === winningIndex1 || i === winningIndex2) {
+                shapesData.push(masterShape);
+            } else {
+                shapesData.push(generateShapeDNA(sides, masterShape));
+            }
+        }
+
+        shapesData.forEach((dna, index) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 150;
+            canvas.height = 150;
+            drawShape(canvas, dna);
+            canvas.addEventListener('click', () => handleSelection(index));
+            container.appendChild(canvas);
+        });
+    }
+
+    function generateShapeDNA(sides, master = null) {
+        const points = [];
+        const internalLines = [];
+        const maxMutation = 50; 
+        const currentVariance = maxMutation * (1 - similarityFactor);
+
+        for (let i = 0; i < sides; i++) {
+            const angle = (i / sides) * Math.PI * 2;
+            const radius = 55;
+            
+            let x, y;
+            if (master) {
+                x = master.points[i].ox + (Math.random() - 0.5) * currentVariance;
+                y = master.points[i].oy + (Math.random() - 0.5) * currentVariance;
+            } else {
+                x = Math.cos(angle) * radius + (Math.random() - 0.5) * 15;
+                y = Math.sin(angle) * radius + (Math.random() - 0.5) * 15;
+            }
+            x = Math.max(-60, Math.min(60, x));
+            y = Math.max(-60, Math.min(60, y));
+            points.push({ x: x + 75, y: y + 75, ox: x, oy: y });
+        }
+
+        if (!master) {
+            for (let i = 0; i < 3; i++) {
+                let p1 = Math.floor(Math.random() * sides);
+                let p2 = Math.floor(Math.random() * sides);
+                if (p1 !== p2) internalLines.push([p1, p2]);
+            }
+        } else {
+            internalLines.push(...master.internalLines);
+        }
+        return { points, internalLines };
+    }
+
+    function drawShape(canvas, dna) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(dna.points[0].x, dna.points[0].y);
+        for (let i = 1; i < dna.points.length; i++) {
+            ctx.lineTo(dna.points[i].x, dna.points[i].y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        dna.internalLines.forEach(line => {
+            ctx.beginPath();
+            ctx.moveTo(dna.points[line[0]].x, dna.points[line[0]].y);
+            ctx.lineTo(dna.points[line[1]].x, dna.points[line[1]].y);
+            ctx.stroke();
+        });
+    }
+
+    function handleSelection(index) {
+        if (!isRoundActive || overlay.style.display === 'flex') {
+            return;
+        }
+        const canvases = container.querySelectorAll('canvas');
+        if (selectedIdx === null) {
+            selectedIdx = index;
+            canvases[index].style.borderColor = '#000';
+        } else {
+            if (selectedIdx === index) {
+                canvases[index].style.borderColor = 'transparent';
+                selectedIdx = null;
+                return;
+            }
+            const isWin = (selectedIdx === winningIndex1 && index === winningIndex2) || 
+                          (selectedIdx === winningIndex2 && index === winningIndex1);
+            isRoundActive = false;
+            if (isWin) {
+                nextRound();
+            } else {
+                gameOver();
+            }
+            selectedIdx = null;
+        }
+    }
+
+    function nextRound() {
+        if (round % 10 === 0) {
+            showOverlay("You're doing great!", "Continue");
+            spawnFireworks();
+        } else {
+            round++;
+            similarityFactor = similarityFactor + (1 - similarityFactor) * 0.1;
+            initRound();
+        }
+    }
+
+    function gameOver() {
+        showOverlay("It's ok some games are hard", "Try Again");
+        round = 1;
+        similarityFactor = 0.05;
+    }
+
+    function showOverlay(text, btnText) {
+        isRoundActive = false;
+        overlayText.innerText = text;
+        overlayBtn.innerText = btnText;
+        overlay.style.display = 'flex';
+    }
+
+    function resetGame() {
+        overlay.style.display = 'none';
+        fireworkContainer.innerHTML = '';
+        if (overlayBtn.innerText === "Continue") {
+            round++;
+            similarityFactor = similarityFactor + (1 - similarityFactor) * 0.1;
+        }
+        initRound();
+    }
+
+    function updateBackground() {
+        const colors = ['#f8fafc', '#fffbeb', '#f0fdf4', '#fff1f2', '#faf5ff', '#f0f9ff'];
+        document.body.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function spawnFireworks() {
+        for(let i=0; i<20; i++) {
+            setTimeout(() => {
+                const f = document.createElement('div');
+                f.className = 'firework';
+                f.style.left = Math.random() * 100 + 'vw';
+                f.style.top = Math.random() * 100 + 'vh';
+                fireworkContainer.appendChild(f);
+            }, i * 100);
+        }
+    }
+
+    initRound();
+</script>
+</body>
+</html>
