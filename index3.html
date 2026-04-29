@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Play Ian's game collection: birdwatching, deadttrail, hangman, ladder, linklogic, possumer, shapeapart, slidepuzzle, solitaire, tango, tetris, tiles, and queens.">
+  <title>Ian's Game Hub</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-1: #0b1020;
+      --bg-2: #161a34;
+      --surface: rgba(255, 255, 255, 0.08);
+      --surface-border: rgba(255, 255, 255, 0.18);
+      --text: #f6f8ff;
+      --muted: #c4c9e6;
+      --accent-a: #7c6cff;
+      --accent-b: #24d6c8;
+      --card-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(124, 108, 255, 0.18), transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(36, 214, 200, 0.12), transparent 45%),
+        linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+    }
+
+    .wrap {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      padding: 1rem 1rem 2.5rem;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 1.25rem 0 1.1rem;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 0.7rem auto 0;
+      max-width: 42ch;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: clamp(0.96rem, 2.7vw, 1.05rem);
+    }
+
+    .games-grid {
+      list-style: none;
+      padding: 0;
+      margin: 1.2rem 0 0;
+      display: grid;
+      gap: 0.8rem;
+      grid-template-columns: 1fr;
+    }
+
+    .game-card {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--text);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.06));
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      padding: 1rem 1rem 0.95rem;
+      min-height: 88px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .game-card::after {
+      content: "";
+      position: absolute;
+      inset: -40% -10% auto;
+      height: 140px;
+      background: linear-gradient(90deg, rgba(124, 108, 255, 0.18), rgba(36, 214, 200, 0.18));
+      filter: blur(34px);
+      pointer-events: none;
+      opacity: 0.45;
+    }
+
+    .game-name {
+      font-size: 1.08rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      letter-spacing: 0.01em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-art {
+      width: 74px;
+      height: 54px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(4, 8, 20, 0.55);
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+    }
+
+    .game-copy {
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .play {
+      margin-top: 0.42rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-card:active {
+      transform: scale(0.985);
+    }
+
+    .game-card:focus-visible {
+      outline: 3px solid #b4adff;
+      outline-offset: 2px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .game-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.34);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.07));
+      }
+    }
+
+    @media (min-width: 540px) {
+      .wrap {
+        padding: 1.15rem 1.2rem 2.8rem;
+      }
+
+      .games-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.95rem;
+      }
+    }
+
+    @media (min-width: 860px) {
+      .games-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .game-card {
+        min-height: 96px;
+        padding: 1.05rem 1.05rem 1rem;
+      }
+
+      .game-art {
+        width: 82px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero" aria-label="Game hub intro">
+      <h1>Game Hub</h1>
+      <p>Pick a game and jump right in. Built for quick taps on mobile and clean browsing on desktop.</p>
+    </section>
+
+    <ul class="games-grid" aria-label="Games list">
+      <li><a class="game-card" href="./birdwatching/index.html"><canvas class="game-art" data-game="birdwatching" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">birdwatching</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./deadttrail/index.html"><canvas class="game-art" data-game="deadttrail" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">deadttrail</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./hangman/index.html"><canvas class="game-art" data-game="hangman" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">hangman</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./ladder/index.html"><canvas class="game-art" data-game="ladder" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">ladder</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./linklogic/index.html"><canvas class="game-art" data-game="linklogic" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">linklogic</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./possumer/index.html"><canvas class="game-art" data-game="possumer" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">possumer</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./shape_apart/index.html"><canvas class="game-art" data-game="shapeapart" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">shapeapart</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./slidepuzzle/index.html"><canvas class="game-art" data-game="slidepuzzle" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">slidepuzzle</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./solitaire/index.html"><canvas class="game-art" data-game="solitaire" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">solitaire</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./tango/index.html"><canvas class="game-art" data-game="tango" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">tango</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./tetris/index.html"><canvas class="game-art" data-game="tetris" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">tetris</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./tiles/index.html"><canvas class="game-art" data-game="tiles" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">tiles</span><div class="play">Tap to play</div></div></a></li>
+      <li><a class="game-card" href="./queens/index.html"><canvas class="game-art" data-game="queens" width="82" height="60" aria-hidden="true"></canvas><div class="game-copy"><span class="game-name">queens</span><div class="play">Tap to play</div></div></a></li>
+    </ul>
+  </main>
+  <script>
+    const arts = document.querySelectorAll(".game-art");
+
+    function bg(ctx, w, h, c1, c2) {
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, c1);
+      g.addColorStop(1, c2);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    function line(ctx, x1, y1, x2, y2, color, width = 2) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    function drawArt(canvas) {
+      const game = canvas.dataset.game;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      bg(ctx, w, h, "#1d2f57", "#11192f");
+
+      ctx.globalAlpha = 0.28;
+      for (let i = 0; i < 5; i += 1) {
+        ctx.fillStyle = "#8fd1ff";
+        ctx.fillRect(6 + i * 16, 3, 8, h - 6);
+      }
+      ctx.globalAlpha = 1;
+
+      if (game === "birdwatching") {
+        line(ctx, 10, 42, 70, 42, "#88c87a", 3);
+        line(ctx, 18, 36, 32, 36, "#ffe69b", 2);
+        line(ctx, 32, 36, 38, 33, "#ffe69b", 2);
+        line(ctx, 32, 36, 38, 39, "#ffe69b", 2);
+      } else if (game === "deadttrail") {
+        line(ctx, 8, 44, 74, 16, "#d4b08d", 3);
+        ctx.fillStyle = "#9b6d4f";
+        ctx.fillRect(50, 10, 16, 16);
+        ctx.fillStyle = "#b4f0ff";
+        ctx.fillRect(54, 14, 3, 3);
+      } else if (game === "hangman") {
+        line(ctx, 14, 48, 34, 48, "#f7f5e8", 3);
+        line(ctx, 24, 48, 24, 12, "#f7f5e8", 3);
+        line(ctx, 24, 12, 48, 12, "#f7f5e8", 3);
+        line(ctx, 48, 12, 48, 18, "#f7f5e8", 2);
+        ctx.strokeStyle = "#ffd0d0";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(48, 23, 5, 0, Math.PI * 2); ctx.stroke();
+      } else if (game === "ladder") {
+        line(ctx, 26, 12, 26, 50, "#7cff8e", 3);
+        line(ctx, 44, 12, 44, 50, "#7cff8e", 3);
+        for (let y = 16; y <= 46; y += 6) line(ctx, 26, y, 44, y, "#7cff8e", 2);
+        ctx.fillStyle = "#ffe680";
+        ctx.fillRect(52, 9, 8, 8);
+      } else if (game === "linklogic") {
+        ctx.strokeStyle = "#8ff1de";
+        ctx.lineWidth = 2;
+        [[15,30],[41,14],[66,34],[40,46]].forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.stroke(); });
+        line(ctx, 15, 30, 41, 14, "#8ff1de");
+        line(ctx, 41, 14, 66, 34, "#8ff1de");
+        line(ctx, 15, 30, 40, 46, "#8ff1de");
+      } else if (game === "possumer") {
+        ctx.fillStyle = "#f3e4d2";
+        ctx.beginPath(); ctx.ellipse(40, 33, 15, 9, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffd6e7";
+        ctx.beginPath(); ctx.arc(28, 27, 4, 0, Math.PI * 2); ctx.fill();
+        line(ctx, 54, 34, 70, 42, "#ffd6e7", 2);
+      } else if (game === "shapeapart") {
+        ctx.strokeStyle = "#ffe7a1";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(10, 12, 16, 16);
+        ctx.beginPath(); ctx.arc(45, 20, 8, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(62, 28); ctx.lineTo(72, 12); ctx.lineTo(76, 28); ctx.closePath(); ctx.stroke();
+      } else if (game === "slidepuzzle") {
+        ctx.strokeStyle = "#b3e1ff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(14, 10, 54, 40);
+        for (let x = 32; x <= 50; x += 18) line(ctx, x, 10, x, 50, "#b3e1ff", 1.5);
+        for (let y = 23; y <= 36; y += 13) line(ctx, 14, y, 68, y, "#b3e1ff", 1.5);
+        ctx.fillStyle = "#ffcc66";
+        ctx.fillRect(50, 36, 16, 12);
+      } else if (game === "solitaire") {
+        ctx.fillStyle = "#f7f9ff";
+        ctx.fillRect(14, 14, 18, 28);
+        ctx.fillRect(36, 10, 18, 28);
+        ctx.fillRect(58, 16, 12, 24);
+        ctx.fillStyle = "#ff6a87";
+        ctx.beginPath(); ctx.moveTo(24, 26); ctx.bezierCurveTo(19, 20, 13, 24, 24, 34); ctx.bezierCurveTo(35, 24, 29, 20, 24, 26); ctx.fill();
+      } else if (game === "tango") {
+        line(ctx, 12, 48, 70, 12, "#ffd39a", 3);
+        line(ctx, 12, 12, 70, 48, "#9af5ff", 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(41, 30, 6, 0, Math.PI * 2); ctx.fill();
+      } else if (game === "tetris") {
+        const blocks = [[18,16],[30,16],[42,16],[42,28],[54,28],[30,28]];
+        blocks.forEach(([x, y], i) => {
+          ctx.fillStyle = ["#66d0ff","#7cff93","#ffcc66","#ff8ba7"][i % 4];
+          ctx.fillRect(x, y, 10, 10);
+        });
+      } else if (game === "tiles") {
+        for (let y = 12; y < 48; y += 12) {
+          for (let x = 14; x < 68; x += 12) {
+            ctx.fillStyle = (x + y) % 24 === 0 ? "#8dd5ff" : "#c6a8ff";
+            ctx.fillRect(x, y, 10, 10);
+          }
+        }
+      } else if (game === "queens") {
+        ctx.fillStyle = "#ffdf8a";
+        ctx.beginPath();
+        ctx.moveTo(16, 44); ctx.lineTo(66, 44); ctx.lineTo(60, 20);
+        ctx.lineTo(50, 30); ctx.lineTo(41, 16); ctx.lineTo(32, 30);
+        ctx.lineTo(22, 20); ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#f8f4ff";
+        [22, 41, 60].forEach((x) => { ctx.beginPath(); ctx.arc(x, 17, 3, 0, Math.PI * 2); ctx.fill(); });
+      }
+    }
+
+    arts.forEach(drawArt);
+  </script>
+</body>
+</html>
