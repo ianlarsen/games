@@ -19,6 +19,8 @@
             --border: #475569;
             --err: #f87171;
             --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+            --bg-grad-1: #0f172a;
+            --bg-grad-2: #0c1222;
         }
 
         * { box-sizing: border-box; }
@@ -29,7 +31,7 @@
         }
 
         body {
-            background: linear-gradient(180deg, var(--bg) 0%, #0c1222 100%);
+            background: linear-gradient(180deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
             color: var(--text);
             font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
             margin: 0;
@@ -190,6 +192,50 @@
         }
         #title-overlay.hidden { display: none; }
 
+        #round-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.72);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            pointer-events: none;
+        }
+        #round-overlay.visible {
+            display: flex;
+            animation: roundFadeIn 180ms ease-out;
+        }
+        .round-card {
+            min-width: min(90vw, 520px);
+            padding: 20px 24px;
+            border-radius: 16px;
+            border: 2px solid var(--accent);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.88));
+            box-shadow: 0 14px 48px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(56, 189, 248, 0.18);
+            text-align: center;
+        }
+        .round-title {
+            margin: 0;
+            font-size: clamp(1.5rem, 5vw, 2.4rem);
+            letter-spacing: 0.06em;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        .round-sub {
+            margin: 8px 0 0;
+            font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+            color: var(--text);
+            font-weight: 600;
+        }
+        @keyframes roundFadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         .title-card {
             width: 100%;
             max-width: 380px;
@@ -327,6 +373,13 @@
     </div>
 </div>
 
+<div id="round-overlay" aria-live="assertive" aria-atomic="true">
+    <div class="round-card">
+        <h2 id="round-overlay-title" class="round-title">Round 1</h2>
+        <p id="round-overlay-sub" class="round-sub">Target 100 points</p>
+    </div>
+</div>
+
 <div id="ui-top">
     <div class="brand">
         <h1>Link Logic</h1>
@@ -334,6 +387,7 @@
     </div>
     <div class="scoreline">
         Score: <span id="score">0</span>
+        · Round: <span id="round">1</span>
         <span id="best-inline" class="sub" style="margin-left:10px;color:var(--text-muted);font-size:0.78rem;"></span>
     </div>
     <div id="msg"></div>
@@ -372,9 +426,16 @@
     const SHAPES = ['rings', 'plus', 'waves', 'hex', 'frame'];
     const STORAGE_KEY = 'linklogic_highscores';
     const MAX_SCORES = 12;
+    const ROUND_TARGETS = [100, 300, 600];
+    const ROUND_THEMES = [
+        { bg: '#0f172a', bgGame: '#1e293b', panel: '#1e293b', panel2: '#334155', border: '#475569', accent: '#38bdf8', grad1: '#0f172a', grad2: '#0c1222' },
+        { bg: '#06251b', bgGame: '#0e3e2d', panel: '#0f3a2d', panel2: '#196047', border: '#2e8b67', accent: '#22c55e', grad1: '#04281d', grad2: '#0b3b2b' },
+        { bg: '#2f0a23', bgGame: '#4b1238', panel: '#4a1638', panel2: '#7a295f', border: '#b94a93', accent: '#f43f9e', grad1: '#2a0820', grad2: '#5a1b43' }
+    ];
 
     let board = Object.create(null);
     let hand = [], history = [], score = 0, shuffles = 3, selectedIdx = null;
+    let currentRound = 1;
     let gameActive = false;
     let panX = 0, panY = 0;
     let viewW = 400, viewH = 400, dpr = 1;
@@ -382,6 +443,7 @@
     let hintPos = null, hintTimeoutId = null, msgTimeoutId = null;
     let panBeforeHint = null;
     let rafId = null;
+    let roundOverlayTimeout = null;
     let isMouseDown = false, dragStarted = false, startX, startY, startTime;
 
     class Particle {
@@ -729,6 +791,77 @@
         }
     }
 
+    function setRoundTheme(round) {
+        const root = document.documentElement;
+        const idx = Math.max(0, Math.min(ROUND_THEMES.length - 1, round - 1));
+        const t = ROUND_THEMES[idx];
+        root.style.setProperty('--bg', t.bg);
+        root.style.setProperty('--bg-game', t.bgGame);
+        root.style.setProperty('--panel', t.panel);
+        root.style.setProperty('--panel-2', t.panel2);
+        root.style.setProperty('--border', t.border);
+        root.style.setProperty('--accent', t.accent);
+        root.style.setProperty('--bg-grad-1', t.grad1);
+        root.style.setProperty('--bg-grad-2', t.grad2);
+    }
+
+    function showRoundOverlay(title, subtitle, ms = 1700) {
+        const overlay = document.getElementById('round-overlay');
+        document.getElementById('round-overlay-title').textContent = title;
+        document.getElementById('round-overlay-sub').textContent = subtitle;
+        if (roundOverlayTimeout) clearTimeout(roundOverlayTimeout);
+        overlay.classList.add('visible');
+        roundOverlayTimeout = setTimeout(() => {
+            overlay.classList.remove('visible');
+            roundOverlayTimeout = null;
+        }, ms);
+    }
+
+    function resetBoardForRound() {
+        board = Object.create(null);
+        history = [];
+        shuffles = 3;
+        selectedIdx = null;
+        container.classList.remove('placement-mode');
+        document.querySelectorAll('.tile-slot').forEach(s => s.classList.remove('selected'));
+        if (hintTimeoutId) { clearTimeout(hintTimeoutId); hintTimeoutId = null; }
+        hintPos = null;
+        panBeforeHint = null;
+        particles = [];
+        document.getElementById('shf').textContent = "3";
+        sizeCanvas();
+        centerPan();
+        generateHand();
+        requestRender();
+    }
+
+    function announceRoundStart() {
+        showMessage("Round " + currentRound + " start! Target " + ROUND_TARGETS[currentRound - 1] + " points.", 2200);
+        showRoundOverlay("Round " + currentRound, "Target " + ROUND_TARGETS[currentRound - 1] + " points");
+    }
+
+    function handleRoundProgress() {
+        while (currentRound <= ROUND_TARGETS.length && score >= ROUND_TARGETS[currentRound - 1]) {
+            showMessage("Round " + currentRound + " complete!", 1800);
+            showRoundOverlay("Round " + currentRound + " Complete", "Preparing next board...", 1300);
+            currentRound += 1;
+            document.getElementById('round').textContent = String(Math.min(currentRound, 3));
+            if (currentRound <= 3) {
+                setRoundTheme(currentRound);
+                resetBoardForRound();
+                announceRoundStart();
+                return true;
+            }
+            // Round 3 complete: final reset + final announcement.
+            setRoundTheme(3);
+            resetBoardForRound();
+            showMessage("Round 3 complete! All rounds cleared.", 2600);
+            showRoundOverlay("All Rounds Cleared", "Great run!", 1800);
+            return true;
+        }
+        return false;
+    }
+
     function showHint() {
         if (!gameActive) return;
         if (hintTimeoutId) {
@@ -797,6 +930,9 @@
                 shape: SHAPES[Math.floor(Math.random() * 5)]
             };
             updateHandUI(selectedIdx);
+            if (handleRoundProgress()) {
+                return;
+            }
             resolveStuckState();
         } else if (res && res.err) {
             showMessage(res.err, 1000);
@@ -923,28 +1059,24 @@
         hand.forEach((_, i) => updateHandUI(i));
     }
 
-    function resetGame() {
-        board = Object.create(null);
-        history = [];
+    function resetGame(options = {}) {
+        const announceRound = options.announceRound !== false;
+        currentRound = 1;
         score = 0;
-        shuffles = 3;
         gameActive = true;
-        selectedIdx = null;
-        container.classList.remove('placement-mode');
-        document.querySelectorAll('.tile-slot').forEach(s => s.classList.remove('selected'));
+        setRoundTheme(1);
         document.getElementById('score').textContent = "0";
-        document.getElementById('shf').textContent = "3";
+        document.getElementById('round').textContent = "1";
         if (msgTimeoutId) { clearTimeout(msgTimeoutId); msgTimeoutId = null; }
-        if (hintTimeoutId) { clearTimeout(hintTimeoutId); hintTimeoutId = null; }
-        hintPos = null;
-        panBeforeHint = null;
-        particles = [];
+        if (roundOverlayTimeout) { clearTimeout(roundOverlayTimeout); roundOverlayTimeout = null; }
+        document.getElementById('round-overlay').classList.remove('visible');
         document.getElementById('msg').textContent = "";
         cancelRenderLoop();
-        sizeCanvas();
-        centerPan();
-        generateHand();
+        resetBoardForRound();
         resolveStuckState();
+        if (announceRound) {
+            announceRoundStart();
+        }
         updateBestInline();
         requestRender();
     }
@@ -969,7 +1101,7 @@
 
     updateBestInline();
     renderHighScores();
-    resetGame();
+    resetGame({ announceRound: false });
     gameActive = false;
     document.getElementById('title-overlay').classList.remove('hidden');
 </script>
