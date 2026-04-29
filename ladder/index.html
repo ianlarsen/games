@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LADDER 1982 CLONE</title>
+    <style>
+        :root {
+            --screen-bg: #000;
+            --scanline: rgba(10, 255, 10, 0.05);
+            --retro-green: #00ff55;
+            --retro-dim: #00aa3b;
+            --bezel: #202020;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            background: radial-gradient(circle at top, #0e0e0e, #020202 70%);
+            color: var(--retro-green);
+            font-family: "Courier New", Courier, monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .cabinet {
+            width: min(100%, 760px);
+            border: 2px solid #2d2d2d;
+            border-radius: 8px;
+            padding: 10px;
+            background: #0b0b0b;
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.62);
+        }
+
+        .title {
+            margin: 2px 0 6px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--retro-green);
+            text-shadow: 0 0 8px rgba(0, 255, 85, 0.4);
+            font-size: 1.15rem;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 0 6px;
+            gap: 16px;
+            color: var(--retro-green);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1e1e1e;
+            padding-bottom: 5px;
+        }
+
+        .screen-wrap {
+            position: relative;
+            border: 2px solid var(--bezel);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--screen-bg);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 68dvh;
+            background: var(--screen-bg);
+            image-rendering: pixelated;
+            touch-action: none;
+        }
+
+        .scanlines {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 3px,
+                var(--scanline) 4px
+            );
+            opacity: 0.55;
+        }
+
+        .message {
+            margin: 8px 0 0;
+            min-height: 20px;
+            color: var(--retro-green);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .ui {
+            margin-top: 6px;
+            text-align: center;
+            color: var(--retro-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.74rem;
+            line-height: 1.45;
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid #2f2f2f;
+            background: #111;
+            color: var(--retro-green);
+            border-radius: 10px;
+            font: inherit;
+            font-size: 1.06rem;
+            min-height: 52px;
+            text-transform: uppercase;
+            touch-action: none;
+            font-weight: 700;
+        }
+
+        .btn:active {
+            background: #1b1b1b;
+            transform: translateY(1px);
+        }
+
+        .btn.jump {
+            grid-column: span 3;
+            min-height: 56px;
+            font-size: 1.14rem;
+            letter-spacing: 2px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .controls { display: none; }
+            .ui { margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="cabinet">
+        <h1 class="title">Ladder</h1>
+        <div class="hud">
+            <span>1UP <strong id="score">0000</strong></span>
+            <span>HI <strong id="hiScore">0000</strong></span>
+            <span>MEN <strong id="lives">03</strong></span>
+        </div>
+        <div class="screen-wrap">
+            <canvas id="gameCanvas" width="600" height="460" aria-label="Ladder game screen"></canvas>
+            <div class="scanlines" aria-hidden="true"></div>
+        </div>
+        <div class="message" id="message"></div>
+        <div class="ui">Arrows: Move/Climb | Space: Jump | Goal: $</div>
+
+        <div class="controls" aria-label="Touch controls">
+            <button class="btn" data-key="ArrowLeft">Left</button>
+            <button class="btn" data-key="ArrowUp">Up</button>
+            <button class="btn" data-key="ArrowRight">Right</button>
+            <button class="btn" data-key="ArrowDown">Down</button>
+            <button class="btn jump" data-key="Space">Jump</button>
+        </div>
+    </main>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const hiScoreEl = document.getElementById('hiScore');
+const livesEl = document.getElementById('lives');
+const messageEl = document.getElementById('message');
+
+const TILE_W = 24;
+const TILE_H = 22;
+const COLS = 25;
+const ROWS = 20;
+const START_X = 2;
+const START_Y = 17;
+
+// 1:= floor, 2:= ladder, 3:= goal, 4:= spawn, 5:= sink, 6:= ladder in floor
+const map = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3],
+    [0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,6,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,6,1,1,1,1,1,1,6,1,1,1,1,1,1,1,6,1,1,1,1,1],
+    [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0],
+    [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0],
+    [1,1,1,1,6,1,1,1,1,1,1,1,1,1,6,1,1,1,1,6,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,6,1,1,1,1,1,1,1,1,6,1,1,1,1,1,1,1,1,1,1],
+    [0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+];
+
+let player = { x: START_X, y: START_Y, vx: 0, vy: 0, lastDir: 0.05, char: 'g', jumping: false };
+let boulders = [];
+let spawnTimer = 0;
+let isCurling = false;
+let score = 0;
+let hiScore = 0;
+let lives = 3;
+let messageTimer = 0;
+let gameStarted = false;
+let spawnDirection = -0.05;
+
+const input = {
+    ArrowLeft: false,
+    ArrowRight: false,
+    ArrowUp: false,
+    ArrowDown: false,
+    Space: false
+};
+
+function showMessage(text, time = 120) {
+    messageEl.textContent = text;
+    messageTimer = time;
+}
+
+function updateHud() {
+    scoreEl.textContent = String(score).padStart(4, '0');
+    hiScore = Math.max(hiScore, score);
+    hiScoreEl.textContent = String(hiScore).padStart(4, '0');
+    livesEl.textContent = String(lives).padStart(2, '0');
+}
+
+function setInput(key, value) {
+    if (Object.prototype.hasOwnProperty.call(input, key)) {
+        input[key] = value;
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) {
+        e.preventDefault();
+    }
+    setInput(e.code, true);
+});
+
+window.addEventListener('keyup', (e) => {
+    setInput(e.code, false);
+});
+
+const controlButtons = document.querySelectorAll('.btn[data-key]');
+controlButtons.forEach((button) => {
+    const key = button.dataset.key;
+    button.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        setInput(key, true);
+        button.setPointerCapture(e.pointerId);
+    });
+    button.addEventListener('pointerup', () => setInput(key, false));
+    button.addEventListener('pointercancel', () => setInput(key, false));
+    button.addEventListener('pointerleave', () => setInput(key, false));
+});
+
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
+
+canvas.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchMoved = false;
+}, { passive: true });
+
+canvas.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    touchMoved = true;
+
+    setInput('ArrowLeft', false);
+    setInput('ArrowRight', false);
+    setInput('ArrowUp', false);
+    setInput('ArrowDown', false);
+
+    if (absX > 24 || absY > 24) {
+        if (absX > absY) {
+            setInput(dx < 0 ? 'ArrowLeft' : 'ArrowRight', true);
+        } else {
+            setInput(dy < 0 ? 'ArrowUp' : 'ArrowDown', true);
+        }
+    }
+    e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    if (!touchMoved) {
+        // Tap-to-jump fallback for one-handed mobile play.
+        setInput('Space', true);
+        setTimeout(() => setInput('Space', false), 80);
+    }
+    setInput('ArrowLeft', false);
+    setInput('ArrowRight', false);
+    setInput('ArrowUp', false);
+    setInput('ArrowDown', false);
+    if (e.cancelable) e.preventDefault();
+}, { passive: false });
+
+function resetPlayer() {
+    player.x = START_X;
+    player.y = START_Y;
+    player.vx = 0;
+    player.vy = 0;
+    player.char = 'g';
+    player.jumping = false;
+    Object.keys(input).forEach((k) => { input[k] = false; });
+}
+
+function resetRound() {
+    boulders = [];
+    spawnTimer = 0;
+    isCurling = false;
+    resetPlayer();
+}
+
+function loseLife() {
+    lives -= 1;
+    updateHud();
+    if (lives <= 0) {
+        showMessage('GAME OVER', 180);
+        lives = 3;
+        score = 0;
+        gameStarted = false;
+        updateHud();
+        resetRound();
+        return;
+    }
+    showMessage('SQUASHED!', 100);
+    resetRound();
+}
+
+function clearLevel() {
+    score += 100;
+    updateHud();
+    showMessage('BONUS! CLIMB AGAIN', 120);
+    resetRound();
+}
+
+function applyInput() {
+    const gx = Math.round(player.x);
+    const gy = Math.round(player.y);
+    const tile = (map[gy] && map[gy][gx]) ? map[gy][gx] : 0;
+
+    if (input.ArrowLeft && !input.ArrowRight) {
+        player.vx = -0.1;
+        player.char = 'q';
+        player.lastDir = -0.05;
+    } else if (input.ArrowRight && !input.ArrowLeft) {
+        player.vx = 0.1;
+        player.char = 'p';
+        player.lastDir = 0.05;
+    } else {
+        player.vx = 0;
+        player.char = 'g';
+    }
+
+    if (tile === 2 || tile === 6) {
+        if (input.ArrowUp && !input.ArrowDown) {
+            player.vy = -0.07;
+            player.vx = 0;
+            player.x = gx;
+        } else if (input.ArrowDown && !input.ArrowUp) {
+            player.vy = 0.07;
+            player.vx = 0;
+            player.x = gx;
+        } else if (!player.jumping) {
+            player.vy = 0;
+        }
+    } else if (!player.jumping) {
+        player.vy = 0;
+    }
+
+    if (input.Space && !gameStarted) {
+        gameStarted = true;
+        showMessage('GO!', 40);
+        return;
+    }
+
+    if (input.Space && !player.jumping && player.vy === 0 && player.vx !== 0) {
+        player.jumping = true;
+        player.vy = -0.24;
+    }
+}
+
+function update() {
+    applyInput();
+    if (messageTimer > 0) {
+        messageTimer -= 1;
+        if (messageTimer === 0) messageEl.textContent = '';
+    }
+
+    if (!gameStarted) {
+        if (messageTimer === 0) {
+            showMessage('PUSH SPACE TO START', 45);
+        }
+        return;
+    }
+
+    spawnTimer += 1;
+    if (spawnTimer >= 145 && spawnTimer < 165) isCurling = true;
+    else if (spawnTimer >= 165) {
+        boulders.push({ x: 12, y: 0, dir: spawnDirection, state: 'falling' });
+        spawnDirection *= -1;
+        spawnTimer = 0;
+        isCurling = false;
+    }
+
+    const gx = Math.round(player.x);
+    const gyFloor = Math.floor(player.y + 1);
+    const gyCeil = Math.floor(player.y - 0.1);
+    const tileBelow = (map[gyFloor] && map[gyFloor][gx]) ? map[gyFloor][gx] : 0;
+    const tileAbove = (map[gyCeil] && map[gyCeil][gx]) ? map[gyCeil][gx] : 0;
+    const currentTile = (map[Math.round(player.y)] && map[Math.round(player.y)][gx]) ? map[Math.round(player.y)][gx] : 0;
+
+    if (player.jumping) {
+        player.y += player.vy;
+        player.vy += 0.02;
+        if (player.vy < 0 && (tileAbove === 1 || tileAbove === 6)) player.vy = 0.05;
+        if (player.vy > 0 && (tileBelow === 1 || tileBelow === 6)) {
+            player.jumping = false;
+            player.vy = 0;
+            player.y = Math.floor(player.y);
+        }
+    } else if (currentTile === 2 || currentTile === 6 || player.vy !== 0) {
+        player.y += player.vy;
+        if (player.vy > 0 && (tileBelow === 1 || tileBelow === 6)) {
+            player.y = Math.floor(player.y);
+            player.vy = 0;
+        }
+    } else {
+        if (tileBelow !== 1 && tileBelow !== 6 && player.y < ROWS - 2) player.y += 0.15;
+        else if (tileBelow === 1 || tileBelow === 6) player.y = Math.round(player.y);
+    }
+
+    player.x = Math.max(0, Math.min(COLS - 1, player.x + player.vx));
+    if (currentTile === 3) clearLevel();
+
+    for (let i = boulders.length - 1; i >= 0; i -= 1) {
+        const b = boulders[i];
+        const bgx = Math.round(b.x);
+        const bgyFoot = Math.floor(b.y + 1);
+        const bTileBelow = (map[bgyFoot] && map[bgyFoot][bgx]) ? map[bgyFoot][bgx] : 0;
+        const bCurrentTile = (map[Math.round(b.y)] && map[Math.round(b.y)][bgx]) ? map[Math.round(b.y)][bgx] : 0;
+
+        if ((bCurrentTile === 2 || bCurrentTile === 6) && b.state !== 'falling') {
+            b.y += 0.08;
+            b.state = 'climbing';
+        } else if (b.state === 'falling' || (bTileBelow !== 1 && bTileBelow !== 6)) {
+            b.y += 0.15;
+            b.state = 'falling';
+            if (bTileBelow === 1 || bTileBelow === 6) {
+                b.y = Math.floor(b.y);
+                b.state = 'rolling';
+                // Keep boulder direction independent for arcade-like predictability.
+            }
+        } else {
+            b.state = 'rolling';
+            b.x += b.dir;
+            if (b.x <= 0 || b.x >= COLS - 1) b.dir *= -1;
+        }
+
+        if (map[Math.round(b.y) + 1] && map[Math.round(b.y) + 1][Math.floor(b.x)] === 5) {
+            boulders.splice(i, 1);
+            score += 5;
+            continue;
+        }
+        if (Math.abs(b.x - player.x) < 0.6 && Math.abs(b.y - player.y) < 0.4) {
+            loseLife();
+            return;
+        }
+    }
+
+}
+
+function draw() {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = "24px 'Courier New'";
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#00ff55';
+
+    for (let r = 0; r < ROWS; r += 1) {
+        for (let c = 0; c < COLS; c += 1) {
+            const x = c * TILE_W + 12;
+            const y = r * TILE_H + 20;
+            const val = map[r][c];
+            if (val === 4) ctx.fillText(isCurling ? 'o' : 'V', x, y);
+            else if (val === 1) ctx.fillText('=', x, y);
+            else if (val === 2 || val === 6) ctx.fillText('H', x, y);
+            else if (val === 3) ctx.fillText('$', x, y);
+            else if (val === 5) ctx.fillText('*', x, y);
+        }
+    }
+
+    boulders.forEach((b) => ctx.fillText('o', b.x * TILE_W + 12, b.y * TILE_H + 20));
+    ctx.fillText(player.char, player.x * TILE_W + 12, player.y * TILE_H + 20);
+
+    update();
+    requestAnimationFrame(draw);
+}
+
+updateHud();
+showMessage('READY... CLIMB!', 120);
+draw();
+</script>
+</body>
+</html>
