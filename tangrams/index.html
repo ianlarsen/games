@@ -184,7 +184,7 @@
       margin-right: auto;
       flex: 0 0 auto;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -285,11 +285,6 @@
     <div class="mode-row" id="puzzle-row" role="group" aria-label="Choose puzzle"></div>
 
     <div class="toolbar" role="toolbar" aria-label="Piece controls">
-      <button type="button" id="btn-rotate" class="tool-primary" disabled
-        title="Rotate 45° clockwise" aria-label="Rotate selected piece 45 degrees clockwise">
-        <span class="tool-glyph" aria-hidden="true">↻</span>
-        <span>Rotate</span>
-      </button>
       <button type="button" id="btn-flip" class="tool-primary" hidden disabled
         title="Flip parallelogram" aria-label="Flip selected parallelogram piece">
         <span class="tool-glyph" aria-hidden="true">⇄</span>
@@ -854,6 +849,44 @@
     return out;
   }
 
+  /** Classic tangram: each pair of congruent isosceles triangles shares snap targets (palette ids differ). */
+  const LARGE_ISO_TANS = new Set(['red_triangle', 'blue_triangle', 'lp', 'lb']);
+  const SMALL_ISO_TANS = new Set(['teal_triangle', 'violet_triangle', 'st', 'sr']);
+
+  function tanEquivalenceSlot(shape) {
+    const s = shape || '';
+    if (LARGE_ISO_TANS.has(s)) return 'large_iso';
+    if (SMALL_ISO_TANS.has(s)) return 'small_iso';
+    return null;
+  }
+
+  /**
+   * Merge targets among interchangeable pieces so either physical tan can satisfy either dashed slot.
+   * Mutates per in place.
+   */
+  function mergeInterchangeableTanTargets(act, per) {
+    const pieceIds = act.pieceIds || [];
+    const snaps = act.snaps || [];
+    const bySnapId = Object.fromEntries(snaps.map(s => [s.id, s]));
+    const buckets = new Map();
+    for (let i = 0; i < pieceIds.length; i++) {
+      const snapRow = bySnapId[pieceIds[i]] || snaps[i];
+      const shape = snapRow ? (snapRow.shape || snapRow.id) : '';
+      const slot = tanEquivalenceSlot(shape);
+      if (!slot) continue;
+      if (!buckets.has(slot)) buckets.set(slot, []);
+      buckets.get(slot).push(i);
+    }
+    for (const indices of buckets.values()) {
+      if (indices.length < 2) continue;
+      const merged = [];
+      for (const idx of indices) merged.push(...per[idx]);
+      const deduped = dedupeTargets(merged);
+      for (const idx of indices) per[idx] = deduped;
+    }
+    return per;
+  }
+
   function isImportedPuzzle(act) {
     return !!(act.solutions && act.pieceIds && act.pieceIds.length && /^p\d+$/.test(String(act.pieceIds[0])));
   }
@@ -901,7 +934,7 @@
         }
         for (let i = 0; i < n; i++) per[i] = dedupeTargets(per[i]);
       }
-      return per;
+      return mergeInterchangeableTanTargets(act, per);
     }
 
     const snaps = act.snaps;
@@ -919,7 +952,7 @@
     } else {
       for (let i = 0; i < ns; i++) per[i].push({ mx: snaps[i].mx, my: snaps[i].my, r: snaps[i].r, flip: !!snaps[i].flip });
     }
-    return per;
+    return mergeInterchangeableTanTargets(act, per);
   }
 
   let activityId = 'square';
@@ -927,6 +960,9 @@
   let pieceTargets = [];
   let selected = null;
   let dragging = null;
+  /** Awaiting tap vs drag: piece brought to front; drag starts after hold timer or slop. */
+  let pointerPending = null;
+  let pointerHoldTimer = null;
   let dragOff = { dx: 0, dy: 0 };
   let completed = false;
   let wonPlayed = false;
@@ -1024,6 +1060,8 @@
     document.getElementById('done-msg').textContent = '';
     selected = null;
     dragging = null;
+    pointerPending = null;
+    clearPointerHoldTimer();
     updateToolbar();
     if (!silent) playFlip();
     draw();
@@ -1307,11 +1345,12 @@
 
     pieces.forEach(p => drawFilledPiece(p, 1));
 
-    document.getElementById('help-text').textContent = act.help;
+    const hintControls =
+      ' Tap a piece to rotate 45°. Press and hold, or drag, to move.';
+    document.getElementById('help-text').textContent = act.help + hintControls;
   }
 
   function updateToolbar() {
-    document.getElementById('btn-rotate').disabled = !selected;
     const flipBtn = document.getElementById('btn-flip');
     const showFlip = !!(selected && selected.para);
     flipBtn.hidden = !showFlip;
@@ -1351,8 +1390,48 @@
     ];
   }
 
+  const TAP_ROTATE_MAX_MS = 420;
+  const HOLD_TO_DRAG_MS = 280;
+
+  function inputNow() {
+    return typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+  }
+
+  function canvasDragSlop() {
+    const r = canvas.getBoundingClientRect();
+    return Math.max(10 * LAYOUT_SCALE, 14 * (W / Math.max(r.width, 1)));
+  }
+
+  function clearPointerHoldTimer() {
+    if (pointerHoldTimer != null) {
+      clearTimeout(pointerHoldTimer);
+      pointerHoldTimer = null;
+    }
+  }
+
+  function beginPieceDrag(piece, cx, cy) {
+    clearPointerHoldTimer();
+    pointerPending = null;
+    const z = pieces.indexOf(piece);
+    if (z >= 0) {
+      pieces.splice(z, 1);
+      pieces.push(piece);
+    }
+    dragOff.dx = cx - piece.x;
+    dragOff.dy = cy - piece.y;
+    dragging = piece;
+  }
+
+  function rotatePieceOnTap(piece) {
+    piece.r = snapAngle(piece.r + 45);
+    piece.snapped = false;
+    playFlip();
+  }
+
   function onDown(ev) {
     ev.preventDefault();
+    clearPointerHoldTimer();
+    pointerPending = null;
     const [cx, cy] = canvasCoords(ev);
     const hit = hitTest(cx, cy);
     selected = hit;
@@ -1361,18 +1440,40 @@
       const z = pieces.indexOf(hit);
       pieces.splice(z, 1);
       pieces.push(hit);
-      dragging = hit;
-      dragOff.dx = cx - hit.x;
-      dragOff.dy = cy - hit.y;
-    } else dragging = null;
+      const t0 = inputNow();
+      pointerPending = {
+        piece: hit,
+        startT: t0,
+        sx: cx,
+        sy: cy,
+        lx: cx,
+        ly: cy
+      };
+      pointerHoldTimer = setTimeout(() => {
+        pointerHoldTimer = null;
+        if (!pointerPending || dragging) return;
+        const pp = pointerPending;
+        beginPieceDrag(pp.piece, pp.lx, pp.ly);
+      }, HOLD_TO_DRAG_MS);
+    } else {
+      dragging = null;
+    }
     updateToolbar();
     draw();
   }
 
   function onMove(ev) {
+    const [cx, cy] = canvasCoords(ev);
+    if (pointerPending && !dragging) {
+      pointerPending.lx = cx;
+      pointerPending.ly = cy;
+      const slop = canvasDragSlop();
+      const dx = cx - pointerPending.sx;
+      const dy = cy - pointerPending.sy;
+      if (dx * dx + dy * dy > slop * slop) beginPieceDrag(pointerPending.piece, cx, cy);
+    }
     if (!dragging) return;
     ev.preventDefault();
-    const [cx, cy] = canvasCoords(ev);
     let nx = cx - dragOff.dx;
     let ny = cy - dragOff.dy;
     nx = Math.max(PIECE_EDGE, Math.min(W - PIECE_EDGE, nx));
@@ -1384,25 +1485,43 @@
   }
 
   function onUp(ev) {
+    clearPointerHoldTimer();
     try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
     if (dragging) {
       const snapped = trySnapPiece(dragging);
       if (snapped) playFlip();
       dragging = null;
+      pointerPending = null;
       checkWin();
+    } else if (pointerPending) {
+      const pp = pointerPending;
+      pointerPending = null;
+      const dt = inputNow() - pp.startT;
+      const dx = pp.lx - pp.sx;
+      const dy = pp.ly - pp.sy;
+      const slop = canvasDragSlop();
+      if (dt <= TAP_ROTATE_MAX_MS && dx * dx + dy * dy <= slop * slop) {
+        selected = pp.piece;
+        rotatePieceOnTap(pp.piece);
+      }
+    }
+    draw();
+  }
+
+  function onCancel(ev) {
+    clearPointerHoldTimer();
+    try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
+    pointerPending = null;
+    if (dragging) {
+      trySnapPiece(dragging);
+      checkWin();
+      dragging = null;
     }
     draw();
   }
 
   document.getElementById('btn-scatter').addEventListener('click', () => scatterPieces(false));
   document.getElementById('btn-play-again').addEventListener('click', () => scatterPieces(false));
-  document.getElementById('btn-rotate').addEventListener('click', () => {
-    if (!selected) return;
-    selected.r = snapAngle(selected.r + 45);
-    selected.snapped = false;
-    playFlip();
-    draw();
-  });
   document.getElementById('btn-flip').addEventListener('click', () => {
     if (!selected || !selected.para) return;
     selected.flip = !selected.flip;
@@ -1414,7 +1533,7 @@
   canvas.addEventListener('pointerdown', onDown);
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
-  window.addEventListener('pointercancel', onUp);
+  window.addEventListener('pointercancel', onCancel);
 
   function startTangrams() {
     buildNav();
