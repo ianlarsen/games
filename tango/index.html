@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tango - Logic Puzzle</title>
+    <style>
+        :root {
+            --bg: #0c1b2a;
+            --bg-elev: #132941;
+            --grid-bg: #1e3855;
+            --cell-bg: #ffffff;
+            --fixed-bg: #dde5ee;
+            --text: #f7fbff;
+            --muted: #a9bfd2;
+            --accent: #38bdf8;
+            --error-bg: #fee2e2;
+            --error-border: #ef4444;
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+            --cell-size: 62px;
+            --cell-gap: 12px;
+            --grid-pad: 18px;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            background:
+                radial-gradient(circle at 20% 0%, #1d3f63 0%, transparent 50%),
+                linear-gradient(180deg, #08131e, var(--bg));
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            margin: 0;
+            user-select: none;
+            padding: 14px;
+            box-sizing: border-box;
+        }
+
+        .title {
+            margin: 0;
+            letter-spacing: 0.18em;
+            font-size: clamp(1.8rem, 4vw, 2.3rem);
+        }
+
+        .subtitle {
+            margin: 0.35rem 0 1rem;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .controls {
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 10px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(6px);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        #diff-value {
+            min-width: 40px;
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(6, var(--cell-size));
+            grid-template-rows: repeat(6, var(--cell-size));
+            gap: var(--cell-gap);
+            background: var(--grid-bg);
+            padding: var(--grid-pad);
+            border-radius: 16px;
+            position: relative;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background: var(--cell-bg);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        .token {
+            font-weight: 900;
+            font-size: calc(var(--cell-size) * 0.8);
+            line-height: 0.8;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .token-sun {
+            color: #facc15;
+            font-size: calc(var(--cell-size) * 0.9);
+            line-height: 0.72;
+        }
+
+        .token-moon {
+            color: #38bdf8;
+        }
+
+        .cell.fixed {
+            background: var(--fixed-bg);
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .cell.error {
+            background: var(--error-bg) !important;
+            color: var(--error-border);
+            border: 2px solid var(--error-border);
+        }
+
+        .cell:active:not(.fixed) { transform: scale(0.94); }
+
+        .constraint {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 20px;
+            line-height: 1;
+            color: #07111c;
+            background: #ffffff;
+            border: 2px solid #07111c;
+            border-radius: 999px;
+            pointer-events: none;
+            z-index: 30;
+            transform: translate(-50%, -50%);
+            text-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.65),
+                0 0 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        }
+
+        .btn {
+            background: white;
+            color: var(--bg);
+            border: none;
+            padding: 9px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.92; }
+        .btn:active { transform: translateY(1px); }
+
+        #win-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 18, 29, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .win-title {
+            font-size: clamp(2.2rem, 8vw, 3.2rem);
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .win-subtitle {
+            margin: 0 0 24px;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .confetti {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        @media (max-width: 640px) {
+            :root {
+                --cell-size: 44px;
+                --cell-gap: 8px;
+                --grid-pad: 12px;
+            }
+            .cell {
+                font-size: 25px;
+                border-radius: 8px;
+            }
+            .constraint {
+                width: 24px;
+                height: 24px;
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="title">TANGO</h1>
+    <p class="subtitle">Fill the grid with suns and moons</p>
+
+    <div class="controls">
+        <div class="control-group">
+            <label class="control-label" for="diff">Difficulty</label>
+            <input type="range" id="diff" min="1" max="3" value="2">
+            <span id="diff-value">Med</span>
+        </div>
+        <button class="btn" id="new-game-btn" type="button">New Game</button>
+    </div>
+
+    <div id="grid" class="grid-container"></div>
+
+    <div id="win-screen">
+        <h2 class="win-title">Great Job!</h2>
+        <p class="win-subtitle">Grid synchronized.</p>
+        <button class="btn" id="play-again-btn" type="button">Play Again</button>
+    </div>
+
+<script>
+    const SIZE = 6;
+    const ICON = { 0: "", 1: "●", 2: "▲" };
+    const DIFFICULTY = {
+        1: { label: "Easy", fixedChance: 0.46, constraintChance: 0.24, minFixed: 9, minCons: 4, maxCons: 9 },
+        2: { label: "Med", fixedChance: 0.40, constraintChance: 0.21, minFixed: 7, minCons: 3, maxCons: 8 },
+        3: { label: "Hard", fixedChance: 0.24, constraintChance: 0.13, minFixed: 4, minCons: 2, maxCons: 5 }
+    };
+
+    const gridEl = document.getElementById("grid");
+    const diffEl = document.getElementById("diff");
+    const diffValueEl = document.getElementById("diff-value");
+    const winScreenEl = document.getElementById("win-screen");
+    const newGameBtn = document.getElementById("new-game-btn");
+    const playAgainBtn = document.getElementById("play-again-btn");
+
+    let solution = [];
+    let board = [];
+    let fixed = [];
+    let hCons = [];
+    let vCons = [];
+
+    function createMatrix(value) {
+        return Array.from({ length: SIZE }, () => Array(SIZE).fill(value));
+    }
+
+    function initGame() {
+        winScreenEl.style.display = "none";
+
+        solution = generateBoard();
+        let guard = 0;
+        while (!boardHasBothRelations(solution) && guard < 30) {
+            solution = generateBoard();
+            guard += 1;
+        }
+        board = createMatrix(0);
+        fixed = createMatrix(false);
+        hCons = [];
+        vCons = [];
+
+        const diffLevel = Number(diffEl.value);
+        const settings = DIFFICULTY[diffLevel];
+        diffValueEl.textContent = settings.label;
+
+        placeFixedCells(settings);
+        placeConstraints(settings);
+
+        render();
+    }
+
+    function shuffleInPlace(arr) {
+        for (let i = arr.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function placeFixedCells(settings) {
+        const positions = [];
+        for (let r = 0; r < SIZE; r += 1) {
+            for (let c = 0; c < SIZE; c += 1) {
+                positions.push([r, c]);
+            }
+        }
+        shuffleInPlace(positions);
+
+        let fixedCount = 0;
+        positions.forEach(([r, c], idx) => {
+            const mustPlace = fixedCount < settings.minFixed && idx >= positions.length - (settings.minFixed - fixedCount);
+            if (mustPlace || Math.random() < settings.fixedChance) {
+                board[r][c] = solution[r][c];
+                fixed[r][c] = true;
+                fixedCount += 1;
+            }
+        });
+    }
+
+    function placeConstraints(settings) {
+        const edges = [];
+        for (let r = 0; r < SIZE; r += 1) {
+            for (let c = 0; c < SIZE; c += 1) {
+                if (c < SIZE - 1) {
+                    edges.push({ kind: "h", r, c });
+                }
+                if (r < SIZE - 1) {
+                    edges.push({ kind: "v", r, c });
+                }
+            }
+        }
+        shuffleInPlace(edges);
+
+        const maxCons = settings.maxCons ?? edges.length;
+        let consCount = 0;
+        const used = new Set();
+        edges.forEach((edge, idx) => {
+            const mustPlace = consCount < settings.minCons && idx >= edges.length - (settings.minCons - consCount);
+            if ((mustPlace || Math.random() < settings.constraintChance) && consCount < maxCons) {
+                const type = edge.kind === "h"
+                    ? (solution[edge.r][edge.c] === solution[edge.r][edge.c + 1] ? "=" : "×")
+                    : (solution[edge.r][edge.c] === solution[edge.r + 1][edge.c] ? "=" : "×");
+                if (edge.kind === "h") hCons.push({ r: edge.r, c: edge.c, type });
+                else vCons.push({ r: edge.r, c: edge.c, type });
+                used.add(`${edge.kind}:${edge.r}:${edge.c}`);
+                consCount += 1;
+            }
+        });
+
+        ensureConstraintType("=", edges, used, maxCons);
+        ensureConstraintType("×", edges, used, maxCons);
+    }
+
+    function ensureConstraintType(targetType, edges, used, maxCons) {
+        if ((hCons.length + vCons.length) >= maxCons) return;
+        const hasType = [...hCons, ...vCons].some((con) => con.type === targetType);
+        if (hasType) return;
+
+        const candidate = edges.find((edge) => {
+            if (used.has(`${edge.kind}:${edge.r}:${edge.c}`)) return false;
+            const type = edge.kind === "h"
+                ? (solution[edge.r][edge.c] === solution[edge.r][edge.c + 1] ? "=" : "×")
+                : (solution[edge.r][edge.c] === solution[edge.r + 1][edge.c] ? "=" : "×");
+            return type === targetType;
+        });
+
+        if (!candidate) return;
+        if (candidate.kind === "h") {
+            hCons.push({ r: candidate.r, c: candidate.c, type: targetType });
+        } else {
+            vCons.push({ r: candidate.r, c: candidate.c, type: targetType });
+        }
+    }
+
+    function getLayoutMetrics() {
+        const style = getComputedStyle(document.documentElement);
+        const cellSize = Number.parseFloat(style.getPropertyValue("--cell-size"));
+        const gap = Number.parseFloat(style.getPropertyValue("--cell-gap"));
+        const pad = Number.parseFloat(style.getPropertyValue("--grid-pad"));
+        const stride = cellSize + gap;
+        return { cellSize, gap, pad, stride };
+    }
+
+    function render() {
+        gridEl.innerHTML = "";
+        const errs = getErrors();
+
+        for (let r = 0; r < SIZE; r += 1) {
+            for (let c = 0; c < SIZE; c += 1) {
+                const cell = document.createElement("div");
+                const isFixed = fixed[r][c];
+                const isError = errs.has(`${r},${c}`);
+                cell.className = `cell${isFixed ? " fixed" : ""}${isError ? " error" : ""}`;
+                if (board[r][c] === 1) {
+                    cell.innerHTML = '<span class="token token-sun">●</span>';
+                } else if (board[r][c] === 2) {
+                    cell.innerHTML = '<span class="token token-moon">▲</span>';
+                } else {
+                    cell.textContent = ICON[0];
+                }
+                if (!isFixed) {
+                    cell.addEventListener("click", () => {
+                        board[r][c] = (board[r][c] + 1) % 3;
+                        render();
+                        if (checkWin()) {
+                            showWin();
+                        }
+                    });
+                }
+                gridEl.appendChild(cell);
+            }
+        }
+
+        const { pad, stride, cellSize, gap } = getLayoutMetrics();
+        hCons.forEach((con) => {
+            const op = document.createElement("div");
+            op.className = "constraint";
+            op.textContent = con.type === "×" ? "x" : "=";
+            op.style.left = `${pad + con.c * stride + cellSize + gap / 2}px`;
+            op.style.top = `${pad + con.r * stride + cellSize / 2}px`;
+            gridEl.appendChild(op);
+        });
+
+        vCons.forEach((con) => {
+            const op = document.createElement("div");
+            op.className = "constraint";
+            op.textContent = con.type === "×" ? "x" : "=";
+            op.style.left = `${pad + con.c * stride + cellSize / 2}px`;
+            op.style.top = `${pad + con.r * stride + cellSize + gap / 2}px`;
+            gridEl.appendChild(op);
+        });
+    }
+
+    function boardHasBothRelations(matrix) {
+        let hasEq = false;
+        let hasNeq = false;
+        for (let r = 0; r < SIZE; r += 1) {
+            for (let c = 0; c < SIZE; c += 1) {
+                if (c < SIZE - 1) {
+                    if (matrix[r][c] === matrix[r][c + 1]) hasEq = true;
+                    else hasNeq = true;
+                }
+                if (r < SIZE - 1) {
+                    if (matrix[r][c] === matrix[r + 1][c]) hasEq = true;
+                    else hasNeq = true;
+                }
+                if (hasEq && hasNeq) return true;
+            }
+        }
+        return false;
+    }
+
+    function getErrors() {
+        const errors = new Set();
+
+        for (let r = 0; r < SIZE; r += 1) {
+            for (let c = 0; c < SIZE; c += 1) {
+                const value = board[r][c];
+                if (!value) continue;
+
+                if (c <= SIZE - 3 && value === board[r][c + 1] && value === board[r][c + 2]) {
+                    errors.add(`${r},${c}`);
+                    errors.add(`${r},${c + 1}`);
+                    errors.add(`${r},${c + 2}`);
+                }
+                if (r <= SIZE - 3 && value === board[r + 1][c] && value === board[r + 2][c]) {
+                    errors.add(`${r},${c}`);
+                    errors.add(`${r + 1},${c}`);
+                    errors.add(`${r + 2},${c}`);
+                }
+            }
+        }
+
+        hCons.forEach((con) => {
+            const a = board[con.r][con.c];
+            const b = board[con.r][con.c + 1];
+            if (!a || !b) return;
+            const invalid = (con.type === "=" && a !== b) || (con.type === "×" && a === b);
+            if (invalid) {
+                errors.add(`${con.r},${con.c}`);
+                errors.add(`${con.r},${con.c + 1}`);
+            }
+        });
+
+        vCons.forEach((con) => {
+            const a = board[con.r][con.c];
+            const b = board[con.r + 1][con.c];
+            if (!a || !b) return;
+            const invalid = (con.type === "=" && a !== b) || (con.type === "×" && a === b);
+            if (invalid) {
+                errors.add(`${con.r},${con.c}`);
+                errors.add(`${con.r + 1},${con.c}`);
+            }
+        });
+
+        return errors;
+    }
+
+    function checkWin() {
+        if (getErrors().size > 0) return false;
+
+        for (let i = 0; i < SIZE; i += 1) {
+            let rowSuns = 0;
+            let colSuns = 0;
+            for (let j = 0; j < SIZE; j += 1) {
+                if (!board[i][j] || !board[j][i]) return false;
+                if (board[i][j] === 1) rowSuns += 1;
+                if (board[j][i] === 1) colSuns += 1;
+            }
+            if (rowSuns !== SIZE / 2 || colSuns !== SIZE / 2) return false;
+        }
+        return true;
+    }
+
+    function showWin() {
+        winScreenEl.style.display = "flex";
+        for (let i = 0; i < 120; i += 1) {
+            const conf = document.createElement("div");
+            conf.className = "confetti";
+            conf.style.left = `${Math.random() * 100}vw`;
+            conf.style.background = ["#ffcc00", "#ffffff", "#00a0dc", "#00ff88"][Math.floor(Math.random() * 4)];
+            conf.style.animationDuration = `${Math.random() * 2 + 1.5}s`;
+            document.body.appendChild(conf);
+            setTimeout(() => conf.remove(), 3500);
+        }
+    }
+
+    function generateBoard() {
+        const matrix = createMatrix(0);
+
+        function solve(r, c) {
+            if (r === SIZE) return true;
+            const nextR = c === SIZE - 1 ? r + 1 : r;
+            const nextC = (c + 1) % SIZE;
+            const values = Math.random() > 0.5 ? [1, 2] : [2, 1];
+
+            for (const value of values) {
+                if (isSafe(matrix, r, c, value)) {
+                    matrix[r][c] = value;
+                    if (solve(nextR, nextC)) return true;
+                    matrix[r][c] = 0;
+                }
+            }
+            return false;
+        }
+
+        solve(0, 0);
+        return matrix;
+    }
+
+    function isSafe(matrix, r, c, value) {
+        if (c >= 2 && matrix[r][c - 1] === value && matrix[r][c - 2] === value) return false;
+        if (r >= 2 && matrix[r - 1][c] === value && matrix[r - 2][c] === value) return false;
+
+        let rowCount = 0;
+        let colCount = 0;
+        for (let i = 0; i < SIZE; i += 1) {
+            if (matrix[r][i] === value) rowCount += 1;
+            if (matrix[i][c] === value) colCount += 1;
+        }
+        return rowCount < SIZE / 2 && colCount < SIZE / 2;
+    }
+
+    diffEl.addEventListener("input", () => {
+        diffValueEl.textContent = DIFFICULTY[Number(diffEl.value)].label;
+    });
+    newGameBtn.addEventListener("click", initGame);
+    playAgainBtn.addEventListener("click", initGame);
+    window.addEventListener("resize", render);
+
+    initGame();
+</script>
+</body>
+</html>
