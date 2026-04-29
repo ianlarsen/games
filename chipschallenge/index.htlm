@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Chip's Challenge Clone</title>
+    <style>
+        :root {
+            --bg: #090d1a;
+            --panel: #11182e;
+            --text: #e7ecff;
+            --muted: #9aa8d4;
+            --accent: #57ffa4;
+            --danger: #ff5d7d;
+            --tile: 40px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            background: radial-gradient(circle at 50% -20%, rgba(87,255,164,0.15), transparent 45%), var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .shell {
+            width: min(100%, 560px);
+            background: var(--panel);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+        }
+        .hud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.92rem;
+        }
+        .hud b { color: var(--accent); }
+        #msg {
+            min-height: 1.35rem;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        #msg.win { color: var(--accent); }
+        #msg.lose { color: var(--danger); }
+        #game-wrapper {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto;
+            border: 2px solid rgba(87,255,164,0.45);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: min(90vw, 400px);
+            height: auto;
+            image-rendering: pixelated;
+            background: #000;
+            touch-action: none;
+        }
+        .scan {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+                linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+            background-size: 100% 4px, 3px 100%;
+        }
+        .help {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="hud">
+        <div>Level <b id="lvl">1</b></div>
+        <div>Chips <b id="chip-count">0</b></div>
+        <div>Lives <b id="lives">3</b></div>
+    </div>
+    <div id="msg">Collect all chips, then reach the exit.</div>
+    <div id="game-wrapper">
+        <canvas id="gameCanvas" width="400" height="400" aria-label="Chip's Challenge board"></canvas>
+        <div class="scan"></div>
+    </div>
+    <p class="help">Arrows / WASD move · R restart level · Space reset run</p>
+</div>
+
+<script>
+'use strict';
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const chipDisplay = document.getElementById('chip-count');
+const lvlDisplay = document.getElementById('lvl');
+const livesDisplay = document.getElementById('lives');
+const msg = document.getElementById('msg');
+
+const TILE = 40;
+const SIZE = 10;
+const map = [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1],
+    [1,0,1,0,0,0,0,1,0,1],
+    [1,0,0,0,1,1,0,0,0,1],
+    [1,0,1,0,1,0,0,1,0,1],
+    [1,0,1,0,0,0,0,1,0,1],
+    [1,0,1,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1]
+];
+
+const chipSpots = [
+    {x:8,y:1},{x:1,y:8},{x:8,y:8},{x:4,y:3},
+    {x:5,y:6},{x:2,y:4},{x:7,y:4}
+];
+const EXIT = { x: 5, y: 1 };
+
+let level = 1;
+let lives = 3;
+let player = null;
+let enemy = null;
+let chips = [];
+let particles = [];
+let frame = 0;
+let gameOver = false;
+let portalActive = false;
+
+function setMsg(text, cls = '') {
+    msg.textContent = text;
+    msg.className = cls;
+}
+
+function setupLevel(newLevel) {
+    level = newLevel;
+    frame = 0;
+    gameOver = false;
+    portalActive = false;
+    particles = [];
+    player = { x: 1, y: 1, sx: 40, sy: 40 };
+    enemy = { x: 8, y: 8, sx: 320, sy: 320 };
+    chips = chipSpots.slice(0, Math.min(2 + level, chipSpots.length)).map(c => ({...c}));
+    lvlDisplay.textContent = String(level);
+    chipDisplay.textContent = String(chips.length);
+    livesDisplay.textContent = String(lives);
+    setMsg('Collect all chips, then reach the exit.');
+}
+
+function resetRun() {
+    lives = 3;
+    setupLevel(1);
+}
+
+function addParticles(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+        particles.push({
+            x: x * TILE + 20,
+            y: y * TILE + 20,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 1,
+            color
+        });
+    }
+}
+
+function canWalk(x, y) {
+    return map[y] && map[y][x] === 0;
+}
+
+function stepEnemy() {
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const sx = Math.sign(dx);
+    const sy = Math.sign(dy);
+    const primaryX = Math.abs(dx) >= Math.abs(dy);
+    if (primaryX) {
+        if (canWalk(enemy.x + sx, enemy.y)) enemy.x += sx;
+        else if (canWalk(enemy.x, enemy.y + sy)) enemy.y += sy;
+    } else {
+        if (canWalk(enemy.x, enemy.y + sy)) enemy.y += sy;
+        else if (canWalk(enemy.x + sx, enemy.y)) enemy.x += sx;
+    }
+}
+
+function tryMove(dx, dy) {
+    if (gameOver) return;
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    if (!canWalk(nx, ny)) return;
+    player.x = nx;
+    player.y = ny;
+    stepEnemy();
+}
+
+function loseLife() {
+    if (gameOver) return;
+    lives -= 1;
+    livesDisplay.textContent = String(lives);
+    if (lives <= 0) {
+        gameOver = true;
+        setMsg('System failure. Press Space to reset run.', 'lose');
+        return;
+    }
+    setMsg('Caught! Respawning...', 'lose');
+    player.x = 1; player.y = 1; player.sx = 40; player.sy = 40;
+    enemy.x = 8; enemy.y = 8; enemy.sx = 320; enemy.sy = 320;
+}
+
+function update() {
+    if (gameOver) return;
+    frame++;
+    player.sx += (player.x * TILE - player.sx) * 0.22;
+    player.sy += (player.y * TILE - player.sy) * 0.22;
+    enemy.sx += (enemy.x * TILE - enemy.sx) * 0.16;
+    enemy.sy += (enemy.y * TILE - enemy.sy) * 0.16;
+
+    particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.02;
+        return p.life > 0;
+    });
+
+    chips = chips.filter(c => {
+        if (player.x === c.x && player.y === c.y) {
+            addParticles(c.x, c.y, '#57ffa4');
+            return false;
+        }
+        return true;
+    });
+    chipDisplay.textContent = String(chips.length);
+
+    if (chips.length === 0) portalActive = true;
+    if (portalActive && player.x === EXIT.x && player.y === EXIT.y) {
+        setMsg('Level clear!', 'win');
+        setupLevel(level + 1);
+        return;
+    }
+
+    const dist = Math.hypot(player.sx - enemy.sx, player.sy - enemy.sy);
+    if (dist < 26) loseLife();
+}
+
+function draw() {
+    ctx.fillStyle = '#02050d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+            if (map[y][x] === 1) {
+                ctx.fillStyle = '#111827';
+                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                ctx.strokeStyle = 'rgba(87,255,164,0.12)';
+                ctx.strokeRect(x * TILE, y * TILE, TILE, TILE);
+            } else {
+                ctx.fillStyle = '#0a1020';
+                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+            }
+        }
+    }
+
+    // Exit
+    ctx.shadowBlur = portalActive ? 16 + Math.sin(frame * 0.15) * 4 : 0;
+    ctx.shadowColor = '#57ffa4';
+    ctx.fillStyle = portalActive ? '#57ffa4' : '#2f3a52';
+    ctx.beginPath();
+    ctx.arc(EXIT.x * TILE + 20, EXIT.y * TILE + 20, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Chips
+    chips.forEach(c => {
+        const bob = Math.sin(frame * 0.1 + c.x + c.y) * 2.5;
+        ctx.fillStyle = '#57ffa4';
+        ctx.fillRect(c.x * TILE + 12, c.y * TILE + 12 + bob, 16, 16);
+    });
+
+    // Particles
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 2, 2);
+    });
+    ctx.globalAlpha = 1;
+
+    // Enemy
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = '#ff5d7d';
+    ctx.fillStyle = '#ff5d7d';
+    ctx.fillRect(enemy.sx + 10, enemy.sy + 10, 20, 20);
+
+    // Player
+    ctx.shadowColor = '#57ffa4';
+    ctx.fillStyle = '#f8fbff';
+    ctx.fillRect(player.sx + 8, player.sy + 8, 24, 24);
+    ctx.fillStyle = '#57ffa4';
+    ctx.fillRect(player.sx + 14, player.sy + 14, 12, 12);
+    ctx.shadowBlur = 0;
+
+    if (gameOver) {
+        ctx.fillStyle = 'rgba(10,0,0,0.78)';
+        ctx.fillRect(0, 0, 400, 400);
+        ctx.fillStyle = '#ff5d7d';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 22px "Courier New"';
+        ctx.fillText('SYSTEM FAILURE', 200, 190);
+        ctx.font = '14px "Courier New"';
+        ctx.fillStyle = '#fff';
+        ctx.fillText('PRESS SPACE TO REBOOT', 200, 230);
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+    if (gameOver && e.code === 'Space') { resetRun(); return; }
+    if (e.key === 'r' || e.key === 'R') { setupLevel(level); return; }
+    if (e.code === 'Space') { resetRun(); return; }
+    const k = e.key.toLowerCase();
+    if (k === 'w' || e.key === 'ArrowUp') tryMove(0, -1);
+    else if (k === 's' || e.key === 'ArrowDown') tryMove(0, 1);
+    else if (k === 'a' || e.key === 'ArrowLeft') tryMove(-1, 0);
+    else if (k === 'd' || e.key === 'ArrowRight') tryMove(1, 0);
+});
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+setupLevel(1);
+loop();
+</script>
+</body>
+</html>
