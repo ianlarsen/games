@@ -15,7 +15,7 @@
   const BOX_INTERVAL_DAYS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14, 6: 30 };
 
   const defaultSettings = () => ({
-    theme: 'dark',
+    theme: 'light',
     fontScale: 1,
     sessionSize: 20,
     rationaleDelay: true,
