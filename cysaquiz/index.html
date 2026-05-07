@@ -1,32 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CySA+ Quiz Generator</title>
-    <!--
-      Simple quiz application for CompTIA CySA+ preparation.  
-      All questions are loaded from a JSON file generated from the supplied
-      PDF.  Questions are served randomly from the pool of un‑mastered
-      questions.  Mastery state is persisted via localStorage so your
-      progress carries across page reloads.
-    -->
-    <!-- Import a modern sans‑serif font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="CySA+ (CS0-003) practice questions with spaced repetition for personal study. Not affiliated with CompTIA."
+    />
+    <meta name="theme-color" content="#111827" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>CySA+ Study Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header>
-      <h1>CySA+ Practice Quiz</h1>
-    </header>
-    <main id="app">
-      <!-- The application UI will be injected here by app.js -->
-    </main>
-    <footer>
+    <div id="app-root" class="app-root">
+      <header class="app-header">
+        <h1 class="app-title">CySA+ Study Tool</h1>
+        <p class="app-tagline">Smart review, quizzes, and progress — saved on this device.</p>
+      </header>
+      <main id="app-main" class="app-main" aria-live="polite"></main>
+      <nav class="bottom-nav" aria-label="Primary">
+        <button type="button" class="nav-btn" data-route="home" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">⌂</span>
+          <span class="nav-label">Home</span>
+        </button>
+        <button type="button" class="nav-btn" data-route="study">
+          <span class="nav-icon" aria-hidden="true">▸</span>
+          <span class="nav-label">Study</span>
+        </button>
+        <button type="button" class="nav-btn" data-route="progress">
+          <span class="nav-icon" aria-hidden="true">◆</span>
+          <span class="nav-label">Progress</span>
+        </button>
+        <button type="button" class="nav-btn" data-route="settings">
+          <span class="nav-icon" aria-hidden="true">⚙</span>
+          <span class="nav-label">Settings</span>
+        </button>
+      </nav>
+    </div>
+    <footer class="site-footer">
       <p>
-        Hosted on GitHub Pages. All questions and answers are based on the
-        CompTIA CySA+ CS0‑003 exam objectives. This site is for personal
-        study purposes only.
+        Questions are for personal study only and follow CS0‑003 style objectives. This tool is
+        not affiliated with or endorsed by CompTIA.
       </p>
     </footer>
     <script src="app.js"></script>
