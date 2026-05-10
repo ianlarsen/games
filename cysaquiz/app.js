@@ -14,6 +14,12 @@
   /** Days until next review after landing in box k (1–6). CDL-style cadence. */
   const BOX_INTERVAL_DAYS = { 1: 0, 2: 1, 3: 3, 4: 7, 5: 14, 6: 30 };
 
+  /** Question `number` fields with assets under images/q{N}.png */
+  const QUESTION_IMAGE_IDS = new Set([
+    3, 6, 8, 30, 66, 79, 80, 89, 120, 121, 122, 123, 124, 132, 150, 151, 173, 188, 199, 213, 278,
+    283, 295, 318, 319, 324, 325, 388, 404
+  ]);
+
   const defaultSettings = () => ({
     theme: 'light',
     fontScale: 1,
@@ -43,6 +49,33 @@
 
   function questionId(q) {
     return String(q.number);
+  }
+
+  function questionHasFigure(q) {
+    const n = Number(q.number);
+    return Number.isFinite(n) && Number.isInteger(n) && QUESTION_IMAGE_IDS.has(n);
+  }
+
+  function appendQuestionFigure(parent, q) {
+    if (!questionHasFigure(q)) return;
+    const n = Number(q.number);
+    const fig = document.createElement('figure');
+    fig.className = 'question-figure';
+    const img = document.createElement('img');
+    img.src = `images/q${n}.png`;
+    img.alt = 'Diagram or tool output for this question';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.referrerPolicy = 'no-referrer';
+    img.addEventListener('error', () => {
+      fig.remove();
+    });
+    fig.appendChild(img);
+    parent.appendChild(fig);
+  }
+
+  function isPbqWithoutChoices(q) {
+    return !Array.isArray(q.options) || q.options.length === 0;
   }
 
   function masteryThreshold(question) {
@@ -769,52 +802,69 @@
     stem.className = 'question-text';
     stem.textContent = q.question;
 
+    cardEl.appendChild(badges);
+    cardEl.appendChild(stem);
+    appendQuestionFigure(cardEl, q);
+
     const answerParts = String(q.answer || '')
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
     const isMulti = answerParts.length > 1;
 
-    const list = document.createElement('ul');
-    list.className = `options ${isMulti ? 'multi' : ''}`;
-    const groupName = `q-${id}-${idx}`;
-    q.options.forEach((opt) => {
-      const li = document.createElement('li');
-      const input = document.createElement('input');
-      input.type = isMulti ? 'checkbox' : 'radio';
-      input.name = groupName;
-      input.value = opt.letter;
-      const oid = `${groupName}-opt-${opt.letter}`;
-      input.id = oid;
-      const label = document.createElement('label');
-      label.setAttribute('for', oid);
-      label.textContent = `${opt.letter}. ${opt.text}`;
-      li.appendChild(input);
-      li.appendChild(label);
-      list.appendChild(li);
-    });
-
+    let feedbackEl = null;
     const actions = document.createElement('div');
     actions.className = 'quiz-actions';
 
-    let feedbackEl = null;
-    if (state.feedback) {
-      feedbackEl = document.createElement('div');
-      feedbackEl.className = `feedback-panel ${state.feedback.isCorrect ? 'ok' : 'bad'}`;
-      feedbackEl.innerHTML = `
+    if (isPbqWithoutChoices(q)) {
+      const note = document.createElement('p');
+      note.className = 'muted small';
+      note.textContent =
+        'Performance-based item: no answer choices in this bank. Review the diagram, then continue (not scored, does not affect SRS).';
+      const skipBtn = document.createElement('button');
+      skipBtn.type = 'button';
+      skipBtn.className = 'btn primary';
+      skipBtn.id = 'btn-pbq-continue';
+      skipBtn.textContent = idx >= total - 1 ? 'View results' : 'Continue';
+      actions.appendChild(skipBtn);
+      cardEl.appendChild(note);
+      cardEl.appendChild(actions);
+    } else {
+      const list = document.createElement('ul');
+      list.className = `options ${isMulti ? 'multi' : ''}`;
+      const groupName = `q-${id}-${idx}`;
+      q.options.forEach((opt) => {
+        const li = document.createElement('li');
+        const input = document.createElement('input');
+        input.type = isMulti ? 'checkbox' : 'radio';
+        input.name = groupName;
+        input.value = opt.letter;
+        const oid = `${groupName}-opt-${opt.letter}`;
+        input.id = oid;
+        const label = document.createElement('label');
+        label.setAttribute('for', oid);
+        label.textContent = `${opt.letter}. ${opt.text}`;
+        li.appendChild(input);
+        li.appendChild(label);
+        list.appendChild(li);
+      });
+
+      if (state.feedback) {
+        feedbackEl = document.createElement('div');
+        feedbackEl.className = `feedback-panel ${state.feedback.isCorrect ? 'ok' : 'bad'}`;
+        feedbackEl.innerHTML = `
         <strong>${state.feedback.isCorrect ? 'Correct' : 'Incorrect'}</strong>
         <p class="feedback-rationale">${escapeHtml(q.explanation || 'No explanation provided.')}</p>
         <button type="button" class="btn primary" id="btn-next">${idx >= total - 1 ? 'View results' : 'Next question'}</button>
       `;
-    } else {
-      actions.innerHTML = `<button type="button" class="btn primary" id="btn-submit">Check answer</button>`;
-    }
+      } else {
+        actions.innerHTML = `<button type="button" class="btn primary" id="btn-submit">Check answer</button>`;
+      }
 
-    cardEl.appendChild(badges);
-    cardEl.appendChild(stem);
-    cardEl.appendChild(list);
-    if (feedbackEl) cardEl.appendChild(feedbackEl);
-    else cardEl.appendChild(actions);
+      cardEl.appendChild(list);
+      if (feedbackEl) cardEl.appendChild(feedbackEl);
+      else cardEl.appendChild(actions);
+    }
 
     wrap.appendChild(header);
     wrap.appendChild(cardEl);
@@ -829,11 +879,26 @@
       }
     });
 
-    if (feedbackEl) {
+    if (isPbqWithoutChoices(q)) {
+      actions.querySelector('#btn-pbq-continue').addEventListener('click', async () => {
+        state.answers.push({
+          question: q,
+          selected: [],
+          isCorrect: false,
+          graded: false
+        });
+        if (idx >= total - 1) await finishSession();
+        else {
+          state.qIndex++;
+          renderQuestionView();
+        }
+      });
+    } else if (feedbackEl) {
       feedbackEl.querySelector('#btn-next').addEventListener('click', () => {
         void advanceQuestion(q);
       });
     } else {
+      const list = cardEl.querySelector('ul.options');
       actions.querySelector('#btn-submit').addEventListener('click', () => {
         void submitAnswer(q, list);
       });
@@ -860,7 +925,7 @@
     const { isCorrect } = normalizeAnswers(q, selected);
 
     if (!state.settings.rationaleDelay) {
-      state.answers.push({ question: q, selected, isCorrect });
+      state.answers.push({ question: q, selected, isCorrect, graded: true });
       state.feedback = null;
       await advanceAfterAnswer();
       return;
@@ -889,7 +954,8 @@
       state.answers.push({
         question: q,
         selected: state.feedback.selected,
-        isCorrect: state.feedback.isCorrect
+        isCorrect: state.feedback.isCorrect,
+        graded: true
       });
       state.feedback = null;
     }
@@ -908,7 +974,10 @@
 
     const db = await ensureDb();
     let correct = 0;
+    let gradedTotal = 0;
     for (const row of state.answers) {
+      if (row.graded === false) continue;
+      gradedTotal++;
       if (row.isCorrect) correct++;
       if (session.meta.affectsSRS) {
         const id = questionId(row.question);
@@ -923,28 +992,35 @@
       endedAt: Date.now(),
       mode: session.meta.mode,
       correct,
-      total: state.answers.length,
+      total: gradedTotal,
       updatedSRS: session.meta.affectsSRS
     });
 
     const affectsSRS = session.meta.affectsSRS;
     hideNav(false);
     state.session = null;
-    renderResults(correct, state.answers, affectsSRS);
+    renderResults(correct, gradedTotal, state.answers, affectsSRS);
     state.answers = [];
   }
 
-  function renderResults(correct, answers, affectsSRS) {
+  function renderResults(correct, gradedTotal, answers, affectsSRS) {
     emptyMain();
-    const pct = answers.length ? Math.round((correct / answers.length) * 100) : 0;
+    const pct = gradedTotal ? Math.round((correct / gradedTotal) * 100) : 0;
+    const pbqOnly = answers.filter((r) => r.graded === false).length;
     const srsCopy = affectsSRS
       ? 'Spaced repetition schedules were updated for each graded question.'
       : 'Practice mode: schedules were not changed for this run.';
     const summary = document.createElement('section');
     summary.className = 'panel results-hero';
+    const scoreLine =
+      gradedTotal > 0
+        ? `${correct} / ${gradedTotal} graded correct (${pct}%)`
+        : 'No graded multiple-choice items in this session.';
+    const pbqLine = pbqOnly ? `<p class="muted small">${pbqOnly} reference item(s) (not scored).</p>` : '';
     summary.innerHTML = `
       <h2 class="panel-title">Session complete</h2>
-      <p class="results-score">${correct} / ${answers.length} correct (${pct}%)</p>
+      <p class="results-score">${scoreLine}</p>
+      ${pbqLine}
       <p class="muted small">${srsCopy}</p>
     `;
 
@@ -952,16 +1028,35 @@
     list.className = 'results-list';
 
     answers.forEach((row, i) => {
-      const { question: q, selected, isCorrect } = row;
-      const { correct: corr } = normalizeAnswers(q, selected);
+      const { question: q, selected, isCorrect, graded } = row;
       const item = document.createElement('article');
-      item.className = `result-item ${isCorrect ? 'ok' : 'bad'}`;
-      item.innerHTML = `
-        <header><span class="badge">${i + 1}</span><strong>${isCorrect ? 'Correct' : 'Incorrect'}</strong></header>
-        <p class="question-text">${escapeHtml(q.question)}</p>
-        <p class="muted small">Yours: <strong>${selected.join(', ')}</strong> · Correct: <strong>${corr.join(', ')}</strong></p>
-        <div class="rationale">${escapeHtml(q.explanation || '')}</div>
-      `;
+      const isRef = graded === false;
+      item.className = `result-item ${isRef ? 'ref' : isCorrect ? 'ok' : 'bad'}`;
+      const hdr = document.createElement('header');
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = String(i + 1);
+      const status = document.createElement('strong');
+      status.textContent = isRef ? 'Reference' : isCorrect ? 'Correct' : 'Incorrect';
+      hdr.appendChild(badge);
+      hdr.appendChild(status);
+      item.appendChild(hdr);
+      const pq = document.createElement('p');
+      pq.className = 'question-text';
+      pq.textContent = q.question;
+      item.appendChild(pq);
+      appendQuestionFigure(item, q);
+      if (!isRef) {
+        const { correct: corr } = normalizeAnswers(q, selected);
+        const ans = document.createElement('p');
+        ans.className = 'muted small';
+        ans.textContent = `Yours: ${selected.join(', ')} · Correct: ${corr.join(', ')}`;
+        item.appendChild(ans);
+      }
+      const rat = document.createElement('div');
+      rat.className = 'rationale';
+      rat.textContent = q.explanation || '';
+      item.appendChild(rat);
       list.appendChild(item);
     });
 

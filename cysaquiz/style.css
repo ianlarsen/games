@@ -506,6 +506,21 @@ body {
   line-height: 1.55;
 }
 
+.question-figure {
+  margin: 1rem 0 0;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.question-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .options {
   list-style: none;
   margin: 1rem 0 0;
@@ -635,6 +650,11 @@ body {
 
 .result-item.bad {
   border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+}
+
+.result-item.ref {
+  border-color: color-mix(in srgb, var(--muted) 45%, var(--border));
+  background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
 }
 
 .result-item .rationale {
