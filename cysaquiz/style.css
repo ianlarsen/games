@@ -322,6 +322,12 @@ body {
   padding-inline: 0.35rem;
 }
 
+.btn.small-btn {
+  min-height: 36px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
+}
+
 .btn.danger {
   background: var(--danger);
   color: #fff;
@@ -686,5 +692,209 @@ body {
   .session-row {
     grid-template-columns: 1fr;
     gap: 0.25rem;
+  }
+}
+
+.toast-stack {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(420px, 100vw - 1rem);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  pointer-events: none;
+  padding-top: 0.35rem;
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: toast-in 0.35s ease;
+}
+
+.toast.badge-toast {
+  border-color: color-mix(in srgb, var(--warning) 55%, var(--border));
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.confetti-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+  overflow: hidden;
+}
+
+.confetti-root.active span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confetti-fall 2.2s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  from {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.xp-panel {
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.xp-panel .xp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.xp-panel .rank-title {
+  font-weight: 700;
+  color: var(--accent-2);
+  font-size: 0.95rem;
+}
+
+.xp-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  transition: width 0.35s ease;
+}
+
+.freeze-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.blitz-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.blitz-bar.danger {
+  color: var(--danger);
+}
+
+.arcade-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.arcade-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+.arcade-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.badge-tile {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.55rem;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.badge-tile.earned {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.badge-tile .emoji {
+  font-size: 1.35rem;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.leader-list {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.leader-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.results-hero.celebrate {
+  animation: celebrate-pop 0.6s ease;
+}
+
+@keyframes celebrate-pop {
+  0% {
+    transform: scale(0.98);
+  }
+  40% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
   }
 }

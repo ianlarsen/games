@@ -9,6 +9,7 @@
   const SETTINGS_KEY = 'settings';
   const LEGACY_PROGRESS_KEY = 'cysaQuizProgress';
   const MIGRATION_FLAG_KEY = 'cysaStudyToolLegacyMigrated';
+  const GAMIFICATION_KEY = 'gamification';
 
   const DAY_MS = 86400000;
   /** Days until next review after landing in box k (1–6). CDL-style cadence. */
@@ -26,7 +27,8 @@
     sessionSize: 20,
     rationaleDelay: true,
     practiceSkipSRS: false,
-    category: 'general'
+    category: 'general',
+    soundEnabled: true
   });
 
   /** @type {HTMLElement | null} */
@@ -44,7 +46,9 @@
     /** Answers collected */
     answers: [],
     /** After submit: pending feedback before advancing */
-    feedback: null
+    feedback: null,
+    gamification: null,
+    blitzTimerId: null
   };
 
   function questionId(q) {
@@ -122,6 +126,301 @@
 
   function applyFontScale(scale) {
     document.documentElement.style.setProperty('--font-scale', String(scale || 1));
+  }
+
+  // --- Gamification (XP, badges, arcade, audio) ---
+
+  function defaultGamification() {
+    return {
+      xp: 0,
+      lifetimeSessions: 0,
+      badges: {},
+      streakCount: 0,
+      lastStreakDay: null,
+      freezeCharges: 1,
+      freezeWeekKey: '',
+      dailyBonusDate: null,
+      blitzHigh: 0,
+      endlessHigh: 0,
+      blitzScores: [],
+      endlessScores: []
+    };
+  }
+
+  async function loadGamification(db) {
+    const row = await idbGet(db, 'kv', GAMIFICATION_KEY);
+    return { ...defaultGamification(), ...(row || {}) };
+  }
+
+  async function saveGamification(db, g) {
+    await idbPutKeyed(db, 'kv', GAMIFICATION_KEY, g);
+    state.gamification = g;
+  }
+
+  function calendarDayKey(ts = Date.now()) {
+    const d = new Date(ts);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }
+
+  function calendarDaysBetween(aKey, bKey) {
+    const [ay, am, ad] = aKey.split('-').map(Number);
+    const [by, bm, bd] = bKey.split('-').map(Number);
+    const da = new Date(ay, am, ad);
+    const db = new Date(by, bm, bd);
+    return Math.round((db - da) / DAY_MS);
+  }
+
+  function isoWeekKey(ts = Date.now()) {
+    const d = new Date(ts);
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() + 4 - day);
+    const y = d.getFullYear();
+    const z = new Date(y, 0, 1);
+    const w = Math.ceil(((d - z) / DAY_MS + z.getDay() + 1) / 7);
+    return `${y}-W${String(w).padStart(2, '0')}`;
+  }
+
+  function maybeGrantWeeklyFreeze(g) {
+    const wk = isoWeekKey();
+    if (g.freezeWeekKey !== wk) {
+      g.freezeWeekKey = wk;
+      g.freezeCharges = Math.min((g.freezeCharges || 0) + 1, 2);
+    }
+  }
+
+  function updateStreakOnSessionComplete(g) {
+    const today = calendarDayKey();
+    if (g.lastStreakDay === today) return;
+    const last = g.lastStreakDay;
+    if (!last) {
+      g.lastStreakDay = today;
+      g.streakCount = 1;
+      return;
+    }
+    const diff = calendarDaysBetween(last, today);
+    if (diff === 1) {
+      g.streakCount = (g.streakCount || 0) + 1;
+    } else if (diff === 2 && (g.freezeCharges || 0) > 0) {
+      g.freezeCharges--;
+      g.streakCount = (g.streakCount || 0) + 1;
+    } else if (diff > 1) {
+      g.streakCount = 1;
+    }
+    g.lastStreakDay = today;
+  }
+
+  function xpThresholdForLevel(level) {
+    return Math.floor(200 + (level - 1) * 220 + Math.pow(level - 1, 1.8) * 15);
+  }
+
+  function levelFromXp(xp) {
+    let level = 1;
+    let spent = 0;
+    while (spent + xpThresholdForLevel(level) <= xp) {
+      spent += xpThresholdForLevel(level);
+      level++;
+    }
+    const need = xpThresholdForLevel(level);
+    const prog = need ? ((xp - spent) / need) * 100 : 100;
+    const titles = [
+      'Trainee',
+      'Analyst I',
+      'Analyst II',
+      'Senior analyst',
+      'Principal hunter',
+      'SOC lead',
+      'Incident commander'
+    ];
+    const title = titles[Math.min(level - 1, titles.length - 1)];
+    return { level, title, spent, need, progress: Math.min(100, Math.max(0, prog)) };
+  }
+
+  function seededShuffle(arr, seedStr) {
+    let h = 2166136261;
+    for (let i = 0; i < seedStr.length; i++) h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619);
+    let state = h >>> 0;
+    const rnd = () => {
+      state = Math.imul(state + 0x6d2b79f5, 1) >>> 0;
+      return (state & 0xffffff) / 0xffffff;
+    };
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function dailyChallengeSeed() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function mcqOnlyPool(questions) {
+    return questions.filter((q) => !isPbqWithoutChoices(q) && String(q.answer || '').trim());
+  }
+
+  function pickDailyQuestions(pool, n = 5) {
+    const usable = mcqOnlyPool(pool);
+    if (!usable.length) return [];
+    const seed = dailyChallengeSeed() + '|' + state.settings.category;
+    const shuffled = seededShuffle(usable, seed);
+    return shuffled.slice(0, Math.min(n, shuffled.length));
+  }
+
+  let audioCtx = null;
+  function playSound(kind) {
+    if (!state.settings.soundEnabled) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      if (kind === 'correct') {
+        o.frequency.value = 880;
+        g.gain.setValueAtTime(0.08, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        o.start(now);
+        o.stop(now + 0.16);
+      } else if (kind === 'wrong') {
+        o.type = 'square';
+        o.frequency.value = 140;
+        g.gain.setValueAtTime(0.06, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        o.start(now);
+        o.stop(now + 0.23);
+      } else if (kind === 'badge') {
+        o.frequency.value = 523;
+        g.gain.setValueAtTime(0.07, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        o.start(now);
+        o.stop(now + 0.36);
+      } else if (kind === 'streak') {
+        o.frequency.value = 660;
+        g.gain.setValueAtTime(0.06, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        o.start(now);
+        o.stop(now + 0.13);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function showToast(text, isBadge = false) {
+    const stack = document.getElementById('toast-stack');
+    if (!stack) return;
+    const t = document.createElement('div');
+    t.className = `toast${isBadge ? ' badge-toast' : ''}`;
+    t.textContent = text;
+    stack.appendChild(t);
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transition = 'opacity 0.35s ease';
+      setTimeout(() => t.remove(), 380);
+    }, 2800);
+  }
+
+  function triggerConfetti() {
+    const root = document.getElementById('confetti-root');
+    if (!root) return;
+    root.innerHTML = '';
+    root.classList.add('active');
+    const colors = ['#22d3ee', '#22c55e', '#facc15', '#f43f5e', '#a78bfa'];
+    for (let i = 0; i < 48; i++) {
+      const s = document.createElement('span');
+      s.style.left = `${Math.random() * 100}%`;
+      s.style.top = '-8px';
+      s.style.background = colors[i % colors.length];
+      s.style.animationDelay = `${Math.random() * 0.4}s`;
+      root.appendChild(s);
+    }
+    setTimeout(() => {
+      root.classList.remove('active');
+      root.innerHTML = '';
+    }, 2400);
+  }
+
+  function pushTopScore(arr, value, max = 5) {
+    if (!Array.isArray(arr)) return;
+    arr.push({ v: value, t: Date.now() });
+    arr.sort((a, b) => b.v - a.v);
+    arr.length = Math.min(arr.length, max);
+  }
+
+  const BADGE_DEFS = [
+    { id: 'rookie', emoji: '📋', title: 'Case opened', desc: 'Finish any session.', check: (c) => c.lifetimeSessions >= 1 },
+    { id: 'xp500', emoji: '⚡', title: 'Voltage up', desc: 'Reach 500 XP.', check: (c) => c.xp >= 500 },
+    { id: 'xp2k', emoji: '🎯', title: 'Sharp eye', desc: 'Reach 2000 XP.', check: (c) => c.xp >= 2000 },
+    { id: 'streak7', emoji: '🔥', title: 'Week warrior', desc: '7-day streak.', check: (c) => c.streakCount >= 7 },
+    { id: 'streak30', emoji: '🏆', title: 'Unstoppable', desc: '30-day streak.', check: (c) => c.streakCount >= 30 },
+    { id: 'perfect', emoji: '💎', title: 'Flawless case', desc: 'Perfect graded session.', check: (c) => c.sessionPerfect },
+    { id: 'nemesis', emoji: '⚔️', title: 'Nemesis down', desc: 'Correct a nemesis card.', check: (c) => c.nemesisBeat },
+    { id: 'daily', emoji: '📅', title: 'Daily op', desc: 'Complete daily challenge.', check: (c) => c.dailyDone },
+    { id: 'blitz15', emoji: '⏱️', title: 'Blitz runner', desc: '15+ correct in blitz.', check: (c) => c.blitzHigh >= 15 },
+    { id: 'blitz28', emoji: '🚀', title: 'Blitz ace', desc: '28+ correct in blitz.', check: (c) => c.blitzHigh >= 28 },
+    { id: 'endless8', emoji: '🧠', title: 'Iron focus', desc: '8+ endless streak.', check: (c) => c.endlessHigh >= 8 },
+    { id: 'endless15', emoji: '👑', title: 'Legend run', desc: '15+ endless streak.', check: (c) => c.endlessHigh >= 15 },
+    { id: 'mastery50', emoji: '📊', title: 'Half mastery', desc: '50%+ mastery (pool).', check: (c) => c.masteryPct >= 50 },
+    { id: 'sessions25', emoji: '🗂️', title: 'Archivist', desc: 'Close 25 sessions.', check: (c) => c.lifetimeSessions >= 25 }
+  ];
+
+  function unlockBadges(g, ctx) {
+    const unlocked = [];
+    const now = Date.now();
+    if (!g.badges) g.badges = {};
+    for (const b of BADGE_DEFS) {
+      if (g.badges[b.id]) continue;
+      if (b.check(ctx)) {
+        g.badges[b.id] = now;
+        unlocked.push(b);
+      }
+    }
+    return unlocked;
+  }
+
+  async function hydrateGamification(db) {
+    state.gamification = await loadGamification(db);
+    maybeGrantWeeklyFreeze(state.gamification);
+    await saveGamification(db, state.gamification);
+  }
+
+  function useStreakFreezeFromHome() {
+    void (async () => {
+      const db = await ensureDb();
+      const g = await loadGamification(db);
+      maybeGrantWeeklyFreeze(g);
+      if ((g.freezeCharges || 0) < 1) {
+        showToast('No streak freezes available.');
+        return;
+      }
+      const today = calendarDayKey();
+      const last = g.lastStreakDay;
+      if (!last) {
+        showToast('Start a streak first.');
+        return;
+      }
+      const diff = calendarDaysBetween(last, today);
+      if (diff === 1 || diff === 0) {
+        showToast('Streak is already safe today.');
+        return;
+      }
+      if (diff === 2) {
+        g.freezeCharges--;
+        g.lastStreakDay = today;
+        g.streakCount = (g.streakCount || 0) + 1;
+        await saveGamification(db, g);
+        playSound('streak');
+        showToast('Freeze used — streak preserved!');
+        navigate('home');
+        return;
+      }
+      showToast('Freeze only bridges one missed day.');
+    })();
   }
 
   // --- IndexedDB ---
@@ -446,25 +745,49 @@
   async function renderHome() {
     emptyMain();
     await refreshCardsCache();
+    const db = await ensureDb();
+    state.gamification = await loadGamification(db);
+    maybeGrantWeeklyFreeze(state.gamification);
+    await saveGamification(db, state.gamification);
+
     const cat = state.settings.category;
     const stats = aggregateStats(state.allQuestions, state.cardsCache, cat);
-    const sessions = await loadSessions(await ensureDb());
-    const streak = calcStreak(sessions);
+    const sessions = await loadSessions(db);
+    const sessionStreak = calcStreak(sessions);
+    const g = state.gamification;
+    const lv = levelFromXp(g.xp || 0);
+    const streakShow = Math.max(g.streakCount || 0, sessionStreak);
+    const dailyDone = g.dailyBonusDate === calendarDayKey();
 
     const hero = document.createElement('section');
     hero.className = 'panel hero';
     hero.innerHTML = `
-      <h2 class="panel-title">Today</h2>
+      <h2 class="panel-title">Ops desk</h2>
+      <div class="xp-panel">
+        <div class="xp-row">
+          <span class="rank-title">${lv.title} · Lvl ${lv.level}</span>
+          <span class="muted small">${g.xp || 0} XP</span>
+        </div>
+        <div class="xp-bar-track"><div class="xp-bar-fill" style="width:${lv.progress}%"></div></div>
+        <div class="freeze-row">
+          <span class="muted small">Streak freezes: <strong>${g.freezeCharges ?? 0}</strong></span>
+          <button type="button" class="btn secondary small-btn" id="cta-freeze">Use freeze</button>
+        </div>
+      </div>
       <div class="hero-stats">
         <div class="stat-chip"><span class="stat-value">${stats.due}</span><span class="stat-label">Due now</span></div>
         <div class="stat-chip"><span class="stat-value">${stats.unseen}</span><span class="stat-label">New</span></div>
         <div class="stat-chip accent"><span class="stat-value">${stats.masteryPct}%</span><span class="stat-label">Mastery*</span></div>
-        <div class="stat-chip"><span class="stat-value">${streak}</span><span class="stat-label">Day streak</span></div>
+        <div class="stat-chip"><span class="stat-value">${streakShow}</span><span class="stat-label">Streak</span></div>
       </div>
       <p class="muted small">*Among questions you have attempted at least once (current pool filter).</p>
+      <p class="muted small">${dailyDone ? '✓ Daily op bonus claimed today — run again for practice.' : 'Daily op: seeded challenge — bonus XP on first completion today.'}</p>
       <div class="hero-actions">
         <button type="button" class="btn primary large" id="cta-smart">Smart Review (${Math.min(state.settings.sessionSize, stats.total)}) cards</button>
         <button type="button" class="btn ghost" id="cta-quiz">Quick quiz (10)</button>
+        <button type="button" class="btn secondary" id="cta-daily">Daily op (5)</button>
+        <button type="button" class="btn secondary" id="cta-blitz">60s blitz</button>
+        <button type="button" class="btn secondary" id="cta-endless">Endless run</button>
       </div>
     `;
 
@@ -485,6 +808,10 @@
 
     hero.querySelector('#cta-smart').addEventListener('click', () => startSmartReview());
     hero.querySelector('#cta-quiz').addEventListener('click', () => startQuickQuiz(10));
+    hero.querySelector('#cta-daily').addEventListener('click', () => void startDailyChallenge());
+    hero.querySelector('#cta-blitz').addEventListener('click', () => void startBlitz());
+    hero.querySelector('#cta-endless').addEventListener('click', () => void startEndless());
+    hero.querySelector('#cta-freeze').addEventListener('click', () => useStreakFreezeFromHome());
   }
 
   async function renderStudyLobby() {
@@ -519,6 +846,24 @@
           <button type="button" class="btn secondary" id="mode-practice">Start (${Math.min(50, pool.length)})</button>
         </article>
       </div>
+      <h3 class="panel-subtitle" style="margin-top:1rem">Arcade & daily</h3>
+      <div class="arcade-grid">
+        <article class="arcade-card">
+          <h3>Daily op</h3>
+          <p class="muted small">Same seeded 5 questions all day. Bonus XP on first completion today.</p>
+          <button type="button" class="btn primary" id="arc-daily">Start daily op</button>
+        </article>
+        <article class="arcade-card">
+          <h3>60s blitz</h3>
+          <p class="muted small">Answer fast — score is how many you get right before time runs out.</p>
+          <button type="button" class="btn secondary" id="arc-blitz">Start blitz</button>
+        </article>
+        <article class="arcade-card">
+          <h3>Endless run</h3>
+          <p class="muted small">One wrong answer ends the run. Beat your best streak.</p>
+          <button type="button" class="btn secondary" id="arc-endless">Start endless</button>
+        </article>
+      </div>
     `;
 
     const tip = document.createElement('section');
@@ -541,6 +886,9 @@
     modes.querySelector('#mode-practice').addEventListener('click', () =>
       startPractice(Math.min(50, pool.length))
     );
+    modes.querySelector('#arc-daily').addEventListener('click', () => void startDailyChallenge());
+    modes.querySelector('#arc-blitz').addEventListener('click', () => void startBlitz());
+    modes.querySelector('#arc-endless').addEventListener('click', () => void startEndless());
   }
 
   async function renderProgress() {
@@ -595,6 +943,37 @@
 
     mainEl.appendChild(section);
     section.appendChild(table);
+
+    const dbp = await ensureDb();
+    const gb = await loadGamification(dbp);
+    const gs = Math.max(gb.streakCount || 0, streak);
+
+    const badgesPanel = document.createElement('section');
+    badgesPanel.className = 'panel';
+    badgesPanel.innerHTML = `<h3 class="panel-subtitle">Badge shelf</h3><p class="muted small">${gb.xp || 0} XP · Best blitz ${gb.blitzHigh || 0} · Best endless ${gb.endlessHigh || 0} · Ops streak ${gs}</p>`;
+    const grid = document.createElement('div');
+    grid.className = 'badge-grid';
+    for (const b of BADGE_DEFS) {
+      const earned = !!(gb.badges && gb.badges[b.id]);
+      const tile = document.createElement('div');
+      tile.className = `badge-tile${earned ? ' earned' : ''}`;
+      tile.innerHTML = `<span class="emoji">${b.emoji}</span><strong>${b.title}</strong><div>${b.desc}</div>`;
+      grid.appendChild(tile);
+    }
+    badgesPanel.appendChild(grid);
+    mainEl.appendChild(badgesPanel);
+
+    const lb = document.createElement('section');
+    lb.className = 'panel';
+    const blitzTop = (gb.blitzScores || []).map((x, i) => `<div class="leader-row"><span>Blitz #${i + 1}</span><strong>${x.v}</strong></div>`).join('');
+    const endTop = (gb.endlessScores || []).map((x, i) => `<div class="leader-row"><span>Endless #${i + 1}</span><strong>${x.v}</strong></div>`).join('');
+    lb.innerHTML = `
+      <h3 class="panel-subtitle">Local leaderboard (this device)</h3>
+      <p class="muted small">Top blitz scores (correct in 60s) and endless streaks.</p>
+      <div class="leader-list">${blitzTop || '<p class="muted">No blitz scores yet.</p>'}</div>
+      <div class="leader-list" style="margin-top:0.75rem">${endTop || '<p class="muted">No endless runs yet.</p>'}</div>
+    `;
+    mainEl.appendChild(lb);
   }
 
   async function renderSettings() {
@@ -636,6 +1015,10 @@
           <input type="checkbox" id="set-practice" ${s.practiceSkipSRS ? 'checked' : ''} />
           <span>Practice-only for Quick / Practice tests (skip SRS updates)</span>
         </label>
+        <label class="toggle">
+          <input type="checkbox" id="set-sound" ${s.soundEnabled !== false ? 'checked' : ''} />
+          <span>Sound effects (XP, badges, answers)</span>
+        </label>
         <div class="danger-zone">
           <h3 class="panel-subtitle">Data</h3>
           <p class="muted small">Clears spaced repetition state, session history, and settings on this device.</p>
@@ -675,6 +1058,10 @@
     });
     section.querySelector('#set-practice').addEventListener('change', async (e) => {
       state.settings.practiceSkipSRS = e.target.checked;
+      await saveSettings(await ensureDb(), state.settings);
+    });
+    section.querySelector('#set-sound').addEventListener('change', async (e) => {
+      state.settings.soundEnabled = e.target.checked;
       await saveSettings(await ensureDb(), state.settings);
     });
 
@@ -748,12 +1135,82 @@
     beginSession(session, { mode: 'practice', affectsSRS });
   }
 
+  async function startDailyChallenge() {
+    await refreshCardsCache();
+    const pool = filterByCategory(state.allQuestions, state.settings.category);
+    const qs = pickDailyQuestions(pool, 5);
+    if (qs.length < 3) {
+      alert('Not enough multiple-choice items in this pool for a daily run.');
+      return;
+    }
+    beginSession(qs, { mode: 'daily', affectsSRS: false });
+  }
+
+  async function startBlitz() {
+    await refreshCardsCache();
+    const pool = mcqOnlyPool(filterByCategory(state.allQuestions, state.settings.category));
+    if (pool.length < 5) {
+      alert('Not enough questions for blitz.');
+      return;
+    }
+    const shuffled = shuffle(pool).slice(0, Math.min(90, pool.length));
+    beginSession(shuffled, { mode: 'blitz', affectsSRS: false });
+  }
+
+  async function startEndless() {
+    await refreshCardsCache();
+    const pool = mcqOnlyPool(filterByCategory(state.allQuestions, state.settings.category));
+    if (!pool.length) {
+      alert('No eligible questions.');
+      return;
+    }
+    const shuffled = shuffle(pool).slice(0, Math.min(120, pool.length));
+    beginSession(shuffled, { mode: 'endless', affectsSRS: false });
+  }
+
+  function modeLabel(mode) {
+    const map = {
+      smart: 'Smart review',
+      quick: 'Quick quiz',
+      practice: 'Practice test',
+      daily: 'Daily op',
+      blitz: '60s blitz',
+      endless: 'Endless'
+    };
+    return map[mode] || mode;
+  }
+
   function beginSession(questions, meta) {
     hideNav(true);
+    if (state.blitzTimerId) {
+      clearInterval(state.blitzTimerId);
+      state.blitzTimerId = null;
+    }
     state.session = { questions, meta, startedAt: Date.now() };
     state.qIndex = 0;
     state.answers = [];
     state.feedback = null;
+
+    if (meta.mode === 'blitz') {
+      state.session.blitzEndsAt = Date.now() + 60000;
+      state.blitzTimerId = setInterval(() => {
+        if (!state.session || state.session.meta.mode !== 'blitz') {
+          clearInterval(state.blitzTimerId);
+          state.blitzTimerId = null;
+          return;
+        }
+        const el = document.getElementById('blitz-timer');
+        const left = Math.max(0, Math.ceil((state.session.blitzEndsAt - Date.now()) / 1000));
+        if (el) el.textContent = String(left);
+        document.querySelector('.blitz-bar')?.classList.toggle('danger', left <= 10);
+        if (Date.now() >= state.session.blitzEndsAt) {
+          clearInterval(state.blitzTimerId);
+          state.blitzTimerId = null;
+          void finishSession();
+        }
+      }, 250);
+    }
+
     renderQuestionView();
   }
 
@@ -766,6 +1223,11 @@
     emptyMain();
     const session = state.session;
     if (!session) return navigate('home');
+
+    if (session.meta.mode === 'blitz' && session.blitzEndsAt && Date.now() >= session.blitzEndsAt) {
+      void finishSession();
+      return;
+    }
 
     const total = session.questions.length;
     const idx = state.qIndex;
@@ -795,7 +1257,7 @@
     badges.innerHTML = `
       <span class="chip">${q.category === 'acronym' ? 'Acronym' : 'General'}</span>
       ${nemesis ? '<span class="chip danger">Nemesis</span>' : ''}
-      <span class="chip subtle">${session.meta.mode} · ${session.meta.affectsSRS ? 'SRS on' : 'Practice'}</span>
+      <span class="chip subtle">${modeLabel(session.meta.mode)} · ${session.meta.affectsSRS ? 'SRS on' : 'Practice'}</span>
     `;
 
     const stem = document.createElement('p');
@@ -867,11 +1329,23 @@
     }
 
     wrap.appendChild(header);
+    if (session.meta.mode === 'blitz') {
+      const bar = document.createElement('div');
+      bar.className = 'blitz-bar';
+      const left = Math.max(0, Math.ceil(((session.blitzEndsAt || 0) - Date.now()) / 1000));
+      bar.innerHTML = `⚡ Blitz · <span id="blitz-timer">${left}</span>s`;
+      if (left <= 10) bar.classList.add('danger');
+      wrap.appendChild(bar);
+    }
     wrap.appendChild(cardEl);
     mainEl.appendChild(wrap);
 
     header.querySelector('#btn-abort').addEventListener('click', async () => {
       if (confirm('End this session early? Progress for this session will be lost.')) {
+        if (state.blitzTimerId) {
+          clearInterval(state.blitzTimerId);
+          state.blitzTimerId = null;
+        }
         state.session = null;
         state.feedback = null;
         hideNav(false);
@@ -914,6 +1388,9 @@
   }
 
   async function submitAnswer(q, list) {
+    const session = state.session;
+    if (!session) return;
+
     const selected = [];
     list.querySelectorAll('input').forEach((inp) => {
       if (inp.checked) selected.push(inp.value);
@@ -924,8 +1401,33 @@
     }
     const { isCorrect } = normalizeAnswers(q, selected);
 
-    if (!state.settings.rationaleDelay) {
+    if (session.meta.mode === 'blitz') {
       state.answers.push({ question: q, selected, isCorrect, graded: true });
+      playSound(isCorrect ? 'correct' : 'wrong');
+      if (session.blitzEndsAt && Date.now() >= session.blitzEndsAt) {
+        await finishSession();
+        return;
+      }
+      if (state.qIndex >= session.questions.length - 1) {
+        await finishSession();
+        return;
+      }
+      state.qIndex++;
+      renderQuestionView();
+      return;
+    }
+
+    if (session.meta.mode === 'endless' && !isCorrect) {
+      state.answers.push({ question: q, selected, isCorrect, graded: true });
+      playSound('wrong');
+      await finishSession();
+      return;
+    }
+
+    const instant = !state.settings.rationaleDelay || session.meta.mode === 'daily';
+    if (instant) {
+      state.answers.push({ question: q, selected, isCorrect, graded: true });
+      playSound(isCorrect ? 'correct' : 'wrong');
       state.feedback = null;
       await advanceAfterAnswer();
       return;
@@ -951,13 +1453,20 @@
     if (!session) return;
 
     if (state.feedback) {
+      const wasWrong = !state.feedback.isCorrect;
       state.answers.push({
         question: q,
         selected: state.feedback.selected,
         isCorrect: state.feedback.isCorrect,
         graded: true
       });
+      playSound(state.feedback.isCorrect ? 'correct' : 'wrong');
       state.feedback = null;
+
+      if (session.meta.mode === 'endless' && wasWrong) {
+        await finishSession();
+        return;
+      }
     }
 
     if (state.qIndex >= session.questions.length - 1) {
@@ -968,10 +1477,92 @@
     renderQuestionView();
   }
 
+  async function processGamificationAfterSession(sessionMeta, correct, gradedTotal, answers, cardsSnapshot) {
+    const db = await ensureDb();
+    const g = await loadGamification(db);
+    maybeGrantWeeklyFreeze(g);
+    g.lifetimeSessions = (g.lifetimeSessions || 0) + 1;
+
+    let xpGain = 0;
+    for (const row of answers) {
+      if (row.graded === false) continue;
+      const id = questionId(row.question);
+      const before = cardsSnapshot.get(id);
+      const nem = isNemesis(before);
+      if (row.isCorrect) xpGain += 12 + (nem ? 10 : 0);
+      else xpGain += 2;
+    }
+
+    const sessionPerfect = gradedTotal > 0 && correct === gradedTotal;
+    if (sessionPerfect) xpGain += 22;
+
+    if (sessionMeta.mode === 'daily' && gradedTotal > 0) {
+      const today = calendarDayKey();
+      if (g.dailyBonusDate !== today) {
+        g.dailyBonusDate = today;
+        xpGain += 24 + (sessionPerfect ? 26 : 0);
+      }
+    }
+
+    let nemesisBeat = false;
+    for (const row of answers) {
+      if (row.graded === false) continue;
+      const id = questionId(row.question);
+      const before = cardsSnapshot.get(id);
+      if (row.isCorrect && isNemesis(before)) nemesisBeat = true;
+    }
+
+    g.xp = (g.xp || 0) + xpGain;
+    updateStreakOnSessionComplete(g);
+
+    if (sessionMeta.mode === 'blitz') {
+      const score = answers.filter((a) => a.graded !== false && a.isCorrect).length;
+      g.blitzHigh = Math.max(g.blitzHigh || 0, score);
+      pushTopScore(g.blitzScores, score);
+    }
+    if (sessionMeta.mode === 'endless') {
+      const streak = answers.filter((a) => a.graded !== false && a.isCorrect).length;
+      g.endlessHigh = Math.max(g.endlessHigh || 0, streak);
+      pushTopScore(g.endlessScores, streak);
+    }
+
+    const cat = state.settings.category;
+    const stats = aggregateStats(state.allQuestions, state.cardsCache, cat);
+
+    const ctx = {
+      lifetimeSessions: g.lifetimeSessions,
+      xp: g.xp,
+      streakCount: g.streakCount,
+      sessionPerfect,
+      nemesisBeat,
+      dailyDone: sessionMeta.mode === 'daily' && gradedTotal > 0,
+      blitzHigh: g.blitzHigh,
+      endlessHigh: g.endlessHigh,
+      masteryPct: stats.masteryPct
+    };
+
+    const newBadges = unlockBadges(g, ctx);
+    await saveGamification(db, g);
+
+    return {
+      xpGain,
+      newBadges,
+      sessionPerfect,
+      streak: g.streakCount,
+      nemesisBeat
+    };
+  }
+
   async function finishSession() {
     const session = state.session;
     if (!session) return;
 
+    if (state.blitzTimerId) {
+      clearInterval(state.blitzTimerId);
+      state.blitzTimerId = null;
+    }
+
+    const cardsSnapshot = new Map(state.cardsCache);
     const db = await ensureDb();
     let correct = 0;
     let gradedTotal = 0;
@@ -997,13 +1588,30 @@
     });
 
     const affectsSRS = session.meta.affectsSRS;
+    const answersCopy = state.answers.slice();
+    const metaCopy = session.meta;
+
     hideNav(false);
     state.session = null;
-    renderResults(correct, gradedTotal, state.answers, affectsSRS);
     state.answers = [];
+
+    let fancy = {
+      xpGain: 0,
+      newBadges: [],
+      sessionPerfect: false,
+      streak: state.gamification?.streakCount ?? 0,
+      nemesisBeat: false
+    };
+    try {
+      fancy = await processGamificationAfterSession(metaCopy, correct, gradedTotal, answersCopy, cardsSnapshot);
+    } catch (e) {
+      console.warn(e);
+    }
+
+    renderResults(correct, gradedTotal, answersCopy, affectsSRS, fancy);
   }
 
-  function renderResults(correct, gradedTotal, answers, affectsSRS) {
+  function renderResults(correct, gradedTotal, answers, affectsSRS, fancy) {
     emptyMain();
     const pct = gradedTotal ? Math.round((correct / gradedTotal) * 100) : 0;
     const pbqOnly = answers.filter((r) => r.graded === false).length;
@@ -1011,18 +1619,33 @@
       ? 'Spaced repetition schedules were updated for each graded question.'
       : 'Practice mode: schedules were not changed for this run.';
     const summary = document.createElement('section');
-    summary.className = 'panel results-hero';
+    summary.className = `panel results-hero${fancy.sessionPerfect && gradedTotal > 0 ? ' celebrate' : ''}`;
     const scoreLine =
       gradedTotal > 0
         ? `${correct} / ${gradedTotal} graded correct (${pct}%)`
         : 'No graded multiple-choice items in this session.';
     const pbqLine = pbqOnly ? `<p class="muted small">${pbqOnly} reference item(s) (not scored).</p>` : '';
+    const xpLine =
+      fancy.xpGain > 0
+        ? `<p class="results-score" style="font-size:1.1rem">+${fancy.xpGain} XP · Streak ${fancy.streak} days</p>`
+        : '';
     summary.innerHTML = `
-      <h2 class="panel-title">Session complete</h2>
+      <h2 class="panel-title">Case closed</h2>
       <p class="results-score">${scoreLine}</p>
+      ${xpLine}
       ${pbqLine}
       <p class="muted small">${srsCopy}</p>
     `;
+
+    if (fancy.sessionPerfect && gradedTotal > 0) {
+      triggerConfetti();
+      playSound('badge');
+    }
+    for (const b of fancy.newBadges || []) {
+      playSound('badge');
+      showToast(`Badge: ${b.title}`, true);
+    }
+    if (fancy.nemesisBeat) showToast('Nemesis neutralized.');
 
     const list = document.createElement('div');
     list.className = 'results-list';
@@ -1103,6 +1726,7 @@
       const db = await ensureDb();
       await migrateLegacyIfNeeded(db, state.allQuestions);
       await bootstrapSettings();
+      await hydrateGamification(db);
       await refreshCardsCache();
       navigate('home');
     } catch (e) {
