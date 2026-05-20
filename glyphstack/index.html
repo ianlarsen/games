@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Glyph Stack — Pattern Block</title>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --game-surface: #caced1;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: var(--game-surface);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #1a2433;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            max-height: 100dvh;
+        }
+
+        #top-bar {
+            flex: 0 0 auto;
+            padding: 8px 14px 4px;
+        }
+
+        #top-bar h1 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2a4a6b;
+        }
+
+        #scene-wrap {
+            flex: 1 1 auto;
+            position: relative;
+            min-height: 0;
+            background: var(--game-surface);
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #ui-overlay p {
+            margin: 0;
+            color: #6a7f94;
+            font-size: 0.72rem;
+            line-height: 1.4;
+            max-width: 14rem;
+        }
+
+        #face-readout {
+            position: absolute;
+            right: 12px;
+            top: 10px;
+            pointer-events: none;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 8px;
+            font-size: 0.72rem;
+            color: #2a4a6b;
+            border: 1px solid rgba(42, 74, 107, 0.12);
+        }
+
+        #toolbar {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 8px;
+            padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+            background: #f8fafc;
+            border-top: 1px solid #c5d4e3;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 14px 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(135deg, #3d7ea6, #2a4a6b);
+            box-shadow: 0 2px 10px rgba(42, 74, 107, 0.28);
+        }
+
+        .tool-btn.secondary {
+            background: linear-gradient(135deg, #6a8aa8, #4a6a88);
+        }
+
+        .tool-btn:active { transform: scale(0.98); }
+
+        .toolbar-stick {
+            flex: 0 0 5.75rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+
+        .toolbar-stick.is-disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .stick-dir {
+            position: absolute;
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: rgba(42, 74, 107, 0.55);
+            pointer-events: none;
+            line-height: 1;
+        }
+
+        .stick-dir-up { top: 0; left: 50%; transform: translateX(-50%); }
+        .stick-dir-down { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .stick-dir-left { left: 0; top: 50%; transform: translateY(-50%); }
+        .stick-dir-right { right: 0; top: 50%; transform: translateY(-50%); }
+
+        .stick-base {
+            position: relative;
+            width: 5.25rem;
+            height: 5.25rem;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #e8f0f8, #c5d4e3);
+            border: 2px solid rgba(42, 74, 107, 0.22);
+            box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.65), 0 2px 8px rgba(42, 74, 107, 0.15);
+        }
+
+        .stick-base::before,
+        .stick-base::after {
+            content: '';
+            position: absolute;
+            background: rgba(42, 74, 107, 0.14);
+            pointer-events: none;
+        }
+
+        .stick-base::before {
+            left: 50%;
+            top: 12%;
+            width: 2px;
+            height: 76%;
+            transform: translateX(-50%);
+        }
+
+        .stick-base::after {
+            top: 50%;
+            left: 12%;
+            height: 2px;
+            width: 76%;
+            transform: translateY(-50%);
+        }
+
+        .stick-knob {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 2.15rem;
+            height: 2.15rem;
+            margin: 0;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4a9fd4, #2a6ba8);
+            box-shadow: 0 2px 10px rgba(42, 74, 107, 0.35);
+            transform: translate(-50%, -50%);
+            touch-action: none;
+            cursor: grab;
+        }
+
+        .stick-knob:active { cursor: grabbing; }
+
+        .stick-yaw-icon {
+            position: absolute;
+            inset: 14%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .stick-yaw-icon .yaw-arc {
+            fill: none;
+            stroke: rgba(42, 74, 107, 0.38);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+        }
+
+        .stick-yaw-icon .yaw-head {
+            fill: rgba(42, 74, 107, 0.45);
+        }
+
+        .stick-base-yaw .stick-knob {
+            z-index: 1;
+        }
+
+        #pattern-card {
+            position: absolute;
+            left: 12px;
+            bottom: 12px;
+            z-index: 11;
+            pointer-events: none;
+            width: min(36vw, 132px);
+            aspect-ratio: 5 / 7;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(42, 74, 107, 0.22);
+            background: var(--game-surface);
+            padding: 4px;
+        }
+
+        #pattern-card canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 520px) {
+            #pattern-card {
+                width: min(42vw, 108px);
+                left: 8px;
+                bottom: 8px;
+            }
+            #top-bar { padding: 6px 10px 2px; }
+            #top-bar h1 { font-size: 0.9rem; }
+            #ui-overlay p { font-size: 0.65rem; max-width: 11rem; }
+            #face-readout { font-size: 0.65rem; padding: 5px 8px; right: 8px; top: 8px; }
+            #toolbar { gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
+            .toolbar-stick { flex: 0 0 4.85rem; }
+            .stick-base { width: 4.5rem; height: 4.5rem; }
+            .stick-knob { width: 2.75rem; height: 2.75rem; min-width: 44px; min-height: 44px; }
+            .stick-dir { font-size: 0.58rem; }
+            .tool-btn { padding: 12px 8px; font-size: 0.85rem; min-height: 44px; }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div id="top-bar">
+            <h1>Glyph Stack</h1>
+        </div>
+
+        <div id="scene-wrap">
+            <canvas id="game-canvas"></canvas>
+            <div id="ui-overlay">
+                <p>Drag tumble · right-drag roll · left stick moves · right stick spins (when flat)</p>
+            </div>
+            <div id="face-readout">Tile <span id="tile-num">1</span> — <span id="face-label">—</span></div>
+            <div id="pattern-card" aria-label="Pattern card reference">
+                <canvas id="pattern-card-canvas"></canvas>
+            </div>
+        </div>
+
+        <div id="toolbar">
+            <div id="move-stick" class="toolbar-stick" aria-label="Move selected tile">
+                <span class="stick-dir stick-dir-up" aria-hidden="true">▲</span>
+                <span class="stick-dir stick-dir-down" aria-hidden="true">▼</span>
+                <span class="stick-dir stick-dir-left" aria-hidden="true">◀</span>
+                <span class="stick-dir stick-dir-right" aria-hidden="true">▶</span>
+                <div class="stick-base" id="stick-base">
+                    <button type="button" class="stick-knob" id="stick-knob" aria-label="Move joystick knob"></button>
+                </div>
+            </div>
+            <button type="button" class="tool-btn" id="btn-reset">Reset</button>
+            <div id="yaw-stick" class="toolbar-stick" aria-label="Rotate selected tile when flat">
+                <div class="stick-base stick-base-yaw" id="yaw-stick-base">
+                    <svg class="stick-yaw-icon" viewBox="0 0 48 48" aria-hidden="true">
+                        <path class="yaw-arc" d="M 12 34 Q 12 16 30 12"/>
+                        <path class="yaw-head" d="M 30 12 L 38 10 L 33 20 Z"/>
+                    </svg>
+                    <button type="button" class="stick-knob" id="yaw-stick-knob" aria-label="Rotate joystick knob"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Locked tile specification — change only here to revise the canonical tile.
+         * No Math.random(); same visuals and physics on every load.
+         */
+        const TILE_SPEC = Object.freeze({
+            version: 1,
+            box: { width: 1.152, height: 2.304, depth: 1.152 },
+            initialEuler: { x: -0.38, y: 0.55, z: 0.12, order: 'XYZ' },
+            material: { roughness: 0.28, metalness: 0.04, emissive: 0x000000 },
+            sceneBackground: 0xcaced1,
+            textureSize: { cap: 512, sideW: 512, sideH: 1024 },
+            faces: [
+                { label: 'Lattice / Ring', top: 'lattice', bottom: 'ringDot' },
+                { label: 'Triangles / Zigzag', top: 'triPair', bottom: 'zigzag' },
+                { label: 'Seal cap (top)', cap: true },
+                { label: 'Seal cap (bottom)', cap: true },
+                { label: 'Burst / Bolt', top: 'burst', bottom: 'arcBolt' },
+                { label: 'Zigzag / Lattice', top: 'zigzag', bottom: 'lattice' }
+            ],
+            grain: {
+                stops: ['#c8d4e0', '#d8e2ec', '#b8c8d8'],
+                stripes: [
+                    [0.07, 2], [0.14, 3], [0.22, 1.5], [0.29, 2.5], [0.36, 2],
+                    [0.44, 3], [0.51, 1.5], [0.58, 2], [0.65, 2.5], [0.73, 2],
+                    [0.81, 3], [0.88, 1.5], [0.94, 2]
+                ],
+                curves: [-80, -58, -36, -14, 8, 30, 52, 74, 96, 118]
+            },
+            lights: {
+                ambient: { color: 0xffffff, intensity: 0.52 },
+                key: { color: 0xfff4e8, intensity: 0.88, position: [5, 9, 5] },
+                fill: { color: 0xc8e4ff, intensity: 0.42, position: [-5, 2, 3] },
+                rim: { color: 0xffffff, intensity: 0.32, position: [0, -3, -5] }
+            },
+            camera: { fov: 44, near: 0.1, far: 100, position: [0, 0.15, 8.8], lookAt: [0, 0, 0] },
+            instances: [
+                { id: 1, position: [-2.56, 0, 0], capLetter: 'A' },
+                { id: 2, position: [-1.28, 0, 0], capLetter: 'B' },
+                { id: 3, position: [0, 0, 0], capLetter: 'C' },
+                { id: 4, position: [1.28, 0, 0], capLetter: 'D' },
+                { id: 5, position: [2.56, 0, 0], capLetter: 'E' }
+            ],
+            patternCard: Object.freeze({
+                pixelWidth: 250,
+                pixelHeight: 350,
+                margin: 16,
+                maxCols: 4,
+                borderColor: '#2a3544',
+                lineWidth: 1,
+                rows: [
+                    ['ringDot', 'lattice', 'arcBolt'],
+                    ['burst', 'triPair', 'burst'],
+                    ['arcBolt', 'zigzag', 'triPairLeft', 'zigzag']
+                ]
+            }),
+            flat: Object.freeze({ minSideAlignment: 0.68 }),
+            yaw: Object.freeze({
+                stickRadiusPx: 38,
+                stickDeadzone: 0.1,
+                holdSpeed: 0.055
+            }),
+            selection: Object.freeze({
+                edgeColor: 0x00e8ff,
+                glowColor: 0x0099ff,
+                glowScale: 1.04,
+                glowOpacity: 0.42,
+                edgeOpacity: 1
+            }),
+            move: Object.freeze({
+                panGain: 0.012,
+                holdSpeed: 0.05,
+                stickRadiusPx: 38,
+                stickDeadzone: 0.1,
+                minX: -5,
+                maxX: 5,
+                minY: -2.5,
+                maxY: 2.5
+            }),
+            physics: Object.freeze({
+                friction: 0.96,
+                snapSpeed: 0.12,
+                snapDoneAngle: 0.02,
+                orbitGain: 0.006,
+                rollGain: 0.008,
+                panGain: 0.012,
+                snapTiltEuler: { x: -0.32, y: 0.38, z: 0, order: 'YXZ' }
+            })
+        });
+
+        const SIDE_FACE_INDICES = [0, 1, 4, 5];
+
+        const Glyphs = {
+            lattice: (ctx, s) => {
+                ctx.fillStyle = '#c44d7a';
+                const g = s * 0.14, o = s * 0.22;
+                for (let row = -1; row <= 1; row++) {
+                    for (let col = -1; col <= 1; col++) {
+                        ctx.beginPath();
+                        ctx.arc(col * o, row * o, g, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            },
+            ringDot: (ctx, s) => {
+                ctx.strokeStyle = '#1d6b8a';
+                ctx.lineWidth = s * 0.1;
+                ctx.beginPath();
+                ctx.arc(0, 0, s * 0.38, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = '#1d6b8a';
+                ctx.beginPath();
+                ctx.arc(0, 0, s * 0.12, 0, Math.PI * 2);
+                ctx.fill();
+            },
+            triPair: (ctx, s) => {
+                ctx.fillStyle = '#d4a017';
+                const tri = (y) => {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y - s * 0.22);
+                    ctx.lineTo(-s * 0.24, y + s * 0.14);
+                    ctx.lineTo(s * 0.24, y + s * 0.14);
+                    ctx.closePath();
+                    ctx.fill();
+                };
+                tri(-s * 0.2);
+                tri(s * 0.2);
+            },
+            zigzag: (ctx, s) => {
+                ctx.strokeStyle = '#2d8a5e';
+                ctx.lineWidth = s * 0.12;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-s * 0.42, -s * 0.12);
+                ctx.lineTo(-s * 0.14, s * 0.12);
+                ctx.lineTo(s * 0.14, -s * 0.12);
+                ctx.lineTo(s * 0.42, s * 0.12);
+                ctx.stroke();
+            },
+            triPairLeft: (ctx, s) => {
+                ctx.fillStyle = '#d4a017';
+                const tri = (x) => {
+                    ctx.beginPath();
+                    ctx.moveTo(x - s * 0.22, 0);
+                    ctx.lineTo(x + s * 0.14, -s * 0.24);
+                    ctx.lineTo(x + s * 0.14, s * 0.24);
+                    ctx.closePath();
+                    ctx.fill();
+                };
+                tri(-s * 0.2);
+                tri(s * 0.2);
+            },
+            zigzagVert: (ctx, s) => {
+                ctx.save();
+                ctx.rotate(-Math.PI / 2);
+                Glyphs.zigzag(ctx, s);
+                ctx.restore();
+            },
+            burst: (ctx, s) => {
+                ctx.fillStyle = '#6b4c9a';
+                for (let i = 0; i < 8; i++) {
+                    const a = (i / 8) * Math.PI * 2;
+                    ctx.save();
+                    ctx.rotate(a);
+                    ctx.beginPath();
+                    ctx.moveTo(0, s * 0.08);
+                    ctx.lineTo(s * 0.1, s * 0.42);
+                    ctx.lineTo(-s * 0.1, s * 0.42);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+            },
+            arcBolt: (ctx, s) => {
+                ctx.fillStyle = '#3d3d56';
+                ctx.beginPath();
+                ctx.moveTo(-s * 0.08, -s * 0.42);
+                ctx.lineTo(s * 0.22, -s * 0.05);
+                ctx.lineTo(s * 0.02, -s * 0.05);
+                ctx.lineTo(s * 0.18, s * 0.42);
+                ctx.lineTo(-s * 0.2, s * 0.05);
+                ctx.lineTo(0, s * 0.05);
+                ctx.closePath();
+                ctx.fill();
+            }
+        };
+
+        const textureCache = Object.create(null);
+
+        function drawCardGlyph(ctx, name, cx, cy, size) {
+            const fn = Glyphs[name];
+            if (!fn) return;
+            ctx.save();
+            ctx.translate(cx, cy);
+            fn(ctx, size);
+            ctx.restore();
+        }
+
+        function snapLine(v) {
+            return Math.round(v) + 0.5;
+        }
+
+        function drawCardCellContent(ctx, x, y, size, glyphName) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x, y, size, size);
+            ctx.clip();
+            paintDeterministicGrain(ctx, size, size);
+            drawCardGlyph(ctx, glyphName, x + size / 2, y + size / 2, size * 0.5);
+            ctx.restore();
+        }
+
+        function strokePatternGrid(ctx, originX, originY, cellSize, rowLayouts) {
+            const spec = TILE_SPEC.patternCard;
+            const edges = new Set();
+
+            const addEdge = (x1, y1, x2, y2) => {
+                const key = x1 === x2
+                    ? 'v,' + x1 + ',' + Math.min(y1, y2) + ',' + Math.max(y1, y2)
+                    : 'h,' + y1 + ',' + Math.min(x1, x2) + ',' + Math.max(x1, x2);
+                edges.add(key);
+            };
+
+            rowLayouts.forEach((cols, row) => {
+                const y = originY + row * cellSize;
+                const y2 = y + cellSize;
+                for (let col = 0; col < cols; col++) {
+                    const x = originX + col * cellSize;
+                    const x2 = x + cellSize;
+                    addEdge(x, y, x2, y);
+                    addEdge(x, y2, x2, y2);
+                    addEdge(x, y, x, y2);
+                    addEdge(x2, y, x2, y2);
+                }
+            });
+
+            ctx.beginPath();
+            edges.forEach((key) => {
+                const parts = key.split(',');
+                if (parts[0] === 'h') {
+                    const y = snapLine(Number(parts[1]));
+                    const x1 = snapLine(Number(parts[2]));
+                    const x2 = snapLine(Number(parts[3]));
+                    ctx.moveTo(x1, y);
+                    ctx.lineTo(x2, y);
+                } else {
+                    const x = snapLine(Number(parts[1]));
+                    const y1 = snapLine(Number(parts[2]));
+                    const y2 = snapLine(Number(parts[3]));
+                    ctx.moveTo(x, y1);
+                    ctx.lineTo(x, y2);
+                }
+            });
+            ctx.strokeStyle = spec.borderColor;
+            ctx.lineWidth = spec.lineWidth;
+            ctx.stroke();
+        }
+
+        function drawPatternCard() {
+            const spec = TILE_SPEC.patternCard;
+            patternCardCanvas.width = spec.pixelWidth;
+            patternCardCanvas.height = spec.pixelHeight;
+            const ctx = patternCardCanvas.getContext('2d');
+            ctx.fillStyle = '#caced1';
+            ctx.fillRect(0, 0, spec.pixelWidth, spec.pixelHeight);
+
+            const rowLayouts = spec.rows.map((row) => row.length);
+            const numRows = spec.rows.length;
+            const innerW = spec.pixelWidth - spec.margin * 2;
+            const innerH = spec.pixelHeight - spec.margin * 2;
+            const cellSize = Math.floor(Math.min(innerW / spec.maxCols, innerH / numRows));
+            const gridW = cellSize * spec.maxCols;
+            const gridH = cellSize * numRows;
+            const originX = spec.margin + Math.floor((innerW - gridW) / 2);
+            const originY = spec.margin + Math.floor((innerH - gridH) / 2);
+
+            spec.rows.forEach((glyphs, row) => {
+                glyphs.forEach((glyph, col) => {
+                    const x = originX + col * cellSize;
+                    const y = originY + row * cellSize;
+                    drawCardCellContent(ctx, x, y, cellSize, glyph);
+                });
+            });
+
+            strokePatternGrid(ctx, originX, originY, cellSize, rowLayouts);
+        }
+
+        function configureTexture(tex) {
+            tex.generateMipmaps = false;
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        function paintDeterministicGrain(ctx, width, height) {
+            const g = TILE_SPEC.grain;
+            const grad = ctx.createLinearGradient(0, 0, width, 0);
+            grad.addColorStop(0, g.stops[0]);
+            grad.addColorStop(0.5, g.stops[1]);
+            grad.addColorStop(1, g.stops[2]);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = 'rgba(60, 90, 120, 0.08)';
+            g.stripes.forEach(([xf, w]) => {
+                ctx.fillRect(xf * width, 0, w, height);
+            });
+
+            ctx.strokeStyle = 'rgba(50, 80, 110, 0.06)';
+            ctx.lineWidth = 2;
+            g.curves.forEach((j) => {
+                ctx.beginPath();
+                ctx.moveTo(j, 0);
+                ctx.quadraticCurveTo(j + 40, height * 0.35, j - 12, height * 0.65);
+                ctx.stroke();
+            });
+
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.lineWidth = 14;
+            ctx.strokeRect(0, 0, width, height);
+        }
+
+        function getCapTexture(letter) {
+            const key = 'cap:' + letter;
+            if (textureCache[key]) return textureCache[key];
+            const size = TILE_SPEC.textureSize.cap;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const c = size / 2;
+
+            ctx.fillStyle = '#f6f9fc';
+            ctx.fillRect(0, 0, size, size);
+            ctx.strokeStyle = 'rgba(42, 74, 107, 0.12)';
+            ctx.lineWidth = 18;
+            ctx.strokeRect(0, 0, size, size);
+
+            ctx.font = '900 ' + (size * 0.48) + 'px Segoe UI, Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#c5d4e3';
+            ctx.fillText(letter, c + 3, c + 5);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(letter, c - 2, c - 2);
+            ctx.fillStyle = '#2a4a6b';
+            ctx.fillText(letter, c, c);
+
+            textureCache[key] = configureTexture(new THREE.CanvasTexture(canvas));
+            return textureCache[key];
+        }
+
+        function getSideTexture(key, symTop, symBottom) {
+            if (textureCache[key]) return textureCache[key];
+            const width = TILE_SPEC.textureSize.sideW;
+            const height = TILE_SPEC.textureSize.sideH;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            paintDeterministicGrain(ctx, width, height);
+
+            ctx.fillStyle = 'rgba(42, 74, 107, 0.18)';
+            ctx.fillRect(0, height / 2 - 4, width, 8);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillRect(0, height / 2 + 2, width, 4);
+
+            ctx.save();
+            ctx.translate(width / 2, height * 0.25);
+            symTop(ctx, width * 0.5);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(width / 2, height * 0.75);
+            symBottom(ctx, width * 0.5);
+            ctx.restore();
+
+            textureCache[key] = configureTexture(new THREE.CanvasTexture(canvas));
+            return textureCache[key];
+        }
+
+        const materialsCache = Object.create(null);
+
+        function buildCanonicalMaterials(capLetter) {
+            if (materialsCache[capLetter]) return materialsCache[capLetter];
+
+            const mat = TILE_SPEC.material;
+            const cap = getCapTexture(capLetter);
+            const sidePairs = [
+                ['side0', Glyphs.lattice, Glyphs.ringDot],
+                ['side1', Glyphs.triPair, Glyphs.zigzag],
+                ['side4', Glyphs.burst, Glyphs.arcBolt],
+                ['side5', Glyphs.zigzag, Glyphs.lattice]
+            ];
+            const mk = (map) => new THREE.MeshStandardMaterial({
+                map,
+                roughness: mat.roughness,
+                metalness: mat.metalness,
+                emissive: mat.emissive
+            });
+
+            materialsCache[capLetter] = [
+                mk(getSideTexture(...sidePairs[0])),
+                mk(getSideTexture(...sidePairs[1])),
+                mk(cap),
+                mk(cap),
+                mk(getSideTexture(...sidePairs[2])),
+                mk(getSideTexture(...sidePairs[3]))
+            ];
+            return materialsCache[capLetter];
+        }
+
+        const FACE_LABELS = TILE_SPEC.faces.map(f => f.label);
+        const FACE_VECTORS = [
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0),
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(0, 0, -1)
+        ];
+        const CAMERA_FACING = new THREE.Vector3(0, 0, 1);
+        const INITIAL_QUATERNION = new THREE.Quaternion().setFromEuler(
+            new THREE.Euler(
+                TILE_SPEC.initialEuler.x,
+                TILE_SPEC.initialEuler.y,
+                TILE_SPEC.initialEuler.z,
+                TILE_SPEC.initialEuler.order
+            )
+        );
+        const SNAP_TILT_QUAT = new THREE.Quaternion().setFromEuler(
+            new THREE.Euler(
+                TILE_SPEC.physics.snapTiltEuler.x,
+                TILE_SPEC.physics.snapTiltEuler.y,
+                TILE_SPEC.physics.snapTiltEuler.z,
+                TILE_SPEC.physics.snapTiltEuler.order
+            )
+        );
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(TILE_SPEC.sceneBackground);
+
+        const sceneWrap = document.getElementById('scene-wrap');
+        const gameCanvas = document.getElementById('game-canvas');
+        const patternCardCanvas = document.getElementById('pattern-card-canvas');
+
+        const _proj = new THREE.Vector3();
+        const _yawAxis = new THREE.Vector3();
+        const _yawDelta = new THREE.Quaternion();
+        const camSpec = TILE_SPEC.camera;
+        const camera = new THREE.PerspectiveCamera(camSpec.fov, 1, camSpec.near, camSpec.far);
+        const renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true, alpha: false });
+        renderer.setPixelRatio(getMaxPixelRatio());
+
+        const lights = TILE_SPEC.lights;
+        scene.add(new THREE.AmbientLight(lights.ambient.color, lights.ambient.intensity));
+        const keyLight = new THREE.DirectionalLight(lights.key.color, lights.key.intensity);
+        keyLight.position.set(...lights.key.position);
+        scene.add(keyLight);
+        const fillLight = new THREE.DirectionalLight(lights.fill.color, lights.fill.intensity);
+        fillLight.position.set(...lights.fill.position);
+        scene.add(fillLight);
+        const rimLight = new THREE.DirectionalLight(lights.rim.color, lights.rim.intensity);
+        rimLight.position.set(...lights.rim.position);
+        scene.add(rimLight);
+
+        const box = TILE_SPEC.box;
+        const tileGeometry = new THREE.BoxGeometry(box.width, box.height, box.depth);
+        const tileEdgesGeometry = new THREE.EdgesGeometry(tileGeometry);
+        const selSpec = TILE_SPEC.selection;
+        const selectionEdgeMaterial = new THREE.LineBasicMaterial({
+            color: selSpec.edgeColor,
+            transparent: true,
+            opacity: selSpec.edgeOpacity
+        });
+        const selectionGlowMaterial = new THREE.LineBasicMaterial({
+            color: selSpec.glowColor,
+            transparent: true,
+            opacity: selSpec.glowOpacity
+        });
+        let selectionOutline = null;
+
+        function getMaxPixelRatio() {
+            const dpr = window.devicePixelRatio || 1;
+            return window.innerWidth < 768 ? Math.min(dpr, 1.5) : Math.min(dpr, 2);
+        }
+
+        function createBlockState(instance) {
+            const mesh = new THREE.Mesh(tileGeometry, buildCanonicalMaterials(instance.capLetter));
+            mesh.position.set(instance.position[0], instance.position[1], instance.position[2]);
+            mesh.quaternion.copy(INITIAL_QUATERNION);
+            scene.add(mesh);
+            return {
+                id: instance.id,
+                capLetter: instance.capLetter,
+                mesh,
+                spinX: 0,
+                spinY: 0,
+                spinZ: 0,
+                isDragging: false,
+                dragMode: 'none',
+                isSnapping: false,
+                targetQuaternion: new THREE.Quaternion()
+            };
+        }
+
+        const blocks = TILE_SPEC.instances.map(createBlockState);
+        let selected = blocks[0];
+
+        const faceLabelEl = document.getElementById('face-label');
+        const tileNumEl = document.getElementById('tile-num');
+        const moveStickEl = document.getElementById('move-stick');
+        const stickBaseEl = document.getElementById('stick-base');
+        const stickKnobEl = document.getElementById('stick-knob');
+        const yawStickEl = document.getElementById('yaw-stick');
+        const yawStickBaseEl = document.getElementById('yaw-stick-base');
+        const yawStickKnobEl = document.getElementById('yaw-stick-knob');
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let previousMousePosition = { x: 0, y: 0 };
+        let activePointerId = null;
+        let stickVector = { x: 0, y: 0 };
+        let stickDragPointerId = null;
+        let yawStickVector = 0;
+        let yawStickDragPointerId = null;
+
+        function getSpawnPosition(block) {
+            return TILE_SPEC.instances[block.id - 1].position;
+        }
+
+        function clampMoveX(x) {
+            const m = TILE_SPEC.move;
+            return Math.max(m.minX, Math.min(m.maxX, x));
+        }
+
+        function clampMoveY(y) {
+            const m = TILE_SPEC.move;
+            return Math.max(m.minY, Math.min(m.maxY, y));
+        }
+
+        function applyPanToBlock(block, deltaX, deltaY, gain) {
+            block.mesh.position.x = clampMoveX(block.mesh.position.x + deltaX * gain);
+            block.mesh.position.y = clampMoveY(block.mesh.position.y - deltaY * gain);
+        }
+
+        function detachSelectionOutline() {
+            if (!selectionOutline) return;
+            selectionOutline.parent.remove(selectionOutline);
+            selectionOutline = null;
+        }
+
+        function attachSelectionOutline(mesh) {
+            detachSelectionOutline();
+            const glow = new THREE.LineSegments(tileEdgesGeometry, selectionGlowMaterial);
+            const edge = new THREE.LineSegments(tileEdgesGeometry, selectionEdgeMaterial);
+            glow.scale.setScalar(selSpec.glowScale);
+            glow.renderOrder = 998;
+            edge.renderOrder = 999;
+            selectionOutline = new THREE.Group();
+            selectionOutline.add(glow);
+            selectionOutline.add(edge);
+            mesh.add(selectionOutline);
+        }
+
+        function clearMaterialEmissive() {
+            blocks.forEach(b => {
+                b.mesh.traverse(obj => {
+                    if (!obj.isMesh || !obj.material) return;
+                    const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                    mats.forEach(m => {
+                        if (!m.emissive) return;
+                        m.emissive.setHex(0x000000);
+                        m.emissiveIntensity = 0;
+                    });
+                });
+            });
+        }
+
+        function applyInitialPose(block) {
+            block.mesh.position.set(...getSpawnPosition(block));
+            block.mesh.quaternion.copy(INITIAL_QUATERNION);
+            block.spinX = 0;
+            block.spinY = 0;
+            block.spinZ = 0;
+            block.isDragging = false;
+            block.isSnapping = false;
+            block.dragMode = 'none';
+        }
+
+        function applyAllInitialPoses() {
+            blocks.forEach(applyInitialPose);
+        }
+
+        function canUseYawStick() {
+            return selected && isTileMostlyFlat(selected);
+        }
+
+        function updateToolbarSticks() {
+            moveStickEl.classList.toggle('is-disabled', !selected);
+            const yawOk = canUseYawStick();
+            yawStickEl.classList.toggle('is-disabled', !yawOk);
+            if (!yawOk) resetYawStick();
+        }
+
+        function setSelected(block) {
+            selected = block;
+            detachSelectionOutline();
+            if (block) attachSelectionOutline(block.mesh);
+            updateToolbarSticks();
+            updateFaceReadout();
+            drawPatternCard();
+        }
+
+        function isTileMostlyFlat(block) {
+            const faceIdx = getDominantFaceIndex(block);
+            if (!SIDE_FACE_INDICES.includes(faceIdx)) return false;
+            _yawAxis.copy(FACE_VECTORS[faceIdx]).applyQuaternion(block.mesh.quaternion);
+            return _yawAxis.dot(CAMERA_FACING) >= TILE_SPEC.flat.minSideAlignment;
+        }
+
+        function applyYawDelta(block, deltaRad) {
+            const faceIdx = getDominantFaceIndex(block);
+            _yawAxis.copy(FACE_VECTORS[faceIdx]).applyQuaternion(block.mesh.quaternion);
+            _yawDelta.setFromAxisAngle(_yawAxis, deltaRad);
+            block.mesh.quaternion.premultiply(_yawDelta);
+            block.spinX = 0;
+            block.spinY = 0;
+            block.spinZ = 0;
+            block.isSnapping = false;
+        }
+
+        function getDominantFaceIndex(block) {
+            let best = 0;
+            let bestDot = -Infinity;
+            FACE_VECTORS.forEach((localNormal, index) => {
+                const worldNormal = localNormal.clone().applyQuaternion(block.mesh.quaternion);
+                const alignment = worldNormal.dot(CAMERA_FACING);
+                if (alignment > bestDot) {
+                    bestDot = alignment;
+                    best = index;
+                }
+            });
+            return best;
+        }
+
+        function updateFaceReadout() {
+            if (!selected) {
+                tileNumEl.textContent = '—';
+                faceLabelEl.textContent = '—';
+                return;
+            }
+            tileNumEl.textContent = String(selected.id);
+            const faceIdx = getDominantFaceIndex(selected);
+            let label = FACE_LABELS[faceIdx];
+            if (faceIdx === 2 || faceIdx === 3) {
+                label = 'Seal cap ' + selected.capLetter + (faceIdx === 2 ? ' (top)' : ' (bottom)');
+            }
+            faceLabelEl.textContent = label;
+        }
+
+        function calculateAngledSnapTarget(block) {
+            const idx = getDominantFaceIndex(block);
+            const baseTarget = new THREE.Quaternion().setFromUnitVectors(
+                FACE_VECTORS[idx],
+                CAMERA_FACING
+            );
+            block.targetQuaternion.copy(baseTarget).multiply(SNAP_TILT_QUAT);
+            block.isSnapping = true;
+            block.spinX = 0;
+            block.spinY = 0;
+            block.spinZ = 0;
+        }
+
+        function setPointerFromEvent(clientX, clientY) {
+            const rect = gameCanvas.getBoundingClientRect();
+            mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+        }
+
+        function pickBlock(clientX, clientY) {
+            setPointerFromEvent(clientX, clientY);
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(blocks.map(b => b.mesh), true);
+            if (!hits.length) return null;
+            let obj = hits[0].object;
+            while (obj) {
+                const found = blocks.find(b => b.mesh === obj);
+                if (found) return found;
+                obj = obj.parent;
+            }
+            return null;
+        }
+
+        function resolveDragMode(e) {
+            if (e.button === 2) return 'roll';
+            if (e.button === 1 || e.shiftKey) return 'pan';
+            return 'orbit';
+        }
+
+        function beginDrag(clientX, clientY, dragMode) {
+            const block = pickBlock(clientX, clientY);
+            if (!block) {
+                setSelected(null);
+                return false;
+            }
+            setSelected(block);
+            resetStick();
+            resetYawStick();
+            block.isDragging = true;
+            block.isSnapping = false;
+            block.dragMode = dragMode;
+            block.spinX = 0;
+            block.spinY = 0;
+            block.spinZ = 0;
+            previousMousePosition = { x: clientX, y: clientY };
+            return true;
+        }
+
+        function moveDrag(clientX, clientY) {
+            if (!selected || !selected.isDragging) return;
+
+            const deltaX = clientX - previousMousePosition.x;
+            const deltaY = clientY - previousMousePosition.y;
+            const p = TILE_SPEC.physics;
+
+            if (selected.dragMode === 'orbit') {
+                selected.spinX = deltaY * p.orbitGain;
+                selected.spinY = deltaX * p.orbitGain;
+                selected.mesh.rotation.x += selected.spinX;
+                selected.mesh.rotation.y += selected.spinY;
+            } else if (selected.dragMode === 'roll') {
+                selected.spinZ = -deltaX * p.rollGain;
+                selected.mesh.rotation.z += selected.spinZ;
+            } else if (selected.dragMode === 'pan') {
+                applyPanToBlock(selected, deltaX, deltaY, p.panGain);
+            }
+
+            previousMousePosition = { x: clientX, y: clientY };
+            updateFaceReadout();
+        }
+
+        function endDrag() {
+            if (selected) {
+                selected.isDragging = false;
+                selected.dragMode = 'none';
+            }
+            activePointerId = null;
+        }
+
+        function stepBlockPhysics(block, p) {
+            if (block.isDragging || (yawStickVector !== 0 && block === selected)) return;
+
+            if (block.isSnapping) {
+                block.mesh.quaternion.slerp(block.targetQuaternion, p.snapSpeed);
+                if (block.mesh.quaternion.angleTo(block.targetQuaternion) < p.snapDoneAngle) {
+                    block.mesh.quaternion.copy(block.targetQuaternion);
+                    block.isSnapping = false;
+                }
+            } else {
+                block.spinX *= p.friction;
+                block.spinY *= p.friction;
+                block.spinZ *= p.friction;
+                block.mesh.rotation.x += block.spinX;
+                block.mesh.rotation.y += block.spinY;
+                block.mesh.rotation.z += block.spinZ;
+            }
+        }
+
+        gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        gameCanvas.addEventListener('pointerdown', (e) => {
+            if (activePointerId !== null || stickDragPointerId !== null || yawStickDragPointerId !== null) return;
+            e.preventDefault();
+            const mode = resolveDragMode(e);
+            if (beginDrag(e.clientX, e.clientY, mode)) {
+                activePointerId = e.pointerId;
+                gameCanvas.setPointerCapture(e.pointerId);
+            }
+        });
+
+        gameCanvas.addEventListener('auxclick', (e) => {
+            if (e.button !== 1) return;
+            e.preventDefault();
+        });
+
+        gameCanvas.addEventListener('pointermove', (e) => {
+            if (e.pointerId !== activePointerId) return;
+            moveDrag(e.clientX, e.clientY);
+        });
+
+        gameCanvas.addEventListener('pointerup', (e) => {
+            if (e.pointerId !== activePointerId) return;
+            gameCanvas.releasePointerCapture(e.pointerId);
+            endDrag();
+        });
+
+        gameCanvas.addEventListener('pointercancel', endDrag);
+
+        function resetStick() {
+            stickVector.x = 0;
+            stickVector.y = 0;
+            stickKnobEl.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function resetYawStick() {
+            yawStickVector = 0;
+            yawStickKnobEl.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function setStickFromPointer(clientX, clientY, baseEl, knobEl, spec, vector) {
+            const rect = baseEl.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const maxR = spec.stickRadiusPx;
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxR) {
+                dx = (dx / dist) * maxR;
+                dy = (dy / dist) * maxR;
+            }
+            const nx = dx / maxR;
+            const ny = -dy / maxR;
+            const dz = spec.stickDeadzone;
+            vector.x = Math.abs(nx) < dz ? 0 : nx;
+            vector.y = Math.abs(ny) < dz ? 0 : ny;
+            knobEl.style.transform =
+                'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
+        }
+
+        function setYawStickFromPointer(clientX, clientY) {
+            const rect = yawStickBaseEl.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const maxR = TILE_SPEC.yaw.stickRadiusPx;
+            let dx = clientX - cx;
+            if (Math.abs(dx) > maxR) dx = Math.sign(dx) * maxR;
+            const nx = dx / maxR;
+            const dz = TILE_SPEC.yaw.stickDeadzone;
+            yawStickVector = Math.abs(nx) < dz ? 0 : nx;
+            yawStickKnobEl.style.transform =
+                'translate(calc(-50% + ' + dx + 'px), -50%)';
+        }
+
+        function initToolbarStick(opts) {
+            const { baseEl, knobEl, canUse, onPointer, getPointerId, setPointerId, onRelease } = opts;
+
+            const endStick = () => {
+                setPointerId(null);
+                onRelease();
+            };
+
+            knobEl.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!canUse()) return;
+                setPointerId(e.pointerId);
+                knobEl.setPointerCapture(e.pointerId);
+                onPointer(e.clientX, e.clientY);
+            });
+
+            knobEl.addEventListener('pointermove', (e) => {
+                if (getPointerId() !== e.pointerId) return;
+                e.preventDefault();
+                onPointer(e.clientX, e.clientY);
+            });
+
+            knobEl.addEventListener('pointerup', (e) => {
+                if (getPointerId() !== e.pointerId) return;
+                if (knobEl.hasPointerCapture(e.pointerId)) knobEl.releasePointerCapture(e.pointerId);
+                endStick();
+            });
+
+            knobEl.addEventListener('pointercancel', endStick);
+            knobEl.addEventListener('lostpointercapture', endStick);
+
+            baseEl.addEventListener('pointerdown', (e) => {
+                if (knobEl.contains(e.target)) return;
+                e.preventDefault();
+                if (!canUse()) return;
+                setPointerId(e.pointerId);
+                baseEl.setPointerCapture(e.pointerId);
+                onPointer(e.clientX, e.clientY);
+            });
+
+            baseEl.addEventListener('pointermove', (e) => {
+                if (getPointerId() !== e.pointerId) return;
+                e.preventDefault();
+                onPointer(e.clientX, e.clientY);
+            });
+
+            baseEl.addEventListener('pointerup', (e) => {
+                if (getPointerId() !== e.pointerId) return;
+                if (baseEl.hasPointerCapture(e.pointerId)) baseEl.releasePointerCapture(e.pointerId);
+                endStick();
+            });
+
+            baseEl.addEventListener('pointercancel', endStick);
+            baseEl.addEventListener('lostpointercapture', endStick);
+        }
+
+        initToolbarStick({
+            baseEl: stickBaseEl,
+            knobEl: stickKnobEl,
+            canUse: () => !!selected,
+            onPointer: (x, y) => setStickFromPointer(x, y, stickBaseEl, stickKnobEl, TILE_SPEC.move, stickVector),
+            getPointerId: () => stickDragPointerId,
+            setPointerId: (id) => { stickDragPointerId = id; },
+            onRelease: resetStick
+        });
+
+        initToolbarStick({
+            baseEl: yawStickBaseEl,
+            knobEl: yawStickKnobEl,
+            canUse: canUseYawStick,
+            onPointer: setYawStickFromPointer,
+            getPointerId: () => yawStickDragPointerId,
+            setPointerId: (id) => { yawStickDragPointerId = id; },
+            onRelease: () => {
+                resetYawStick();
+                updateToolbarSticks();
+            }
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            resetStick();
+            resetYawStick();
+            applyAllInitialPoses();
+            setSelected(blocks[0]);
+        });
+
+        function updateCamera() {
+            const w = sceneWrap.clientWidth;
+            const h = sceneWrap.clientHeight;
+            if (w < 1 || h < 1) return;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setPixelRatio(getMaxPixelRatio());
+            renderer.setSize(w, h, false);
+            camera.position.set(...camSpec.position);
+            camera.lookAt(...camSpec.lookAt);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const p = TILE_SPEC.physics;
+
+            blocks.forEach(block => stepBlockPhysics(block, p));
+
+            if (selected && !selected.isDragging) {
+                const m = TILE_SPEC.move;
+                if (stickVector.x !== 0 || stickVector.y !== 0) {
+                    selected.mesh.position.x = clampMoveX(
+                        selected.mesh.position.x + stickVector.x * m.holdSpeed
+                    );
+                    selected.mesh.position.y = clampMoveY(
+                        selected.mesh.position.y + stickVector.y * m.holdSpeed
+                    );
+                }
+                if (yawStickVector !== 0 && canUseYawStick()) {
+                    selected.isSnapping = false;
+                    selected.spinX = 0;
+                    selected.spinY = 0;
+                    selected.spinZ = 0;
+                    applyYawDelta(selected, -yawStickVector * TILE_SPEC.yaw.holdSpeed);
+                }
+                updateFaceReadout();
+                updateToolbarSticks();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        clearMaterialEmissive();
+        applyAllInitialPoses();
+        setSelected(blocks[0]);
+        window.addEventListener('resize', updateCamera);
+        if (window.ResizeObserver) {
+            new ResizeObserver(updateCamera).observe(sceneWrap);
+        }
+        requestAnimationFrame(() => {
+            updateCamera();
+            updateFaceReadout();
+            drawPatternCard();
+        });
+        animate();
+    </script>
+</body>
+</html>
