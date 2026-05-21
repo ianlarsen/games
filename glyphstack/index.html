@@ -1,1286 +1,1207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Glyph Stack — Pattern Block</title>
-    <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        :root {
-            --game-surface: #caced1;
-        }
-
-        html, body {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-            background: var(--game-surface);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            color: #1a2433;
-        }
-
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100dvh;
-            max-height: 100dvh;
-        }
-
-        #top-bar {
-            flex: 0 0 auto;
-            padding: 8px 14px 4px;
-        }
-
-        #top-bar h1 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 700;
-            color: #2a4a6b;
-        }
-
-        #scene-wrap {
-            flex: 1 1 auto;
-            position: relative;
-            min-height: 0;
-            background: var(--game-surface);
-        }
-
-        #game-canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            touch-action: none;
-        }
-
-        #ui-overlay {
-            position: absolute;
-            top: 10px;
-            left: 12px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        #ui-overlay p {
-            margin: 0;
-            color: #6a7f94;
-            font-size: 0.72rem;
-            line-height: 1.4;
-            max-width: 14rem;
-        }
-
-        #face-readout {
-            position: absolute;
-            right: 12px;
-            top: 10px;
-            pointer-events: none;
-            padding: 6px 10px;
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 8px;
-            font-size: 0.72rem;
-            color: #2a4a6b;
-            border: 1px solid rgba(42, 74, 107, 0.12);
-        }
-
-        #toolbar {
-            flex: 0 0 auto;
-            display: flex;
-            gap: 8px;
-            padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
-            background: #f8fafc;
-            border-top: 1px solid #c5d4e3;
-        }
-
-        .tool-btn {
-            flex: 1;
-            padding: 14px 10px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            color: #fff;
-            background: linear-gradient(135deg, #3d7ea6, #2a4a6b);
-            box-shadow: 0 2px 10px rgba(42, 74, 107, 0.28);
-        }
-
-        .tool-btn.secondary {
-            background: linear-gradient(135deg, #6a8aa8, #4a6a88);
-        }
-
-        .tool-btn:active { transform: scale(0.98); }
-
-        .toolbar-stick {
-            flex: 0 0 5.75rem;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: none;
-        }
-
-        .toolbar-stick.is-disabled {
-            opacity: 0.45;
-            pointer-events: none;
-        }
-
-        .stick-dir {
-            position: absolute;
-            font-size: 0.62rem;
-            font-weight: 800;
-            color: rgba(42, 74, 107, 0.55);
-            pointer-events: none;
-            line-height: 1;
-        }
-
-        .stick-dir-up { top: 0; left: 50%; transform: translateX(-50%); }
-        .stick-dir-down { bottom: 0; left: 50%; transform: translateX(-50%); }
-        .stick-dir-left { left: 0; top: 50%; transform: translateY(-50%); }
-        .stick-dir-right { right: 0; top: 50%; transform: translateY(-50%); }
-
-        .stick-base {
-            position: relative;
-            width: 5.25rem;
-            height: 5.25rem;
-            border-radius: 50%;
-            background: linear-gradient(145deg, #e8f0f8, #c5d4e3);
-            border: 2px solid rgba(42, 74, 107, 0.22);
-            box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.65), 0 2px 8px rgba(42, 74, 107, 0.15);
-        }
-
-        .stick-base::before,
-        .stick-base::after {
-            content: '';
-            position: absolute;
-            background: rgba(42, 74, 107, 0.14);
-            pointer-events: none;
-        }
-
-        .stick-base::before {
-            left: 50%;
-            top: 12%;
-            width: 2px;
-            height: 76%;
-            transform: translateX(-50%);
-        }
-
-        .stick-base::after {
-            top: 50%;
-            left: 12%;
-            height: 2px;
-            width: 76%;
-            transform: translateY(-50%);
-        }
-
-        .stick-knob {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 2.15rem;
-            height: 2.15rem;
-            margin: 0;
-            padding: 0;
-            border: none;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #4a9fd4, #2a6ba8);
-            box-shadow: 0 2px 10px rgba(42, 74, 107, 0.35);
-            transform: translate(-50%, -50%);
-            touch-action: none;
-            cursor: grab;
-        }
-
-        .stick-knob:active { cursor: grabbing; }
-
-        .stick-yaw-icon {
-            position: absolute;
-            inset: 14%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .stick-yaw-icon .yaw-arc {
-            fill: none;
-            stroke: rgba(42, 74, 107, 0.38);
-            stroke-width: 3.5;
-            stroke-linecap: round;
-        }
-
-        .stick-yaw-icon .yaw-head {
-            fill: rgba(42, 74, 107, 0.45);
-        }
-
-        .stick-base-yaw .stick-knob {
-            z-index: 1;
-        }
-
-        #pattern-card {
-            position: absolute;
-            left: 12px;
-            bottom: 12px;
-            z-index: 11;
-            pointer-events: none;
-            width: min(36vw, 132px);
-            aspect-ratio: 5 / 7;
-            border-radius: 10px;
-            box-shadow: 0 4px 18px rgba(42, 74, 107, 0.22);
-            background: var(--game-surface);
-            padding: 4px;
-        }
-
-        #pattern-card canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 6px;
-        }
-
-        @media (max-width: 520px) {
-            #pattern-card {
-                width: min(42vw, 108px);
-                left: 8px;
-                bottom: 8px;
-            }
-            #top-bar { padding: 6px 10px 2px; }
-            #top-bar h1 { font-size: 0.9rem; }
-            #ui-overlay p { font-size: 0.65rem; max-width: 11rem; }
-            #face-readout { font-size: 0.65rem; padding: 5px 8px; right: 8px; top: 8px; }
-            #toolbar { gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
-            .toolbar-stick { flex: 0 0 4.85rem; }
-            .stick-base { width: 4.5rem; height: 4.5rem; }
-            .stick-knob { width: 2.75rem; height: 2.75rem; min-width: 44px; min-height: 44px; }
-            .stick-dir { font-size: 0.58rem; }
-            .tool-btn { padding: 12px 8px; font-size: 0.85rem; min-height: 44px; }
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Glyph Stack — Mobile Random Card</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --surface: #c6cdd3;
+      --ink: #1c2935;
+      --muted: rgba(39, 70, 98, 0.72);
+      --panel: rgba(248, 251, 253, 0.92);
+      --line: rgba(36, 66, 92, 0.16);
+    }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      overscroll-behavior: none;
+    }
+    #app {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      background:
+        radial-gradient(circle at 30% 14%, rgba(255,255,255,0.38), transparent 34%),
+        linear-gradient(145deg, #d2d8de, #b9c2ca 60%, #aeb8c2);
+    }
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: grab;
+    }
+    #game-canvas.is-grabbing { cursor: grabbing; }
+    .hud {
+      position: absolute;
+      z-index: 4;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 28px rgba(31, 55, 78, 0.16);
+      backdrop-filter: blur(10px);
+      user-select: none;
+      pointer-events: none;
+    }
+    #title-card {
+      left: 12px;
+      top: 10px;
+      max-width: min(28rem, calc(100vw - 24px));
+      padding: 8px 12px;
+      border-radius: 14px;
+    }
+    #title-card h1 {
+      margin: 0 0 3px;
+      font-size: 0.92rem;
+      line-height: 1.1;
+      color: #254766;
+    }
+    #title-card p {
+      margin: 0;
+      font-size: 0.68rem;
+      line-height: 1.28;
+      color: var(--muted);
+    }
+    #readout {
+      right: 12px;
+      top: 10px;
+      padding: 7px 10px;
+      border-radius: 12px;
+      font-size: 0.74rem;
+      color: #254766;
+      min-width: 8.5rem;
+      text-align: center;
+    }
+    #pattern-card {
+      left: 12px;
+      bottom: 12px;
+      width: min(31vw, 132px);
+      aspect-ratio: 5 / 7;
+      padding: 6px;
+      border-radius: 16px;
+    }
+    #pattern-card canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+    }
+    #status {
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 8px 13px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      color: #254766;
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease;
+      white-space: nowrap;
+    }
+    #status.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-3px);
+    }
+    @media (max-width: 560px) {
+      #title-card { left: 8px; right: 8px; top: 8px; padding: 7px 10px; }
+      #title-card { max-width: calc(100vw - 16px); }
+      #title-card h1 { font-size: 0.84rem; }
+      #title-card p { font-size: 0.62rem; }
+      #readout { display: none; }
+      #pattern-card { width: min(32vw, 104px); left: 8px; bottom: 8px; padding: 5px; }
+      #status { bottom: 112px; font-size: 0.66rem; }
+    }
+  </style>
 </head>
 <body>
-    <div id="app">
-        <div id="top-bar">
-            <h1>Glyph Stack</h1>
-        </div>
-
-        <div id="scene-wrap">
-            <canvas id="game-canvas"></canvas>
-            <div id="ui-overlay">
-                <p>Drag tumble · right-drag roll · left stick moves · right stick spins (when flat)</p>
-            </div>
-            <div id="face-readout">Tile <span id="tile-num">1</span> — <span id="face-label">—</span></div>
-            <div id="pattern-card" aria-label="Pattern card reference">
-                <canvas id="pattern-card-canvas"></canvas>
-            </div>
-        </div>
-
-        <div id="toolbar">
-            <div id="move-stick" class="toolbar-stick" aria-label="Move selected tile">
-                <span class="stick-dir stick-dir-up" aria-hidden="true">▲</span>
-                <span class="stick-dir stick-dir-down" aria-hidden="true">▼</span>
-                <span class="stick-dir stick-dir-left" aria-hidden="true">◀</span>
-                <span class="stick-dir stick-dir-right" aria-hidden="true">▶</span>
-                <div class="stick-base" id="stick-base">
-                    <button type="button" class="stick-knob" id="stick-knob" aria-label="Move joystick knob"></button>
-                </div>
-            </div>
-            <button type="button" class="tool-btn" id="btn-reset">Reset</button>
-            <div id="yaw-stick" class="toolbar-stick" aria-label="Rotate selected tile when flat">
-                <div class="stick-base stick-base-yaw" id="yaw-stick-base">
-                    <svg class="stick-yaw-icon" viewBox="0 0 48 48" aria-hidden="true">
-                        <path class="yaw-arc" d="M 12 34 Q 12 16 30 12"/>
-                        <path class="yaw-head" d="M 30 12 L 38 10 L 33 20 Z"/>
-                    </svg>
-                    <button type="button" class="stick-knob" id="yaw-stick-knob" aria-label="Rotate joystick knob"></button>
-                </div>
-            </div>
-        </div>
+  <div id="app">
+    <canvas id="game-canvas" aria-label="2D Glyph Stack game board"></canvas>
+    <div id="title-card" class="hud">
+      <h1>Glyph Stack</h1>
+      <p>Drag tiles to the board. Tap to turn/change. Match two symbols to click in.</p>
     </div>
+    <div id="readout" class="hud">Tile <span id="tile-num">1</span> · <span id="face-label">—</span></div>
+    <div id="pattern-card" class="hud" aria-label="Pattern reference card">
+      <canvas id="pattern-canvas"></canvas>
+    </div>
+    <div id="status" class="hud">Matched</div>
+  </div>
 
-    <script>
-        /**
-         * Locked tile specification — change only here to revise the canonical tile.
-         * No Math.random(); same visuals and physics on every load.
-         */
-        const TILE_SPEC = Object.freeze({
-            version: 1,
-            box: { width: 1.152, height: 2.304, depth: 1.152 },
-            initialEuler: { x: -0.38, y: 0.55, z: 0.12, order: 'XYZ' },
-            material: { roughness: 0.28, metalness: 0.04, emissive: 0x000000 },
-            sceneBackground: 0xcaced1,
-            textureSize: { cap: 512, sideW: 512, sideH: 1024 },
-            faces: [
-                { label: 'Lattice / Ring', top: 'lattice', bottom: 'ringDot' },
-                { label: 'Triangles / Zigzag', top: 'triPair', bottom: 'zigzag' },
-                { label: 'Seal cap (top)', cap: true },
-                { label: 'Seal cap (bottom)', cap: true },
-                { label: 'Burst / Bolt', top: 'burst', bottom: 'arcBolt' },
-                { label: 'Zigzag / Lattice', top: 'zigzag', bottom: 'lattice' }
-            ],
-            grain: {
-                stops: ['#c8d4e0', '#d8e2ec', '#b8c8d8'],
-                stripes: [
-                    [0.07, 2], [0.14, 3], [0.22, 1.5], [0.29, 2.5], [0.36, 2],
-                    [0.44, 3], [0.51, 1.5], [0.58, 2], [0.65, 2.5], [0.73, 2],
-                    [0.81, 3], [0.88, 1.5], [0.94, 2]
-                ],
-                curves: [-80, -58, -36, -14, 8, 30, 52, 74, 96, 118]
-            },
-            lights: {
-                ambient: { color: 0xffffff, intensity: 0.52 },
-                key: { color: 0xfff4e8, intensity: 0.88, position: [5, 9, 5] },
-                fill: { color: 0xc8e4ff, intensity: 0.42, position: [-5, 2, 3] },
-                rim: { color: 0xffffff, intensity: 0.32, position: [0, -3, -5] }
-            },
-            camera: { fov: 44, near: 0.1, far: 100, position: [0, 0.15, 8.8], lookAt: [0, 0, 0] },
-            instances: [
-                { id: 1, position: [-2.56, 0, 0], capLetter: 'A' },
-                { id: 2, position: [-1.28, 0, 0], capLetter: 'B' },
-                { id: 3, position: [0, 0, 0], capLetter: 'C' },
-                { id: 4, position: [1.28, 0, 0], capLetter: 'D' },
-                { id: 5, position: [2.56, 0, 0], capLetter: 'E' }
-            ],
-            patternCard: Object.freeze({
-                pixelWidth: 250,
-                pixelHeight: 350,
-                margin: 16,
-                maxCols: 4,
-                borderColor: '#2a3544',
-                lineWidth: 1,
-                rows: [
-                    ['ringDot', 'lattice', 'arcBolt'],
-                    ['burst', 'triPair', 'burst'],
-                    ['arcBolt', 'zigzag', 'triPairLeft', 'zigzag']
-                ]
-            }),
-            flat: Object.freeze({ minSideAlignment: 0.68 }),
-            yaw: Object.freeze({
-                stickRadiusPx: 38,
-                stickDeadzone: 0.1,
-                holdSpeed: 0.055
-            }),
-            selection: Object.freeze({
-                edgeColor: 0x00e8ff,
-                glowColor: 0x0099ff,
-                glowScale: 1.04,
-                glowOpacity: 0.42,
-                edgeOpacity: 1
-            }),
-            move: Object.freeze({
-                panGain: 0.012,
-                holdSpeed: 0.05,
-                stickRadiusPx: 38,
-                stickDeadzone: 0.1,
-                minX: -5,
-                maxX: 5,
-                minY: -2.5,
-                maxY: 2.5
-            }),
-            physics: Object.freeze({
-                friction: 0.96,
-                snapSpeed: 0.12,
-                snapDoneAngle: 0.02,
-                orbitGain: 0.006,
-                rollGain: 0.008,
-                panGain: 0.012,
-                snapTiltEuler: { x: -0.32, y: 0.38, z: 0, order: 'YXZ' }
-            })
+  <script>
+    'use strict';
+
+    const SPEC = Object.freeze({
+      background: '#c6cdd3',
+      tile: Object.freeze({
+        cellW: 74,
+        radius: 17,
+        inset: 9,
+        shadowBlur: 24,
+        shadowOffsetY: 10,
+        grabLift: 10,
+        snapSpeed: 0.28,
+        settleSpeed: 0.22,
+        faces: [
+          { key: 'lattice-ringDot', label: 'Lattice / Ring', top: 'lattice', bottom: 'ringDot' },
+          { key: 'triPair-zigzag', label: 'Triangles / Zigzag', top: 'triPair', bottom: 'zigzag' },
+          { key: 'burst-arcBolt', label: 'Burst / Bolt', top: 'burst', bottom: 'arcBolt' },
+          { key: 'zigzag-lattice', label: 'Zigzag / Lattice', top: 'zigzag', bottom: 'lattice' },
+          { key: 'ringDot-lattice', label: 'Ring / Lattice', top: 'ringDot', bottom: 'lattice' },
+          { key: 'arcBolt-triPair', label: 'Bolt / Triangles', top: 'arcBolt', bottom: 'triPair' }
+        ]
+      }),
+      physics: Object.freeze({
+        dragRotationGain: 0,
+        releaseDamping: 0.82,
+        angularDamping: 0.88,
+        maxAngularVelocity: 0,
+        tapTimeMs: 230,
+        tapDistancePx: 9,
+        snapDistanceFactor: 0.50,
+        snapAngleTolerance: 0.52
+      }),
+      pattern: Object.freeze({
+        // The board shape stays readable on phones; the symbols inside it are generated fresh.
+        rowLengths: [3, 3, 4],
+        maxCols: 4
+      }),
+      patternCard: Object.freeze({
+        pixelWidth: 250,
+        pixelHeight: 350,
+        margin: 16,
+        borderColor: '#263340'
+      }),
+      tileCount: 5
+    });
+
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const patternCanvas = document.getElementById('pattern-canvas');
+    const patternCtx = patternCanvas.getContext('2d');
+    const tileNumEl = document.getElementById('tile-num');
+    const faceLabelEl = document.getElementById('face-label');
+    const statusEl = document.getElementById('status');
+
+    let width = 1;
+    let height = 1;
+    let dpr = 1;
+    let selected = null;
+    let pointerId = null;
+    let dragOffset = { x: 0, y: 0 };
+    let lastPointer = { x: 0, y: 0, t: 0 };
+    let pointerStart = { x: 0, y: 0, t: 0 };
+    let cells = [];
+    let placements = [];
+    let tiles = [];
+    let patternRows = [];
+    let solution = [];
+    let tileSeeds = [];
+    let board = { x: 0, y: 0, cell: 64, gap: 8, w: 0, h: 0 };
+    let audioCtx = null;
+    let lastStatusTimeout = null;
+
+    const Glyphs = Object.freeze({
+      lattice(ctx, s) {
+        ctx.fillStyle = '#c44d7a';
+        const dot = s * 0.115;
+        const gap = s * 0.24;
+        for (let row = -1; row <= 1; row++) {
+          for (let col = -1; col <= 1; col++) circle(ctx, col * gap, row * gap, dot, true);
+        }
+      },
+      ringDot(ctx, s) {
+        ctx.strokeStyle = '#1d6b8a';
+        ctx.lineWidth = s * 0.075;
+        circle(ctx, 0, 0, s * 0.34, false);
+        ctx.fillStyle = '#1d6b8a';
+        circle(ctx, 0, 0, s * 0.105, true);
+      },
+      triPair(ctx, s) {
+        ctx.fillStyle = '#d4a017';
+        triangle(ctx, 0, -s * 0.18, s * 0.29, 0);
+        triangle(ctx, 0, s * 0.18, s * 0.29, 0);
+      },
+      zigzag(ctx, s) {
+        ctx.strokeStyle = '#2d8a5e';
+        ctx.lineWidth = s * 0.09;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.42, -s * 0.12);
+        ctx.lineTo(-s * 0.14, s * 0.12);
+        ctx.lineTo(s * 0.14, -s * 0.12);
+        ctx.lineTo(s * 0.42, s * 0.12);
+        ctx.stroke();
+      },
+      burst(ctx, s) {
+        ctx.fillStyle = '#6b4c9a';
+        for (let i = 0; i < 8; i++) {
+          ctx.save();
+          ctx.rotate(i * Math.PI / 4);
+          ctx.beginPath();
+          ctx.moveTo(0, s * 0.05);
+          ctx.lineTo(s * 0.09, s * 0.39);
+          ctx.lineTo(-s * 0.09, s * 0.39);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      },
+      arcBolt(ctx, s) {
+        ctx.fillStyle = '#3d3d56';
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.08, -s * 0.41);
+        ctx.lineTo(s * 0.22, -s * 0.04);
+        ctx.lineTo(s * 0.025, -s * 0.04);
+        ctx.lineTo(s * 0.18, s * 0.41);
+        ctx.lineTo(-s * 0.2, s * 0.05);
+        ctx.lineTo(0, s * 0.05);
+        ctx.closePath();
+        ctx.fill();
+      }
+    });
+
+    class Tile {
+      constructor(spec) {
+        this.id = spec.id;
+        this.faceIndex = spec.faceIndex;
+        this.x = 0;
+        this.y = 0;
+        this.homeX = 0;
+        this.homeY = 0;
+        this.rotation = 0;
+        this.targetRotation = 0;
+        this.angularVelocity = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isDragging = false;
+        this.isLocked = false;
+        this.lockedPlacementId = null;
+        this.lockedCells = [];
+        this.scale = 1;
+        this.targetScale = 1;
+        this.lift = 0;
+        this.targetLift = 0;
+        this.flash = 0;
+      }
+      get face() { return SPEC.tile.faces[this.faceIndex]; }
+      get tileW() { return board.cell; }
+      get tileH() { return board.cell * 2 + board.gap; }
+      contains(px, py) {
+        const local = screenToLocal(px, py, this);
+        return Math.abs(local.x) <= this.tileW / 2 && Math.abs(local.y) <= this.tileH / 2;
+      }
+      cycleFace() {
+        if (this.isLocked) return;
+        this.faceIndex = (this.faceIndex + 1) % SPEC.tile.faces.length;
+        this.targetRotation = nearestRightAngle(this.rotation + Math.PI / 2);
+        this.angularVelocity = 0;
+        playTick(440, 0.045, 0.025);
+        showStatus('Tile ' + this.id + ': ' + this.face.label);
+      }
+      unlock() {
+        this.isLocked = false;
+        this.lockedPlacementId = null;
+        this.lockedCells = [];
+        assignCellOccupancy();
+      }
+      reset() {
+        this.x = this.homeX;
+        this.y = this.homeY;
+        this.rotation = 0;
+        this.targetRotation = 0;
+        this.angularVelocity = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isDragging = false;
+        this.isLocked = false;
+        this.lockedPlacementId = null;
+        this.lockedCells = [];
+        this.targetScale = 1;
+        this.scale = 1;
+        this.targetLift = 0;
+        this.lift = 0;
+        this.flash = 0;
+      }
+      update() {
+        if (!this.isDragging) {
+          if (!this.isLocked) {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vx *= SPEC.physics.releaseDamping;
+            this.vy *= SPEC.physics.releaseDamping;
+            if (Math.abs(this.vx) < 0.02) this.vx = 0;
+            if (Math.abs(this.vy) < 0.02) this.vy = 0;
+          }
+          this.rotation += this.angularVelocity;
+          this.angularVelocity *= SPEC.physics.angularDamping;
+          if (Math.abs(this.angularVelocity) < 0.0008) this.angularVelocity = 0;
+        }
+        this.rotation += normAngle(this.targetRotation - this.rotation) * SPEC.tile.settleSpeed;
+        this.scale += (this.targetScale - this.scale) * 0.18;
+        this.lift += (this.targetLift - this.lift) * 0.20;
+        this.flash *= 0.86;
+        if (this.isLocked) {
+          const p = placements.find(place => place.id === this.lockedPlacementId);
+          if (p) {
+            this.x += (p.x - this.x) * SPEC.tile.snapSpeed;
+            this.y += (p.y - this.y) * SPEC.tile.snapSpeed;
+            this.targetRotation = p.angle;
+          }
+        }
+      }
+    }
+
+    function circle(ctx, x, y, r, fill) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      if (fill) ctx.fill(); else ctx.stroke();
+    }
+
+    function triangle(ctx, x, y, r, rotation) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.lineTo(-r * 0.9, r * 0.72);
+      ctx.lineTo(r * 0.9, r * 0.72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function roundedRect(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.lineTo(x + w - rr, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+      ctx.lineTo(x + w, y + h - rr);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      ctx.lineTo(x + rr, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+      ctx.lineTo(x, y + rr);
+      ctx.quadraticCurveTo(x, y, x + rr, y);
+      ctx.closePath();
+    }
+
+    function nearestRightAngle(rad) {
+      return Math.round(rad / (Math.PI / 2)) * (Math.PI / 2);
+    }
+
+    function normAngle(rad) {
+      let a = rad % (Math.PI * 2);
+      if (a > Math.PI) a -= Math.PI * 2;
+      if (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+
+    function screenToLocal(px, py, tile) {
+      const cos = Math.cos(-tile.rotation);
+      const sin = Math.sin(-tile.rotation);
+      const dx = px - tile.x;
+      const dy = py - tile.y;
+      return { x: dx * cos - dy * sin, y: dx * sin + dy * cos };
+    }
+
+    function clamp(v, lo, hi) {
+      return Math.max(lo, Math.min(hi, v));
+    }
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function cellId(row, col) { return row + ':' + col; }
+
+    function getFaceByKey(key) {
+      return SPEC.tile.faces.find(face => face.key === key) || null;
+    }
+
+    function getTileSeed(tileId) {
+      return tileSeeds.find(tile => tile.id === tileId) || null;
+    }
+
+    function areAdjacentCells(a, b) {
+      const dr = Math.abs(a[0] - b[0]);
+      const dc = Math.abs(a[1] - b[1]);
+      return dr + dc === 1;
+    }
+
+    function getPatternGlyphAt(row, col) {
+      const line = patternRows[row];
+      return line ? line[col] : undefined;
+    }
+
+    function shuffleCopy(items) {
+      const a = items.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function makeShapeCells() {
+      const out = [];
+      SPEC.pattern.rowLengths.forEach((len, r) => {
+        for (let c = 0; c < len; c++) out.push([r, c]);
+      });
+      return out;
+    }
+
+    function findRandomDominoTiling(shapeCells) {
+      const cellSet = new Set(shapeCells.map(([r, c]) => cellId(r, c)));
+      const uncovered = new Set(cellSet);
+      const pairs = [];
+
+      function neighborsOf(cell) {
+        const [r, c] = cell.split(':').map(Number);
+        return shuffleCopy([[r, c + 1], [r + 1, c], [r, c - 1], [r - 1, c]])
+          .map(([rr, cc]) => cellId(rr, cc))
+          .filter(id => uncovered.has(id));
+      }
+
+      function search() {
+        if (uncovered.size === 0) return true;
+        let chosen = null;
+        let options = null;
+        for (const id of uncovered) {
+          const n = neighborsOf(id);
+          if (options === null || n.length < options.length) {
+            chosen = id;
+            options = n;
+          }
+        }
+        if (!chosen || options.length === 0) return false;
+        uncovered.delete(chosen);
+        for (const other of options) {
+          if (!uncovered.has(other)) continue;
+          uncovered.delete(other);
+          pairs.push([chosen, other]);
+          if (search()) return true;
+          pairs.pop();
+          uncovered.add(other);
+        }
+        uncovered.add(chosen);
+        return false;
+      }
+
+      return search() ? pairs : null;
+    }
+
+    function generateRandomPuzzle() {
+      const shape = makeShapeCells();
+      if (shape.length !== SPEC.tileCount * 2) {
+        throw new Error('Pattern shape must contain exactly two cells per tile.');
+      }
+
+      let tiling = null;
+      for (let tries = 0; tries < 40 && !tiling; tries++) tiling = findRandomDominoTiling(shape);
+      if (!tiling) throw new Error('Could not create a legal random tiling for this board shape.');
+
+      const tileIds = shuffleCopy(Array.from({ length: SPEC.tileCount }, (_, i) => i + 1));
+      patternRows = SPEC.pattern.rowLengths.map(len => Array.from({ length: len }, () => null));
+      solution = [];
+      tileSeeds = [];
+
+      shuffleCopy(tiling).forEach((pair, index) => {
+        const tileId = tileIds[index];
+        const faceIndex = Math.floor(Math.random() * SPEC.tile.faces.length);
+        const face = SPEC.tile.faces[faceIndex];
+        const ordered = Math.random() < 0.5 ? pair.slice() : pair.slice().reverse();
+        ordered.forEach((id, side) => {
+          const [r, c] = id.split(':').map(Number);
+          patternRows[r][c] = side === 0 ? face.top : face.bottom;
         });
-
-        const SIDE_FACE_INDICES = [0, 1, 4, 5];
-
-        const Glyphs = {
-            lattice: (ctx, s) => {
-                ctx.fillStyle = '#c44d7a';
-                const g = s * 0.14, o = s * 0.22;
-                for (let row = -1; row <= 1; row++) {
-                    for (let col = -1; col <= 1; col++) {
-                        ctx.beginPath();
-                        ctx.arc(col * o, row * o, g, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                }
-            },
-            ringDot: (ctx, s) => {
-                ctx.strokeStyle = '#1d6b8a';
-                ctx.lineWidth = s * 0.1;
-                ctx.beginPath();
-                ctx.arc(0, 0, s * 0.38, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.fillStyle = '#1d6b8a';
-                ctx.beginPath();
-                ctx.arc(0, 0, s * 0.12, 0, Math.PI * 2);
-                ctx.fill();
-            },
-            triPair: (ctx, s) => {
-                ctx.fillStyle = '#d4a017';
-                const tri = (y) => {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y - s * 0.22);
-                    ctx.lineTo(-s * 0.24, y + s * 0.14);
-                    ctx.lineTo(s * 0.24, y + s * 0.14);
-                    ctx.closePath();
-                    ctx.fill();
-                };
-                tri(-s * 0.2);
-                tri(s * 0.2);
-            },
-            zigzag: (ctx, s) => {
-                ctx.strokeStyle = '#2d8a5e';
-                ctx.lineWidth = s * 0.12;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.moveTo(-s * 0.42, -s * 0.12);
-                ctx.lineTo(-s * 0.14, s * 0.12);
-                ctx.lineTo(s * 0.14, -s * 0.12);
-                ctx.lineTo(s * 0.42, s * 0.12);
-                ctx.stroke();
-            },
-            triPairLeft: (ctx, s) => {
-                ctx.fillStyle = '#d4a017';
-                const tri = (x) => {
-                    ctx.beginPath();
-                    ctx.moveTo(x - s * 0.22, 0);
-                    ctx.lineTo(x + s * 0.14, -s * 0.24);
-                    ctx.lineTo(x + s * 0.14, s * 0.24);
-                    ctx.closePath();
-                    ctx.fill();
-                };
-                tri(-s * 0.2);
-                tri(s * 0.2);
-            },
-            zigzagVert: (ctx, s) => {
-                ctx.save();
-                ctx.rotate(-Math.PI / 2);
-                Glyphs.zigzag(ctx, s);
-                ctx.restore();
-            },
-            burst: (ctx, s) => {
-                ctx.fillStyle = '#6b4c9a';
-                for (let i = 0; i < 8; i++) {
-                    const a = (i / 8) * Math.PI * 2;
-                    ctx.save();
-                    ctx.rotate(a);
-                    ctx.beginPath();
-                    ctx.moveTo(0, s * 0.08);
-                    ctx.lineTo(s * 0.1, s * 0.42);
-                    ctx.lineTo(-s * 0.1, s * 0.42);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
-                }
-            },
-            arcBolt: (ctx, s) => {
-                ctx.fillStyle = '#3d3d56';
-                ctx.beginPath();
-                ctx.moveTo(-s * 0.08, -s * 0.42);
-                ctx.lineTo(s * 0.22, -s * 0.05);
-                ctx.lineTo(s * 0.02, -s * 0.05);
-                ctx.lineTo(s * 0.18, s * 0.42);
-                ctx.lineTo(-s * 0.2, s * 0.05);
-                ctx.lineTo(0, s * 0.05);
-                ctx.closePath();
-                ctx.fill();
-            }
-        };
-
-        const textureCache = Object.create(null);
-
-        function drawCardGlyph(ctx, name, cx, cy, size) {
-            const fn = Glyphs[name];
-            if (!fn) return;
-            ctx.save();
-            ctx.translate(cx, cy);
-            fn(ctx, size);
-            ctx.restore();
-        }
-
-        function snapLine(v) {
-            return Math.round(v) + 0.5;
-        }
-
-        function drawCardCellContent(ctx, x, y, size, glyphName) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(x, y, size, size);
-            ctx.clip();
-            paintDeterministicGrain(ctx, size, size);
-            drawCardGlyph(ctx, glyphName, x + size / 2, y + size / 2, size * 0.5);
-            ctx.restore();
-        }
-
-        function strokePatternGrid(ctx, originX, originY, cellSize, rowLayouts) {
-            const spec = TILE_SPEC.patternCard;
-            const edges = new Set();
-
-            const addEdge = (x1, y1, x2, y2) => {
-                const key = x1 === x2
-                    ? 'v,' + x1 + ',' + Math.min(y1, y2) + ',' + Math.max(y1, y2)
-                    : 'h,' + y1 + ',' + Math.min(x1, x2) + ',' + Math.max(x1, x2);
-                edges.add(key);
-            };
-
-            rowLayouts.forEach((cols, row) => {
-                const y = originY + row * cellSize;
-                const y2 = y + cellSize;
-                for (let col = 0; col < cols; col++) {
-                    const x = originX + col * cellSize;
-                    const x2 = x + cellSize;
-                    addEdge(x, y, x2, y);
-                    addEdge(x, y2, x2, y2);
-                    addEdge(x, y, x, y2);
-                    addEdge(x2, y, x2, y2);
-                }
-            });
-
-            ctx.beginPath();
-            edges.forEach((key) => {
-                const parts = key.split(',');
-                if (parts[0] === 'h') {
-                    const y = snapLine(Number(parts[1]));
-                    const x1 = snapLine(Number(parts[2]));
-                    const x2 = snapLine(Number(parts[3]));
-                    ctx.moveTo(x1, y);
-                    ctx.lineTo(x2, y);
-                } else {
-                    const x = snapLine(Number(parts[1]));
-                    const y1 = snapLine(Number(parts[2]));
-                    const y2 = snapLine(Number(parts[3]));
-                    ctx.moveTo(x, y1);
-                    ctx.lineTo(x, y2);
-                }
-            });
-            ctx.strokeStyle = spec.borderColor;
-            ctx.lineWidth = spec.lineWidth;
-            ctx.stroke();
-        }
-
-        function drawPatternCard() {
-            const spec = TILE_SPEC.patternCard;
-            patternCardCanvas.width = spec.pixelWidth;
-            patternCardCanvas.height = spec.pixelHeight;
-            const ctx = patternCardCanvas.getContext('2d');
-            ctx.fillStyle = '#caced1';
-            ctx.fillRect(0, 0, spec.pixelWidth, spec.pixelHeight);
-
-            const rowLayouts = spec.rows.map((row) => row.length);
-            const numRows = spec.rows.length;
-            const innerW = spec.pixelWidth - spec.margin * 2;
-            const innerH = spec.pixelHeight - spec.margin * 2;
-            const cellSize = Math.floor(Math.min(innerW / spec.maxCols, innerH / numRows));
-            const gridW = cellSize * spec.maxCols;
-            const gridH = cellSize * numRows;
-            const originX = spec.margin + Math.floor((innerW - gridW) / 2);
-            const originY = spec.margin + Math.floor((innerH - gridH) / 2);
-
-            spec.rows.forEach((glyphs, row) => {
-                glyphs.forEach((glyph, col) => {
-                    const x = originX + col * cellSize;
-                    const y = originY + row * cellSize;
-                    drawCardCellContent(ctx, x, y, cellSize, glyph);
-                });
-            });
-
-            strokePatternGrid(ctx, originX, originY, cellSize, rowLayouts);
-        }
-
-        function configureTexture(tex) {
-            tex.generateMipmaps = false;
-            tex.minFilter = THREE.LinearFilter;
-            tex.magFilter = THREE.LinearFilter;
-            tex.needsUpdate = true;
-            return tex;
-        }
-
-        function paintDeterministicGrain(ctx, width, height) {
-            const g = TILE_SPEC.grain;
-            const grad = ctx.createLinearGradient(0, 0, width, 0);
-            grad.addColorStop(0, g.stops[0]);
-            grad.addColorStop(0.5, g.stops[1]);
-            grad.addColorStop(1, g.stops[2]);
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, width, height);
-
-            ctx.fillStyle = 'rgba(60, 90, 120, 0.08)';
-            g.stripes.forEach(([xf, w]) => {
-                ctx.fillRect(xf * width, 0, w, height);
-            });
-
-            ctx.strokeStyle = 'rgba(50, 80, 110, 0.06)';
-            ctx.lineWidth = 2;
-            g.curves.forEach((j) => {
-                ctx.beginPath();
-                ctx.moveTo(j, 0);
-                ctx.quadraticCurveTo(j + 40, height * 0.35, j - 12, height * 0.65);
-                ctx.stroke();
-            });
-
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.lineWidth = 14;
-            ctx.strokeRect(0, 0, width, height);
-        }
-
-        function getCapTexture(letter) {
-            const key = 'cap:' + letter;
-            if (textureCache[key]) return textureCache[key];
-            const size = TILE_SPEC.textureSize.cap;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const c = size / 2;
-
-            ctx.fillStyle = '#f6f9fc';
-            ctx.fillRect(0, 0, size, size);
-            ctx.strokeStyle = 'rgba(42, 74, 107, 0.12)';
-            ctx.lineWidth = 18;
-            ctx.strokeRect(0, 0, size, size);
-
-            ctx.font = '900 ' + (size * 0.48) + 'px Segoe UI, Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#c5d4e3';
-            ctx.fillText(letter, c + 3, c + 5);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(letter, c - 2, c - 2);
-            ctx.fillStyle = '#2a4a6b';
-            ctx.fillText(letter, c, c);
-
-            textureCache[key] = configureTexture(new THREE.CanvasTexture(canvas));
-            return textureCache[key];
-        }
-
-        function getSideTexture(key, symTop, symBottom) {
-            if (textureCache[key]) return textureCache[key];
-            const width = TILE_SPEC.textureSize.sideW;
-            const height = TILE_SPEC.textureSize.sideH;
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-
-            paintDeterministicGrain(ctx, width, height);
-
-            ctx.fillStyle = 'rgba(42, 74, 107, 0.18)';
-            ctx.fillRect(0, height / 2 - 4, width, 8);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.fillRect(0, height / 2 + 2, width, 4);
-
-            ctx.save();
-            ctx.translate(width / 2, height * 0.25);
-            symTop(ctx, width * 0.5);
-            ctx.restore();
-
-            ctx.save();
-            ctx.translate(width / 2, height * 0.75);
-            symBottom(ctx, width * 0.5);
-            ctx.restore();
-
-            textureCache[key] = configureTexture(new THREE.CanvasTexture(canvas));
-            return textureCache[key];
-        }
-
-        const materialsCache = Object.create(null);
-
-        function buildCanonicalMaterials(capLetter) {
-            if (materialsCache[capLetter]) return materialsCache[capLetter];
-
-            const mat = TILE_SPEC.material;
-            const cap = getCapTexture(capLetter);
-            const sidePairs = [
-                ['side0', Glyphs.lattice, Glyphs.ringDot],
-                ['side1', Glyphs.triPair, Glyphs.zigzag],
-                ['side4', Glyphs.burst, Glyphs.arcBolt],
-                ['side5', Glyphs.zigzag, Glyphs.lattice]
-            ];
-            const mk = (map) => new THREE.MeshStandardMaterial({
-                map,
-                roughness: mat.roughness,
-                metalness: mat.metalness,
-                emissive: mat.emissive
-            });
-
-            materialsCache[capLetter] = [
-                mk(getSideTexture(...sidePairs[0])),
-                mk(getSideTexture(...sidePairs[1])),
-                mk(cap),
-                mk(cap),
-                mk(getSideTexture(...sidePairs[2])),
-                mk(getSideTexture(...sidePairs[3]))
-            ];
-            return materialsCache[capLetter];
-        }
-
-        const FACE_LABELS = TILE_SPEC.faces.map(f => f.label);
-        const FACE_VECTORS = [
-            new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(0, 1, 0),
-            new THREE.Vector3(0, -1, 0),
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, -1)
-        ];
-        const CAMERA_FACING = new THREE.Vector3(0, 0, 1);
-        const INITIAL_QUATERNION = new THREE.Quaternion().setFromEuler(
-            new THREE.Euler(
-                TILE_SPEC.initialEuler.x,
-                TILE_SPEC.initialEuler.y,
-                TILE_SPEC.initialEuler.z,
-                TILE_SPEC.initialEuler.order
-            )
-        );
-        const SNAP_TILT_QUAT = new THREE.Quaternion().setFromEuler(
-            new THREE.Euler(
-                TILE_SPEC.physics.snapTiltEuler.x,
-                TILE_SPEC.physics.snapTiltEuler.y,
-                TILE_SPEC.physics.snapTiltEuler.z,
-                TILE_SPEC.physics.snapTiltEuler.order
-            )
-        );
-
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(TILE_SPEC.sceneBackground);
-
-        const sceneWrap = document.getElementById('scene-wrap');
-        const gameCanvas = document.getElementById('game-canvas');
-        const patternCardCanvas = document.getElementById('pattern-card-canvas');
-
-        const _proj = new THREE.Vector3();
-        const _yawAxis = new THREE.Vector3();
-        const _yawDelta = new THREE.Quaternion();
-        const camSpec = TILE_SPEC.camera;
-        const camera = new THREE.PerspectiveCamera(camSpec.fov, 1, camSpec.near, camSpec.far);
-        const renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true, alpha: false });
-        renderer.setPixelRatio(getMaxPixelRatio());
-
-        const lights = TILE_SPEC.lights;
-        scene.add(new THREE.AmbientLight(lights.ambient.color, lights.ambient.intensity));
-        const keyLight = new THREE.DirectionalLight(lights.key.color, lights.key.intensity);
-        keyLight.position.set(...lights.key.position);
-        scene.add(keyLight);
-        const fillLight = new THREE.DirectionalLight(lights.fill.color, lights.fill.intensity);
-        fillLight.position.set(...lights.fill.position);
-        scene.add(fillLight);
-        const rimLight = new THREE.DirectionalLight(lights.rim.color, lights.rim.intensity);
-        rimLight.position.set(...lights.rim.position);
-        scene.add(rimLight);
-
-        const box = TILE_SPEC.box;
-        const tileGeometry = new THREE.BoxGeometry(box.width, box.height, box.depth);
-        const tileEdgesGeometry = new THREE.EdgesGeometry(tileGeometry);
-        const selSpec = TILE_SPEC.selection;
-        const selectionEdgeMaterial = new THREE.LineBasicMaterial({
-            color: selSpec.edgeColor,
-            transparent: true,
-            opacity: selSpec.edgeOpacity
+        solution.push({
+          tileId,
+          faceKey: face.key,
+          cells: ordered.map(id => id.split(':').map(Number))
         });
-        const selectionGlowMaterial = new THREE.LineBasicMaterial({
-            color: selSpec.glowColor,
-            transparent: true,
-            opacity: selSpec.glowOpacity
+        tileSeeds.push({
+          id: tileId,
+          faceIndex: Math.floor(Math.random() * SPEC.tile.faces.length)
         });
-        let selectionOutline = null;
+      });
 
-        function getMaxPixelRatio() {
-            const dpr = window.devicePixelRatio || 1;
-            return window.innerWidth < 768 ? Math.min(dpr, 1.5) : Math.min(dpr, 2);
+      tileSeeds.sort((a, b) => a.id - b.id);
+    }
+
+    function validateSolvableSpec() {
+      const errors = [];
+      const usedTiles = new Set();
+      const usedCells = new Set();
+      const allPatternCells = [];
+
+      patternRows.forEach((row, r) => {
+        row.forEach((_, c) => allPatternCells.push(cellId(r, c)));
+      });
+
+      if (allPatternCells.length !== tileSeeds.length * 2) {
+        errors.push('The board has ' + allPatternCells.length + ' cells but ' + tileSeeds.length + ' two-cell tiles.');
+      }
+
+      solution.forEach(entry => {
+        const tile = getTileSeed(entry.tileId);
+        const face = getFaceByKey(entry.faceKey);
+        if (!tile) errors.push('Solution references missing tile ' + entry.tileId + '.');
+        if (!face) errors.push('Solution references missing face ' + entry.faceKey + '.');
+        if (usedTiles.has(entry.tileId)) errors.push('Tile ' + entry.tileId + ' is used more than once in the solution.');
+        usedTiles.add(entry.tileId);
+        if (!Array.isArray(entry.cells) || entry.cells.length !== 2) {
+          errors.push('Tile ' + entry.tileId + ' does not claim exactly two cells.');
+          return;
         }
-
-        function createBlockState(instance) {
-            const mesh = new THREE.Mesh(tileGeometry, buildCanonicalMaterials(instance.capLetter));
-            mesh.position.set(instance.position[0], instance.position[1], instance.position[2]);
-            mesh.quaternion.copy(INITIAL_QUATERNION);
-            scene.add(mesh);
-            return {
-                id: instance.id,
-                capLetter: instance.capLetter,
-                mesh,
-                spinX: 0,
-                spinY: 0,
-                spinZ: 0,
-                isDragging: false,
-                dragMode: 'none',
-                isSnapping: false,
-                targetQuaternion: new THREE.Quaternion()
-            };
+        if (!areAdjacentCells(entry.cells[0], entry.cells[1])) {
+          errors.push('Tile ' + entry.tileId + ' solution cells are not adjacent.');
         }
-
-        const blocks = TILE_SPEC.instances.map(createBlockState);
-        let selected = blocks[0];
-
-        const faceLabelEl = document.getElementById('face-label');
-        const tileNumEl = document.getElementById('tile-num');
-        const moveStickEl = document.getElementById('move-stick');
-        const stickBaseEl = document.getElementById('stick-base');
-        const stickKnobEl = document.getElementById('stick-knob');
-        const yawStickEl = document.getElementById('yaw-stick');
-        const yawStickBaseEl = document.getElementById('yaw-stick-base');
-        const yawStickKnobEl = document.getElementById('yaw-stick-knob');
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        let previousMousePosition = { x: 0, y: 0 };
-        let activePointerId = null;
-        let stickVector = { x: 0, y: 0 };
-        let stickDragPointerId = null;
-        let yawStickVector = 0;
-        let yawStickDragPointerId = null;
-
-        function getSpawnPosition(block) {
-            return TILE_SPEC.instances[block.id - 1].position;
-        }
-
-        function clampMoveX(x) {
-            const m = TILE_SPEC.move;
-            return Math.max(m.minX, Math.min(m.maxX, x));
-        }
-
-        function clampMoveY(y) {
-            const m = TILE_SPEC.move;
-            return Math.max(m.minY, Math.min(m.maxY, y));
-        }
-
-        function applyPanToBlock(block, deltaX, deltaY, gain) {
-            block.mesh.position.x = clampMoveX(block.mesh.position.x + deltaX * gain);
-            block.mesh.position.y = clampMoveY(block.mesh.position.y - deltaY * gain);
-        }
-
-        function detachSelectionOutline() {
-            if (!selectionOutline) return;
-            selectionOutline.parent.remove(selectionOutline);
-            selectionOutline = null;
-        }
-
-        function attachSelectionOutline(mesh) {
-            detachSelectionOutline();
-            const glow = new THREE.LineSegments(tileEdgesGeometry, selectionGlowMaterial);
-            const edge = new THREE.LineSegments(tileEdgesGeometry, selectionEdgeMaterial);
-            glow.scale.setScalar(selSpec.glowScale);
-            glow.renderOrder = 998;
-            edge.renderOrder = 999;
-            selectionOutline = new THREE.Group();
-            selectionOutline.add(glow);
-            selectionOutline.add(edge);
-            mesh.add(selectionOutline);
-        }
-
-        function clearMaterialEmissive() {
-            blocks.forEach(b => {
-                b.mesh.traverse(obj => {
-                    if (!obj.isMesh || !obj.material) return;
-                    const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-                    mats.forEach(m => {
-                        if (!m.emissive) return;
-                        m.emissive.setHex(0x000000);
-                        m.emissiveIntensity = 0;
-                    });
-                });
-            });
-        }
-
-        function applyInitialPose(block) {
-            block.mesh.position.set(...getSpawnPosition(block));
-            block.mesh.quaternion.copy(INITIAL_QUATERNION);
-            block.spinX = 0;
-            block.spinY = 0;
-            block.spinZ = 0;
-            block.isDragging = false;
-            block.isSnapping = false;
-            block.dragMode = 'none';
-        }
-
-        function applyAllInitialPoses() {
-            blocks.forEach(applyInitialPose);
-        }
-
-        function canUseYawStick() {
-            return selected && isTileMostlyFlat(selected);
-        }
-
-        function updateToolbarSticks() {
-            moveStickEl.classList.toggle('is-disabled', !selected);
-            const yawOk = canUseYawStick();
-            yawStickEl.classList.toggle('is-disabled', !yawOk);
-            if (!yawOk) resetYawStick();
-        }
-
-        function setSelected(block) {
-            selected = block;
-            detachSelectionOutline();
-            if (block) attachSelectionOutline(block.mesh);
-            updateToolbarSticks();
-            updateFaceReadout();
-            drawPatternCard();
-        }
-
-        function isTileMostlyFlat(block) {
-            const faceIdx = getDominantFaceIndex(block);
-            if (!SIDE_FACE_INDICES.includes(faceIdx)) return false;
-            _yawAxis.copy(FACE_VECTORS[faceIdx]).applyQuaternion(block.mesh.quaternion);
-            return _yawAxis.dot(CAMERA_FACING) >= TILE_SPEC.flat.minSideAlignment;
-        }
-
-        function applyYawDelta(block, deltaRad) {
-            const faceIdx = getDominantFaceIndex(block);
-            _yawAxis.copy(FACE_VECTORS[faceIdx]).applyQuaternion(block.mesh.quaternion);
-            _yawDelta.setFromAxisAngle(_yawAxis, deltaRad);
-            block.mesh.quaternion.premultiply(_yawDelta);
-            block.spinX = 0;
-            block.spinY = 0;
-            block.spinZ = 0;
-            block.isSnapping = false;
-        }
-
-        function getDominantFaceIndex(block) {
-            let best = 0;
-            let bestDot = -Infinity;
-            FACE_VECTORS.forEach((localNormal, index) => {
-                const worldNormal = localNormal.clone().applyQuaternion(block.mesh.quaternion);
-                const alignment = worldNormal.dot(CAMERA_FACING);
-                if (alignment > bestDot) {
-                    bestDot = alignment;
-                    best = index;
-                }
-            });
-            return best;
-        }
-
-        function updateFaceReadout() {
-            if (!selected) {
-                tileNumEl.textContent = '—';
-                faceLabelEl.textContent = '—';
-                return;
-            }
-            tileNumEl.textContent = String(selected.id);
-            const faceIdx = getDominantFaceIndex(selected);
-            let label = FACE_LABELS[faceIdx];
-            if (faceIdx === 2 || faceIdx === 3) {
-                label = 'Seal cap ' + selected.capLetter + (faceIdx === 2 ? ' (top)' : ' (bottom)');
-            }
-            faceLabelEl.textContent = label;
-        }
-
-        function calculateAngledSnapTarget(block) {
-            const idx = getDominantFaceIndex(block);
-            const baseTarget = new THREE.Quaternion().setFromUnitVectors(
-                FACE_VECTORS[idx],
-                CAMERA_FACING
-            );
-            block.targetQuaternion.copy(baseTarget).multiply(SNAP_TILT_QUAT);
-            block.isSnapping = true;
-            block.spinX = 0;
-            block.spinY = 0;
-            block.spinZ = 0;
-        }
-
-        function setPointerFromEvent(clientX, clientY) {
-            const rect = gameCanvas.getBoundingClientRect();
-            mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-        }
-
-        function pickBlock(clientX, clientY) {
-            setPointerFromEvent(clientX, clientY);
-            raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(blocks.map(b => b.mesh), true);
-            if (!hits.length) return null;
-            let obj = hits[0].object;
-            while (obj) {
-                const found = blocks.find(b => b.mesh === obj);
-                if (found) return found;
-                obj = obj.parent;
-            }
-            return null;
-        }
-
-        function resolveDragMode(e) {
-            if (e.button === 2) return 'roll';
-            if (e.button === 1 || e.shiftKey) return 'pan';
-            return 'orbit';
-        }
-
-        function beginDrag(clientX, clientY, dragMode) {
-            const block = pickBlock(clientX, clientY);
-            if (!block) {
-                setSelected(null);
-                return false;
-            }
-            setSelected(block);
-            resetStick();
-            resetYawStick();
-            block.isDragging = true;
-            block.isSnapping = false;
-            block.dragMode = dragMode;
-            block.spinX = 0;
-            block.spinY = 0;
-            block.spinZ = 0;
-            previousMousePosition = { x: clientX, y: clientY };
-            return true;
-        }
-
-        function moveDrag(clientX, clientY) {
-            if (!selected || !selected.isDragging) return;
-
-            const deltaX = clientX - previousMousePosition.x;
-            const deltaY = clientY - previousMousePosition.y;
-            const p = TILE_SPEC.physics;
-
-            if (selected.dragMode === 'orbit') {
-                selected.spinX = deltaY * p.orbitGain;
-                selected.spinY = deltaX * p.orbitGain;
-                selected.mesh.rotation.x += selected.spinX;
-                selected.mesh.rotation.y += selected.spinY;
-            } else if (selected.dragMode === 'roll') {
-                selected.spinZ = -deltaX * p.rollGain;
-                selected.mesh.rotation.z += selected.spinZ;
-            } else if (selected.dragMode === 'pan') {
-                applyPanToBlock(selected, deltaX, deltaY, p.panGain);
-            }
-
-            previousMousePosition = { x: clientX, y: clientY };
-            updateFaceReadout();
-        }
-
-        function endDrag() {
-            if (selected) {
-                selected.isDragging = false;
-                selected.dragMode = 'none';
-            }
-            activePointerId = null;
-        }
-
-        function stepBlockPhysics(block, p) {
-            if (block.isDragging || (yawStickVector !== 0 && block === selected)) return;
-
-            if (block.isSnapping) {
-                block.mesh.quaternion.slerp(block.targetQuaternion, p.snapSpeed);
-                if (block.mesh.quaternion.angleTo(block.targetQuaternion) < p.snapDoneAngle) {
-                    block.mesh.quaternion.copy(block.targetQuaternion);
-                    block.isSnapping = false;
-                }
-            } else {
-                block.spinX *= p.friction;
-                block.spinY *= p.friction;
-                block.spinZ *= p.friction;
-                block.mesh.rotation.x += block.spinX;
-                block.mesh.rotation.y += block.spinY;
-                block.mesh.rotation.z += block.spinZ;
-            }
-        }
-
-        gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
-
-        gameCanvas.addEventListener('pointerdown', (e) => {
-            if (activePointerId !== null || stickDragPointerId !== null || yawStickDragPointerId !== null) return;
-            e.preventDefault();
-            const mode = resolveDragMode(e);
-            if (beginDrag(e.clientX, e.clientY, mode)) {
-                activePointerId = e.pointerId;
-                gameCanvas.setPointerCapture(e.pointerId);
-            }
+        const expectedGlyphs = [face.top, face.bottom];
+        entry.cells.forEach((cell, i) => {
+          const [r, c] = cell;
+          const id = cellId(r, c);
+          const boardGlyph = getPatternGlyphAt(r, c);
+          if (boardGlyph === undefined) errors.push('Tile ' + entry.tileId + ' references missing board cell ' + id + '.');
+          if (boardGlyph !== expectedGlyphs[i]) {
+            errors.push('Tile ' + entry.tileId + ' expects ' + expectedGlyphs[i] + ' at ' + id + ' but board has ' + boardGlyph + '.');
+          }
+          if (usedCells.has(id)) errors.push('Board cell ' + id + ' is used more than once in the solution.');
+          usedCells.add(id);
         });
+      });
 
-        gameCanvas.addEventListener('auxclick', (e) => {
-            if (e.button !== 1) return;
-            e.preventDefault();
+      allPatternCells.forEach(id => {
+        if (!usedCells.has(id)) errors.push('Board cell ' + id + ' is not covered by the solution.');
+      });
+      tileSeeds.forEach(tile => {
+        if (!usedTiles.has(tile.id)) errors.push('Tile ' + tile.id + ' is not used by the solution.');
+      });
+
+      return { ok: errors.length === 0, errors };
+    }
+
+    function layout() {
+      width = Math.max(1, canvas.clientWidth);
+      height = Math.max(1, canvas.clientHeight);
+      dpr = Math.min(window.devicePixelRatio || 1, width < 700 ? 1.65 : 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const mobile = width < 560;
+      const maxBoardW = width - (mobile ? 28 : 220);
+      const maxBoardH = height * (mobile ? 0.40 : 0.42);
+      const gap = mobile ? 7 : 9;
+      const cell = Math.floor(Math.min(
+        (maxBoardW - gap * (SPEC.pattern.maxCols - 1)) / SPEC.pattern.maxCols,
+        (maxBoardH - gap * (patternRows.length - 1)) / patternRows.length,
+        mobile ? 64 : 82
+      ));
+      board.cell = clamp(cell, mobile ? 48 : 58, mobile ? 64 : 82);
+      board.gap = gap;
+      board.w = SPEC.pattern.maxCols * board.cell + (SPEC.pattern.maxCols - 1) * board.gap;
+      board.h = patternRows.length * board.cell + (patternRows.length - 1) * board.gap;
+      board.x = Math.round(width / 2 - board.w / 2);
+      board.y = Math.round(mobile ? 92 : 92);
+
+      cells = [];
+      patternRows.forEach((row, r) => {
+        row.forEach((glyph, c) => {
+          cells.push({
+            id: cellId(r, c), row: r, col: c, glyph,
+            x: board.x + c * (board.cell + board.gap) + board.cell / 2,
+            y: board.y + r * (board.cell + board.gap) + board.cell / 2,
+            size: board.cell,
+            occupiedBy: null,
+            pulse: 0
+          });
         });
+      });
+      buildPlacements();
 
-        gameCanvas.addEventListener('pointermove', (e) => {
-            if (e.pointerId !== activePointerId) return;
-            moveDrag(e.clientX, e.clientY);
+      const tileCount = tileSeeds.length;
+      const tileW = board.cell;
+      const spread = Math.min(tileW * 1.42, (width - 40) / Math.max(tileCount, 1));
+      const totalW = spread * (tileCount - 1);
+      const tileY = mobile ? height * 0.72 : height * 0.68;
+      tiles.forEach((tile, i) => {
+        const oldHomeX = tile.homeX;
+        const oldHomeY = tile.homeY;
+        const wasFresh = oldHomeX === 0 && oldHomeY === 0;
+        tile.homeX = width / 2 - totalW / 2 + i * spread;
+        tile.homeY = clamp(tileY + (i % 2) * 12, board.y + board.h + board.cell * 1.35, height - board.cell * 1.25);
+        if (wasFresh || (!tile.isDragging && !tile.isLocked && Math.abs(tile.x - oldHomeX) < 3 && Math.abs(tile.y - oldHomeY) < 3)) {
+          tile.x = tile.homeX;
+          tile.y = tile.homeY;
+        }
+      });
+      assignCellOccupancy();
+    }
+
+    function getCell(r, c) {
+      return cells.find(cell => cell.row === r && cell.col === c) || null;
+    }
+
+    function buildPlacements() {
+      placements = [];
+      let n = 0;
+      for (const a of cells) {
+        const right = getCell(a.row, a.col + 1);
+        const down = getCell(a.row + 1, a.col);
+        if (right) {
+          placements.push({ id: 'p' + n++, cells: [a.id, right.id], glyphs: [a.glyph, right.glyph], x: (a.x + right.x) / 2, y: (a.y + right.y) / 2, angle: -Math.PI / 2, kind: 'horizontal' });
+          placements.push({ id: 'p' + n++, cells: [right.id, a.id], glyphs: [right.glyph, a.glyph], x: (a.x + right.x) / 2, y: (a.y + right.y) / 2, angle: Math.PI / 2, kind: 'horizontal' });
+        }
+        if (down) {
+          placements.push({ id: 'p' + n++, cells: [a.id, down.id], glyphs: [a.glyph, down.glyph], x: (a.x + down.x) / 2, y: (a.y + down.y) / 2, angle: 0, kind: 'vertical' });
+          placements.push({ id: 'p' + n++, cells: [down.id, a.id], glyphs: [down.glyph, a.glyph], x: (a.x + down.x) / 2, y: (a.y + down.y) / 2, angle: Math.PI, kind: 'vertical' });
+        }
+      }
+    }
+
+    function assignCellOccupancy() {
+      cells.forEach(c => { c.occupiedBy = null; });
+      tiles.forEach(tile => {
+        if (!tile.isLocked) return;
+        tile.lockedCells.forEach(id => {
+          const cell = cells.find(c => c.id === id);
+          if (cell) cell.occupiedBy = tile.id;
         });
+      });
+    }
 
-        gameCanvas.addEventListener('pointerup', (e) => {
-            if (e.pointerId !== activePointerId) return;
-            gameCanvas.releasePointerCapture(e.pointerId);
-            endDrag();
+    function init() {
+      generateRandomPuzzle();
+      const validation = validateSolvableSpec();
+      if (!validation.ok) {
+        console.error('Unsolvable Glyph Stack setup:', validation.errors);
+        document.getElementById('title-card').querySelector('p').textContent =
+          'Puzzle setup error: this card is not solvable. Check the console for the exact broken tile/cell mapping.';
+        throw new Error(validation.errors.join(' | '));
+      }
+      tiles = tileSeeds.map(t => new Tile(t));
+      layout();
+      tiles.forEach(tile => {
+        tile.x = tile.homeX;
+        tile.y = tile.homeY;
+      });
+      selected = tiles[0];
+      drawPatternCard();
+      updateReadout();
+      showStatus('New solvable card');
+      requestAnimationFrame(loop);
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = SPEC.background;
+      ctx.fillRect(0, 0, width, height);
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, 'rgba(255,255,255,0.28)');
+      grad.addColorStop(0.52, 'rgba(255,255,255,0.04)');
+      grad.addColorStop(1, 'rgba(70,88,104,0.18)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = '#384a5c';
+      ctx.lineWidth = 1;
+      const step = width < 560 ? 28 : 36;
+      for (let x = -step; x < width + step; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + height * 0.18, height);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawBuildBoard() {
+      ctx.save();
+      ctx.shadowColor = 'rgba(31,55,78,0.18)';
+      ctx.shadowBlur = 28;
+      ctx.shadowOffsetY = 12;
+      roundedRect(ctx, board.x - 14, board.y - 14, board.w + 28, board.h + 28, 22);
+      const bg = ctx.createLinearGradient(board.x, board.y, board.x + board.w, board.y + board.h);
+      bg.addColorStop(0, 'rgba(244,248,251,0.78)');
+      bg.addColorStop(1, 'rgba(203,214,224,0.78)');
+      ctx.fillStyle = bg;
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = 'rgba(37,65,90,0.20)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      cells.forEach(cell => {
+        const matched = cell.occupiedBy !== null;
+        ctx.save();
+        ctx.translate(cell.x, cell.y);
+        ctx.shadowColor = matched ? 'rgba(37,122,93,0.30)' : 'rgba(31,55,78,0.11)';
+        ctx.shadowBlur = matched ? 14 : 8;
+        ctx.shadowOffsetY = 3;
+        roundedRect(ctx, -cell.size / 2, -cell.size / 2, cell.size, cell.size, 12);
+        ctx.fillStyle = matched ? 'rgba(222,242,235,0.55)' : 'rgba(246,249,251,0.78)';
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.lineWidth = matched ? 3 : 2;
+        ctx.strokeStyle = matched ? 'rgba(37,122,93,0.72)' : 'rgba(37,65,90,0.24)';
+        ctx.stroke();
+        if (!matched) {
+          ctx.setLineDash([6, 6]);
+          ctx.strokeStyle = 'rgba(37,65,90,0.18)';
+          roundedRect(ctx, -cell.size / 2 + 6, -cell.size / 2 + 6, cell.size - 12, cell.size - 12, 8);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.globalAlpha = matched ? 0.11 : 0.32;
+        drawGlyph(ctx, cell.glyph, 0, 0, cell.size * 0.52);
+        ctx.restore();
+      });
+    }
+
+    function drawGhostPlacement() {
+      if (!selected || !selected.isDragging) return;
+      const p = findBestPlacement(selected, false);
+      if (!p) return;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.globalAlpha = 0.28;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = p.isExact ? 'rgba(37,122,93,0.95)' : 'rgba(176,120,24,0.70)';
+      roundedRect(ctx, -board.cell / 2 - 3, -(board.cell * 2 + board.gap) / 2 - 3, board.cell + 6, board.cell * 2 + board.gap + 6, 18);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawGlyph(ctx, name, x, y, size) {
+      const fn = Glyphs[name];
+      if (!fn) return;
+      ctx.save();
+      ctx.translate(x, y);
+      fn(ctx, size);
+      ctx.restore();
+    }
+
+    function drawTile(tile) {
+      const w = tile.tileW;
+      const h = tile.tileH;
+      const lift = tile.lift;
+      ctx.save();
+      ctx.translate(tile.x, tile.y - lift);
+      ctx.rotate(tile.rotation);
+      ctx.scale(tile.scale, tile.scale);
+
+      ctx.shadowColor = 'rgba(27, 43, 58, ' + (tile.isDragging ? '0.34' : '0.24') + ')';
+      ctx.shadowBlur = SPEC.tile.shadowBlur + lift * 1.1;
+      ctx.shadowOffsetY = SPEC.tile.shadowOffsetY + lift * 0.35;
+      roundedRect(ctx, -w / 2, -h / 2, w, h, SPEC.tile.radius);
+      const bodyGrad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+      bodyGrad.addColorStop(0, '#f8fbfd');
+      bodyGrad.addColorStop(0.26, '#dde8f1');
+      bodyGrad.addColorStop(0.62, '#c4d2df');
+      bodyGrad.addColorStop(1, '#a9bac8');
+      ctx.fillStyle = bodyGrad;
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+
+      ctx.save();
+      roundedRect(ctx, -w / 2, -h / 2, w, h, SPEC.tile.radius);
+      ctx.clip();
+      drawTileGrain(ctx, w, h);
+      ctx.restore();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+      roundedRect(ctx, -w / 2 + 2, -h / 2 + 2, w - 4, h - 4, SPEC.tile.radius - 2);
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(38,62,84,0.22)';
+      roundedRect(ctx, -w / 2 + SPEC.tile.inset, -h / 2 + SPEC.tile.inset, w - SPEC.tile.inset * 2, h - SPEC.tile.inset * 2, SPEC.tile.radius - 7);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(38,62,84,0.22)';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-w / 2 + SPEC.tile.inset + 5, 0);
+      ctx.lineTo(w / 2 - SPEC.tile.inset - 5, 0);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.36)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-w / 2 + SPEC.tile.inset + 5, 3);
+      ctx.lineTo(w / 2 - SPEC.tile.inset - 5, 3);
+      ctx.stroke();
+
+      drawGlyph(ctx, tile.face.top, 0, -h * 0.25, w * 0.44);
+      drawGlyph(ctx, tile.face.bottom, 0, h * 0.25, w * 0.44);
+
+      if (tile === selected) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = tile.isLocked ? 'rgba(37,122,93,0.92)' : 'rgba(0,180,215,0.95)';
+        roundedRect(ctx, -w / 2 - 4, -h / 2 - 4, w + 8, h + 8, SPEC.tile.radius + 4);
+        ctx.stroke();
+      }
+
+      if (tile.flash > 0.01) {
+        ctx.globalAlpha = tile.flash * 0.55;
+        roundedRect(ctx, -w / 2 - 6, -h / 2 - 6, w + 12, h + 12, SPEC.tile.radius + 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawTileGrain(ctx, w, h) {
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.strokeStyle = '#678195';
+      ctx.lineWidth = 1;
+      for (let i = -8; i <= 8; i++) {
+        ctx.beginPath();
+        const x = i * 11;
+        ctx.moveTo(x, -h / 2);
+        ctx.bezierCurveTo(x + 8, -h * 0.18, x - 10, h * 0.18, x + 6, h / 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.10;
+      ctx.fillStyle = '#1f405c';
+      [-0.36, -0.19, 0.02, 0.24, 0.39].forEach(frac => ctx.fillRect(frac * w, -h / 2, 2, h));
+      ctx.restore();
+    }
+
+    function drawPatternCard() {
+      const spec = SPEC.patternCard;
+      patternCanvas.width = spec.pixelWidth;
+      patternCanvas.height = spec.pixelHeight;
+      const c = patternCtx;
+      const w = spec.pixelWidth;
+      const h = spec.pixelHeight;
+      c.clearRect(0, 0, w, h);
+      const bg = c.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, '#eef3f7');
+      bg.addColorStop(1, '#c6d1dc');
+      c.fillStyle = bg;
+      roundedRect(c, 0, 0, w, h, 12);
+      c.fill();
+
+      const innerW = w - spec.margin * 2;
+      const innerH = h - spec.margin * 2;
+      const cell = Math.floor(Math.min(innerW / SPEC.pattern.maxCols, innerH / patternRows.length));
+      const gridW = cell * SPEC.pattern.maxCols;
+      const gridH = cell * patternRows.length;
+      const ox = spec.margin + Math.floor((innerW - gridW) / 2);
+      const oy = spec.margin + Math.floor((innerH - gridH) / 2);
+
+      patternRows.forEach((row, r) => {
+        row.forEach((glyph, col) => {
+          const x = ox + col * cell;
+          const y = oy + r * cell;
+          c.save();
+          c.beginPath();
+          c.rect(x, y, cell, cell);
+          c.clip();
+          const cg = c.createLinearGradient(x, y, x + cell, y + cell);
+          cg.addColorStop(0, '#f9fbfd');
+          cg.addColorStop(1, '#c6d4df');
+          c.fillStyle = cg;
+          c.fillRect(x, y, cell, cell);
+          drawGlyph(c, glyph, x + cell / 2, y + cell / 2, cell * 0.52);
+          c.restore();
         });
+      });
 
-        gameCanvas.addEventListener('pointercancel', endDrag);
-
-        function resetStick() {
-            stickVector.x = 0;
-            stickVector.y = 0;
-            stickKnobEl.style.transform = 'translate(-50%, -50%)';
-        }
-
-        function resetYawStick() {
-            yawStickVector = 0;
-            yawStickKnobEl.style.transform = 'translate(-50%, -50%)';
-        }
-
-        function setStickFromPointer(clientX, clientY, baseEl, knobEl, spec, vector) {
-            const rect = baseEl.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            const maxR = spec.stickRadiusPx;
-            let dx = clientX - cx;
-            let dy = clientY - cy;
-            const dist = Math.hypot(dx, dy);
-            if (dist > maxR) {
-                dx = (dx / dist) * maxR;
-                dy = (dy / dist) * maxR;
-            }
-            const nx = dx / maxR;
-            const ny = -dy / maxR;
-            const dz = spec.stickDeadzone;
-            vector.x = Math.abs(nx) < dz ? 0 : nx;
-            vector.y = Math.abs(ny) < dz ? 0 : ny;
-            knobEl.style.transform =
-                'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
-        }
-
-        function setYawStickFromPointer(clientX, clientY) {
-            const rect = yawStickBaseEl.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const maxR = TILE_SPEC.yaw.stickRadiusPx;
-            let dx = clientX - cx;
-            if (Math.abs(dx) > maxR) dx = Math.sign(dx) * maxR;
-            const nx = dx / maxR;
-            const dz = TILE_SPEC.yaw.stickDeadzone;
-            yawStickVector = Math.abs(nx) < dz ? 0 : nx;
-            yawStickKnobEl.style.transform =
-                'translate(calc(-50% + ' + dx + 'px), -50%)';
-        }
-
-        function initToolbarStick(opts) {
-            const { baseEl, knobEl, canUse, onPointer, getPointerId, setPointerId, onRelease } = opts;
-
-            const endStick = () => {
-                setPointerId(null);
-                onRelease();
-            };
-
-            knobEl.addEventListener('pointerdown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (!canUse()) return;
-                setPointerId(e.pointerId);
-                knobEl.setPointerCapture(e.pointerId);
-                onPointer(e.clientX, e.clientY);
-            });
-
-            knobEl.addEventListener('pointermove', (e) => {
-                if (getPointerId() !== e.pointerId) return;
-                e.preventDefault();
-                onPointer(e.clientX, e.clientY);
-            });
-
-            knobEl.addEventListener('pointerup', (e) => {
-                if (getPointerId() !== e.pointerId) return;
-                if (knobEl.hasPointerCapture(e.pointerId)) knobEl.releasePointerCapture(e.pointerId);
-                endStick();
-            });
-
-            knobEl.addEventListener('pointercancel', endStick);
-            knobEl.addEventListener('lostpointercapture', endStick);
-
-            baseEl.addEventListener('pointerdown', (e) => {
-                if (knobEl.contains(e.target)) return;
-                e.preventDefault();
-                if (!canUse()) return;
-                setPointerId(e.pointerId);
-                baseEl.setPointerCapture(e.pointerId);
-                onPointer(e.clientX, e.clientY);
-            });
-
-            baseEl.addEventListener('pointermove', (e) => {
-                if (getPointerId() !== e.pointerId) return;
-                e.preventDefault();
-                onPointer(e.clientX, e.clientY);
-            });
-
-            baseEl.addEventListener('pointerup', (e) => {
-                if (getPointerId() !== e.pointerId) return;
-                if (baseEl.hasPointerCapture(e.pointerId)) baseEl.releasePointerCapture(e.pointerId);
-                endStick();
-            });
-
-            baseEl.addEventListener('pointercancel', endStick);
-            baseEl.addEventListener('lostpointercapture', endStick);
-        }
-
-        initToolbarStick({
-            baseEl: stickBaseEl,
-            knobEl: stickKnobEl,
-            canUse: () => !!selected,
-            onPointer: (x, y) => setStickFromPointer(x, y, stickBaseEl, stickKnobEl, TILE_SPEC.move, stickVector),
-            getPointerId: () => stickDragPointerId,
-            setPointerId: (id) => { stickDragPointerId = id; },
-            onRelease: resetStick
+      c.beginPath();
+      patternRows.forEach((row, r) => {
+        row.forEach((_, col) => {
+          const x = ox + col * cell;
+          const y = oy + r * cell;
+          c.rect(Math.round(x) + 0.5, Math.round(y) + 0.5, cell, cell);
         });
+      });
+      c.strokeStyle = spec.borderColor;
+      c.lineWidth = 1;
+      c.stroke();
+    }
 
-        initToolbarStick({
-            baseEl: yawStickBaseEl,
-            knobEl: yawStickKnobEl,
-            canUse: canUseYawStick,
-            onPointer: setYawStickFromPointer,
-            getPointerId: () => yawStickDragPointerId,
-            setPointerId: (id) => { yawStickDragPointerId = id; },
-            onRelease: () => {
-                resetYawStick();
-                updateToolbarSticks();
-            }
-        });
+    function pickTile(x, y) {
+      for (let i = tiles.length - 1; i >= 0; i--) {
+        if (tiles[i].contains(x, y)) return tiles[i];
+      }
+      return null;
+    }
 
-        document.getElementById('btn-reset').addEventListener('click', () => {
-            resetStick();
-            resetYawStick();
-            applyAllInitialPoses();
-            setSelected(blocks[0]);
-        });
+    function updateReadout() {
+      if (!selected) {
+        tileNumEl.textContent = '—';
+        faceLabelEl.textContent = '—';
+        return;
+      }
+      tileNumEl.textContent = String(selected.id);
+      faceLabelEl.textContent = selected.face.label + (selected.isLocked ? ' locked' : '');
+    }
 
-        function updateCamera() {
-            const w = sceneWrap.clientWidth;
-            const h = sceneWrap.clientHeight;
-            if (w < 1 || h < 1) return;
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-            renderer.setPixelRatio(getMaxPixelRatio());
-            renderer.setSize(w, h, false);
-            camera.position.set(...camSpec.position);
-            camera.lookAt(...camSpec.lookAt);
+    function beginInteraction(e) {
+      if (pointerId !== null) return;
+      const p = getPointerPos(e);
+      const tile = pickTile(p.x, p.y);
+      if (!tile) return;
+      e.preventDefault();
+      ensureAudio();
+      pointerId = e.pointerId;
+      canvas.setPointerCapture(pointerId);
+      selected = tile;
+      const local = screenToLocal(p.x, p.y, tile);
+      dragOffset.x = local.x;
+      dragOffset.y = local.y;
+      tile.isDragging = true;
+      tile.unlock();
+      tile.targetLift = SPEC.tile.grabLift;
+      tile.targetScale = 1.035;
+      tile.vx = 0;
+      tile.vy = 0;
+      tile.angularVelocity = 0;
+      pointerStart = { x: p.x, y: p.y, t: performance.now() };
+      lastPointer = { x: p.x, y: p.y, t: performance.now() };
+      bringToFront(tile);
+      updateReadout();
+      canvas.classList.add('is-grabbing');
+    }
+
+    function bringToFront(tile) {
+      const idx = tiles.indexOf(tile);
+      if (idx < 0) return;
+      tiles.splice(idx, 1);
+      tiles.push(tile);
+    }
+
+    function moveInteraction(e) {
+      if (e.pointerId !== pointerId || !selected) return;
+      e.preventDefault();
+      const p = getPointerPos(e);
+      const now = performance.now();
+      const dt = Math.max(16, now - lastPointer.t);
+      const dx = p.x - lastPointer.x;
+      const dy = p.y - lastPointer.y;
+
+      const cos = Math.cos(selected.rotation);
+      const sin = Math.sin(selected.rotation);
+      selected.x = p.x - (dragOffset.x * cos - dragOffset.y * sin);
+      selected.y = p.y - (dragOffset.x * sin + dragOffset.y * cos);
+      selected.x = clamp(selected.x, selected.tileH * 0.28, width - selected.tileH * 0.28);
+      selected.y = clamp(selected.y, selected.tileH * 0.36, height - selected.tileH * 0.36);
+      selected.vx = dx * (16 / dt);
+      selected.vy = dy * (16 / dt);
+      // Carrying a tile should feel like holding a solid game piece, not like dragging
+      // a swinging object. Movement no longer feeds rotational velocity. The tile keeps
+      // its current orientation until the player intentionally taps/clicks to rotate it,
+      // or until it snaps into a matching board slot.
+      selected.angularVelocity = 0;
+      selected.targetRotation = selected.rotation;
+      lastPointer = { x: p.x, y: p.y, t: now };
+      updatePotentialCellPulse(selected);
+    }
+
+    function endInteraction(e) {
+      if (e.pointerId !== pointerId) return;
+      if (canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
+      const p = getPointerPos(e);
+      const dt = performance.now() - pointerStart.t;
+      const dist = Math.hypot(p.x - pointerStart.x, p.y - pointerStart.y);
+      const tile = selected;
+      pointerId = null;
+      canvas.classList.remove('is-grabbing');
+      if (!tile) return;
+      tile.isDragging = false;
+      tile.targetLift = 0;
+      tile.targetScale = 1;
+      tile.angularVelocity = 0;
+
+      if (dt <= SPEC.physics.tapTimeMs && dist <= SPEC.physics.tapDistancePx) {
+        tile.cycleFace();
+        updateReadout();
+        return;
+      }
+      attemptSnap(tile);
+      updateReadout();
+    }
+
+    function cancelInteraction(e) {
+      if (e.pointerId !== pointerId) return;
+      if (selected) {
+        selected.isDragging = false;
+        selected.targetLift = 0;
+        selected.targetScale = 1;
+      }
+      pointerId = null;
+      canvas.classList.remove('is-grabbing');
+    }
+
+    function updatePotentialCellPulse(tile) {
+      const p = findBestPlacement(tile, false);
+      cells.forEach(c => c.pulse = 0);
+      if (!p) return;
+      p.cells.forEach(id => {
+        const cell = cells.find(c => c.id === id);
+        if (cell) cell.pulse = 1;
+      });
+    }
+
+    function isPlacementFree(place, tile) {
+      return place.cells.every(id => {
+        const cell = cells.find(c => c.id === id);
+        return cell && (cell.occupiedBy === null || cell.occupiedBy === tile.id);
+      });
+    }
+
+    function faceMatchesPlacement(tile, place) {
+      return tile.face.top === place.glyphs[0] && tile.face.bottom === place.glyphs[1];
+    }
+
+    function findBestPlacement(tile, requireExact) {
+      let best = null;
+      let bestScore = Infinity;
+      for (const place of placements) {
+        if (!isPlacementFree(place, tile)) continue;
+        const exact = faceMatchesPlacement(tile, place);
+        if (requireExact && !exact) continue;
+        const dist = Math.hypot(place.x - tile.x, place.y - tile.y);
+        const maxDist = Math.max(board.cell, tile.tileW) * SPEC.physics.snapDistanceFactor;
+        if (dist > maxDist) continue;
+        const angleDelta = Math.abs(normAngle(place.angle - nearestRightAngle(tile.rotation)));
+        if (requireExact && angleDelta > SPEC.physics.snapAngleTolerance) continue;
+        const score = dist + angleDelta * 25 + (exact ? 0 : 1000);
+        if (score < bestScore) {
+          best = Object.assign({ isExact: exact }, place);
+          bestScore = score;
         }
+      }
+      return best;
+    }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const p = TILE_SPEC.physics;
+    function attemptSnap(tile) {
+      const place = findBestPlacement(tile, true);
+      if (!place) {
+        tile.targetRotation = nearestRightAngle(tile.rotation);
+        playTick(190, 0.035, 0.018);
+        showStatus('No two-slot match yet');
+        return;
+      }
+      tile.isLocked = true;
+      tile.lockedPlacementId = place.id;
+      tile.lockedCells = place.cells.slice();
+      tile.vx = 0;
+      tile.vy = 0;
+      tile.angularVelocity = 0;
+      tile.targetRotation = place.angle;
+      tile.flash = 1;
+      assignCellOccupancy();
+      place.cells.forEach(id => {
+        const cell = cells.find(c => c.id === id);
+        if (cell) cell.pulse = 1;
+      });
+      playClick();
+      showStatus('Clicked into the card');
+      checkWin();
+    }
 
-            blocks.forEach(block => stepBlockPhysics(block, p));
+    function checkWin() {
+      const filled = cells.filter(c => c.occupiedBy !== null).length;
+      if (filled === cells.length) {
+        setTimeout(() => {
+          playWin();
+          showStatus('Pattern complete');
+        }, 140);
+      }
+    }
 
-            if (selected && !selected.isDragging) {
-                const m = TILE_SPEC.move;
-                if (stickVector.x !== 0 || stickVector.y !== 0) {
-                    selected.mesh.position.x = clampMoveX(
-                        selected.mesh.position.x + stickVector.x * m.holdSpeed
-                    );
-                    selected.mesh.position.y = clampMoveY(
-                        selected.mesh.position.y + stickVector.y * m.holdSpeed
-                    );
-                }
-                if (yawStickVector !== 0 && canUseYawStick()) {
-                    selected.isSnapping = false;
-                    selected.spinX = 0;
-                    selected.spinY = 0;
-                    selected.spinZ = 0;
-                    applyYawDelta(selected, -yawStickVector * TILE_SPEC.yaw.holdSpeed);
-                }
-                updateFaceReadout();
-                updateToolbarSticks();
-            }
+    function resetGame() {
+      generateRandomPuzzle();
+      tiles = tileSeeds.map(t => new Tile(t));
+      layout();
+      tiles.forEach(tile => { tile.x = tile.homeX; tile.y = tile.homeY; });
+      selected = tiles[0] || null;
+      assignCellOccupancy();
+      drawPatternCard();
+      playTick(300, 0.05, 0.02);
+      showStatus('New card');
+      updateReadout();
+    }
 
-            renderer.render(scene, camera);
-        }
+    function ensureAudio() {
+      if (audioCtx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+    }
 
-        clearMaterialEmissive();
-        applyAllInitialPoses();
-        setSelected(blocks[0]);
-        window.addEventListener('resize', updateCamera);
-        if (window.ResizeObserver) {
-            new ResizeObserver(updateCamera).observe(sceneWrap);
-        }
-        requestAnimationFrame(() => {
-            updateCamera();
-            updateFaceReadout();
-            drawPatternCard();
-        });
-        animate();
-    </script>
+    function playTick(freq, dur, vol) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(vol, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + dur + 0.02);
+    }
+
+    function playClick() {
+      playTick(520, 0.04, 0.035);
+      setTimeout(() => playTick(780, 0.035, 0.025), 28);
+    }
+
+    function playWin() {
+      [440, 554, 659, 880].forEach((f, i) => setTimeout(() => playTick(f, 0.06, 0.028), i * 55));
+    }
+
+    function showStatus(text) {
+      statusEl.textContent = text;
+      statusEl.classList.add('show');
+      if (lastStatusTimeout) clearTimeout(lastStatusTimeout);
+      lastStatusTimeout = setTimeout(() => statusEl.classList.remove('show'), 1050);
+    }
+
+    function loop() {
+      tiles.forEach(tile => tile.update());
+      cells.forEach(c => c.pulse *= 0.88);
+      drawBackground();
+      drawBuildBoard();
+      drawGhostPlacement();
+      tiles.forEach(drawTile);
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', layout);
+    canvas.addEventListener('pointerdown', beginInteraction);
+    canvas.addEventListener('pointermove', moveInteraction);
+    canvas.addEventListener('pointerup', endInteraction);
+    canvas.addEventListener('pointercancel', cancelInteraction);
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('keydown', e => {
+      if (e.key.toLowerCase() === 'r') resetGame();
+      if (e.key === ' ' && selected) {
+        e.preventDefault();
+        selected.cycleFace();
+        updateReadout();
+      }
+    });
+
+    init();
+  </script>
 </body>
 </html>
