@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Mobile-safe viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+
+    <title>3D Labyrinth Mobile Edition</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            touch-action: none;
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100dvh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: calc(20px + env(safe-area-inset-top));
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 1);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.8s ease-out;
+            width: 90vw;
+        }
+
+        h1 {
+            margin: 0 0 5px 0;
+            font-size: clamp(18px, 5vw, 26px);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        p {
+            margin: 0;
+            font-size: clamp(12px, 3.5vw, 14px);
+            letter-spacing: 1px;
+            color: #ffcc00;
+        }
+
+        #win-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffcc;
+            font-size: clamp(32px, 9vw, 56px);
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ffcc;
+            display: none;
+            z-index: 20;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            pointer-events: none;
+            text-align: center;
+            width: 90vw;
+        }
+
+        #mobile-controls {
+            position: absolute;
+            inset: 0;
+            z-index: 15;
+            pointer-events: none;
+            display: none;
+        }
+
+        .touch-zone {
+            position: absolute;
+            bottom: calc(28px + env(safe-area-inset-bottom));
+            width: 150px;
+            height: 150px;
+            pointer-events: auto;
+            touch-action: none;
+        }
+
+        #move-zone {
+            left: calc(24px + env(safe-area-inset-left));
+        }
+
+        #look-zone-label {
+            position: absolute;
+            right: calc(24px + env(safe-area-inset-right));
+            bottom: calc(42px + env(safe-area-inset-bottom));
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        #joystick-base {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            left: 5px;
+            top: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        #joystick-stick {
+            position: absolute;
+            width: 58px;
+            height: 58px;
+            left: 46px;
+            top: 46px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.28);
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+
+        @media (pointer: coarse) {
+            #mobile-controls {
+                display: block;
+            }
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+    <div id="ui-overlay">
+        <h1>THE LABYRINTH</h1>
+        <p>Desktop: click + WASD. Mobile: left thumb moves, right thumb looks.</p>
+    </div>
+
+    <div id="win-screen">MAZE SOLVED!</div>
+
+    <div id="canvas-container"></div>
+
+    <div id="mobile-controls">
+        <div id="move-zone" class="touch-zone">
+            <div id="joystick-base"></div>
+            <div id="joystick-stick"></div>
+        </div>
+
+        <div id="look-zone-label">Look</div>
+    </div>
+
+    <script>
+        // --- 1. MAZE BLUEPRINT ---
+        const mazeLayout = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1],
+            [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1],
+            [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+            [1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
+        const SIZE = 20;
+        const playerRadius = 2.5;
+
+        const isMobile = window.matchMedia('(pointer: coarse)').matches;
+
+        const desktopMoveSpeed = 52;
+        const mobileMoveSpeed = 42;
+        const moveSpeed = isMobile ? mobileMoveSpeed : desktopMoveSpeed;
+
+        const desktopSensitivity = 0.002;
+        const mobileSensitivity = 0.0042;
+
+        let hasWon = false;
+        let uiRemoved = false;
+        let yaw = 0;
+
+        // --- 2. SCENE SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+
+        scene.background = new THREE.Color(0x000000);
+
+        const camera = new THREE.PerspectiveCamera(
+            isMobile ? 68 : 60,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+
+        const renderer = new THREE.WebGLRenderer({
+            antialias: !isMobile,
+            powerPreference: 'high-performance'
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const pixelRatioCap = isMobile ? 1.35 : 2;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
+
+        container.appendChild(renderer.domElement);
+
+        const clock = new THREE.Clock();
+
+        // --- 3. PROCEDURAL TEXTURES ---
+        function makeFloorTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 256, 256);
+
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(0, 0, 128, 128);
+            ctx.fillRect(128, 128, 128, 128);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(2, 2);
+
+            return texture;
+        }
+
+        function makeCeilingTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#dcdcd5';
+            ctx.fillRect(0, 0, 256, 256);
+
+            ctx.strokeStyle = '#666660';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(2, 2, 252, 252);
+
+            const speckleCount = isMobile ? 160 : 400;
+
+            for (let i = 0; i < speckleCount; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#b8b8b0' : '#e8e8e0';
+                ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
+            }
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function makeWallTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#eadecc';
+            ctx.fillRect(0, 0, 512, 512);
+
+            const stainCount = isMobile ? 250 : 800;
+
+            for (let i = 0; i < stainCount; i++) {
+                ctx.fillStyle = 'rgba(90, 80, 65, 0.03)';
+                ctx.beginPath();
+                ctx.arc(
+                    Math.random() * 512,
+                    Math.random() * 512,
+                    Math.random() * 25,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+            }
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const floorTex = makeFloorTexture();
+        const ceilingTex = makeCeilingTexture();
+        const wallTex = makeWallTexture();
+
+        // --- 4. MATERIALS ---
+        const floorMat = new THREE.MeshStandardMaterial({
+            map: floorTex,
+            roughness: 0.35
+        });
+
+        const ceilingMat = new THREE.MeshStandardMaterial({
+            map: ceilingTex,
+            roughness: 0.9
+        });
+
+        const wallMat = new THREE.MeshStandardMaterial({
+            map: wallTex,
+            roughness: 0.8
+        });
+
+        const pillarMat = new THREE.MeshStandardMaterial({
+            color: 0xd5cbba,
+            roughness: 0.75
+        });
+
+        // --- 5. WORLD BUILDING ---
+        const rows = mazeLayout.length;
+        const cols = mazeLayout[0].length;
+
+        const wallGeo = new THREE.BoxGeometry(SIZE, SIZE, SIZE);
+        const pillarGeo = new THREE.BoxGeometry(1.5, SIZE + 0.1, 1.5);
+
+        const floorGeo = new THREE.PlaneGeometry(SIZE, SIZE);
+        floorGeo.rotateX(-Math.PI / 2);
+
+        const ceilingGeo = new THREE.PlaneGeometry(SIZE, SIZE);
+        ceilingGeo.rotateX(Math.PI / 2);
+
+        const lightFixtureGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.4, 12);
+        const lightFixtureMat = new THREE.MeshBasicMaterial({ color: 0xfffca8 });
+
+        function spawnCeilingLight(x, z, stronger = false) {
+            const fixture = new THREE.Mesh(lightFixtureGeo, lightFixtureMat);
+            fixture.position.set(x, SIZE / 2 - 0.2, z);
+            scene.add(fixture);
+
+            const intensity = stronger ? 1.9 : 1.25;
+            const distance = isMobile ? 24 : 28;
+
+            const pathLight = new THREE.PointLight(0xfffdd0, intensity, distance);
+            pathLight.position.set(x, SIZE / 2 - 1, z);
+            scene.add(pathLight);
+        }
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const posX = c * SIZE;
+                const posZ = r * SIZE;
+
+                if (mazeLayout[r][c] === 1) {
+                    const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+                    wallMesh.position.set(posX, 0, posZ);
+                    scene.add(wallMesh);
+
+                    // Pillars are pretty, but expensive.
+                    // Keep fewer on mobile.
+                    if (!isMobile || (r + c) % 2 === 0) {
+                        const p1 = new THREE.Mesh(pillarGeo, pillarMat);
+                        const p2 = new THREE.Mesh(pillarGeo, pillarMat);
+                        const p3 = new THREE.Mesh(pillarGeo, pillarMat);
+                        const p4 = new THREE.Mesh(pillarGeo, pillarMat);
+
+                        p1.position.set(posX - SIZE / 2, 0, posZ - SIZE / 2);
+                        p2.position.set(posX + SIZE / 2, 0, posZ - SIZE / 2);
+                        p3.position.set(posX - SIZE / 2, 0, posZ + SIZE / 2);
+                        p4.position.set(posX + SIZE / 2, 0, posZ + SIZE / 2);
+
+                        scene.add(p1, p2, p3, p4);
+                    }
+                } else {
+                    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+                    floorMesh.position.set(posX, -SIZE / 2, posZ);
+                    scene.add(floorMesh);
+
+                    const ceilingMesh = new THREE.Mesh(ceilingGeo, ceilingMat);
+                    ceilingMesh.position.set(posX, SIZE / 2, posZ);
+                    scene.add(ceilingMesh);
+
+                    const upWall = r - 1 < 0 || mazeLayout[r - 1][c] === 1;
+                    const downWall = r + 1 >= rows || mazeLayout[r + 1][c] === 1;
+                    const leftWall = c - 1 < 0 || mazeLayout[r][c - 1] === 1;
+                    const rightWall = c + 1 >= cols || mazeLayout[r][c + 1] === 1;
+
+                    const isHorizontalStraight = !leftWall && !rightWall && upWall && downWall;
+                    const isVerticalStraight = !upWall && !downWall && leftWall && rightWall;
+
+                    let shouldPlaceLight = false;
+
+                    if (r === 13 && c === 1) {
+                        shouldPlaceLight = true;
+                    } else if (!isHorizontalStraight && !isVerticalStraight) {
+                        shouldPlaceLight = true;
+                    } else if (!isMobile && isHorizontalStraight && c % 2 === 0) {
+                        shouldPlaceLight = true;
+                    } else if (!isMobile && isVerticalStraight && r % 2 === 0) {
+                        shouldPlaceLight = true;
+                    } else if (isMobile && isHorizontalStraight && c % 4 === 0) {
+                        shouldPlaceLight = true;
+                    } else if (isMobile && isVerticalStraight && r % 4 === 0) {
+                        shouldPlaceLight = true;
+                    }
+
+                    if (shouldPlaceLight) {
+                        spawnCeilingLight(posX, posZ, r === 13 && c === 1);
+                    }
+                }
+            }
+        }
+
+        // --- 6. START AND GOAL ---
+        const startCol = 1;
+        const startRow = 13;
+
+        const startX = startCol * SIZE;
+        const startZ = startRow * SIZE;
+
+        camera.position.set(startX, 0, startZ);
+
+        const goalCol = 13;
+        const goalRow = 2;
+
+        const goalX = goalCol * SIZE;
+        const goalZ = goalRow * SIZE;
+
+        const trophyGeo = new THREE.OctahedronGeometry(3.5, 0);
+        const trophyMat = new THREE.MeshPhysicalMaterial({
+            color: 0xffd700,
+            emissive: 0x332200,
+            metalness: 1.0,
+            roughness: 0.03,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.02
+        });
+
+        const trophyMesh = new THREE.Mesh(trophyGeo, trophyMat);
+        trophyMesh.position.set(goalX, 0, goalZ);
+        scene.add(trophyMesh);
+
+        const trophyLight = new THREE.PointLight(0xffea00, 3, 18);
+        trophyLight.position.set(goalX, 4, goalZ);
+        scene.add(trophyLight);
+
+        // --- 7. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x202025);
+        scene.add(ambientLight);
+
+        const flashlight = new THREE.PointLight(0xffffff, isMobile ? 1.1 : 1.5, isMobile ? 17 : 20);
+        scene.add(flashlight);
+
+        // --- 8. DESKTOP CONTROLS ---
+        container.addEventListener('click', () => {
+            if (!hasWon && !isMobile) {
+                container.requestPointerLock();
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isMobile) return;
+            if (document.pointerLockElement !== container) return;
+
+            yaw -= e.movementX * desktopSensitivity;
+            camera.rotation.set(0, yaw, 0);
+        });
+
+        const keys = {
+            w: false,
+            a: false,
+            s: false,
+            d: false,
+            arrowup: false,
+            arrowdown: false,
+            arrowleft: false,
+            arrowright: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+
+            if (key in keys) {
+                keys[key] = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+
+            if (key in keys) {
+                keys[key] = false;
+            }
+        });
+
+        // --- 9. MOBILE TOUCH CONTROLS ---
+        const moveZone = document.getElementById('move-zone');
+        const joystickStick = document.getElementById('joystick-stick');
+
+        const mobileMove = {
+            x: 0,
+            y: 0,
+            active: false,
+            pointerId: null,
+            centerX: 0,
+            centerY: 0
+        };
+
+        const mobileLook = {
+            active: false,
+            pointerId: null,
+            lastX: 0,
+            lastY: 0
+        };
+
+        function resetJoystick() {
+            mobileMove.x = 0;
+            mobileMove.y = 0;
+            mobileMove.active = false;
+            mobileMove.pointerId = null;
+            joystickStick.style.transform = 'translate(0px, 0px)';
+        }
+
+        moveZone.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+
+            const rect = moveZone.getBoundingClientRect();
+
+            mobileMove.active = true;
+            mobileMove.pointerId = e.pointerId;
+            mobileMove.centerX = rect.left + rect.width / 2;
+            mobileMove.centerY = rect.top + rect.height / 2;
+
+            moveZone.setPointerCapture(e.pointerId);
+        }, { passive: false });
+
+        moveZone.addEventListener('pointermove', (e) => {
+            if (!mobileMove.active || e.pointerId !== mobileMove.pointerId) return;
+
+            e.preventDefault();
+
+            const maxDistance = 48;
+            let dx = e.clientX - mobileMove.centerX;
+            let dy = e.clientY - mobileMove.centerY;
+
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > maxDistance) {
+                dx = dx / distance * maxDistance;
+                dy = dy / distance * maxDistance;
+            }
+
+            mobileMove.x = dx / maxDistance;
+            mobileMove.y = dy / maxDistance;
+
+            joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+        }, { passive: false });
+
+        moveZone.addEventListener('pointerup', resetJoystick);
+        moveZone.addEventListener('pointercancel', resetJoystick);
+
+        container.addEventListener('pointerdown', (e) => {
+            if (!isMobile) return;
+            if (e.target.closest('#move-zone')) return;
+
+            e.preventDefault();
+
+            mobileLook.active = true;
+            mobileLook.pointerId = e.pointerId;
+            mobileLook.lastX = e.clientX;
+            mobileLook.lastY = e.clientY;
+
+            container.setPointerCapture(e.pointerId);
+        }, { passive: false });
+
+        container.addEventListener('pointermove', (e) => {
+            if (!isMobile) return;
+            if (!mobileLook.active || e.pointerId !== mobileLook.pointerId) return;
+
+            e.preventDefault();
+
+            const dx = e.clientX - mobileLook.lastX;
+
+            yaw -= dx * mobileSensitivity;
+            camera.rotation.set(0, yaw, 0);
+
+            mobileLook.lastX = e.clientX;
+            mobileLook.lastY = e.clientY;
+        }, { passive: false });
+
+        container.addEventListener('pointerup', (e) => {
+            if (e.pointerId === mobileLook.pointerId) {
+                mobileLook.active = false;
+                mobileLook.pointerId = null;
+            }
+        });
+
+        container.addEventListener('pointercancel', (e) => {
+            if (e.pointerId === mobileLook.pointerId) {
+                mobileLook.active = false;
+                mobileLook.pointerId = null;
+            }
+        });
+
+        // --- 10. COLLISION ---
+        function checkWallCollision(targetPos) {
+            const checkPoints = [
+                new THREE.Vector3(targetPos.x - playerRadius, 0, targetPos.z - playerRadius),
+                new THREE.Vector3(targetPos.x + playerRadius, 0, targetPos.z - playerRadius),
+                new THREE.Vector3(targetPos.x - playerRadius, 0, targetPos.z + playerRadius),
+                new THREE.Vector3(targetPos.x + playerRadius, 0, targetPos.z + playerRadius)
+            ];
+
+            for (const point of checkPoints) {
+                const mapC = Math.round(point.x / SIZE);
+                const mapR = Math.round(point.z / SIZE);
+
+                if (mapR < 0 || mapR >= rows || mapC < 0 || mapC >= cols) {
+                    return true;
+                }
+
+                if (mazeLayout[mapR][mapC] === 1) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function processMovement(deltaTime) {
+            if (hasWon) return;
+
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            forward.y = 0;
+            forward.normalize();
+
+            const right = new THREE.Vector3()
+                .crossVectors(forward, new THREE.Vector3(0, 1, 0))
+                .normalize();
+
+            const intent = new THREE.Vector3(0, 0, 0);
+
+            if (isMobile) {
+                if (Math.abs(mobileMove.y) > 0.08) {
+                    intent.add(forward.clone().multiplyScalar(-mobileMove.y));
+                }
+
+                if (Math.abs(mobileMove.x) > 0.08) {
+                    intent.add(right.clone().multiplyScalar(mobileMove.x));
+                }
+            } else {
+                if (keys.w || keys.arrowup) {
+                    intent.add(forward);
+                }
+
+                if (keys.s || keys.arrowdown) {
+                    intent.add(forward.clone().negate());
+                }
+
+                if (keys.d || keys.arrowright) {
+                    intent.add(right);
+                }
+
+                if (keys.a || keys.arrowleft) {
+                    intent.add(right.clone().negate());
+                }
+            }
+
+            if (intent.lengthSq() > 0) {
+                intent.normalize().multiplyScalar(moveSpeed * deltaTime);
+
+                const nextX = camera.position.clone();
+                nextX.x += intent.x;
+
+                if (!checkWallCollision(nextX)) {
+                    camera.position.x += intent.x;
+                }
+
+                const nextZ = camera.position.clone();
+                nextZ.z += intent.z;
+
+                if (!checkWallCollision(nextZ)) {
+                    camera.position.z += intent.z;
+                }
+            }
+        }
+
+        // --- 11. UI AND WIN LOGIC ---
+        function fadeOverlayAfterMovement() {
+            if (uiRemoved) return;
+
+            const distFromSpawn = Math.sqrt(
+                Math.pow(camera.position.x - startX, 2) +
+                Math.pow(camera.position.z - startZ, 2)
+            );
+
+            if (distFromSpawn > SIZE * 0.75) {
+                uiRemoved = true;
+
+                const overlay = document.getElementById('ui-overlay');
+                overlay.style.opacity = '0';
+
+                setTimeout(() => {
+                    overlay.remove();
+                }, 800);
+            }
+        }
+
+        function checkWinCondition() {
+            const playerGridC = Math.round(camera.position.x / SIZE);
+            const playerGridR = Math.round(camera.position.z / SIZE);
+
+            if (playerGridC === goalCol && playerGridR === goalRow && !hasWon) {
+                hasWon = true;
+
+                document.getElementById('win-screen').style.display = 'block';
+
+                if (document.pointerLockElement === container) {
+                    document.exitPointerLock();
+                }
+            }
+        }
+
+        // --- 12. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const deltaTime = Math.min(clock.getDelta(), 0.05);
+            const elapsedTime = clock.elapsedTime;
+
+            processMovement(deltaTime);
+
+            flashlight.position.copy(camera.position);
+
+            trophyMesh.rotation.y = elapsedTime * 1.5;
+            trophyMesh.position.y = Math.sin(elapsedTime * 2) * 0.6;
+
+            fadeOverlayAfterMovement();
+            checkWinCondition();
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // --- 13. RESIZE HANDLING ---
+        function resizeRenderer() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
+        }
+
+        window.addEventListener('resize', resizeRenderer);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeRenderer, 250);
+        });
+
+        // Prevent mobile browser gestures from hijacking the game.
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+        document.addEventListener('gestureend', (e) => e.preventDefault());
+    </script>
+</body>
+</html>
