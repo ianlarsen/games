@@ -6,7 +6,7 @@
     <!-- Mobile-safe viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
-    <title>3D Labyrinth Mobile Edition</title>
+    <title>3D Labyrinth - The Three Locks</title>
 
     <style>
         html,
@@ -15,7 +15,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000;
+            background: #000;
             font-family: 'Segoe UI', Arial, sans-serif;
             touch-action: none;
             overscroll-behavior: none;
@@ -24,6 +24,8 @@
         }
 
         #canvas-container {
+            position: fixed;
+            inset: 0;
             width: 100vw;
             height: 100dvh;
             overflow: hidden;
@@ -35,18 +37,18 @@
             top: calc(20px + env(safe-area-inset-top));
             left: 50%;
             transform: translateX(-50%);
-            color: #ffffff;
+            color: #fff;
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 1);
             text-align: center;
             pointer-events: none;
             z-index: 10;
             transition: opacity 0.8s ease-out;
-            width: 90vw;
+            width: 92vw;
         }
 
         h1 {
             margin: 0 0 5px 0;
-            font-size: clamp(18px, 5vw, 26px);
+            font-size: clamp(18px, 5vw, 28px);
             letter-spacing: 4px;
             text-transform: uppercase;
         }
@@ -58,22 +60,48 @@
             color: #ffcc00;
         }
 
-        #win-screen {
+        #hud {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #00ffcc;
-            font-size: clamp(32px, 9vw, 56px);
-            font-weight: bold;
-            text-shadow: 0 0 20px #00ffcc;
-            display: none;
-            z-index: 20;
-            text-transform: uppercase;
-            letter-spacing: 5px;
+            top: calc(88px + env(safe-area-inset-top));
+            left: calc(18px + env(safe-area-inset-left));
+            z-index: 12;
+            color: #fff;
+            font-size: clamp(13px, 3.2vw, 16px);
+            line-height: 1.6;
+            text-shadow: 0 3px 12px #000, 0 0 8px #000;
             pointer-events: none;
-            text-align: center;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        #message {
+            position: absolute;
+            left: 50%;
+            bottom: calc(205px + env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            z-index: 18;
             width: 90vw;
+            text-align: center;
+            color: #ffec9f;
+            font-size: clamp(14px, 4vw, 21px);
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 3px 12px #000, 0 0 10px #000;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
+        #whiteout {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.15s ease-in;
         }
 
         #mobile-controls {
@@ -86,7 +114,6 @@
 
         .touch-zone {
             position: absolute;
-            bottom: calc(28px + env(safe-area-inset-bottom));
             width: 150px;
             height: 150px;
             pointer-events: auto;
@@ -95,36 +122,29 @@
 
         #move-zone {
             left: calc(24px + env(safe-area-inset-left));
+            bottom: calc(28px + env(safe-area-inset-bottom));
         }
 
-        #look-zone-label {
-            position: absolute;
+        #look-zone {
             right: calc(24px + env(safe-area-inset-right));
-            bottom: calc(42px + env(safe-area-inset-bottom));
-            width: 140px;
-            height: 140px;
+            bottom: calc(28px + env(safe-area-inset-bottom));
             border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.18);
-            color: rgba(255, 255, 255, 0.45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            pointer-events: none;
         }
 
-        #joystick-base {
+        #joystick-base,
+        #look-zone-label {
             position: absolute;
             width: 140px;
             height: 140px;
             left: 5px;
             top: 5px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.08);
             border: 2px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        #joystick-base {
+            background: rgba(255, 255, 255, 0.08);
         }
 
         #joystick-stick {
@@ -137,11 +157,48 @@
             background: rgba(255, 255, 255, 0.28);
             border: 2px solid rgba(255, 255, 255, 0.35);
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            will-change: transform;
+        }
+
+        #look-zone-label {
+            color: rgba(255, 255, 255, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            pointer-events: none;
         }
 
         @media (pointer: coarse) {
             #mobile-controls {
                 display: block;
+            }
+        }
+
+        @media (max-width: 700px) {
+            #hud {
+                top: calc(74px + env(safe-area-inset-top));
+                left: calc(10px + env(safe-area-inset-left));
+            }
+
+            .touch-zone {
+                width: 132px;
+                height: 132px;
+            }
+
+            #joystick-base,
+            #look-zone-label {
+                width: 122px;
+                height: 122px;
+            }
+
+            #joystick-stick {
+                width: 52px;
+                height: 52px;
+                left: 40px;
+                top: 40px;
             }
         }
     </style>
@@ -152,10 +209,17 @@
 <body>
     <div id="ui-overlay">
         <h1>THE LABYRINTH</h1>
-        <p>Desktop: click + WASD. Mobile: left thumb moves, right thumb looks.</p>
+        <p id="instruction-text">Find the three shaped keys. Unlock the old door.</p>
     </div>
 
-    <div id="win-screen">MAZE SOLVED!</div>
+    <div id="hud">
+        <div>○ Circle: <span id="hud-circle">Missing</span></div>
+        <div>△ Triangle: <span id="hud-triangle">Missing</span></div>
+        <div>▱ Trapezoid: <span id="hud-trapezoid">Missing</span></div>
+    </div>
+
+    <div id="message"></div>
+    <div id="whiteout"></div>
 
     <div id="canvas-container"></div>
 
@@ -165,11 +229,31 @@
             <div id="joystick-stick"></div>
         </div>
 
-        <div id="look-zone-label">Look</div>
+        <div id="look-zone" class="touch-zone">
+            <div id="look-zone-label">Look</div>
+        </div>
     </div>
 
     <script>
-        // --- 1. MAZE BLUEPRINT ---
+        // --- 1. DEVICE / QUALITY SETTINGS ---
+        const isMobile = window.matchMedia('(pointer: coarse)').matches;
+        const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) < 700;
+
+        const QUALITY = {
+            pixelRatioCap: isMobile ? 1.25 : 1.35,
+            antialias: false,
+            cameraFov: isMobile ? 70 : 62,
+            moveSpeed: isMobile ? 42 : 82,
+            mouseSensitivity: 0.0024,
+            touchSensitivity: isSmallScreen ? 0.0048 : 0.0042,
+            lightDistance: isMobile ? 24 : 24,
+            straightHallLightSpacing: isMobile ? 4 : 4,
+            wallSpeckles: isMobile ? 250 : 500,
+            ceilingSpeckles: isMobile ? 160 : 260,
+            pillarDensity: isMobile ? 2 : 2
+        };
+
+        // --- 2. MAZE BLUEPRINT ---
         const mazeLayout = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -190,48 +274,131 @@
 
         const SIZE = 20;
         const playerRadius = 2.5;
-
-        const isMobile = window.matchMedia('(pointer: coarse)').matches;
-
-        const desktopMoveSpeed = 52;
-        const mobileMoveSpeed = 42;
-        const moveSpeed = isMobile ? mobileMoveSpeed : desktopMoveSpeed;
-
-        const desktopSensitivity = 0.002;
-        const mobileSensitivity = 0.0042;
+        const rows = mazeLayout.length;
+        const cols = mazeLayout[0].length;
 
         let hasWon = false;
         let uiRemoved = false;
         let yaw = 0;
 
-        // --- 2. SCENE SETUP ---
+        // --- 3. DOM ---
         const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
+        const instructionText = document.getElementById('instruction-text');
+        const messageEl = document.getElementById('message');
+        const whiteoutEl = document.getElementById('whiteout');
 
+        const hudCircle = document.getElementById('hud-circle');
+        const hudTriangle = document.getElementById('hud-triangle');
+        const hudTrapezoid = document.getElementById('hud-trapezoid');
+
+        if (isMobile) {
+            instructionText.textContent = 'Mobile: left thumb moves, right thumb looks.';
+        } else {
+            instructionText.textContent = 'Desktop: click to lock mouse. Move with WASD or arrow keys.';
+        }
+
+        // --- 4. AUDIO WITHOUT SOUND FILES ---
+        let audioCtx = null;
+        let audioUnlocked = false;
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+
+            audioCtx = new AudioContextClass();
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            audioUnlocked = true;
+        }
+
+        function playTone(freq, duration, type = 'sine', volume = 0.08, slideTo = null) {
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+
+            if (slideTo !== null) {
+                osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+            }
+
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration + 0.03);
+        }
+
+        function playKeySound() {
+            playTone(520, 0.15, 'sine', 0.08, 820);
+            setTimeout(() => playTone(920, 0.12, 'triangle', 0.06, 1200), 80);
+        }
+
+        function playUnlockSound() {
+            playTone(170, 0.12, 'square', 0.06, 90);
+            setTimeout(() => playTone(440, 0.18, 'triangle', 0.05, 660), 90);
+        }
+
+        function playFlickerSound() {
+            playTone(70, 0.06, 'sawtooth', 0.035, 95);
+            setTimeout(() => playTone(90, 0.05, 'sawtooth', 0.025, 60), 80);
+            setTimeout(() => playTone(120, 0.04, 'square', 0.02, 85), 145);
+        }
+
+        function playDoorSound() {
+            playTone(115, 0.65, 'sawtooth', 0.075, 58);
+            setTimeout(() => playTone(260, 0.25, 'triangle', 0.04, 410), 520);
+        }
+
+        function playWhiteoutSound() {
+            playTone(320, 1.15, 'sine', 0.06, 1300);
+            setTimeout(() => playTone(640, 1.0, 'triangle', 0.04, 1800), 120);
+        }
+
+        window.addEventListener('pointerdown', unlockAudio, { once: true });
+        window.addEventListener('keydown', unlockAudio, { once: true });
+
+        // --- 5. SCENE SETUP ---
+        const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
 
         const camera = new THREE.PerspectiveCamera(
-            isMobile ? 68 : 60,
+            QUALITY.cameraFov,
             window.innerWidth / window.innerHeight,
             0.1,
             1000
         );
 
         const renderer = new THREE.WebGLRenderer({
-            antialias: !isMobile,
+            antialias: QUALITY.antialias,
             powerPreference: 'high-performance'
         });
 
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUALITY.pixelRatioCap));
+        renderer.outputEncoding = THREE.sRGBEncoding;
 
-        const pixelRatioCap = isMobile ? 1.35 : 2;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
+        if ('xr' in renderer) {
+            renderer.xr.enabled = false;
+        }
 
         container.appendChild(renderer.domElement);
 
         const clock = new THREE.Clock();
 
-        // --- 3. PROCEDURAL TEXTURES ---
+        // --- 6. TEXTURES ---
         function makeFloorTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -250,6 +417,7 @@
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
             texture.repeat.set(2, 2);
+            texture.encoding = THREE.sRGBEncoding;
 
             return texture;
         }
@@ -268,14 +436,15 @@
             ctx.lineWidth = 4;
             ctx.strokeRect(2, 2, 252, 252);
 
-            const speckleCount = isMobile ? 160 : 400;
-
-            for (let i = 0; i < speckleCount; i++) {
+            for (let i = 0; i < QUALITY.ceilingSpeckles; i++) {
                 ctx.fillStyle = Math.random() > 0.5 ? '#b8b8b0' : '#e8e8e0';
                 ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
             }
 
-            return new THREE.CanvasTexture(canvas);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.encoding = THREE.sRGBEncoding;
+
+            return texture;
         }
 
         function makeWallTexture() {
@@ -288,9 +457,7 @@
             ctx.fillStyle = '#eadecc';
             ctx.fillRect(0, 0, 512, 512);
 
-            const stainCount = isMobile ? 250 : 800;
-
-            for (let i = 0; i < stainCount; i++) {
+            for (let i = 0; i < QUALITY.wallSpeckles; i++) {
                 ctx.fillStyle = 'rgba(90, 80, 65, 0.03)';
                 ctx.beginPath();
                 ctx.arc(
@@ -303,14 +470,53 @@
                 ctx.fill();
             }
 
-            return new THREE.CanvasTexture(canvas);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.encoding = THREE.sRGBEncoding;
+
+            return texture;
+        }
+
+        function makeWoodTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 512;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#4a2412';
+            ctx.fillRect(0, 0, 256, 512);
+
+            for (let i = 0; i < 55; i++) {
+                const x = Math.random() * 256;
+                const width = 3 + Math.random() * 9;
+
+                ctx.strokeStyle = Math.random() > 0.5
+                    ? 'rgba(108, 58, 26, 0.55)'
+                    : 'rgba(28, 12, 6, 0.45)';
+
+                ctx.lineWidth = width;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+
+                for (let y = 0; y <= 512; y += 40) {
+                    ctx.lineTo(x + Math.sin(y * 0.03 + i) * 8, y);
+                }
+
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.encoding = THREE.sRGBEncoding;
+
+            return texture;
         }
 
         const floorTex = makeFloorTexture();
         const ceilingTex = makeCeilingTexture();
         const wallTex = makeWallTexture();
+        const woodTex = makeWoodTexture();
 
-        // --- 4. MATERIALS ---
+        // --- 7. MATERIALS ---
         const floorMat = new THREE.MeshStandardMaterial({
             map: floorTex,
             roughness: 0.35
@@ -323,7 +529,7 @@
 
         const wallMat = new THREE.MeshStandardMaterial({
             map: wallTex,
-            roughness: 0.8
+            roughness: 0.82
         });
 
         const pillarMat = new THREE.MeshStandardMaterial({
@@ -331,10 +537,50 @@
             roughness: 0.75
         });
 
-        // --- 5. WORLD BUILDING ---
-        const rows = mazeLayout.length;
-        const cols = mazeLayout[0].length;
+        const lightFixtureMat = new THREE.MeshBasicMaterial({
+            color: 0xfffca8
+        });
 
+        const oldWoodMat = new THREE.MeshStandardMaterial({
+            map: woodTex,
+            color: 0x7a3f1d,
+            roughness: 0.78,
+            metalness: 0.0
+        });
+
+        const darkMetalMat = new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            roughness: 0.42,
+            metalness: 0.95
+        });
+
+        const lockedMat = new THREE.MeshStandardMaterial({
+            color: 0x191919,
+            roughness: 0.36,
+            metalness: 1.0
+        });
+
+        const unlockedMat = new THREE.MeshStandardMaterial({
+            color: 0xffd34f,
+            emissive: 0x553a00,
+            roughness: 0.14,
+            metalness: 1.0
+        });
+
+        const keyGoldMat = new THREE.MeshStandardMaterial({
+            color: 0xffcc33,
+            emissive: 0x332000,
+            roughness: 0.16,
+            metalness: 1.0
+        });
+
+        const whiteLightMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0
+        });
+
+        // --- 8. GEOMETRY ---
         const wallGeo = new THREE.BoxGeometry(SIZE, SIZE, SIZE);
         const pillarGeo = new THREE.BoxGeometry(1.5, SIZE + 0.1, 1.5);
 
@@ -344,20 +590,114 @@
         const ceilingGeo = new THREE.PlaneGeometry(SIZE, SIZE);
         ceilingGeo.rotateX(Math.PI / 2);
 
-        const lightFixtureGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.4, 12);
-        const lightFixtureMat = new THREE.MeshBasicMaterial({ color: 0xfffca8 });
+        const lightFixtureGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.4, isMobile ? 10 : 12);
+
+        // --- 9. WORLD HELPER LOGIC ---
+        function shouldUsePillars(r, c) {
+            return (r + c) % QUALITY.pillarDensity === 0;
+        }
+
+        function shouldPlaceLightAt(r, c) {
+            const upWall = r - 1 < 0 || mazeLayout[r - 1][c] === 1;
+            const downWall = r + 1 >= rows || mazeLayout[r + 1][c] === 1;
+            const leftWall = c - 1 < 0 || mazeLayout[r][c - 1] === 1;
+            const rightWall = c + 1 >= cols || mazeLayout[r][c + 1] === 1;
+
+            const isHorizontalStraight = !leftWall && !rightWall && upWall && downWall;
+            const isVerticalStraight = !upWall && !downWall && leftWall && rightWall;
+
+            if (r === 13 && c === 1) return true;
+            if (!isHorizontalStraight && !isVerticalStraight) return true;
+            if (isHorizontalStraight && c % QUALITY.straightHallLightSpacing === 0) return true;
+            if (isVerticalStraight && r % QUALITY.straightHallLightSpacing === 0) return true;
+
+            return false;
+        }
+
+        // --- 10. PRECOUNT FOR INSTANCED MESHES ---
+        let wallCount = 0;
+        let openCount = 0;
+        let pillarCount = 0;
+        let fixtureCount = 0;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (mazeLayout[r][c] === 1) {
+                    wallCount++;
+
+                    if (shouldUsePillars(r, c)) {
+                        pillarCount += 4;
+                    }
+                } else {
+                    openCount++;
+
+                    if (shouldPlaceLightAt(r, c)) {
+                        fixtureCount++;
+                    }
+                }
+            }
+        }
+
+        // --- 11. WORLD BUILDING WITH INSTANCING ---
+        const wallMesh = new THREE.InstancedMesh(wallGeo, wallMat, wallCount);
+        const floorMesh = new THREE.InstancedMesh(floorGeo, floorMat, openCount);
+        const ceilingMesh = new THREE.InstancedMesh(ceilingGeo, ceilingMat, openCount);
+        const pillarMesh = new THREE.InstancedMesh(pillarGeo, pillarMat, pillarCount);
+        const fixtureMesh = new THREE.InstancedMesh(lightFixtureGeo, lightFixtureMat, fixtureCount);
+
+        wallMesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+        floorMesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+        ceilingMesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+        pillarMesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+        fixtureMesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+
+        const dummy = new THREE.Object3D();
+
+        let wallIndex = 0;
+        let openIndex = 0;
+        let pillarIndex = 0;
+        let fixtureIndex = 0;
+
+        const pathLights = [];
+
+        function setInstance(mesh, index, x, y, z) {
+            dummy.position.set(x, y, z);
+            dummy.rotation.set(0, 0, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            mesh.setMatrixAt(index, dummy.matrix);
+        }
+
+        function setFixtureInstance(index, x, z) {
+            dummy.position.set(x, SIZE / 2 - 0.2, z);
+            dummy.rotation.set(Math.PI / 2, 0, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            fixtureMesh.setMatrixAt(index, dummy.matrix);
+        }
 
         function spawnCeilingLight(x, z, stronger = false) {
-            const fixture = new THREE.Mesh(lightFixtureGeo, lightFixtureMat);
-            fixture.position.set(x, SIZE / 2 - 0.2, z);
-            scene.add(fixture);
+            if (!stronger && isMobile) {
+                return;
+            }
 
-            const intensity = stronger ? 1.9 : 1.25;
-            const distance = isMobile ? 24 : 28;
+            if (!stronger && !isMobile) {
+                const gridX = Math.round(x / SIZE);
+                const gridZ = Math.round(z / SIZE);
+                const shouldKeepDesktopLight = (gridX + gridZ) % 3 === 0;
 
-            const pathLight = new THREE.PointLight(0xfffdd0, intensity, distance);
+                if (!shouldKeepDesktopLight) {
+                    return;
+                }
+            }
+
+            const intensity = stronger ? 1.9 : 0.85;
+            const pathLight = new THREE.PointLight(0xfffdd0, intensity, QUALITY.lightDistance);
             pathLight.position.set(x, SIZE / 2 - 1, z);
+            pathLight.userData.baseIntensity = intensity;
             scene.add(pathLight);
+
+            pathLights.push(pathLight);
         }
 
         for (let r = 0; r < rows; r++) {
@@ -366,66 +706,42 @@
                 const posZ = r * SIZE;
 
                 if (mazeLayout[r][c] === 1) {
-                    const wallMesh = new THREE.Mesh(wallGeo, wallMat);
-                    wallMesh.position.set(posX, 0, posZ);
-                    scene.add(wallMesh);
+                    setInstance(wallMesh, wallIndex, posX, 0, posZ);
+                    wallIndex++;
 
-                    // Pillars are pretty, but expensive.
-                    // Keep fewer on mobile.
-                    if (!isMobile || (r + c) % 2 === 0) {
-                        const p1 = new THREE.Mesh(pillarGeo, pillarMat);
-                        const p2 = new THREE.Mesh(pillarGeo, pillarMat);
-                        const p3 = new THREE.Mesh(pillarGeo, pillarMat);
-                        const p4 = new THREE.Mesh(pillarGeo, pillarMat);
-
-                        p1.position.set(posX - SIZE / 2, 0, posZ - SIZE / 2);
-                        p2.position.set(posX + SIZE / 2, 0, posZ - SIZE / 2);
-                        p3.position.set(posX - SIZE / 2, 0, posZ + SIZE / 2);
-                        p4.position.set(posX + SIZE / 2, 0, posZ + SIZE / 2);
-
-                        scene.add(p1, p2, p3, p4);
+                    if (shouldUsePillars(r, c)) {
+                        setInstance(pillarMesh, pillarIndex++, posX - SIZE / 2, 0, posZ - SIZE / 2);
+                        setInstance(pillarMesh, pillarIndex++, posX + SIZE / 2, 0, posZ - SIZE / 2);
+                        setInstance(pillarMesh, pillarIndex++, posX - SIZE / 2, 0, posZ + SIZE / 2);
+                        setInstance(pillarMesh, pillarIndex++, posX + SIZE / 2, 0, posZ + SIZE / 2);
                     }
                 } else {
-                    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
-                    floorMesh.position.set(posX, -SIZE / 2, posZ);
-                    scene.add(floorMesh);
+                    setInstance(floorMesh, openIndex, posX, -SIZE / 2, posZ);
+                    setInstance(ceilingMesh, openIndex, posX, SIZE / 2, posZ);
+                    openIndex++;
 
-                    const ceilingMesh = new THREE.Mesh(ceilingGeo, ceilingMat);
-                    ceilingMesh.position.set(posX, SIZE / 2, posZ);
-                    scene.add(ceilingMesh);
-
-                    const upWall = r - 1 < 0 || mazeLayout[r - 1][c] === 1;
-                    const downWall = r + 1 >= rows || mazeLayout[r + 1][c] === 1;
-                    const leftWall = c - 1 < 0 || mazeLayout[r][c - 1] === 1;
-                    const rightWall = c + 1 >= cols || mazeLayout[r][c + 1] === 1;
-
-                    const isHorizontalStraight = !leftWall && !rightWall && upWall && downWall;
-                    const isVerticalStraight = !upWall && !downWall && leftWall && rightWall;
-
-                    let shouldPlaceLight = false;
-
-                    if (r === 13 && c === 1) {
-                        shouldPlaceLight = true;
-                    } else if (!isHorizontalStraight && !isVerticalStraight) {
-                        shouldPlaceLight = true;
-                    } else if (!isMobile && isHorizontalStraight && c % 2 === 0) {
-                        shouldPlaceLight = true;
-                    } else if (!isMobile && isVerticalStraight && r % 2 === 0) {
-                        shouldPlaceLight = true;
-                    } else if (isMobile && isHorizontalStraight && c % 4 === 0) {
-                        shouldPlaceLight = true;
-                    } else if (isMobile && isVerticalStraight && r % 4 === 0) {
-                        shouldPlaceLight = true;
-                    }
-
-                    if (shouldPlaceLight) {
+                    if (shouldPlaceLightAt(r, c)) {
+                        setFixtureInstance(fixtureIndex++, posX, posZ);
                         spawnCeilingLight(posX, posZ, r === 13 && c === 1);
                     }
                 }
             }
         }
 
-        // --- 6. START AND GOAL ---
+        wallMesh.instanceMatrix.needsUpdate = true;
+        floorMesh.instanceMatrix.needsUpdate = true;
+        ceilingMesh.instanceMatrix.needsUpdate = true;
+        pillarMesh.instanceMatrix.needsUpdate = true;
+        fixtureMesh.instanceMatrix.needsUpdate = true;
+
+        scene.add(wallMesh);
+        scene.add(floorMesh);
+        scene.add(ceilingMesh);
+
+        if (pillarCount > 0) scene.add(pillarMesh);
+        if (fixtureCount > 0) scene.add(fixtureMesh);
+
+        // --- 12. START AND EXIT DOOR LOCATION ---
         const startCol = 1;
         const startRow = 13;
 
@@ -434,39 +750,439 @@
 
         camera.position.set(startX, 0, startZ);
 
-        const goalCol = 13;
-        const goalRow = 2;
+        const doorCol = 13;
+        const doorRow = 2;
 
-        const goalX = goalCol * SIZE;
-        const goalZ = goalRow * SIZE;
+        const doorX = doorCol * SIZE;
+        const doorZ = doorRow * SIZE;
 
-        const trophyGeo = new THREE.OctahedronGeometry(3.5, 0);
-        const trophyMat = new THREE.MeshPhysicalMaterial({
-            color: 0xffd700,
-            emissive: 0x332200,
-            metalness: 1.0,
-            roughness: 0.03,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.02
+        // --- 13. SHAPE HELPERS ---
+        function createTriangleShapeGeometry(size) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, size);
+            shape.lineTo(-size * 0.9, -size * 0.7);
+            shape.lineTo(size * 0.9, -size * 0.7);
+            shape.lineTo(0, size);
+
+            return new THREE.ShapeGeometry(shape);
+        }
+
+        function createTrapezoidShapeGeometry(size) {
+            const shape = new THREE.Shape();
+            shape.moveTo(-size * 0.6, size * 0.7);
+            shape.lineTo(size * 0.6, size * 0.7);
+            shape.lineTo(size, -size * 0.7);
+            shape.lineTo(-size, -size * 0.7);
+            shape.lineTo(-size * 0.6, size * 0.7);
+
+            return new THREE.ShapeGeometry(shape);
+        }
+
+        function createKeyShape(type) {
+            const group = new THREE.Group();
+
+            let head;
+
+            if (type === 'circle') {
+                const torusGeo = new THREE.TorusGeometry(1.25, 0.18, 10, 32);
+                head = new THREE.Mesh(torusGeo, keyGoldMat);
+            } else if (type === 'triangle') {
+                const triGeo = createTriangleShapeGeometry(1.25);
+                head = new THREE.Mesh(triGeo, keyGoldMat);
+            } else {
+                const trapGeo = createTrapezoidShapeGeometry(1.2);
+                head = new THREE.Mesh(trapGeo, keyGoldMat);
+            }
+
+            head.position.set(0, 1.0, 0);
+            group.add(head);
+
+            const shaftGeo = new THREE.CylinderGeometry(0.16, 0.16, 2.0, 12);
+            const shaft = new THREE.Mesh(shaftGeo, keyGoldMat);
+            shaft.rotation.z = Math.PI / 2;
+            shaft.position.set(1.25, 0, 0);
+            group.add(shaft);
+
+            const toothGeo = new THREE.BoxGeometry(0.25, 0.55, 0.2);
+
+            const tooth1 = new THREE.Mesh(toothGeo, keyGoldMat);
+            tooth1.position.set(2.1, -0.22, 0);
+            group.add(tooth1);
+
+            const tooth2 = new THREE.Mesh(toothGeo, keyGoldMat);
+            tooth2.position.set(1.72, -0.42, 0);
+            group.add(tooth2);
+
+            const glow = new THREE.PointLight(0xffcc33, 0.8, 12);
+            glow.position.set(0, 0.8, 0);
+            group.add(glow);
+
+            group.scale.set(1.25, 1.25, 1.25);
+
+            return group;
+        }
+
+        // --- 14. DOOR WITH THREE LOCKS ---
+        const doorPivot = new THREE.Group();
+        doorPivot.position.set(doorX - 4.4, 0, doorZ - 7.2);
+        scene.add(doorPivot);
+
+        const doorGroup = new THREE.Group();
+        doorGroup.position.set(4.4, 0, 0);
+        doorPivot.add(doorGroup);
+
+        const doorPanelGeo = new THREE.BoxGeometry(8.8, 12.5, 0.8);
+        const doorPanel = new THREE.Mesh(doorPanelGeo, oldWoodMat);
+        doorPanel.position.set(0, 0, 0);
+        doorGroup.add(doorPanel);
+
+        for (let i = -1; i <= 1; i++) {
+            const plankGeo = new THREE.BoxGeometry(0.08, 12.7, 0.92);
+            const plankLine = new THREE.Mesh(plankGeo, darkMetalMat);
+            plankLine.position.set(i * 2.2, 0, -0.48);
+            doorGroup.add(plankLine);
+        }
+
+        const crossBarGeo = new THREE.BoxGeometry(8.9, 0.45, 1.0);
+        const crossBar1 = new THREE.Mesh(crossBarGeo, darkMetalMat);
+        crossBar1.position.set(0, 3.8, -0.56);
+        doorGroup.add(crossBar1);
+
+        const crossBar2 = crossBar1.clone();
+        crossBar2.position.y = -3.8;
+        doorGroup.add(crossBar2);
+
+        const hingeGeo = new THREE.BoxGeometry(0.55, 2.0, 1.15);
+        const hinge1 = new THREE.Mesh(hingeGeo, darkMetalMat);
+        hinge1.position.set(-4.85, 3.8, -0.7);
+        doorGroup.add(hinge1);
+
+        const hinge2 = hinge1.clone();
+        hinge2.position.y = 0;
+        doorGroup.add(hinge2);
+
+        const hinge3 = hinge1.clone();
+        hinge3.position.y = -3.8;
+        doorGroup.add(hinge3);
+
+        const handleGeo = new THREE.TorusGeometry(0.58, 0.08, 8, 20);
+        const handle = new THREE.Mesh(handleGeo, darkMetalMat);
+        handle.position.set(3.2, 0.3, -0.92);
+        handle.rotation.y = Math.PI / 2;
+        doorGroup.add(handle);
+
+        const lockMeshes = {};
+
+        function createLock(type, yPosition) {
+            const lockGroup = new THREE.Group();
+            lockGroup.position.set(0, yPosition, -1.0);
+
+            const plate = new THREE.Mesh(
+                new THREE.BoxGeometry(1.7, 1.7, 0.16),
+                lockedMat
+            );
+            plate.position.set(0, 0, 0.05);
+            lockGroup.add(plate);
+
+            let symbolGeo;
+
+            if (type === 'circle') {
+                symbolGeo = new THREE.RingGeometry(0.38, 0.58, 28);
+            } else if (type === 'triangle') {
+                symbolGeo = createTriangleShapeGeometry(0.58);
+            } else {
+                symbolGeo = createTrapezoidShapeGeometry(0.56);
+            }
+
+            const symbol = new THREE.Mesh(symbolGeo, lockedMat);
+            symbol.position.set(0, 0, -0.07);
+            lockGroup.add(symbol);
+
+            lockMeshes[type] = {
+                plate,
+                symbol,
+                group: lockGroup
+            };
+
+            doorGroup.add(lockGroup);
+        }
+
+        createLock('circle', 2.25);
+        createLock('triangle', 0);
+        createLock('trapezoid', -2.25);
+
+        const doorwayLight = new THREE.Mesh(
+            new THREE.PlaneGeometry(9.5, 13.5),
+            whiteLightMat
+        );
+        doorwayLight.position.set(doorX, 0, doorZ - 7.65);
+        scene.add(doorwayLight);
+
+        const doorWhiteLight = new THREE.PointLight(0xffffff, 0, 45);
+        doorWhiteLight.position.set(doorX, 0, doorZ - 8.5);
+        scene.add(doorWhiteLight);
+
+        // --- 15. KEYS ---
+        const keyData = {
+            circle: {
+                type: 'circle',
+                label: 'Circle',
+                collected: false,
+                col: 3,
+                row: 3,
+                mesh: null
+            },
+            triangle: {
+                type: 'triangle',
+                label: 'Triangle',
+                collected: false,
+                col: 11,
+                row: 7,
+                mesh: null
+            },
+            trapezoid: {
+                type: 'trapezoid',
+                label: 'Trapezoid',
+                collected: false,
+                col: 4,
+                row: 13,
+                mesh: null
+            }
+        };
+
+        Object.values(keyData).forEach((key) => {
+            const mesh = createKeyShape(key.type);
+            mesh.position.set(key.col * SIZE, 0.1, key.row * SIZE);
+            mesh.rotation.y = Math.random() * Math.PI * 2;
+            mesh.userData.baseY = mesh.position.y;
+            scene.add(mesh);
+            key.mesh = mesh;
         });
 
-        const trophyMesh = new THREE.Mesh(trophyGeo, trophyMat);
-        trophyMesh.position.set(goalX, 0, goalZ);
-        scene.add(trophyMesh);
+        // --- 16. GAME STATE / HUD ---
+        let doorOpening = false;
+        let doorOpenAmount = 0;
+        let flickerTimer = 0;
 
-        const trophyLight = new THREE.PointLight(0xffea00, 3, 18);
-        trophyLight.position.set(goalX, 4, goalZ);
-        scene.add(trophyLight);
+        function getCollectedCount() {
+            return Object.values(keyData).filter((key) => key.collected).length;
+        }
 
-        // --- 7. LIGHTING ---
-        const ambientLight = new THREE.AmbientLight(0x202025);
+        function allKeysCollected() {
+            return getCollectedCount() === 3;
+        }
+
+        function updateHUD() {
+            hudCircle.textContent = keyData.circle.collected ? 'Collected' : 'Missing';
+            hudTriangle.textContent = keyData.triangle.collected ? 'Collected' : 'Missing';
+            hudTrapezoid.textContent = keyData.trapezoid.collected ? 'Collected' : 'Missing';
+
+            hudCircle.style.color = keyData.circle.collected ? '#ffd75a' : '#ffffff';
+            hudTriangle.style.color = keyData.triangle.collected ? '#ffd75a' : '#ffffff';
+            hudTrapezoid.style.color = keyData.trapezoid.collected ? '#ffd75a' : '#ffffff';
+        }
+
+        let messageTimeout = null;
+
+        function showMessage(text, duration = 2200) {
+            messageEl.textContent = text;
+            messageEl.style.opacity = '1';
+
+            clearTimeout(messageTimeout);
+
+            messageTimeout = setTimeout(() => {
+                messageEl.style.opacity = '0';
+            }, duration);
+        }
+
+        function unlockLock(type) {
+            const lock = lockMeshes[type];
+
+            if (!lock) return;
+
+            lock.plate.material = unlockedMat;
+            lock.symbol.material = unlockedMat;
+
+            const glow = new THREE.PointLight(0xffcc33, 0.85, 8);
+            glow.position.set(0, 0, -1.2);
+            lock.group.add(glow);
+        }
+
+        function flickerLights() {
+            playFlickerSound();
+
+            flickerTimer = 1.2;
+
+            pathLights.forEach((light, index) => {
+                const base = light.userData.baseIntensity || 0.85;
+
+                setTimeout(() => {
+                    light.intensity = base * 0.15;
+                }, 30 + index * 7);
+
+                setTimeout(() => {
+                    light.intensity = base * 1.35;
+                }, 120 + index * 5);
+
+                setTimeout(() => {
+                    light.intensity = base * 0.3;
+                }, 210 + index * 4);
+
+                setTimeout(() => {
+                    light.intensity = base;
+                }, 390 + index * 3);
+            });
+        }
+
+        function collectKey(type) {
+            const key = keyData[type];
+
+            if (!key || key.collected) return;
+
+            key.collected = true;
+            key.mesh.visible = false;
+
+            unlockLock(type);
+            updateHUD();
+            playKeySound();
+            playUnlockSound();
+            flickerLights();
+
+            showMessage(`${key.label} key acquired. Its lock has opened.`);
+
+            if (allKeysCollected()) {
+                showMessage('All locks are open. Return to the door.', 3200);
+                doorwayLight.material.opacity = 0.18;
+                doorWhiteLight.intensity = 1.2;
+            }
+        }
+
+        function checkKeyCollection() {
+            if (hasWon) return;
+
+            Object.values(keyData).forEach((key) => {
+                if (key.collected) return;
+
+                const dx = camera.position.x - key.mesh.position.x;
+                const dz = camera.position.z - key.mesh.position.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+
+                if (dist < 6.2) {
+                    collectKey(key.type);
+                }
+            });
+        }
+
+        function checkDoorInteraction() {
+            if (hasWon || doorOpening) return;
+
+            const dx = camera.position.x - doorX;
+            const dz = camera.position.z - doorZ;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+
+            if (dist < 8.5) {
+                if (!allKeysCollected()) {
+                    showMessage('The old door is locked by three shapes.');
+                    return;
+                }
+
+                openDoor();
+            }
+        }
+
+        function openDoor() {
+            hasWon = true;
+            doorOpening = true;
+            doorOpenAmount = 0;
+
+            playDoorSound();
+
+            if (document.pointerLockElement === container) {
+                document.exitPointerLock();
+            }
+
+            resetJoystick();
+            resetLook();
+
+            showMessage('The door opens.', 1800);
+        }
+
+        function completeWhiteoutAndReset() {
+            playWhiteoutSound();
+            whiteoutEl.style.opacity = '1';
+
+            setTimeout(() => {
+                resetGame();
+            }, 1850);
+        }
+
+        function resetPlayerToStart() {
+            camera.position.set(startX, 0, startZ);
+            yaw = 0;
+            camera.rotation.set(0, yaw, 0);
+        }
+
+        function resetGame() {
+            hasWon = false;
+            doorOpening = false;
+            doorOpenAmount = 0;
+
+            resetPlayerToStart();
+
+            Object.values(keyData).forEach((key) => {
+                key.collected = false;
+                key.mesh.visible = true;
+            });
+
+            Object.values(lockMeshes).forEach((lock) => {
+                lock.plate.material = lockedMat;
+                lock.symbol.material = lockedMat;
+
+                const lightsToRemove = [];
+
+                lock.group.children.forEach((child) => {
+                    if (child.isPointLight) {
+                        lightsToRemove.push(child);
+                    }
+                });
+
+                lightsToRemove.forEach((child) => {
+                    lock.group.remove(child);
+                });
+            });
+
+            doorPivot.rotation.y = 0;
+            doorwayLight.material.opacity = 0;
+            doorWhiteLight.intensity = 0;
+
+            whiteoutEl.style.transition = 'opacity 0.55s ease-out';
+            whiteoutEl.style.opacity = '0';
+
+            setTimeout(() => {
+                whiteoutEl.style.transition = 'opacity 1.15s ease-in';
+            }, 650);
+
+            updateHUD();
+            showMessage('Find the three shaped keys.', 2600);
+        }
+
+        updateHUD();
+
+        // --- 17. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x24242a);
         scene.add(ambientLight);
 
-        const flashlight = new THREE.PointLight(0xffffff, isMobile ? 1.1 : 1.5, isMobile ? 17 : 20);
+        const flashlight = new THREE.PointLight(
+            0xffffff,
+            isMobile ? 1.1 : 1.25,
+            isMobile ? 17 : 18
+        );
         scene.add(flashlight);
 
-        // --- 8. DESKTOP CONTROLS ---
+        // --- 18. DESKTOP CONTROLS ---
         container.addEventListener('click', () => {
+            unlockAudio();
+
             if (!hasWon && !isMobile) {
                 container.requestPointerLock();
             }
@@ -476,7 +1192,7 @@
             if (isMobile) return;
             if (document.pointerLockElement !== container) return;
 
-            yaw -= e.movementX * desktopSensitivity;
+            yaw -= e.movementX * QUALITY.mouseSensitivity;
             camera.rotation.set(0, yaw, 0);
         });
 
@@ -492,9 +1208,12 @@
         };
 
         window.addEventListener('keydown', (e) => {
+            unlockAudio();
+
             const key = e.key.toLowerCase();
 
             if (key in keys) {
+                e.preventDefault();
                 keys[key] = true;
             }
         });
@@ -503,12 +1222,20 @@
             const key = e.key.toLowerCase();
 
             if (key in keys) {
+                e.preventDefault();
                 keys[key] = false;
             }
         });
 
-        // --- 9. MOBILE TOUCH CONTROLS ---
+        window.addEventListener('blur', () => {
+            for (const key in keys) {
+                keys[key] = false;
+            }
+        });
+
+        // --- 19. MOBILE TOUCH CONTROLS ---
         const moveZone = document.getElementById('move-zone');
+        const lookZone = document.getElementById('look-zone');
         const joystickStick = document.getElementById('joystick-stick');
 
         const mobileMove = {
@@ -523,19 +1250,64 @@
         const mobileLook = {
             active: false,
             pointerId: null,
-            lastX: 0,
-            lastY: 0
+            lastX: 0
         };
 
-        function resetJoystick() {
+        function safeSetPointerCapture(element, pointerId) {
+            if (!element || !element.setPointerCapture) return;
+
+            try {
+                element.setPointerCapture(pointerId);
+            } catch (error) {
+                // Some mobile browsers reject capture in edge cases.
+            }
+        }
+
+        function safeReleasePointerCapture(element, pointerId) {
+            if (!element || !element.releasePointerCapture) return;
+
+            try {
+                element.releasePointerCapture(pointerId);
+            } catch (error) {
+                // Ignore release errors.
+            }
+        }
+
+        function resetJoystick(e) {
+            if (e && mobileMove.pointerId !== null && e.pointerId !== mobileMove.pointerId) {
+                return;
+            }
+
+            if (e) {
+                safeReleasePointerCapture(moveZone, e.pointerId);
+            }
+
             mobileMove.x = 0;
             mobileMove.y = 0;
             mobileMove.active = false;
             mobileMove.pointerId = null;
+
             joystickStick.style.transform = 'translate(0px, 0px)';
         }
 
+        function resetLook(e) {
+            if (e && mobileLook.pointerId !== null && e.pointerId !== mobileLook.pointerId) {
+                return;
+            }
+
+            if (e) {
+                safeReleasePointerCapture(lookZone, e.pointerId);
+            }
+
+            mobileLook.active = false;
+            mobileLook.pointerId = null;
+        }
+
         moveZone.addEventListener('pointerdown', (e) => {
+            unlockAudio();
+
+            if (!isMobile || hasWon) return;
+
             e.preventDefault();
 
             const rect = moveZone.getBoundingClientRect();
@@ -545,15 +1317,17 @@
             mobileMove.centerX = rect.left + rect.width / 2;
             mobileMove.centerY = rect.top + rect.height / 2;
 
-            moveZone.setPointerCapture(e.pointerId);
+            safeSetPointerCapture(moveZone, e.pointerId);
         }, { passive: false });
 
         moveZone.addEventListener('pointermove', (e) => {
+            if (!isMobile) return;
             if (!mobileMove.active || e.pointerId !== mobileMove.pointerId) return;
 
             e.preventDefault();
 
-            const maxDistance = 48;
+            const maxDistance = isSmallScreen ? 42 : 48;
+
             let dx = e.clientX - mobileMove.centerX;
             let dy = e.clientY - mobileMove.centerY;
 
@@ -572,22 +1346,23 @@
 
         moveZone.addEventListener('pointerup', resetJoystick);
         moveZone.addEventListener('pointercancel', resetJoystick);
+        moveZone.addEventListener('lostpointercapture', resetJoystick);
 
-        container.addEventListener('pointerdown', (e) => {
-            if (!isMobile) return;
-            if (e.target.closest('#move-zone')) return;
+        lookZone.addEventListener('pointerdown', (e) => {
+            unlockAudio();
+
+            if (!isMobile || hasWon) return;
 
             e.preventDefault();
 
             mobileLook.active = true;
             mobileLook.pointerId = e.pointerId;
             mobileLook.lastX = e.clientX;
-            mobileLook.lastY = e.clientY;
 
-            container.setPointerCapture(e.pointerId);
+            safeSetPointerCapture(lookZone, e.pointerId);
         }, { passive: false });
 
-        container.addEventListener('pointermove', (e) => {
+        lookZone.addEventListener('pointermove', (e) => {
             if (!isMobile) return;
             if (!mobileLook.active || e.pointerId !== mobileLook.pointerId) return;
 
@@ -595,28 +1370,17 @@
 
             const dx = e.clientX - mobileLook.lastX;
 
-            yaw -= dx * mobileSensitivity;
+            yaw -= dx * QUALITY.touchSensitivity;
             camera.rotation.set(0, yaw, 0);
 
             mobileLook.lastX = e.clientX;
-            mobileLook.lastY = e.clientY;
         }, { passive: false });
 
-        container.addEventListener('pointerup', (e) => {
-            if (e.pointerId === mobileLook.pointerId) {
-                mobileLook.active = false;
-                mobileLook.pointerId = null;
-            }
-        });
+        lookZone.addEventListener('pointerup', resetLook);
+        lookZone.addEventListener('pointercancel', resetLook);
+        lookZone.addEventListener('lostpointercapture', resetLook);
 
-        container.addEventListener('pointercancel', (e) => {
-            if (e.pointerId === mobileLook.pointerId) {
-                mobileLook.active = false;
-                mobileLook.pointerId = null;
-            }
-        });
-
-        // --- 10. COLLISION ---
+        // --- 20. COLLISION ---
         function checkWallCollision(targetPos) {
             const checkPoints = [
                 new THREE.Vector3(targetPos.x - playerRadius, 0, targetPos.z - playerRadius),
@@ -681,7 +1445,7 @@
             }
 
             if (intent.lengthSq() > 0) {
-                intent.normalize().multiplyScalar(moveSpeed * deltaTime);
+                intent.normalize().multiplyScalar(QUALITY.moveSpeed * deltaTime);
 
                 const nextX = camera.position.clone();
                 nextX.x += intent.x;
@@ -699,7 +1463,7 @@
             }
         }
 
-        // --- 11. UI AND WIN LOGIC ---
+        // --- 21. UI ---
         function fadeOverlayAfterMovement() {
             if (uiRemoved) return;
 
@@ -712,52 +1476,64 @@
                 uiRemoved = true;
 
                 const overlay = document.getElementById('ui-overlay');
-                overlay.style.opacity = '0';
 
-                setTimeout(() => {
-                    overlay.remove();
-                }, 800);
-            }
-        }
+                if (overlay) {
+                    overlay.style.opacity = '0';
 
-        function checkWinCondition() {
-            const playerGridC = Math.round(camera.position.x / SIZE);
-            const playerGridR = Math.round(camera.position.z / SIZE);
-
-            if (playerGridC === goalCol && playerGridR === goalRow && !hasWon) {
-                hasWon = true;
-
-                document.getElementById('win-screen').style.display = 'block';
-
-                if (document.pointerLockElement === container) {
-                    document.exitPointerLock();
+                    setTimeout(() => {
+                        overlay.remove();
+                    }, 800);
                 }
             }
         }
 
-        // --- 12. ANIMATION LOOP ---
+        // --- 22. ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
-            const deltaTime = Math.min(clock.getDelta(), 0.05);
+            const deltaTime = Math.min(clock.getDelta(), 0.033);
             const elapsedTime = clock.elapsedTime;
 
             processMovement(deltaTime);
 
             flashlight.position.copy(camera.position);
 
-            trophyMesh.rotation.y = elapsedTime * 1.5;
-            trophyMesh.position.y = Math.sin(elapsedTime * 2) * 0.6;
+            Object.values(keyData).forEach((key, index) => {
+                if (!key.mesh.visible) return;
 
+                key.mesh.rotation.y = elapsedTime * 1.5 + index;
+                key.mesh.position.y = key.mesh.userData.baseY + Math.sin(elapsedTime * 2.4 + index) * 0.45;
+            });
+
+            if (flickerTimer > 0) {
+                flickerTimer -= deltaTime;
+                ambientLight.intensity = 1.0 + Math.sin(elapsedTime * 35) * 0.25;
+            } else {
+                ambientLight.intensity = 1.0;
+            }
+
+            if (doorOpening) {
+                doorOpenAmount += deltaTime * 0.65;
+                doorPivot.rotation.y = -Math.min(doorOpenAmount, 1.25);
+                doorwayLight.material.opacity = Math.min(0.18 + doorOpenAmount * 0.55, 0.78);
+                doorWhiteLight.intensity = Math.min(1.2 + doorOpenAmount * 8, 10);
+
+                if (doorOpenAmount > 1.85) {
+                    doorOpening = false;
+                    completeWhiteoutAndReset();
+                }
+            }
+
+            checkKeyCollection();
+            checkDoorInteraction();
             fadeOverlayAfterMovement();
-            checkWinCondition();
 
             renderer.render(scene, camera);
         }
 
         animate();
 
-        // --- 13. RESIZE HANDLING ---
+        // --- 23. RESIZE HANDLING ---
         function resizeRenderer() {
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -766,18 +1542,30 @@
             camera.updateProjectionMatrix();
 
             renderer.setSize(width, height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUALITY.pixelRatioCap));
         }
 
         window.addEventListener('resize', resizeRenderer);
+
         window.addEventListener('orientationchange', () => {
+            resetJoystick();
+            resetLook();
+
             setTimeout(resizeRenderer, 250);
         });
 
         // Prevent mobile browser gestures from hijacking the game.
-        document.addEventListener('gesturestart', (e) => e.preventDefault());
-        document.addEventListener('gesturechange', (e) => e.preventDefault());
-        document.addEventListener('gestureend', (e) => e.preventDefault());
+        document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+        document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+        document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+
+        document.addEventListener('contextmenu', (e) => {
+            if (isMobile) {
+                e.preventDefault();
+            }
+        });
+
+        showMessage('Find the circle, triangle, and trapezoid keys.', 3200);
     </script>
 </body>
 </html>
