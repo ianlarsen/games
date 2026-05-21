@@ -78,6 +78,26 @@
       min-width: 8.5rem;
       text-align: center;
     }
+    #new-game-btn {
+      position: absolute;
+      z-index: 5;
+      right: 12px;
+      top: 52px;
+      padding: 10px 14px;
+      border: 1px solid rgba(36, 66, 92, 0.18);
+      border-radius: 999px;
+      background: linear-gradient(135deg, #315f87, #244761);
+      color: #fff;
+      font: 800 0.78rem/1 "Segoe UI", system-ui, sans-serif;
+      box-shadow: 0 10px 24px rgba(31, 55, 78, 0.22);
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    #new-game-btn:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 6px 18px rgba(31, 55, 78, 0.2);
+    }
     #pattern-card {
       left: 12px;
       bottom: 12px;
@@ -114,6 +134,7 @@
       #title-card h1 { font-size: 0.84rem; }
       #title-card p { font-size: 0.62rem; }
       #readout { display: none; }
+      #new-game-btn { right: 8px; top: auto; bottom: 8px; padding: 12px 15px; min-height: 44px; font-size: 0.76rem; }
       #pattern-card { width: min(32vw, 104px); left: 8px; bottom: 8px; padding: 5px; }
       #status { bottom: 112px; font-size: 0.66rem; }
     }
@@ -127,6 +148,7 @@
       <p>Drag tiles to the board. Tap to turn/change. Match two symbols to click in.</p>
     </div>
     <div id="readout" class="hud">Tile <span id="tile-num">1</span> · <span id="face-label">—</span></div>
+    <button type="button" id="new-game-btn" aria-label="Start a new random solvable game">New Game</button>
     <div id="pattern-card" class="hud" aria-label="Pattern reference card">
       <canvas id="pattern-canvas"></canvas>
     </div>
@@ -187,6 +209,7 @@
     const tileNumEl = document.getElementById('tile-num');
     const faceLabelEl = document.getElementById('face-label');
     const statusEl = document.getElementById('status');
+    const newGameBtn = document.getElementById('new-game-btn');
 
     let width = 1;
     let height = 1;
@@ -1192,6 +1215,16 @@
     canvas.addEventListener('pointerup', endInteraction);
     canvas.addEventListener('pointercancel', cancelInteraction);
     canvas.addEventListener('contextmenu', e => e.preventDefault());
+    newGameBtn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      ensureAudio();
+      resetGame();
+    });
+    newGameBtn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
     window.addEventListener('keydown', e => {
       if (e.key.toLowerCase() === 'r') resetGame();
       if (e.key === ' ' && selected) {
