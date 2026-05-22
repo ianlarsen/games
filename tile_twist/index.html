@@ -95,15 +95,13 @@
       min-width: 8.5rem;
       text-align: center;
     }
-    #new-game-btn {
+    .top-btn {
       position: absolute;
       z-index: 5;
       right: 12px;
-      top: 52px;
       padding: 10px 14px;
       border: 2px solid rgba(83, 55, 28, 0.24);
       border-radius: 999px;
-      background: linear-gradient(135deg, #ff9f43, #f2762e);
       color: #fff;
       font: 800 0.78rem/1 "Segoe UI", system-ui, sans-serif;
       box-shadow: 0 10px 24px rgba(31, 55, 78, 0.22);
@@ -111,9 +109,47 @@
       user-select: none;
       touch-action: manipulation;
     }
-    #new-game-btn:active {
+    .top-btn:active {
       transform: translateY(1px) scale(0.98);
       box-shadow: 0 6px 18px rgba(31, 55, 78, 0.2);
+    }
+    #new-game-btn {
+      top: 52px;
+      background: linear-gradient(135deg, #ff9f43, #f2762e);
+    }
+    #ghost-toggle-btn {
+      top: 98px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 116px;
+      background: linear-gradient(135deg, #5cc8ff, #3986d1);
+    }
+    .toggle-track {
+      position: relative;
+      width: 38px;
+      height: 22px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.46);
+      box-shadow: inset 0 2px 5px rgba(31,55,78,0.22);
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(31,55,78,0.24);
+      transition: transform 160ms ease;
+    }
+    #ghost-toggle-btn[aria-pressed="true"] .toggle-thumb {
+      transform: translateX(16px);
+    }
+    .toggle-label {
+      white-space: nowrap;
     }
     #pattern-card {
       left: 12px;
@@ -151,7 +187,9 @@
       #title-card h1 { font-size: 0.84rem; }
       #title-card p { font-size: 0.62rem; }
       .back-btn { min-height: 44px; font-size: 0.7rem; }
-      #new-game-btn { right: 8px; top: auto; bottom: 8px; padding: 12px 15px; min-height: 44px; font-size: 0.76rem; }
+      .top-btn { right: 8px; padding: 12px 15px; min-height: 44px; font-size: 0.76rem; }
+      #new-game-btn { top: auto; bottom: 8px; }
+      #ghost-toggle-btn { top: auto; bottom: 60px; }
       #pattern-card { width: min(30vw, 96px); left: 8px; bottom: 8px; padding: 5px; }
       #status { bottom: 112px; font-size: 0.66rem; }
     }
@@ -239,7 +277,11 @@
       <h1>Twist Tiles</h1>
       <p>Make the big card. Drag a tile. Tap to turn it.</p>
     </div>
-    <button type="button" id="new-game-btn" aria-label="Start a new random solvable game">New Game</button>
+    <button type="button" id="new-game-btn" class="top-btn" aria-label="Start a new random solvable game">New Game</button>
+    <button type="button" id="ghost-toggle-btn" class="top-btn" aria-pressed="true" aria-label="Toggle hints">
+      <span class="toggle-track" aria-hidden="true"><span class="toggle-thumb"></span></span>
+      <span class="toggle-label">Hint On</span>
+    </button>
     <div id="pattern-card" class="hud" aria-label="Target card to copy">
       <canvas id="pattern-canvas"></canvas>
     </div>
@@ -311,6 +353,7 @@
     const patternCtx = patternCanvas.getContext('2d');
     const statusEl = document.getElementById('status');
     const newGameBtn = document.getElementById('new-game-btn');
+    const ghostToggleBtn = document.getElementById('ghost-toggle-btn');
     const winOverlay = document.getElementById('win-overlay');
     const confettiContainer = document.getElementById('confetti-container');
     const playAgainBtn = document.getElementById('play-again-btn');
@@ -336,6 +379,7 @@
     let lastStatusTimeout = null;
     let audioUnlocked = false;
     let gameWon = false;
+    let showGhosts = true;
 
     const Glyphs = Object.freeze({
       lattice(ctx, s) {
@@ -914,34 +958,46 @@
       ctx.stroke();
       ctx.restore();
 
-      cells.forEach(cell => {
-        const matched = cell.occupiedBy !== null;
-        ctx.save();
-        ctx.translate(cell.x, cell.y);
-        ctx.shadowColor = matched ? 'rgba(37,122,93,0.30)' : 'rgba(31,55,78,0.11)';
-        ctx.shadowBlur = matched ? 14 : 8;
-        ctx.shadowOffsetY = 3;
-        roundedRect(ctx, -cell.size / 2, -cell.size / 2, cell.size, cell.size, 12);
-        ctx.fillStyle = matched ? 'rgba(215,245,190,0.70)' : 'rgba(255,255,255,0.86)';
-        ctx.fill();
-        ctx.shadowColor = 'transparent';
-        ctx.lineWidth = matched ? 3 : 2;
-        ctx.strokeStyle = matched ? 'rgba(37,122,93,0.72)' : 'rgba(83,55,28,0.24)';
-        ctx.stroke();
-        if (!matched) {
-          ctx.setLineDash([6, 6]);
-          ctx.strokeStyle = 'rgba(83,55,28,0.18)';
-          roundedRect(ctx, -cell.size / 2 + 6, -cell.size / 2 + 6, cell.size - 12, cell.size - 12, 8);
+      for (let r = 0; r < patternRows.length; r++) {
+        for (let col = 0; col < SPEC.pattern.maxCols; col++) {
+          const cell = getCell(r, col);
+          const active = Boolean(cell);
+          const matched = active && cell.occupiedBy !== null;
+          const x = board.x + col * (board.cell + board.gap) + board.cell / 2;
+          const y = board.y + r * (board.cell + board.gap) + board.cell / 2;
+
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.shadowColor = matched ? 'rgba(37,122,93,0.30)' : active ? 'rgba(31,55,78,0.11)' : 'rgba(31,55,78,0.05)';
+          ctx.shadowBlur = matched ? 14 : active ? 8 : 4;
+          ctx.shadowOffsetY = 3;
+          roundedRect(ctx, -board.cell / 2, -board.cell / 2, board.cell, board.cell, 12);
+          ctx.fillStyle = matched ? 'rgba(215,245,190,0.70)' : active ? 'rgba(255,255,255,0.86)' : 'rgba(255,255,255,0.34)';
+          ctx.fill();
+          ctx.shadowColor = 'transparent';
+          ctx.lineWidth = matched ? 3 : 2;
+          ctx.strokeStyle = matched ? 'rgba(37,122,93,0.72)' : active ? 'rgba(83,55,28,0.24)' : 'rgba(83,55,28,0.14)';
           ctx.stroke();
-          ctx.setLineDash([]);
+
+          if (!matched) {
+            ctx.setLineDash(active ? [6, 6] : [4, 7]);
+            ctx.strokeStyle = active ? 'rgba(83,55,28,0.18)' : 'rgba(83,55,28,0.10)';
+            roundedRect(ctx, -board.cell / 2 + 6, -board.cell / 2 + 6, board.cell - 12, board.cell - 12, 8);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
+          if (active && showGhosts) {
+            ctx.globalAlpha = matched ? 0.11 : 0.32;
+            drawGlyph(ctx, cell.glyph, 0, 0, cell.size * 0.52);
+          }
+          ctx.restore();
         }
-        ctx.globalAlpha = matched ? 0.11 : 0.32;
-        drawGlyph(ctx, cell.glyph, 0, 0, cell.size * 0.52);
-        ctx.restore();
-      });
+      }
     }
 
     function drawGhostPlacement() {
+      if (!showGhosts) return;
       if (!selected || !selected.isDragging) return;
       const p = findBestPlacement(selected, false);
       if (!p) return;
@@ -1076,8 +1132,9 @@
       const ox = spec.margin + Math.floor((innerW - gridW) / 2);
       const oy = spec.margin + Math.floor((innerH - gridH) / 2);
 
-      patternRows.forEach((row, r) => {
-        row.forEach((glyph, col) => {
+      for (let r = 0; r < patternRows.length; r++) {
+        for (let col = 0; col < SPEC.pattern.maxCols; col++) {
+          const glyph = getPatternGlyphAt(r, col);
           const x = ox + col * cell;
           const y = oy + r * cell;
           c.save();
@@ -1089,19 +1146,24 @@
           cg.addColorStop(1, '#fff0b8');
           c.fillStyle = cg;
           c.fillRect(x, y, cell, cell);
-          drawGlyph(c, glyph, x + cell / 2, y + cell / 2, cell * 0.52);
+          if (glyph !== undefined) {
+            drawGlyph(c, glyph, x + cell / 2, y + cell / 2, cell * 0.52);
+          } else {
+            c.fillStyle = 'rgba(83,55,28,0.05)';
+            c.fillRect(x, y, cell, cell);
+          }
           c.restore();
-        });
-      });
+        }
+      }
 
       c.beginPath();
-      patternRows.forEach((row, r) => {
-        row.forEach((_, col) => {
+      for (let r = 0; r < patternRows.length; r++) {
+        for (let col = 0; col < SPEC.pattern.maxCols; col++) {
           const x = ox + col * cell;
           const y = oy + r * cell;
           c.rect(Math.round(x) + 0.5, Math.round(y) + 0.5, cell, cell);
-        });
-      });
+        }
+      }
       c.strokeStyle = spec.borderColor;
       c.lineWidth = 1;
       c.stroke();
@@ -1382,6 +1444,11 @@
       lastStatusTimeout = setTimeout(() => statusEl.classList.remove('show'), 1050);
     }
 
+    function updateGhostToggleLabel() {
+      ghostToggleBtn.querySelector('.toggle-label').textContent = showGhosts ? 'Hint On' : 'Hint Off';
+      ghostToggleBtn.setAttribute('aria-pressed', showGhosts ? 'true' : 'false');
+    }
+
     function loop() {
       tiles.forEach(tile => tile.update());
       cells.forEach(c => c.pulse *= 0.88);
@@ -1407,6 +1474,13 @@
     newGameBtn.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
+    });
+    ghostToggleBtn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      showGhosts = !showGhosts;
+      updateGhostToggleLabel();
+      showStatus(showGhosts ? 'Hint on' : 'Hint hidden');
     });
     playAgainBtn.addEventListener('click', () => {
       ensureAudio();
