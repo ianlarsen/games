@@ -751,7 +751,7 @@
 
       <section class="status-row">
         <div id="feedback" class="feedback">Find the picture. Tap it.</div>
-        <div id="trialChip" class="trial-chip">1 / 9</div>
+        <div id="trialChip" class="trial-chip">1 / 3</div>
       </section>
     </main>
 
@@ -816,9 +816,6 @@
       { id: "lamp", label: "Lamp", picture: "lamp.png" }
     ];
 
-    const TARGET_SEQUENCE = ["bird", "fish", "duck"];
-    const ZONES = ["top-left", "top-right", "center", "bottom-left", "bottom-right"];
-
     const state = {
       trialIndex: 0,
       currentTrial: null,
@@ -862,14 +859,15 @@
     function makeTrials() {
       const trials = [];
       const size = Number(gridSizeSelect.value) || 4;
+      const targets = shuffle(PICTURES).slice(0, 3);
 
-      // A game is three target prompts. Each target lands in a different scan zone.
-      TARGET_SEQUENCE.forEach((target, i) => {
+      // A game is three target prompts. Targets and positions are fresh each game.
+      targets.forEach(picture => {
         trials.push({
-          target,
+          target: picture.id,
           rows: size,
           cols: size,
-          zone: ZONES[i],
+          zone: "random",
           distractors: "fill"
         });
       });
@@ -970,7 +968,6 @@
 
     function handleCellTap(cell, index, iconId) {
       if (state.locked) return;
-      unlockAudio();
 
       const trial = state.currentTrial;
       const isCorrect = iconId === trial.target;
@@ -1059,6 +1056,7 @@
       [matchSound, winSound, wrongSound].forEach(sound => {
         if (!sound) return;
         try {
+          sound.preload = "auto";
           sound.load();
         } catch (err) {
           // Audio is optional.
