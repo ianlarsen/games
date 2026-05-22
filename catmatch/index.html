@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f3ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Cat Match</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="hud">
+    <a class="back-btn" href="../index.html#map">Back</a>
+    <h1 class="title">Cat Match</h1>
+    <span class="header-spacer" aria-hidden="true"></span>
+  </header>
+
+  <div class="setup-row">
+    <span class="setup-label" id="pickerLabel">Find this cat</span>
+    <div class="cat-picker" id="catPicker">
+      <button
+        type="button"
+        id="catPickerBtn"
+        class="cat-picker-btn"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        aria-labelledby="pickerLabel catPickerName"
+      >
+        <img id="catPickerThumb" class="cat-picker-thumb" alt="" width="48" height="48">
+        <span id="catPickerName" class="cat-picker-name">Sitting</span>
+        <span class="cat-picker-chevron" aria-hidden="true">▾</span>
+      </button>
+      <ul id="catPickerMenu" class="cat-picker-menu" role="listbox" aria-label="Choose cat to find" hidden></ul>
+    </div>
+    <button id="newLevel" type="button" class="restart-btn">Restart</button>
+  </div>
+
+  <div id="refbar" aria-label="Progress for target cat"></div>
+
+  <main id="stageWrap">
+    <canvas id="stage"></canvas>
+
+    <div id="overlay" hidden>
+      <div class="card">
+        <h2 id="overlayTitle">All cats found!</h2>
+        <p id="overlayBody"></p>
+        <button id="overlayNext" type="button">Play Again</button>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footer">
+    <span id="status">Choose a cat above, then find every matching pose.</span>
+  </footer>
+
+  <audio id="snd-tap" src="../sounds/flip.mp3" preload="auto" playsinline></audio>
+  <audio id="snd-win" src="../sounds/win.mp3" preload="auto" playsinline></audio>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
