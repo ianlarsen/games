@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Tap & Track — AAC Visual Scanning Game</title>
+  <link rel="stylesheet" href="../_ios_compat.css">
   <style>
     :root {
       --sky-top: #8ed8ff;
@@ -149,25 +150,37 @@
 
     header {
       position: relative;
-      z-index: 1;
+      z-index: 2;
       flex: 0 0 auto;
-      padding: max(10px, env(safe-area-inset-top)) 14px 8px;
+      padding: max(10px, env(safe-area-inset-top)) 10px 8px;
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "back title actions";
+      gap: 8px;
       align-items: center;
     }
 
     .title-wrap {
+      grid-area: title;
+      justify-self: center;
       min-width: 0;
+      width: fit-content;
+      max-width: min(58vw, 420px);
+      padding: 9px 14px;
+      border: 4px solid var(--navy);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 6px 0 rgba(8, 39, 93, 0.14), 0 14px 24px var(--soft-shadow);
+      text-align: center;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(1.35rem, 4.5vw, 2.2rem);
+      font-size: clamp(1.25rem, 4.2vw, 2.2rem);
       line-height: 1;
-      color: #fff;
-      text-shadow: 0 3px 0 var(--blue-dark), 0 5px 10px rgba(0,0,0,0.18);
+      color: var(--navy);
+      text-shadow: none;
       letter-spacing: 0.02em;
     }
 
@@ -176,20 +189,30 @@
       font-size: clamp(0.86rem, 2.6vw, 1.05rem);
       font-weight: 900;
       color: var(--navy);
-      opacity: 0.86;
+      opacity: 1;
     }
 
     .top-actions {
+      grid-area: actions;
       display: flex;
+      flex-wrap: nowrap;
       gap: 8px;
       align-items: center;
+      justify-content: flex-end;
     }
 
-    button {
+    .back-btn {
+      grid-area: back;
+      justify-self: start;
+    }
+
+    button,
+    select {
       font: inherit;
     }
 
-    .pill-btn {
+    .pill-btn,
+    .size-select {
       border: 4px solid var(--navy);
       border-radius: 999px;
       background: linear-gradient(#fff8d7, #ffd947);
@@ -198,8 +221,23 @@
       font-weight: 1000;
       padding: 10px 16px;
       box-shadow: 0 5px 0 rgba(5, 39, 93, 0.18);
-      cursor: pointer;
       min-height: 48px;
+    }
+
+    .pill-btn {
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: linear-gradient(#ffffff, #dbeafe);
+    }
+
+    .size-select {
+      cursor: pointer;
+      padding-right: 28px;
     }
 
     .pill-btn:active {
@@ -221,7 +259,7 @@
     .prompt-card {
       width: min(680px, 100%);
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.92);
+      background: #fff;
       border: 5px solid var(--navy);
       border-radius: 28px;
       padding: 10px 14px;
@@ -248,14 +286,26 @@
     }
 
     .target-icon-preview {
-      width: clamp(56px, 14vw, 84px);
+      width: clamp(64px, 15vw, 96px);
       aspect-ratio: 1;
-      border-radius: 22px;
+      border-radius: 24px;
       border: 4px solid var(--navy);
-      background: #fffdf2;
-      display: grid;
-      place-items: center;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 5px;
       box-shadow: inset 0 -8px 0 rgba(0,0,0,0.06);
+    }
+
+    .target-icon-preview img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: 16px;
     }
 
     .board-wrap {
@@ -271,7 +321,7 @@
       height: min(54vh, 540px);
       max-height: 100%;
       padding: clamp(8px, 1.8vw, 14px);
-      background: rgba(255, 255, 255, 0.88);
+      background: #fff;
       border: 6px solid var(--navy);
       border-radius: 28px;
       box-shadow: 0 8px 0 rgba(8, 39, 93, 0.16), 0 22px 32px var(--shadow);
@@ -280,15 +330,15 @@
     .cell {
       border: 4px solid rgba(8, 39, 93, 0.92);
       border-radius: 20px;
-      background: linear-gradient(#ffffff, #f3fbff);
-      display: grid;
-      grid-template-rows: 1fr auto;
-      place-items: center;
-      padding: clamp(4px, 1vw, 9px);
+      background: #fff;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: clamp(2px, 0.45vw, 5px);
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 -7px 0 rgba(15, 102, 196, 0.08);
+      box-shadow: inset 0 0 0 999px #fff, inset 0 -7px 0 rgba(15, 102, 196, 0.05);
       min-width: 0;
       min-height: 0;
     }
@@ -311,13 +361,15 @@
     .cell.correct {
       animation: popCorrect 420ms ease-out;
       border-color: #16a34a;
-      background: linear-gradient(#f0fff2, #c9ffd1);
+      background: #fff;
+      box-shadow: inset 0 0 0 999px #fff, inset 0 -7px 0 rgba(22, 163, 74, 0.12);
     }
 
     .cell.wrong {
       animation: shakeWrong 300ms ease-in-out;
       border-color: #ef4444;
-      background: linear-gradient(#fff, #ffe1e1);
+      background: #fff;
+      box-shadow: inset 0 0 0 999px #fff, inset 0 -7px 0 rgba(239, 68, 68, 0.12);
     }
 
     .cell.cue-row {
@@ -328,24 +380,47 @@
       animation: pulseCue 720ms ease-in-out infinite alternate;
     }
 
+    .picture-frame {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .picture-frame img,
     .shape-icon {
-      width: min(70%, 96px);
-      height: min(70%, 96px);
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none;
+      max-height: none;
+      object-fit: contain;
+      object-position: center;
       display: block;
-      filter: drop-shadow(0 6px 0 rgba(8, 39, 93, 0.13));
+      filter: drop-shadow(0 5px 0 rgba(8, 39, 93, 0.12));
+    }
+
+    .target-icon-preview img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: 16px;
     }
 
     .icon-label {
-      width: 100%;
-      text-align: center;
-      font-weight: 1000;
-      color: var(--navy);
-      font-size: clamp(0.68rem, 2.1vw, 0.98rem);
-      line-height: 1.1;
-      padding-top: 2px;
-      white-space: nowrap;
+      position: absolute;
+      width: 1px;
+      height: 1px;
       overflow: hidden;
-      text-overflow: ellipsis;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
 
     .status-row {
@@ -361,7 +436,7 @@
       min-height: 52px;
       border-radius: 999px;
       padding: 10px 18px;
-      background: rgba(255,255,255,0.9);
+      background: #fff;
       border: 4px solid rgba(8, 39, 93, 0.82);
       font-size: clamp(1rem, 3.2vw, 1.25rem);
       font-weight: 1000;
@@ -399,6 +474,30 @@
       display: grid;
     }
 
+    .result-card {
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 3vw, 22px);
+      text-align: center;
+      min-height: 100%;
+    }
+
+    .result-trophy {
+      font-size: min(34vw, 190px);
+      line-height: 0.9;
+      filter: drop-shadow(0 10px 0 rgba(8, 39, 93, 0.14));
+    }
+
+    .result-title {
+      font-size: clamp(1.8rem, 6vw, 3.2rem);
+      font-weight: 1000;
+      color: var(--navy);
+      line-height: 1;
+    }
+
     @keyframes popCorrect {
       0% { transform: scale(1); }
       45% { transform: scale(1.09) rotate(-1deg); }
@@ -425,17 +524,50 @@
 
     @media (max-width: 700px) {
       header {
-        padding-left: 10px;
-        padding-right: 10px;
+        grid-template-columns: auto 1fr auto;
+        gap: 6px;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .title-wrap {
+        max-width: 42vw;
+        padding: 8px 10px;
+        border-width: 3px;
+        border-radius: 18px;
+      }
+
+      h1 {
+        font-size: clamp(1.05rem, 5vw, 1.45rem);
+        white-space: nowrap;
       }
 
       .subtitle {
         display: none;
       }
 
+      .top-actions {
+        gap: 5px;
+      }
+
       .pill-btn {
-        padding: 8px 12px;
+        padding: 8px 10px;
         min-height: 44px;
+        border-width: 3px;
+        font-size: 0.82rem;
+      }
+
+      .back-btn {
+        max-width: 94px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .size-select {
+        padding: 8px 22px 8px 9px;
+        min-height: 44px;
+        border-width: 3px;
+        font-size: 0.82rem;
       }
 
       main {
@@ -490,6 +622,57 @@
       }
     }
 
+    @media (max-width: 420px) {
+      header {
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .title-wrap {
+        max-width: 38vw;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .back-btn {
+        width: 44px;
+        min-width: 44px;
+        padding-left: 0;
+        padding-right: 0;
+        justify-content: center;
+        font-size: 0;
+      }
+
+      .back-btn::before {
+        content: "←";
+        font-size: 1.35rem;
+        line-height: 1;
+      }
+
+      .size-select {
+        max-width: 74px;
+      }
+
+      .pill-btn:not(.back-btn) {
+        padding-left: 9px;
+        padding-right: 9px;
+      }
+
+      .target-name {
+        font-size: clamp(1.05rem, 6vw, 1.6rem);
+      }
+
+      .aac-grid {
+        width: min(97vw, 520px);
+        height: min(59vh, 500px);
+        gap: 5px;
+        padding: 6px;
+      }
+
+      .cell {
+        padding: 2px;
+      }
+    }
+
     @media (max-height: 620px) {
       h1 {
         font-size: 1.15rem;
@@ -498,6 +681,11 @@
       header {
         padding-top: 6px;
         padding-bottom: 4px;
+      }
+
+      .title-wrap {
+        padding-top: 6px;
+        padding-bottom: 6px;
       }
 
       .prompt-card {
@@ -533,11 +721,19 @@
     </div>
 
     <header>
+      <a href="../index.html#map" class="pill-btn back-btn">&larr; All Games</a>
+
       <div class="title-wrap">
         <h1>Tap &amp; Track</h1>
         <div class="subtitle">Find the picture. Tap it.</div>
       </div>
+
       <div class="top-actions">
+        <select id="gridSizeSelect" class="size-select" aria-label="Grid size">
+          <option value="3">3 x 3</option>
+          <option value="4" selected>4 x 4</option>
+          <option value="5">5 x 5</option>
+        </select>
         <button id="newGameBtn" class="pill-btn" type="button">New Game</button>
       </div>
     </header>
@@ -545,7 +741,7 @@
     <main>
       <section class="prompt-card" aria-live="polite">
         <div class="find-label">Find</div>
-        <div id="targetName" class="target-name">Apple</div>
+        <div id="targetName" class="target-name">Bird</div>
         <div id="targetPreview" class="target-icon-preview" aria-hidden="true"></div>
       </section>
 
@@ -562,29 +758,65 @@
     <div id="celebration" class="celebration">⭐</div>
   </div>
 
+  <audio id="matchSound" src="../sounds/match.mp3" preload="auto"></audio>
+  <audio id="winSound" src="../sounds/win.mp3" preload="auto"></audio>
+  <audio id="wrongSound" src="../sounds/wrong.mp3" preload="auto"></audio>
+
   <script>
     "use strict";
 
-    const ICONS = [
-      { id: "apple", label: "Apple", color: "#ff3b30", shape: "circle" },
-      { id: "ball", label: "Ball", color: "#1386f7", shape: "circle" },
-      { id: "book", label: "Book", color: "#9857f6", shape: "square" },
-      { id: "cup", label: "Cup", color: "#ffd232", shape: "cup" },
-      { id: "dog", label: "Dog", color: "#b97835", shape: "dog" },
-      { id: "shoe", label: "Shoe", color: "#56c43d", shape: "shoe" },
-      { id: "star", label: "Star", color: "#ffd232", shape: "star" },
-      { id: "home", label: "Home", color: "#ff9f1c", shape: "house" },
-      { id: "heart", label: "Heart", color: "#ff5bbd", shape: "heart" },
-      { id: "moon", label: "Moon", color: "#8b8bff", shape: "moon" },
-      { id: "triangle", label: "Triangle", color: "#0ea5e9", shape: "triangle" },
-      { id: "flower", label: "Flower", color: "#ec4899", shape: "flower" },
-      { id: "car", label: "Car", color: "#ef4444", shape: "car" },
-      { id: "fish", label: "Fish", color: "#06b6d4", shape: "fish" },
-      { id: "sun", label: "Sun", color: "#facc15", shape: "sun" },
-      { id: "tree", label: "Tree", color: "#22c55e", shape: "tree" }
+    const PICTURES = [
+      { id: "bird", label: "Bird", picture: "bird.png" },
+      { id: "fish", label: "Fish", picture: "fish.png" },
+      { id: "duck", label: "Duck", picture: "duck.png" },
+      { id: "frog", label: "Frog", picture: "frog.png" },
+      { id: "lion", label: "Lion", picture: "lion.png" },
+      { id: "bear", label: "Bear", picture: "bear.png" },
+      { id: "wolf", label: "Wolf", picture: "wolf.png" },
+      { id: "goat", label: "Goat", picture: "goat.png" },
+      { id: "deer", label: "Deer", picture: "deer.png" },
+      { id: "crab", label: "Crab", picture: "crab.png" },
+      { id: "star", label: "Star", picture: "star.png" },
+      { id: "moon", label: "Moon", picture: "moon.png" },
+      { id: "tree", label: "Tree", picture: "tree.png" },
+      { id: "rose", label: "Rose", picture: "rose.png" },
+      { id: "leaf", label: "Leaf", picture: "leaf.png" },
+      { id: "book", label: "Book", picture: "book.png" },
+      { id: "cake", label: "Cake", picture: "cake.png" },
+      { id: "milk", label: "Milk", picture: "milk.png" },
+      { id: "corn", label: "Corn", picture: "corn.png" },
+      { id: "pear", label: "Pear", picture: "pear.png" },
+      { id: "kiwi", label: "Kiwi", picture: "kiwi.png" },
+      { id: "soup", label: "Soup", picture: "soup.png" },
+      { id: "rice", label: "Rice", picture: "rice.png" },
+      { id: "bowl", label: "Bowl", picture: "bowl.png" },
+      { id: "fork", label: "Fork", picture: "fork.png" },
+      { id: "ship", label: "Ship", picture: "ship.png" },
+      { id: "boat", label: "Boat", picture: "boat.png" },
+      { id: "bike", label: "Bike", picture: "bike.png" },
+      { id: "cart", label: "Cart", picture: "cart.png" },
+      { id: "bell", label: "Bell", picture: "bell.png" },
+      { id: "drum", label: "Drum", picture: "drum.png" },
+      { id: "kite", label: "Kite", picture: "kite.png" },
+      { id: "ball", label: "Ball", picture: "ball.png" },
+      { id: "dice", label: "Dice", picture: "dice.png" },
+      { id: "cube", label: "Cube", picture: "cube.png" },
+      { id: "gift", label: "Gift", picture: "gift.png" },
+      { id: "coat", label: "Coat", picture: "coat.png" },
+      { id: "sock", label: "Sock", picture: "sock.png" },
+      { id: "shoe", label: "Shoe", picture: "shoe.png" },
+      { id: "hand", label: "Hand", picture: "hand.png" },
+      { id: "foot", label: "Foot", picture: "foot.png" },
+      { id: "eyes", label: "Eyes", picture: "eyes.png" },
+      { id: "nose", label: "Nose", picture: "nose.png" },
+      { id: "ears", label: "Ears", picture: "ears.png" },
+      { id: "ring", label: "Ring", picture: "ring.png" },
+      { id: "keys", label: "Keys", picture: "keys.png" },
+      { id: "door", label: "Door", picture: "door.png" },
+      { id: "lamp", label: "Lamp", picture: "lamp.png" }
     ];
 
-    const TARGET_SEQUENCE = ["apple", "ball", "book", "cup", "dog", "shoe", "star", "home", "heart"];
+    const TARGET_SEQUENCE = ["bird", "fish", "duck"];
     const ZONES = ["top-left", "top-right", "center", "bottom-left", "bottom-right"];
 
     const state = {
@@ -592,6 +824,7 @@
       currentTrial: null,
       startTime: 0,
       locked: false,
+      streak: 0,
       stats: [],
       cueTimers: []
     };
@@ -603,6 +836,11 @@
     const trialChipEl = document.getElementById("trialChip");
     const celebrationEl = document.getElementById("celebration");
     const newGameBtn = document.getElementById("newGameBtn");
+    const gridSizeSelect = document.getElementById("gridSizeSelect");
+    const matchSound = document.getElementById("matchSound");
+    const winSound = document.getElementById("winSound");
+    const wrongSound = document.getElementById("wrongSound");
+    let audioUnlocked = false;
 
     function randInt(max) {
       return Math.floor(Math.random() * max);
@@ -617,56 +855,23 @@
       return copy;
     }
 
-    function iconById(id) {
-      return ICONS.find(icon => icon.id === id);
+    function pictureById(id) {
+      return PICTURES.find(picture => picture.id === id);
     }
 
     function makeTrials() {
       const trials = [];
+      const size = Number(gridSizeSelect.value) || 4;
 
-      // Every cell is filled on every trial. Difficulty increases by grid size.
-      // Trials 1-5 place the target in the major scanning zones.
-      for (let i = 0; i < 5; i++) {
+      // A game is three target prompts. Each target lands in a different scan zone.
+      TARGET_SEQUENCE.forEach((target, i) => {
         trials.push({
-          target: TARGET_SEQUENCE[i],
-          rows: 3,
-          cols: 3,
+          target,
+          rows: size,
+          cols: size,
           zone: ZONES[i],
           distractors: "fill"
         });
-      }
-
-      // Later trials keep all cells filled and add larger scanning fields.
-      trials.push({
-        target: TARGET_SEQUENCE[5],
-        rows: 3,
-        cols: 3,
-        zone: "random",
-        distractors: "fill"
-      });
-
-      trials.push({
-        target: TARGET_SEQUENCE[6],
-        rows: 4,
-        cols: 3,
-        zone: "random",
-        distractors: "fill"
-      });
-
-      trials.push({
-        target: TARGET_SEQUENCE[7],
-        rows: 4,
-        cols: 4,
-        zone: "random",
-        distractors: "fill"
-      });
-
-      trials.push({
-        target: TARGET_SEQUENCE[8],
-        rows: 5,
-        cols: 4,
-        zone: "random",
-        distractors: "fill"
       });
 
       return trials;
@@ -704,7 +909,7 @@
 
       // Fill every other cell with an image/icon distractor.
       // Keep the target unique so the answer is visually unambiguous.
-      const distractorPool = shuffle(ICONS.map(icon => icon.id).filter(id => id !== trial.target));
+      const distractorPool = shuffle(PICTURES.map(picture => picture.id).filter(id => id !== trial.target));
       const emptyIndexes = shuffle([...Array(total).keys()].filter(i => i !== targetIndex));
 
       emptyIndexes.forEach((cellIndex, i) => {
@@ -720,6 +925,7 @@
       state.trialIndex = 0;
       state.stats = [];
       state.locked = false;
+      state.streak = 0;
       feedbackEl.textContent = "Find the picture. Tap it.";
       renderTrial();
     }
@@ -732,28 +938,29 @@
       state.currentTrial = { ...trial, cells: built.cells, targetIndex: built.targetIndex };
       state.startTime = performance.now();
 
-      const targetIcon = iconById(trial.target);
-      targetNameEl.textContent = targetIcon.label;
-      targetPreviewEl.innerHTML = createIconSVG(targetIcon, true);
+      const targetPicture = pictureById(trial.target);
+      targetNameEl.textContent = targetPicture.label;
+      targetPreviewEl.innerHTML = createPictureHTML(targetPicture, true);
       trialChipEl.textContent = `${state.trialIndex + 1} / ${trials.length}`;
 
       gridEl.style.gridTemplateColumns = `repeat(${trial.cols}, 1fr)`;
       gridEl.style.gridTemplateRows = `repeat(${trial.rows}, 1fr)`;
+      gridEl.dataset.size = String(trial.cols);
       gridEl.innerHTML = "";
 
       state.currentTrial.cells.forEach((iconId, index) => {
         const cell = document.createElement("button");
-        const icon = iconById(iconId);
+        const picture = pictureById(iconId);
 
         cell.type = "button";
         cell.className = "cell filled";
         cell.setAttribute("role", "gridcell");
         cell.dataset.index = String(index);
         cell.dataset.icon = iconId;
-        cell.setAttribute("aria-label", icon.label);
+        cell.setAttribute("aria-label", picture.label);
         cell.innerHTML = `
-          ${createIconSVG(icon, false)}
-          <div class="icon-label">${icon.label}</div>
+          <div class="picture-frame">${createPictureHTML(picture, false)}</div>
+          <div class="icon-label">${picture.label}</div>
         `;
         cell.addEventListener("click", () => handleCellTap(cell, index, iconId));
 
@@ -763,6 +970,7 @@
 
     function handleCellTap(cell, index, iconId) {
       if (state.locked) return;
+      unlockAudio();
 
       const trial = state.currentTrial;
       const isCorrect = iconId === trial.target;
@@ -782,9 +990,13 @@
         });
 
         cell.classList.add("correct");
-        playTone("correct");
+        state.streak++;
+        playSound(matchSound);
+        if (state.streak % 3 === 0) {
+          setTimeout(() => playSound(winSound), 160);
+        }
         showCelebration();
-        feedbackEl.textContent = "Great finding!";
+        feedbackEl.textContent = state.streak % 3 === 0 ? "Three in a row!" : "Great finding!";
 
         setTimeout(() => {
           state.trialIndex++;
@@ -799,7 +1011,8 @@
         cell.classList.remove("wrong");
         void cell.offsetWidth;
         cell.classList.add("wrong");
-        playTone("wrong");
+        playSound(wrongSound);
+        state.streak = 0;
         feedbackEl.textContent = "Try again.";
         setTimeout(() => {
           if (!state.locked) feedbackEl.textContent = "Find the picture. Tap it.";
@@ -814,23 +1027,17 @@
       gridEl.style.gridTemplateColumns = "1fr";
       gridEl.style.gridTemplateRows = "1fr";
 
-      const totalMs = state.stats.reduce((sum, item) => sum + item.elapsedMs, 0);
-      const avgSec = state.stats.length ? (totalMs / state.stats.length / 1000).toFixed(1) : "0.0";
-
       const result = document.createElement("div");
-      result.className = "cell correct";
-      result.style.cursor = "default";
+      result.className = "cell correct result-card";
       result.innerHTML = `
-        <div style="font-size:min(16vw,90px);line-height:1;">🏆</div>
-        <div style="font-size:clamp(1.4rem,5vw,2.4rem);font-weight:1000;">You found them!</div>
-        <div style="font-size:clamp(1rem,3vw,1.25rem);font-weight:900;">Average find: ${avgSec} seconds</div>
+        <div class="result-trophy">🏆</div>
+        <div class="result-title">You found them!</div>
       `;
       gridEl.appendChild(result);
       targetNameEl.textContent = "Great Job!";
       targetPreviewEl.innerHTML = "⭐";
       feedbackEl.textContent = "Tap New Game to play again.";
       trialChipEl.textContent = `${trials.length} / ${trials.length}`;
-      playTone("finish");
     }
 
     function clearCueTimers() {
@@ -847,161 +1054,44 @@
       setTimeout(() => celebrationEl.classList.remove("show"), 700);
     }
 
-    function playTone(type) {
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-        const now = ctx.currentTime;
-        const gain = ctx.createGain();
-        gain.connect(ctx.destination);
-        gain.gain.setValueAtTime(0.001, now);
-
-        if (type === "correct") {
-          tone(ctx, gain, 523.25, now, 0.08);
-          tone(ctx, gain, 659.25, now + 0.08, 0.08);
-          tone(ctx, gain, 783.99, now + 0.16, 0.12);
-          gain.gain.exponentialRampToValueAtTime(0.22, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-        } else if (type === "finish") {
-          tone(ctx, gain, 523.25, now, 0.09);
-          tone(ctx, gain, 659.25, now + 0.09, 0.09);
-          tone(ctx, gain, 783.99, now + 0.18, 0.09);
-          tone(ctx, gain, 1046.5, now + 0.27, 0.16);
-          gain.gain.exponentialRampToValueAtTime(0.22, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-        } else {
-          tone(ctx, gain, 180, now, 0.12);
-          gain.gain.exponentialRampToValueAtTime(0.11, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      [matchSound, winSound, wrongSound].forEach(sound => {
+        if (!sound) return;
+        try {
+          sound.load();
+        } catch (err) {
+          // Audio is optional.
         }
+      });
+      audioUnlocked = true;
+    }
 
-        setTimeout(() => ctx.close(), 800);
+    function playSound(sound) {
+      if (!sound) return;
+      try {
+        sound.pause();
+        sound.currentTime = 0;
+        const playPromise = sound.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
       } catch (err) {
         // Audio is optional.
       }
     }
 
-    function tone(ctx, gain, freq, start, duration) {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, start);
-      osc.connect(gain);
-      osc.start(start);
-      osc.stop(start + duration);
-    }
-
-    function createIconSVG(icon, preview) {
-      const stroke = "#08275d";
-      const sizeClass = preview ? "" : "shape-icon";
-      const label = icon.label.replace(/"/g, "");
-      const fill = icon.color;
-
-      let body = "";
-
-      if (icon.shape === "circle") {
-        body = `
-          <circle cx="50" cy="50" r="32" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
-          <path d="M33 30 C42 22 58 21 69 31" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="7" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "square") {
-        body = `
-          <rect x="20" y="20" width="60" height="60" rx="13" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
-          <path d="M31 29 H63" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="7" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "triangle") {
-        body = `
-          <path d="M50 17 L84 78 H16 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M43 34 L31 58" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="7" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "star") {
-        body = `
-          <path d="M50 13 L60 38 L87 39 L66 56 L73 83 L50 68 L27 83 L34 56 L13 39 L40 38 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M43 30 L35 41" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "heart") {
-        body = `
-          <path d="M50 82 C25 61 15 47 18 32 C21 18 39 16 50 30 C61 16 79 18 82 32 C85 47 75 61 50 82 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M31 30 C36 23 45 24 50 31" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="7" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "moon") {
-        body = `
-          <path d="M66 18 C46 22 32 39 32 58 C32 70 38 79 47 84 C28 82 15 68 15 50 C15 31 31 16 50 16 C56 16 61 17 66 18 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-        `;
-      } else if (icon.shape === "cup") {
-        body = `
-          <path d="M28 25 H66 L60 78 H34 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M67 36 C84 36 84 62 64 60" fill="none" stroke="${stroke}" stroke-width="7" stroke-linecap="round"/>
-          <path d="M36 34 H56" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "dog") {
-        body = `
-          <circle cx="50" cy="53" r="29" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
-          <path d="M27 33 C13 35 15 58 29 58" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M73 33 C87 35 85 58 71 58" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <circle cx="39" cy="49" r="4" fill="${stroke}"/>
-          <circle cx="61" cy="49" r="4" fill="${stroke}"/>
-          <path d="M44 62 Q50 68 56 62" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "shoe") {
-        body = `
-          <path d="M20 64 C32 62 38 47 45 37 C53 48 65 58 79 60 C83 68 78 76 67 76 H28 C20 76 16 70 20 64 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M39 57 H61" fill="none" stroke="rgba(255,255,255,0.48)" stroke-width="6" stroke-linecap="round"/>
-        `;
-      } else if (icon.shape === "house") {
-        body = `
-          <path d="M16 48 L50 18 L84 48" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <path d="M25 45 V82 H75 V45" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <rect x="43" y="58" width="14" height="24" rx="3" fill="#fff7df" stroke="${stroke}" stroke-width="5"/>
-        `;
-      } else if (icon.shape === "flower") {
-        body = `
-          <circle cx="50" cy="50" r="11" fill="#ffd232" stroke="${stroke}" stroke-width="5"/>
-          <circle cx="50" cy="25" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
-          <circle cx="50" cy="75" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
-          <circle cx="25" cy="50" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
-          <circle cx="75" cy="50" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
-        `;
-      } else if (icon.shape === "car") {
-        body = `
-          <path d="M20 58 L30 39 H66 L80 58 V72 H20 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <circle cx="34" cy="72" r="8" fill="#fff" stroke="${stroke}" stroke-width="5"/>
-          <circle cx="66" cy="72" r="8" fill="#fff" stroke="${stroke}" stroke-width="5"/>
-          <path d="M37 42 H59 L66 56 H30 Z" fill="#a7e8ff" stroke="${stroke}" stroke-width="4"/>
-        `;
-      } else if (icon.shape === "fish") {
-        body = `
-          <path d="M20 50 C35 27 65 27 80 50 C65 73 35 73 20 50 Z" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
-          <path d="M80 50 L93 36 V64 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
-          <circle cx="39" cy="45" r="4" fill="${stroke}"/>
-        `;
-      } else if (icon.shape === "sun") {
-        body = `
-          <circle cx="50" cy="50" r="22" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
-          <g stroke="${stroke}" stroke-width="7" stroke-linecap="round">
-            <path d="M50 10 V22"/><path d="M50 78 V90"/><path d="M10 50 H22"/><path d="M78 50 H90"/>
-            <path d="M22 22 L30 30"/><path d="M70 70 L78 78"/><path d="M78 22 L70 30"/><path d="M30 70 L22 78"/>
-          </g>
-        `;
-      } else if (icon.shape === "tree") {
-        body = `
-          <path d="M45 58 H55 V84 H45 Z" fill="#9a5a20" stroke="${stroke}" stroke-width="5"/>
-          <circle cx="50" cy="32" r="20" fill="${fill}" stroke="${stroke}" stroke-width="6"/>
-          <circle cx="34" cy="48" r="17" fill="${fill}" stroke="${stroke}" stroke-width="6"/>
-          <circle cx="66" cy="48" r="17" fill="${fill}" stroke="${stroke}" stroke-width="6"/>
-        `;
-      } else {
-        body = `<circle cx="50" cy="50" r="32" fill="${fill}" stroke="${stroke}" stroke-width="7"/>`;
-      }
-
-      return `
-        <svg class="${sizeClass}" viewBox="0 0 100 100" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">
-          ${body}
-        </svg>
-      `;
+    function createPictureHTML(picture, preview) {
+      const className = preview ? "" : "shape-icon";
+      return `<img class="${className}" src="../missing_letter/images/${picture.picture}" alt="${picture.label}">`;
     }
 
     newGameBtn.addEventListener("click", startGame);
+    gridSizeSelect.addEventListener("change", startGame);
+
+    document.addEventListener("pointerdown", unlockAudio, { once: true, capture: true });
+    document.addEventListener("touchstart", unlockAudio, { once: true, capture: true });
+    document.addEventListener("keydown", unlockAudio, { once: true, capture: true });
 
     window.addEventListener("keydown", (event) => {
       if (event.key.toLowerCase() === "r") startGame();
