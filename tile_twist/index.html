@@ -743,6 +743,16 @@
       return { ok: errors.length === 0, errors };
     }
 
+    function generateValidatedPuzzle() {
+      for (let tries = 0; tries < 25; tries++) {
+        generateRandomPuzzle();
+        const validation = validateSolvableSpec();
+        if (validation.ok) return;
+        console.warn('Regenerating unsolvable Twist Tiles puzzle:', validation.errors);
+      }
+      throw new Error('Could not generate a solvable Twist Tiles puzzle after repeated attempts.');
+    }
+
     function layout() {
       width = Math.max(1, canvas.clientWidth);
       height = Math.max(1, canvas.clientHeight);
@@ -834,14 +844,7 @@
     }
 
     function init() {
-      generateRandomPuzzle();
-      const validation = validateSolvableSpec();
-      if (!validation.ok) {
-        console.error('Unsolvable Twist Tiles setup:', validation.errors);
-        document.getElementById('title-card').querySelector('p').textContent =
-          'Puzzle setup error: this card is not solvable. Check the console for the exact broken tile/cell mapping.';
-        throw new Error(validation.errors.join(' | '));
-      }
+      generateValidatedPuzzle();
       tiles = tileSeeds.map(t => new Tile(t));
       layout();
       tiles.forEach(tile => {
@@ -1297,7 +1300,7 @@
       gameWon = false;
       winOverlay.classList.remove('show');
       confettiContainer.innerHTML = '';
-      generateRandomPuzzle();
+      generateValidatedPuzzle();
       tiles = tileSeeds.map(t => new Tile(t));
       layout();
       tiles.forEach(tile => { tile.x = tile.homeX; tile.y = tile.homeY; });
