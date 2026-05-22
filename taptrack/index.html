@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tap & Track — AAC Visual Scanning Game</title>
+  <style>
+    :root {
+      --sky-top: #8ed8ff;
+      --sky-bottom: #eaf8ff;
+      --grass: #82d948;
+      --grass-dark: #3d9a2f;
+      --navy: #08275d;
+      --blue: #1386f7;
+      --blue-dark: #0753b8;
+      --yellow: #ffd232;
+      --orange: #ff9f1c;
+      --red: #ff3b30;
+      --green: #56c43d;
+      --purple: #9857f6;
+      --pink: #ff5bbd;
+      --white: #ffffff;
+      --cream: #fff7df;
+      --shadow: rgba(4, 27, 62, 0.25);
+      --soft-shadow: rgba(4, 27, 62, 0.13);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(var(--sky-top), var(--sky-bottom));
+      color: var(--navy);
+    }
+
+    body {
+      touch-action: manipulation;
+    }
+
+    #app {
+      width: 100%;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 999px;
+      opacity: 0.9;
+      filter: drop-shadow(0 4px 0 rgba(255,255,255,0.45));
+    }
+
+    .cloud::before,
+    .cloud::after {
+      content: "";
+      position: absolute;
+      background: white;
+      border-radius: 999px;
+    }
+
+    .cloud.one {
+      width: 130px;
+      height: 38px;
+      left: 10%;
+      top: 8%;
+    }
+
+    .cloud.one::before {
+      width: 52px;
+      height: 52px;
+      left: 26px;
+      top: -25px;
+    }
+
+    .cloud.one::after {
+      width: 42px;
+      height: 42px;
+      right: 22px;
+      top: -18px;
+    }
+
+    .cloud.two {
+      width: 160px;
+      height: 42px;
+      right: 8%;
+      top: 13%;
+      opacity: 0.82;
+    }
+
+    .cloud.two::before {
+      width: 58px;
+      height: 58px;
+      left: 36px;
+      top: -28px;
+    }
+
+    .cloud.two::after {
+      width: 46px;
+      height: 46px;
+      right: 30px;
+      top: -20px;
+    }
+
+    .hill {
+      position: absolute;
+      left: -10%;
+      right: -10%;
+      bottom: -9%;
+      height: 28%;
+      background: radial-gradient(ellipse at center, #a4e765 0%, var(--grass) 58%, #70c83b 100%);
+      border-radius: 50% 50% 0 0;
+      border-top: 5px solid rgba(48, 137, 37, 0.25);
+    }
+
+    .grass-bit {
+      position: absolute;
+      bottom: 4%;
+      width: 26px;
+      height: 16px;
+      border-radius: 50%;
+      border-top: 5px solid var(--grass-dark);
+      opacity: 0.65;
+    }
+
+    .grass-bit:nth-child(4) { left: 8%; }
+    .grass-bit:nth-child(5) { left: 22%; bottom: 8%; transform: scale(0.8); }
+    .grass-bit:nth-child(6) { left: 69%; bottom: 7%; transform: scale(1.2); }
+    .grass-bit:nth-child(7) { left: 84%; bottom: 5%; transform: scale(0.9); }
+
+    header {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      padding: max(10px, env(safe-area-inset-top)) 14px 8px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .title-wrap {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 4.5vw, 2.2rem);
+      line-height: 1;
+      color: #fff;
+      text-shadow: 0 3px 0 var(--blue-dark), 0 5px 10px rgba(0,0,0,0.18);
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      font-size: clamp(0.86rem, 2.6vw, 1.05rem);
+      font-weight: 900;
+      color: var(--navy);
+      opacity: 0.86;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .pill-btn {
+      border: 4px solid var(--navy);
+      border-radius: 999px;
+      background: linear-gradient(#fff8d7, #ffd947);
+      color: var(--navy);
+      font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+      font-weight: 1000;
+      padding: 10px 16px;
+      box-shadow: 0 5px 0 rgba(5, 39, 93, 0.18);
+      cursor: pointer;
+      min-height: 48px;
+    }
+
+    .pill-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 rgba(5, 39, 93, 0.18);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      padding: 0 14px calc(12px + env(safe-area-inset-bottom));
+    }
+
+    .prompt-card {
+      width: min(680px, 100%);
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.92);
+      border: 5px solid var(--navy);
+      border-radius: 28px;
+      padding: 10px 14px;
+      box-shadow: 0 7px 0 rgba(8, 39, 93, 0.15), 0 16px 24px var(--soft-shadow);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .find-label {
+      font-size: clamp(1rem, 3.2vw, 1.3rem);
+      font-weight: 1000;
+      color: var(--blue-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .target-name {
+      font-size: clamp(1.35rem, 5vw, 2.2rem);
+      font-weight: 1000;
+      color: var(--navy);
+      line-height: 1.05;
+    }
+
+    .target-icon-preview {
+      width: clamp(56px, 14vw, 84px);
+      aspect-ratio: 1;
+      border-radius: 22px;
+      border: 4px solid var(--navy);
+      background: #fffdf2;
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 -8px 0 rgba(0,0,0,0.06);
+    }
+
+    .board-wrap {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .aac-grid {
+      display: grid;
+      gap: clamp(6px, 1.4vw, 12px);
+      width: min(92vw, 720px);
+      height: min(54vh, 540px);
+      max-height: 100%;
+      padding: clamp(8px, 1.8vw, 14px);
+      background: rgba(255, 255, 255, 0.88);
+      border: 6px solid var(--navy);
+      border-radius: 28px;
+      box-shadow: 0 8px 0 rgba(8, 39, 93, 0.16), 0 22px 32px var(--shadow);
+    }
+
+    .cell {
+      border: 4px solid rgba(8, 39, 93, 0.92);
+      border-radius: 20px;
+      background: linear-gradient(#ffffff, #f3fbff);
+      display: grid;
+      grid-template-rows: 1fr auto;
+      place-items: center;
+      padding: clamp(4px, 1vw, 9px);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 -7px 0 rgba(15, 102, 196, 0.08);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .cell.blank {
+      opacity: 0.44;
+      cursor: default;
+      background: rgba(255,255,255,0.55);
+      border-style: dashed;
+    }
+
+    .cell.filled:hover {
+      transform: translateY(-1px);
+    }
+
+    .cell.filled:active {
+      transform: scale(0.97);
+    }
+
+    .cell.correct {
+      animation: popCorrect 420ms ease-out;
+      border-color: #16a34a;
+      background: linear-gradient(#f0fff2, #c9ffd1);
+    }
+
+    .cell.wrong {
+      animation: shakeWrong 300ms ease-in-out;
+      border-color: #ef4444;
+      background: linear-gradient(#fff, #ffe1e1);
+    }
+
+    .cell.cue-row {
+      box-shadow: inset 0 0 0 999px rgba(255, 229, 46, 0.18), inset 0 -7px 0 rgba(15, 102, 196, 0.08);
+    }
+
+    .cell.cue-target {
+      animation: pulseCue 720ms ease-in-out infinite alternate;
+    }
+
+    .shape-icon {
+      width: min(70%, 96px);
+      height: min(70%, 96px);
+      display: block;
+      filter: drop-shadow(0 6px 0 rgba(8, 39, 93, 0.13));
+    }
+
+    .icon-label {
+      width: 100%;
+      text-align: center;
+      font-weight: 1000;
+      color: var(--navy);
+      font-size: clamp(0.68rem, 2.1vw, 0.98rem);
+      line-height: 1.1;
+      padding-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-row {
+      width: min(680px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feedback {
+      min-height: 52px;
+      border-radius: 999px;
+      padding: 10px 18px;
+      background: rgba(255,255,255,0.9);
+      border: 4px solid rgba(8, 39, 93, 0.82);
+      font-size: clamp(1rem, 3.2vw, 1.25rem);
+      font-weight: 1000;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      box-shadow: 0 5px 0 rgba(8, 39, 93, 0.12);
+    }
+
+    .trial-chip {
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: var(--blue);
+      border: 4px solid var(--navy);
+      color: white;
+      font-weight: 1000;
+      font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+      box-shadow: 0 5px 0 rgba(8, 39, 93, 0.18);
+      white-space: nowrap;
+    }
+
+    .celebration {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      display: none;
+      place-items: center;
+      font-size: min(18vw, 120px);
+      text-shadow: 0 7px 0 rgba(8, 39, 93, 0.18);
+      animation: celebrate 650ms ease-out forwards;
+    }
+
+    .celebration.show {
+      display: grid;
+    }
+
+    @keyframes popCorrect {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.09) rotate(-1deg); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shakeWrong {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      50% { transform: translateX(7px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    @keyframes pulseCue {
+      from { transform: scale(1); box-shadow: 0 0 0 rgba(255, 210, 50, 0); }
+      to { transform: scale(1.035); box-shadow: 0 0 0 8px rgba(255, 210, 50, 0.4); }
+    }
+
+    @keyframes celebrate {
+      0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+      35% { opacity: 1; transform: scale(1.1) rotate(5deg); }
+      100% { opacity: 0; transform: scale(1.45) rotate(12deg); }
+    }
+
+    @media (max-width: 700px) {
+      header {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .pill-btn {
+        padding: 8px 12px;
+        min-height: 44px;
+      }
+
+      main {
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 8px;
+      }
+
+      .prompt-card {
+        border-width: 4px;
+        border-radius: 22px;
+        padding: 8px 10px;
+        gap: 8px;
+      }
+
+      .find-label {
+        display: none;
+      }
+
+      .prompt-card {
+        grid-template-columns: 1fr auto;
+      }
+
+      .target-name::before {
+        content: "Find ";
+        color: var(--blue-dark);
+      }
+
+      .aac-grid {
+        width: min(96vw, 520px);
+        height: min(58vh, 500px);
+        border-width: 4px;
+        border-radius: 22px;
+      }
+
+      .cell {
+        border-width: 3px;
+        border-radius: 15px;
+      }
+
+      .status-row {
+        grid-template-columns: 1fr;
+      }
+
+      .trial-chip {
+        display: none;
+      }
+
+      .feedback {
+        min-height: 44px;
+        justify-content: center;
+      }
+    }
+
+    @media (max-height: 620px) {
+      h1 {
+        font-size: 1.15rem;
+      }
+
+      header {
+        padding-top: 6px;
+        padding-bottom: 4px;
+      }
+
+      .prompt-card {
+        padding: 6px 9px;
+      }
+
+      .target-icon-preview {
+        width: 48px;
+        border-radius: 15px;
+      }
+
+      .aac-grid {
+        height: min(56vh, 380px);
+      }
+
+      .feedback {
+        min-height: 40px;
+        padding: 7px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="background" aria-hidden="true">
+      <div class="cloud one"></div>
+      <div class="cloud two"></div>
+      <div class="hill"></div>
+      <div class="grass-bit"></div>
+      <div class="grass-bit"></div>
+      <div class="grass-bit"></div>
+      <div class="grass-bit"></div>
+    </div>
+
+    <header>
+      <div class="title-wrap">
+        <h1>Tap &amp; Track</h1>
+        <div class="subtitle">Find the picture. Tap it.</div>
+      </div>
+      <div class="top-actions">
+        <button id="newGameBtn" class="pill-btn" type="button">New Game</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="prompt-card" aria-live="polite">
+        <div class="find-label">Find</div>
+        <div id="targetName" class="target-name">Apple</div>
+        <div id="targetPreview" class="target-icon-preview" aria-hidden="true"></div>
+      </section>
+
+      <section class="board-wrap">
+        <div id="grid" class="aac-grid" role="grid" aria-label="Tap & Track icon grid"></div>
+      </section>
+
+      <section class="status-row">
+        <div id="feedback" class="feedback">Find the picture. Tap it.</div>
+        <div id="trialChip" class="trial-chip">1 / 9</div>
+      </section>
+    </main>
+
+    <div id="celebration" class="celebration">⭐</div>
+  </div>
+
+  <script>
+    "use strict";
+
+    const ICONS = [
+      { id: "apple", label: "Apple", color: "#ff3b30", shape: "circle" },
+      { id: "ball", label: "Ball", color: "#1386f7", shape: "circle" },
+      { id: "book", label: "Book", color: "#9857f6", shape: "square" },
+      { id: "cup", label: "Cup", color: "#ffd232", shape: "cup" },
+      { id: "dog", label: "Dog", color: "#b97835", shape: "dog" },
+      { id: "shoe", label: "Shoe", color: "#56c43d", shape: "shoe" },
+      { id: "star", label: "Star", color: "#ffd232", shape: "star" },
+      { id: "home", label: "Home", color: "#ff9f1c", shape: "house" },
+      { id: "heart", label: "Heart", color: "#ff5bbd", shape: "heart" },
+      { id: "moon", label: "Moon", color: "#8b8bff", shape: "moon" },
+      { id: "triangle", label: "Triangle", color: "#0ea5e9", shape: "triangle" },
+      { id: "flower", label: "Flower", color: "#ec4899", shape: "flower" },
+      { id: "car", label: "Car", color: "#ef4444", shape: "car" },
+      { id: "fish", label: "Fish", color: "#06b6d4", shape: "fish" },
+      { id: "sun", label: "Sun", color: "#facc15", shape: "sun" },
+      { id: "tree", label: "Tree", color: "#22c55e", shape: "tree" }
+    ];
+
+    const TARGET_SEQUENCE = ["apple", "ball", "book", "cup", "dog", "shoe", "star", "home", "heart"];
+    const ZONES = ["top-left", "top-right", "center", "bottom-left", "bottom-right"];
+
+    const state = {
+      trialIndex: 0,
+      currentTrial: null,
+      startTime: 0,
+      locked: false,
+      stats: [],
+      cueTimers: []
+    };
+
+    const gridEl = document.getElementById("grid");
+    const targetNameEl = document.getElementById("targetName");
+    const targetPreviewEl = document.getElementById("targetPreview");
+    const feedbackEl = document.getElementById("feedback");
+    const trialChipEl = document.getElementById("trialChip");
+    const celebrationEl = document.getElementById("celebration");
+    const newGameBtn = document.getElementById("newGameBtn");
+
+    function randInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function shuffle(array) {
+      const copy = array.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randInt(i + 1);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function iconById(id) {
+      return ICONS.find(icon => icon.id === id);
+    }
+
+    function makeTrials() {
+      const trials = [];
+
+      // Every cell is filled on every trial. Difficulty increases by grid size.
+      // Trials 1-5 place the target in the major scanning zones.
+      for (let i = 0; i < 5; i++) {
+        trials.push({
+          target: TARGET_SEQUENCE[i],
+          rows: 3,
+          cols: 3,
+          zone: ZONES[i],
+          distractors: "fill"
+        });
+      }
+
+      // Later trials keep all cells filled and add larger scanning fields.
+      trials.push({
+        target: TARGET_SEQUENCE[5],
+        rows: 3,
+        cols: 3,
+        zone: "random",
+        distractors: "fill"
+      });
+
+      trials.push({
+        target: TARGET_SEQUENCE[6],
+        rows: 4,
+        cols: 3,
+        zone: "random",
+        distractors: "fill"
+      });
+
+      trials.push({
+        target: TARGET_SEQUENCE[7],
+        rows: 4,
+        cols: 4,
+        zone: "random",
+        distractors: "fill"
+      });
+
+      trials.push({
+        target: TARGET_SEQUENCE[8],
+        rows: 5,
+        cols: 4,
+        zone: "random",
+        distractors: "fill"
+      });
+
+      return trials;
+    }
+
+    let trials = makeTrials();
+
+    function zoneToIndex(zone, rows, cols) {
+      const lastRow = rows - 1;
+      const lastCol = cols - 1;
+      const midRow = Math.floor(rows / 2);
+      const midCol = Math.floor(cols / 2);
+
+      const map = {
+        "top-left": [0, 0],
+        "top-right": [0, lastCol],
+        "center": [midRow, midCol],
+        "bottom-left": [lastRow, 0],
+        "bottom-right": [lastRow, lastCol]
+      };
+
+      if (zone === "random") {
+        return randInt(rows * cols);
+      }
+
+      const [r, c] = map[zone] || map.center;
+      return r * cols + c;
+    }
+
+    function buildTrialGrid(trial) {
+      const total = trial.rows * trial.cols;
+      const cells = new Array(total).fill(null);
+      const targetIndex = zoneToIndex(trial.zone, trial.rows, trial.cols);
+      cells[targetIndex] = trial.target;
+
+      // Fill every other cell with an image/icon distractor.
+      // Keep the target unique so the answer is visually unambiguous.
+      const distractorPool = shuffle(ICONS.map(icon => icon.id).filter(id => id !== trial.target));
+      const emptyIndexes = shuffle([...Array(total).keys()].filter(i => i !== targetIndex));
+
+      emptyIndexes.forEach((cellIndex, i) => {
+        cells[cellIndex] = distractorPool[i % distractorPool.length];
+      });
+
+      return { cells, targetIndex };
+    }
+
+    function startGame() {
+      clearCueTimers();
+      trials = makeTrials();
+      state.trialIndex = 0;
+      state.stats = [];
+      state.locked = false;
+      feedbackEl.textContent = "Find the picture. Tap it.";
+      renderTrial();
+    }
+
+    function renderTrial() {
+      clearCueTimers();
+      state.locked = false;
+      const trial = trials[state.trialIndex];
+      const built = buildTrialGrid(trial);
+      state.currentTrial = { ...trial, cells: built.cells, targetIndex: built.targetIndex };
+      state.startTime = performance.now();
+
+      const targetIcon = iconById(trial.target);
+      targetNameEl.textContent = targetIcon.label;
+      targetPreviewEl.innerHTML = createIconSVG(targetIcon, true);
+      trialChipEl.textContent = `${state.trialIndex + 1} / ${trials.length}`;
+
+      gridEl.style.gridTemplateColumns = `repeat(${trial.cols}, 1fr)`;
+      gridEl.style.gridTemplateRows = `repeat(${trial.rows}, 1fr)`;
+      gridEl.innerHTML = "";
+
+      state.currentTrial.cells.forEach((iconId, index) => {
+        const cell = document.createElement("button");
+        const icon = iconById(iconId);
+
+        cell.type = "button";
+        cell.className = "cell filled";
+        cell.setAttribute("role", "gridcell");
+        cell.dataset.index = String(index);
+        cell.dataset.icon = iconId;
+        cell.setAttribute("aria-label", icon.label);
+        cell.innerHTML = `
+          ${createIconSVG(icon, false)}
+          <div class="icon-label">${icon.label}</div>
+        `;
+        cell.addEventListener("click", () => handleCellTap(cell, index, iconId));
+
+        gridEl.appendChild(cell);
+      });
+    }
+
+    function handleCellTap(cell, index, iconId) {
+      if (state.locked) return;
+
+      const trial = state.currentTrial;
+      const isCorrect = iconId === trial.target;
+
+      if (isCorrect) {
+        state.locked = true;
+        clearCueTimers();
+        const elapsed = Math.round(performance.now() - state.startTime);
+        state.stats.push({
+          trial: state.trialIndex + 1,
+          target: trial.target,
+          targetIndex: trial.targetIndex,
+          rows: trial.rows,
+          cols: trial.cols,
+          distractors: trial.distractors,
+          elapsedMs: elapsed
+        });
+
+        cell.classList.add("correct");
+        playTone("correct");
+        showCelebration();
+        feedbackEl.textContent = "Great finding!";
+
+        setTimeout(() => {
+          state.trialIndex++;
+          if (state.trialIndex >= trials.length) {
+            showResults();
+          } else {
+            feedbackEl.textContent = "Find the picture. Tap it.";
+            renderTrial();
+          }
+        }, 820);
+      } else {
+        cell.classList.remove("wrong");
+        void cell.offsetWidth;
+        cell.classList.add("wrong");
+        playTone("wrong");
+        feedbackEl.textContent = "Try again.";
+        setTimeout(() => {
+          if (!state.locked) feedbackEl.textContent = "Find the picture. Tap it.";
+        }, 900);
+      }
+    }
+
+    function showResults() {
+      clearCueTimers();
+      state.locked = true;
+      gridEl.innerHTML = "";
+      gridEl.style.gridTemplateColumns = "1fr";
+      gridEl.style.gridTemplateRows = "1fr";
+
+      const totalMs = state.stats.reduce((sum, item) => sum + item.elapsedMs, 0);
+      const avgSec = state.stats.length ? (totalMs / state.stats.length / 1000).toFixed(1) : "0.0";
+
+      const result = document.createElement("div");
+      result.className = "cell correct";
+      result.style.cursor = "default";
+      result.innerHTML = `
+        <div style="font-size:min(16vw,90px);line-height:1;">🏆</div>
+        <div style="font-size:clamp(1.4rem,5vw,2.4rem);font-weight:1000;">You found them!</div>
+        <div style="font-size:clamp(1rem,3vw,1.25rem);font-weight:900;">Average find: ${avgSec} seconds</div>
+      `;
+      gridEl.appendChild(result);
+      targetNameEl.textContent = "Great Job!";
+      targetPreviewEl.innerHTML = "⭐";
+      feedbackEl.textContent = "Tap New Game to play again.";
+      trialChipEl.textContent = `${trials.length} / ${trials.length}`;
+      playTone("finish");
+    }
+
+    function clearCueTimers() {
+      state.cueTimers.forEach(timer => clearTimeout(timer));
+      state.cueTimers = [];
+    }
+
+    function showCelebration() {
+      const icons = ["⭐", "✨", "🎉", "✅"];
+      celebrationEl.textContent = icons[randInt(icons.length)];
+      celebrationEl.classList.remove("show");
+      void celebrationEl.offsetWidth;
+      celebrationEl.classList.add("show");
+      setTimeout(() => celebrationEl.classList.remove("show"), 700);
+    }
+
+    function playTone(type) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.001, now);
+
+        if (type === "correct") {
+          tone(ctx, gain, 523.25, now, 0.08);
+          tone(ctx, gain, 659.25, now + 0.08, 0.08);
+          tone(ctx, gain, 783.99, now + 0.16, 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.22, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        } else if (type === "finish") {
+          tone(ctx, gain, 523.25, now, 0.09);
+          tone(ctx, gain, 659.25, now + 0.09, 0.09);
+          tone(ctx, gain, 783.99, now + 0.18, 0.09);
+          tone(ctx, gain, 1046.5, now + 0.27, 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.22, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        } else {
+          tone(ctx, gain, 180, now, 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.11, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        }
+
+        setTimeout(() => ctx.close(), 800);
+      } catch (err) {
+        // Audio is optional.
+      }
+    }
+
+    function tone(ctx, gain, freq, start, duration) {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, start);
+      osc.connect(gain);
+      osc.start(start);
+      osc.stop(start + duration);
+    }
+
+    function createIconSVG(icon, preview) {
+      const stroke = "#08275d";
+      const sizeClass = preview ? "" : "shape-icon";
+      const label = icon.label.replace(/"/g, "");
+      const fill = icon.color;
+
+      let body = "";
+
+      if (icon.shape === "circle") {
+        body = `
+          <circle cx="50" cy="50" r="32" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
+          <path d="M33 30 C42 22 58 21 69 31" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="7" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "square") {
+        body = `
+          <rect x="20" y="20" width="60" height="60" rx="13" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
+          <path d="M31 29 H63" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="7" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "triangle") {
+        body = `
+          <path d="M50 17 L84 78 H16 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M43 34 L31 58" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="7" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "star") {
+        body = `
+          <path d="M50 13 L60 38 L87 39 L66 56 L73 83 L50 68 L27 83 L34 56 L13 39 L40 38 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M43 30 L35 41" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "heart") {
+        body = `
+          <path d="M50 82 C25 61 15 47 18 32 C21 18 39 16 50 30 C61 16 79 18 82 32 C85 47 75 61 50 82 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M31 30 C36 23 45 24 50 31" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="7" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "moon") {
+        body = `
+          <path d="M66 18 C46 22 32 39 32 58 C32 70 38 79 47 84 C28 82 15 68 15 50 C15 31 31 16 50 16 C56 16 61 17 66 18 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+        `;
+      } else if (icon.shape === "cup") {
+        body = `
+          <path d="M28 25 H66 L60 78 H34 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M67 36 C84 36 84 62 64 60" fill="none" stroke="${stroke}" stroke-width="7" stroke-linecap="round"/>
+          <path d="M36 34 H56" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "dog") {
+        body = `
+          <circle cx="50" cy="53" r="29" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
+          <path d="M27 33 C13 35 15 58 29 58" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M73 33 C87 35 85 58 71 58" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <circle cx="39" cy="49" r="4" fill="${stroke}"/>
+          <circle cx="61" cy="49" r="4" fill="${stroke}"/>
+          <path d="M44 62 Q50 68 56 62" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "shoe") {
+        body = `
+          <path d="M20 64 C32 62 38 47 45 37 C53 48 65 58 79 60 C83 68 78 76 67 76 H28 C20 76 16 70 20 64 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M39 57 H61" fill="none" stroke="rgba(255,255,255,0.48)" stroke-width="6" stroke-linecap="round"/>
+        `;
+      } else if (icon.shape === "house") {
+        body = `
+          <path d="M16 48 L50 18 L84 48" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M25 45 V82 H75 V45" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <rect x="43" y="58" width="14" height="24" rx="3" fill="#fff7df" stroke="${stroke}" stroke-width="5"/>
+        `;
+      } else if (icon.shape === "flower") {
+        body = `
+          <circle cx="50" cy="50" r="11" fill="#ffd232" stroke="${stroke}" stroke-width="5"/>
+          <circle cx="50" cy="25" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
+          <circle cx="50" cy="75" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
+          <circle cx="25" cy="50" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
+          <circle cx="75" cy="50" r="15" fill="${fill}" stroke="${stroke}" stroke-width="5"/>
+        `;
+      } else if (icon.shape === "car") {
+        body = `
+          <path d="M20 58 L30 39 H66 L80 58 V72 H20 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <circle cx="34" cy="72" r="8" fill="#fff" stroke="${stroke}" stroke-width="5"/>
+          <circle cx="66" cy="72" r="8" fill="#fff" stroke="${stroke}" stroke-width="5"/>
+          <path d="M37 42 H59 L66 56 H30 Z" fill="#a7e8ff" stroke="${stroke}" stroke-width="4"/>
+        `;
+      } else if (icon.shape === "fish") {
+        body = `
+          <path d="M20 50 C35 27 65 27 80 50 C65 73 35 73 20 50 Z" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
+          <path d="M80 50 L93 36 V64 Z" fill="${fill}" stroke="${stroke}" stroke-width="7" stroke-linejoin="round"/>
+          <circle cx="39" cy="45" r="4" fill="${stroke}"/>
+        `;
+      } else if (icon.shape === "sun") {
+        body = `
+          <circle cx="50" cy="50" r="22" fill="${fill}" stroke="${stroke}" stroke-width="7"/>
+          <g stroke="${stroke}" stroke-width="7" stroke-linecap="round">
+            <path d="M50 10 V22"/><path d="M50 78 V90"/><path d="M10 50 H22"/><path d="M78 50 H90"/>
+            <path d="M22 22 L30 30"/><path d="M70 70 L78 78"/><path d="M78 22 L70 30"/><path d="M30 70 L22 78"/>
+          </g>
+        `;
+      } else if (icon.shape === "tree") {
+        body = `
+          <path d="M45 58 H55 V84 H45 Z" fill="#9a5a20" stroke="${stroke}" stroke-width="5"/>
+          <circle cx="50" cy="32" r="20" fill="${fill}" stroke="${stroke}" stroke-width="6"/>
+          <circle cx="34" cy="48" r="17" fill="${fill}" stroke="${stroke}" stroke-width="6"/>
+          <circle cx="66" cy="48" r="17" fill="${fill}" stroke="${stroke}" stroke-width="6"/>
+        `;
+      } else {
+        body = `<circle cx="50" cy="50" r="32" fill="${fill}" stroke="${stroke}" stroke-width="7"/>`;
+      }
+
+      return `
+        <svg class="${sizeClass}" viewBox="0 0 100 100" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">
+          ${body}
+        </svg>
+      `;
+    }
+
+    newGameBtn.addEventListener("click", startGame);
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() === "r") startGame();
+    });
+
+    startGame();
+  </script>
+</body>
+</html>
