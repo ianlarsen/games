@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>roach_topdown</title>
+  <desc>Transparent top-down cockroach sprite for a floor crawling animation.</desc>
+
+  <defs>
+    <radialGradient id="bodyGrad" cx="47%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#5a3823"/>
+      <stop offset="38%" stop-color="#2f1d13"/>
+      <stop offset="72%" stop-color="#17100b"/>
+      <stop offset="100%" stop-color="#070504"/>
+    </radialGradient>
+
+    <radialGradient id="headGrad" cx="45%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#3b2417"/>
+      <stop offset="75%" stop-color="#0b0705"/>
+    </radialGradient>
+
+    <linearGradient id="wingGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5a35" stop-opacity="0.58"/>
+      <stop offset="48%" stop-color="#3a2417" stop-opacity="0.64"/>
+      <stop offset="100%" stop-color="#0b0705" stop-opacity="0.78"/>
+    </linearGradient>
+
+    <filter id="spriteShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="10" dy="18" stdDeviation="16" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+  </defs>
+
+  <!-- Soft floor shadow -->
+  <ellipse cx="512" cy="560" rx="245" ry="315" fill="#000000" opacity="0.28" filter="url(#softBlur)"/>
+
+  <g filter="url(#spriteShadow)">
+    <!-- Antennae -->
+    <path d="M463 243
+             C407 163 331 105 239 75
+             C202 63 176 51 148 32"
+          fill="none"
+          stroke="#120b07"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <path d="M561 243
+             C617 163 693 105 785 75
+             C822 63 848 51 876 32"
+          fill="none"
+          stroke="#120b07"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <path d="M463 243
+             C399 188 335 151 260 136"
+          fill="none"
+          stroke="#4b2d1a"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.7"/>
+
+    <path d="M561 243
+             C625 188 689 151 764 136"
+          fill="none"
+          stroke="#4b2d1a"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.7"/>
+
+    <!-- Rear legs -->
+    <path d="M384 644 C299 690 224 745 162 827" fill="none" stroke="#100a06" stroke-width="22" stroke-linecap="round"/>
+    <path d="M640 644 C725 690 800 745 862 827" fill="none" stroke="#100a06" stroke-width="22" stroke-linecap="round"/>
+
+    <!-- Middle legs -->
+    <path d="M365 522 C269 540 191 583 111 651" fill="none" stroke="#120b07" stroke-width="22" stroke-linecap="round"/>
+    <path d="M659 522 C755 540 833 583 913 651" fill="none" stroke="#120b07" stroke-width="22" stroke-linecap="round"/>
+
+    <!-- Front legs -->
+    <path d="M388 390 C300 350 215 334 122 352" fill="none" stroke="#120b07" stroke-width="20" stroke-linecap="round"/>
+    <path d="M636 390 C724 350 809 334 902 352" fill="none" stroke="#120b07" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- Smaller leg highlights -->
+    <path d="M370 520 C301 537 234 572 170 625" fill="none" stroke="#4b2d1a" stroke-width="6" stroke-linecap="round" opacity="0.65"/>
+    <path d="M654 520 C723 537 790 572 854 625" fill="none" stroke="#4b2d1a" stroke-width="6" stroke-linecap="round" opacity="0.65"/>
+    <path d="M392 641 C322 686 265 735 217 791" fill="none" stroke="#4b2d1a" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+    <path d="M632 641 C702 686 759 735 807 791" fill="none" stroke="#4b2d1a" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+
+    <!-- Main abdomen/body -->
+    <ellipse cx="512" cy="571" rx="168" ry="303" fill="url(#bodyGrad)"/>
+
+    <!-- Head -->
+    <ellipse cx="512" cy="286" rx="102" ry="91" fill="url(#headGrad)"/>
+
+    <!-- Pronotum collar -->
+    <ellipse cx="512" cy="365" rx="132" ry="98" fill="#1f130c" opacity="0.96"/>
+    <ellipse cx="512" cy="346" rx="103" ry="62" fill="#4b2d1a" opacity="0.36"/>
+
+    <!-- Wing cases -->
+    <path d="M501 365
+             C429 430 402 524 418 663
+             C430 768 466 831 506 866
+             C510 707 510 528 501 365Z"
+          fill="url(#wingGrad)"
+          opacity="0.96"/>
+
+    <path d="M523 365
+             C595 430 622 524 606 663
+             C594 768 558 831 518 866
+             C514 707 514 528 523 365Z"
+          fill="url(#wingGrad)"
+          opacity="0.96"/>
+
+    <!-- Center seam -->
+    <path d="M512 353
+             C508 470 507 606 512 869"
+          fill="none"
+          stroke="#060403"
+          stroke-width="8"
+          stroke-linecap="round"
+          opacity="0.9"/>
+
+    <!-- Abdomen segments -->
+    <path d="M418 501 C474 526 551 526 606 501" fill="none" stroke="#0a0604" stroke-width="6" opacity="0.42"/>
+    <path d="M415 584 C474 608 550 608 609 584" fill="none" stroke="#0a0604" stroke-width="6" opacity="0.40"/>
+    <path d="M425 668 C480 690 544 690 599 668" fill="none" stroke="#0a0604" stroke-width="6" opacity="0.38"/>
+    <path d="M448 752 C486 768 538 768 576 752" fill="none" stroke="#0a0604" stroke-width="6" opacity="0.34"/>
+
+    <!-- Body highlights -->
+    <path d="M464 407
+             C430 503 433 647 466 761"
+          fill="none"
+          stroke="#9c6b42"
+          stroke-width="9"
+          stroke-linecap="round"
+          opacity="0.20"/>
+
+    <path d="M560 407
+             C594 503 591 647 558 761"
+          fill="none"
+          stroke="#9c6b42"
+          stroke-width="9"
+          stroke-linecap="round"
+          opacity="0.16"/>
+
+    <!-- Head markings -->
+    <ellipse cx="475" cy="274" rx="19" ry="12" fill="#090604" opacity="0.8"/>
+    <ellipse cx="549" cy="274" rx="19" ry="12" fill="#090604" opacity="0.8"/>
+    <path d="M481 318 C503 331 526 331 548 318" fill="none" stroke="#6d4228" stroke-width="6" stroke-linecap="round" opacity="0.38"/>
+  </g>
+</svg>

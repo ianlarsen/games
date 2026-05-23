@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>floor_puddle_dark_01</title>
+  <desc>Transparent dark irregular puddle decal for a dirty maze floor.</desc>
+
+  <defs>
+    <radialGradient id="puddleCore" cx="48%" cy="51%" r="58%">
+      <stop offset="0%" stop-color="#030404" stop-opacity="0.82"/>
+      <stop offset="45%" stop-color="#050606" stop-opacity="0.68"/>
+      <stop offset="72%" stop-color="#0a0b0b" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="wetHighlight" cx="36%" cy="34%" r="55%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="18%" stop-color="#cfd8d8" stop-opacity="0.10"/>
+      <stop offset="55%" stop-color="#9fa9a9" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+
+    <filter id="edgeRoughen">
+      <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="3" seed="11"/>
+      <feDisplacementMap in="SourceGraphic" scale="16"/>
+    </filter>
+  </defs>
+
+  <!-- Main irregular puddle body -->
+  <path d="M173 531
+           C122 489 133 423 203 393
+           C258 370 269 316 332 295
+           C390 276 429 321 490 293
+           C556 263 618 265 675 305
+           C734 346 757 396 826 423
+           C897 451 911 525 850 574
+           C793 620 724 599 669 647
+           C609 699 536 716 463 688
+           C403 665 347 692 287 661
+           C219 627 230 576 173 531Z"
+        fill="url(#puddleCore)"
+        filter="url(#edgeRoughen)"/>
+
+  <!-- Inner deeper wet area -->
+  <path d="M286 528
+           C245 488 275 435 330 426
+           C385 417 411 368 469 382
+           C527 395 566 369 617 399
+           C662 426 696 446 747 459
+           C798 472 811 528 765 559
+           C723 588 664 572 626 608
+           C578 653 516 649 462 629
+           C408 609 357 636 319 597
+           C293 571 312 553 286 528Z"
+        fill="#020303"
+        opacity="0.52"
+        filter="url(#softBlur)"/>
+
+  <!-- Thin damp outer stains -->
+  <path d="M131 565
+           C196 646 288 706 398 719
+           C518 734 651 726 754 655
+           C833 601 900 560 926 488"
+        fill="none"
+        stroke="#050606"
+        stroke-width="19"
+        stroke-linecap="round"
+        stroke-opacity="0.10"
+        filter="url(#softBlur)"/>
+
+  <path d="M206 391
+           C293 324 406 251 533 264
+           C649 276 766 330 837 422"
+        fill="none"
+        stroke="#0b0d0d"
+        stroke-width="14"
+        stroke-linecap="round"
+        stroke-opacity="0.08"
+        filter="url(#softBlur)"/>
+
+  <!-- Glossy reflections -->
+  <path d="M320 404
+           C379 381 431 384 482 405
+           C441 418 385 423 320 404Z"
+        fill="url(#wetHighlight)"
+        opacity="0.65"/>
+
+  <path d="M587 431
+           C647 419 702 434 745 464
+           C691 460 642 454 587 431Z"
+        fill="#dfecec"
+        opacity="0.08"
+        filter="url(#softBlur)"/>
+
+  <path d="M392 574
+           C449 547 528 544 589 565
+           C535 581 457 588 392 574Z"
+        fill="#ffffff"
+        opacity="0.07"
+        filter="url(#softBlur)"/>
+
+  <!-- Small satellite wet spots -->
+  <g opacity="0.7">
+    <ellipse cx="195" cy="346" rx="36" ry="17" fill="#050606" opacity="0.27" transform="rotate(-21 195 346)" filter="url(#softBlur)"/>
+    <ellipse cx="814" cy="642" rx="45" ry="19" fill="#030404" opacity="0.30" transform="rotate(-14 814 642)" filter="url(#softBlur)"/>
+    <ellipse cx="712" cy="728" rx="28" ry="12" fill="#040505" opacity="0.22" transform="rotate(28 712 728)" filter="url(#softBlur)"/>
+    <ellipse cx="256" cy="704" rx="31" ry="13" fill="#040505" opacity="0.22" transform="rotate(17 256 704)" filter="url(#softBlur)"/>
+  </g>
+
+  <!-- Tiny tile-grime specks in puddle -->
+  <g fill="#141717" opacity="0.20">
+    <circle cx="355" cy="466" r="4"/>
+    <circle cx="403" cy="514" r="3"/>
+    <circle cx="477" cy="444" r="3"/>
+    <circle cx="542" cy="592" r="4"/>
+    <circle cx="631" cy="516" r="3"/>
+    <circle cx="701" cy="532" r="4"/>
+    <circle cx="587" cy="471" r="2"/>
+    <circle cx="300" cy="571" r="3"/>
+    <circle cx="764" cy="502" r="3"/>
+  </g>
+</svg>

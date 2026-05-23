@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>door_lock_panel_three_shapes</title>
+  <desc>Old metal door lock panel with circle, triangle, and trapezoid shaped locks.</desc>
+
+  <defs>
+    <linearGradient id="panelMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5c5145"/>
+      <stop offset="18%" stop-color="#1d1b19"/>
+      <stop offset="48%" stop-color="#3a332c"/>
+      <stop offset="72%" stop-color="#171513"/>
+      <stop offset="100%" stop-color="#6a5a45"/>
+    </linearGradient>
+
+    <linearGradient id="rimMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9a8462"/>
+      <stop offset="32%" stop-color="#2a231c"/>
+      <stop offset="63%" stop-color="#7d6a4f"/>
+      <stop offset="100%" stop-color="#18130f"/>
+    </linearGradient>
+
+    <radialGradient id="lockHole" cx="48%" cy="44%" r="63%">
+      <stop offset="0%" stop-color="#070706"/>
+      <stop offset="58%" stop-color="#020202"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+
+    <filter id="dropShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="10" dy="16" stdDeviation="12" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+
+    <filter id="innerGrime">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="4" seed="19"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.18"/>
+      </feComponentTransfer>
+      <feBlend mode="multiply" in2="SourceGraphic"/>
+    </filter>
+
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- Transparent background by default -->
+
+  <!-- Main panel shadow -->
+  <rect x="168" y="95" width="688" height="834" rx="52" fill="#000000" opacity="0.32" filter="url(#softGlow)"/>
+
+  <!-- Main lock panel -->
+  <rect x="148" y="72" width="688" height="834" rx="52"
+        fill="url(#panelMetal)"
+        stroke="#0a0908"
+        stroke-width="18"
+        filter="url(#dropShadow)"/>
+
+  <!-- Inner inset panel -->
+  <rect x="202" y="126" width="580" height="726" rx="34"
+        fill="#171513"
+        opacity="0.82"
+        stroke="#6f604c"
+        stroke-width="8"/>
+
+  <!-- Scratched dirty overlay -->
+  <rect x="202" y="126" width="580" height="726" rx="34"
+        fill="#ffffff"
+        opacity="0.32"
+        filter="url(#innerGrime)"/>
+
+  <!-- Rivets -->
+  <g>
+    <circle cx="232" cy="160" r="24" fill="url(#rimMetal)" stroke="#080706" stroke-width="5"/>
+    <circle cx="752" cy="160" r="24" fill="url(#rimMetal)" stroke="#080706" stroke-width="5"/>
+    <circle cx="232" cy="818" r="24" fill="url(#rimMetal)" stroke="#080706" stroke-width="5"/>
+    <circle cx="752" cy="818" r="24" fill="url(#rimMetal)" stroke="#080706" stroke-width="5"/>
+
+    <circle cx="232" cy="160" r="8" fill="#b9a06f" opacity="0.45"/>
+    <circle cx="752" cy="160" r="8" fill="#b9a06f" opacity="0.45"/>
+    <circle cx="232" cy="818" r="8" fill="#b9a06f" opacity="0.45"/>
+    <circle cx="752" cy="818" r="8" fill="#b9a06f" opacity="0.45"/>
+  </g>
+
+  <!-- Title plate -->
+  <rect x="310" y="166" width="364" height="72" rx="14"
+        fill="#2a241d"
+        stroke="#857153"
+        stroke-width="5"/>
+
+  <text x="492" y="213"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="34"
+        fill="#c5ad75"
+        letter-spacing="3">THREE LOCKS</text>
+
+  <!-- Lock rows separators -->
+  <line x1="270" y1="335" x2="714" y2="335" stroke="#877458" stroke-width="5" opacity="0.45"/>
+  <line x1="270" y1="528" x2="714" y2="528" stroke="#877458" stroke-width="5" opacity="0.45"/>
+  <line x1="270" y1="721" x2="714" y2="721" stroke="#877458" stroke-width="5" opacity="0.45"/>
+
+  <!-- ================= Circle lock ================= -->
+  <g transform="translate(0, 0)">
+    <circle cx="382" cy="431" r="68" fill="url(#rimMetal)" stroke="#0a0908" stroke-width="9"/>
+    <circle cx="382" cy="431" r="38" fill="url(#lockHole)" stroke="#9b855f" stroke-width="5"/>
+    <circle cx="382" cy="431" r="17" fill="#000000"/>
+
+    <text x="572" y="443"
+          text-anchor="middle"
+          font-family="Arial, sans-serif"
+          font-size="36"
+          fill="#d2bd89"
+          letter-spacing="4">CIRCLE</text>
+
+    <path d="M326 392 C359 361 407 360 439 392"
+          fill="none"
+          stroke="#d6c08a"
+          stroke-width="7"
+          stroke-linecap="round"
+          opacity="0.42"/>
+  </g>
+
+  <!-- ================= Triangle lock ================= -->
+  <g transform="translate(0, 0)">
+    <path d="M382 542
+             L458 672
+             L306 672
+             Z"
+          fill="url(#rimMetal)"
+          stroke="#0a0908"
+          stroke-width="9"
+          stroke-linejoin="round"/>
+
+    <path d="M382 589
+             L422 654
+             L342 654
+             Z"
+          fill="url(#lockHole)"
+          stroke="#9b855f"
+          stroke-width="5"
+          stroke-linejoin="round"/>
+
+    <text x="585" y="636"
+          text-anchor="middle"
+          font-family="Arial, sans-serif"
+          font-size="36"
+          fill="#d2bd89"
+          letter-spacing="4">TRIANGLE</text>
+
+    <path d="M343 646 L382 582 L421 646"
+          fill="none"
+          stroke="#000000"
+          stroke-width="4"
+          opacity="0.35"/>
+  </g>
+
+  <!-- ================= Trapezoid lock ================= -->
+  <g transform="translate(0, 0)">
+    <path d="M326 735
+             L438 735
+             L474 842
+             L290 842
+             Z"
+          fill="url(#rimMetal)"
+          stroke="#0a0908"
+          stroke-width="9"
+          stroke-linejoin="round"/>
+
+    <path d="M356 768
+             L408 768
+             L429 824
+             L335 824
+             Z"
+          fill="url(#lockHole)"
+          stroke="#9b855f"
+          stroke-width="5"
+          stroke-linejoin="round"/>
+
+    <text x="604" y="806"
+          text-anchor="middle"
+          font-family="Arial, sans-serif"
+          font-size="34"
+          fill="#d2bd89"
+          letter-spacing="3">TRAPEZOID</text>
+
+    <path d="M330 755 C358 745 406 744 435 754"
+          fill="none"
+          stroke="#d6c08a"
+          stroke-width="6"
+          stroke-linecap="round"
+          opacity="0.38"/>
+  </g>
+
+  <!-- Rust streaks -->
+  <g opacity="0.36">
+    <path d="M255 184 C248 246 265 284 251 342" stroke="#5b2c12" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M733 184 C724 236 737 283 722 334" stroke="#5b2c12" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M285 345 C275 414 292 467 277 523" stroke="#6b3518" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <path d="M708 533 C699 597 713 650 700 711" stroke="#6b3518" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M249 734 C240 779 251 821 240 859" stroke="#5b2c12" stroke-width="5" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Scratches -->
+  <g stroke="#b8a47c" stroke-linecap="round" opacity="0.18">
+    <path d="M570 275 L701 246" stroke-width="5"/>
+    <path d="M304 281 L415 266" stroke-width="4"/>
+    <path d="M616 365 L740 389" stroke-width="4"/>
+    <path d="M507 501 L668 473" stroke-width="5"/>
+    <path d="M265 574 L336 552" stroke-width="4"/>
+    <path d="M521 704 L691 680" stroke-width="5"/>
+    <path d="M491 846 L657 821" stroke-width="4"/>
+  </g>
+
+  <!-- Subtle bottom warning -->
+  <text x="492" y="884"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="24"
+        fill="#9b855f"
+        opacity="0.65"
+        letter-spacing="3">MATCH THE KEYS</text>
+</svg>

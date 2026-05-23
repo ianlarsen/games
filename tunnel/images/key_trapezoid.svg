@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>key_trapezoid</title>
+  <desc>Standalone transparent trapezoid key sprite for the labyrinth game.</desc>
+
+  <defs>
+    <linearGradient id="goldMain" x1="80" y1="80" x2="420" y2="410" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff4ad"/>
+      <stop offset="24%" stop-color="#e7b83b"/>
+      <stop offset="54%" stop-color="#8d5a12"/>
+      <stop offset="79%" stop-color="#f0c95b"/>
+      <stop offset="100%" stop-color="#6c4208"/>
+    </linearGradient>
+
+    <linearGradient id="goldDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5810"/>
+      <stop offset="58%" stop-color="#3a2205"/>
+      <stop offset="100%" stop-color="#c89025"/>
+    </linearGradient>
+
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d98cff" stop-opacity="0.42"/>
+      <stop offset="58%" stop-color="#ba5dff" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#ba5dff" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="dropShadow" x="-35%" y="-35%" width="170%" height="170%">
+      <feDropShadow dx="8" dy="12" stdDeviation="9" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- soft pickup glow -->
+  <circle cx="256" cy="256" r="210" fill="url(#glow)" filter="url(#softBlur)"/>
+
+  <g filter="url(#dropShadow)">
+    <!-- trapezoid bow/head -->
+    <path d="M86 164
+             L224 164
+             L264 318
+             L46 318
+             Z"
+          fill="url(#goldMain)"
+          stroke="#2e1b04"
+          stroke-width="12"
+          stroke-linejoin="round"/>
+
+    <!-- trapezoid inner cutout -->
+    <path d="M119 211
+             L195 211
+             L215 292
+             L96 292
+             Z"
+          fill="none"
+          stroke="#2e1b04"
+          stroke-width="14"
+          stroke-linejoin="round"/>
+
+    <path d="M98 290 L120 218 L193 218 L213 290"
+          fill="none"
+          stroke="#000000"
+          stroke-width="4"
+          opacity="0.22"/>
+
+    <!-- rim highlight -->
+    <path d="M103 188 C134 174 184 174 215 188"
+          fill="none"
+          stroke="#fff6b8"
+          stroke-width="8"
+          stroke-linecap="round"
+          opacity="0.45"/>
+
+    <!-- key shaft -->
+    <rect x="223" y="238" width="150" height="36" rx="18" fill="url(#goldMain)" stroke="#2e1b04" stroke-width="10"/>
+
+    <!-- shaft highlight -->
+    <rect x="246" y="247" width="94" height="7" rx="4" fill="#fff7bd" opacity="0.5"/>
+
+    <!-- neck connector -->
+    <rect x="200" y="232" width="48" height="48" rx="20" fill="url(#goldMain)" stroke="#2e1b04" stroke-width="9"/>
+
+    <!-- teeth -->
+    <rect x="348" y="219" width="34" height="36" rx="4" fill="url(#goldDark)" stroke="#2e1b04" stroke-width="8"/>
+    <rect x="371" y="262" width="52" height="35" rx="4" fill="url(#goldDark)" stroke="#2e1b04" stroke-width="8"/>
+    <rect x="402" y="262" width="30" height="68" rx="4" fill="url(#goldDark)" stroke="#2e1b04" stroke-width="8"/>
+
+    <!-- small bevel shine on trapezoid -->
+    <path d="M73 302 L95 178 L218 178 L251 302"
+          fill="none"
+          stroke="#fff1a2"
+          stroke-width="5"
+          stroke-linejoin="round"
+          opacity="0.23"/>
+
+    <!-- tiny scratches -->
+    <g stroke="#402706" stroke-linecap="round" opacity="0.35">
+      <path d="M273 263 L331 260" stroke-width="4"/>
+      <path d="M113 202 L156 190" stroke-width="4"/>
+      <path d="M89 309 L135 322" stroke-width="3"/>
+      <path d="M374 285 L411 287" stroke-width="3"/>
+    </g>
+  </g>
+</svg>

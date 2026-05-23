@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="512" viewBox="0 0 1536 512">
+  <title>key_set_shapes</title>
+  <desc>Circle, triangle, and trapezoid antique key sprites on transparent background.</desc>
+
+  <defs>
+    <linearGradient id="goldMain" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff0a3"/>
+      <stop offset="28%" stop-color="#d9a92f"/>
+      <stop offset="55%" stop-color="#8f5e12"/>
+      <stop offset="82%" stop-color="#e2b84a"/>
+      <stop offset="100%" stop-color="#6e4308"/>
+    </linearGradient>
+
+    <linearGradient id="goldDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8a5810"/>
+      <stop offset="55%" stop-color="#3d2405"/>
+      <stop offset="100%" stop-color="#bf8a24"/>
+    </linearGradient>
+
+    <radialGradient id="glowCircle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe680" stop-opacity="0.45"/>
+      <stop offset="60%" stop-color="#ffd24a" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#ffd24a" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="8" dy="12" stdDeviation="10" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+
+    <g id="keyShaft">
+      <rect x="190" y="238" width="178" height="36" rx="18" fill="url(#goldMain)" stroke="#3a2205" stroke-width="7"/>
+      <rect x="225" y="247" width="115" height="7" rx="4" fill="#fff4b5" opacity="0.45"/>
+      <rect x="335" y="226" width="32" height="24" rx="4" fill="url(#goldDark)" stroke="#3a2205" stroke-width="6"/>
+      <rect x="354" y="262" width="42" height="33" rx="4" fill="url(#goldDark)" stroke="#3a2205" stroke-width="6"/>
+      <rect x="382" y="262" width="26" height="58" rx="4" fill="url(#goldDark)" stroke="#3a2205" stroke-width="6"/>
+    </g>
+  </defs>
+
+  <!-- ================= CIRCLE KEY ================= -->
+  <g transform="translate(0,0)" filter="url(#softShadow)">
+    <ellipse cx="256" cy="272" rx="168" ry="168" fill="url(#glowCircle)" filter="url(#softBlur)"/>
+
+    <circle cx="148" cy="256" r="82" fill="url(#goldMain)" stroke="#3a2205" stroke-width="9"/>
+    <circle cx="148" cy="256" r="40" fill="none" stroke="#3a2205" stroke-width="13"/>
+    <circle cx="148" cy="256" r="21" fill="#000000" opacity="0.22"/>
+
+    <path d="M95 213 C127 176 184 176 217 212" fill="none" stroke="#fff4b5" stroke-width="9" stroke-linecap="round" opacity="0.42"/>
+
+    <use href="#keyShaft"/>
+
+    <text x="256" y="456" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#d9a92f" opacity="0.72">CIRCLE</text>
+  </g>
+
+  <!-- ================= TRIANGLE KEY ================= -->
+  <g transform="translate(512,0)" filter="url(#softShadow)">
+    <ellipse cx="256" cy="272" rx="168" ry="168" fill="url(#glowCircle)" filter="url(#softBlur)"/>
+
+    <path d="M148 165
+             L242 322
+             L54 322
+             Z"
+          fill="url(#goldMain)"
+          stroke="#3a2205"
+          stroke-width="9"
+          stroke-linejoin="round"/>
+
+    <path d="M148 217
+             L192 292
+             L104 292
+             Z"
+          fill="none"
+          stroke="#3a2205"
+          stroke-width="13"
+          stroke-linejoin="round"/>
+
+    <path d="M111 290 L148 226 L185 290" fill="none" stroke="#000000" stroke-width="4" opacity="0.16"/>
+
+    <path d="M104 274 C126 236 139 212 148 198" fill="none" stroke="#fff4b5" stroke-width="8" stroke-linecap="round" opacity="0.38"/>
+
+    <use href="#keyShaft"/>
+
+    <text x="256" y="456" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#d9a92f" opacity="0.72">TRIANGLE</text>
+  </g>
+
+  <!-- ================= TRAPEZOID KEY ================= -->
+  <g transform="translate(1024,0)" filter="url(#softShadow)">
+    <ellipse cx="256" cy="272" rx="168" ry="168" fill="url(#glowCircle)" filter="url(#softBlur)"/>
+
+    <path d="M82 179
+             L214 179
+             L253 318
+             L43 318
+             Z"
+          fill="url(#goldMain)"
+          stroke="#3a2205"
+          stroke-width="9"
+          stroke-linejoin="round"/>
+
+    <path d="M110 222
+             L188 222
+             L207 291
+             L91 291
+             Z"
+          fill="none"
+          stroke="#3a2205"
+          stroke-width="13"
+          stroke-linejoin="round"/>
+
+    <path d="M91 202 C121 189 169 187 203 200" fill="none" stroke="#fff4b5" stroke-width="8" stroke-linecap="round" opacity="0.38"/>
+
+    <use href="#keyShaft"/>
+
+    <text x="256" y="456" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#d9a92f" opacity="0.72">TRAPEZOID</text>
+  </g>
+</svg>
