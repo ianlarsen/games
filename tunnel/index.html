@@ -98,7 +98,7 @@ let doorOpenProgress=0;
 const container=document.getElementById('canvas-container');
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x000000);
-scene.fog=new THREE.FogExp2(0x000000,isMobile?.021:.017);
+scene.fog=new THREE.FogExp2(0x000000,isMobile?.01176:.00952);
 
 const camera=new THREE.PerspectiveCamera(isMobile?68:60,window.innerWidth/window.innerHeight,.1,1000);
 const renderer=new THREE.WebGLRenderer({antialias:!isMobile,powerPreference:'high-performance'});
@@ -368,7 +368,10 @@ const doorWoodMat=new THREE.MeshStandardMaterial({map:doorWoodTex,color:0xffffff
 const doorPanelWoodMat=new THREE.MeshStandardMaterial({map:doorPanelWoodTex,color:0xffffff,roughness:.86,metalness:.01});
 const keyBrassMat=new THREE.MeshStandardMaterial({color:0xb18a33,emissive:0x221600,metalness:.85,roughness:.28});
 const keyDarkMat=new THREE.MeshStandardMaterial({color:0x3b2608,metalness:.7,roughness:.5});
-const keyGlowMat=new THREE.MeshBasicMaterial({map:keyGlowTexture,transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+const keyGlowMat=new THREE.MeshBasicMaterial({map:keyGlowTexture,transparent:true,opacity:.9,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+
+const keyLightColor=0xe6c15a;
+
 
 const wallGeo=new THREE.BoxGeometry(SIZE,SIZE,SIZE);
 const pillarGeo=new THREE.BoxGeometry(1.5,SIZE+.1,1.5);
@@ -397,8 +400,8 @@ function spawnCeilingLight(x,z,stronger=false){
   if(!stronger && realCeilingLightCount>=maxRealCeilingLights) return;
   realCeilingLightCount++;
 
-  const intensity=stronger?1.8:.88;
-  const distance=isMobile?21:25;
+  const intensity=stronger?2.808:1.373;
+  const distance=isMobile?32:40;
   const pathLight=new THREE.PointLight(0xfffdd0,intensity,distance);
   pathLight.position.set(x,SIZE/2-1,z);
   scene.add(pathLight);
@@ -561,10 +564,15 @@ function create3DKey(type){
   neck.position.set(-1.28,0,0);
   group.add(neck);
 
-  const glow=new THREE.Mesh(new THREE.PlaneGeometry(6.5,6.5),keyGlowMat.clone());
+  const glow=new THREE.Mesh(new THREE.PlaneGeometry(13,13),keyGlowMat.clone());
   glow.position.set(0,0,-.28);
   glow.userData.isGlow=true;
   group.add(glow);
+
+  const keyLight=new THREE.PointLight(keyLightColor,2.25,48);
+  keyLight.position.set(0,0,0);
+  keyLight.userData.isKeyLight=true;
+  group.add(keyLight);
 
   group.scale.set(1.05,1.05,1.05);
   return group;
@@ -728,21 +736,286 @@ const exitLight=new THREE.PointLight(0xffffff,0,65);
 exitLight.position.set(doorX+SIZE/2+3,0,doorZ);
 scene.add(exitLight);
 
-const roachGeo=new THREE.PlaneGeometry(7,7);
-const roachMesh=new THREE.Mesh(roachGeo,roachMat);
-const roachStart=cellCenter(13,2);
-roachMesh.position.set(roachStart.x+2.5,-SIZE/2+.09,roachStart.z-3);
-roachMesh.rotation.x=-Math.PI/2;
-roachMesh.rotation.z=1.35;
-roachMesh.visible=true;
-scene.add(roachMesh);
+function createScamperingRoach(){
+  const group=new THREE.Group();
 
-const roachState={triggered:false,active:false,idle:true,distanceRun:0,maxDistance:42,speed:23,direction:new THREE.Vector3(1,0,-.2).normalize()};
+  const shellMat=new THREE.MeshStandardMaterial({
+    color:0x2a1208,
+    roughness:.55,
+    metalness:.08,
+    emissive:0x050100
+  });
 
-const ambientLight=new THREE.AmbientLight(0x252529);
+  const darkMat=new THREE.MeshStandardMaterial({
+    color:0x080302,
+    roughness:.9,
+    metalness:.02
+  });
+
+  const headMat=new THREE.MeshStandardMaterial({
+    color:0x100604,
+    roughness:.75,
+    metalness:.02
+  });
+
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),shellMat);
+  body.scale.set(.78,.24,1.55);
+  body.position.set(0,.16,0);
+  group.add(body);
+
+  const thorax=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),shellMat);
+  thorax.scale.set(.62,.21,.75);
+  thorax.position.set(0,.17,-1.08);
+  group.add(thorax);
+
+  const head=new THREE.Mesh(new THREE.SphereGeometry(1,14,8),headMat);
+  head.scale.set(.46,.18,.45);
+  head.position.set(0,.17,-1.72);
+  group.add(head);
+
+  const stripeGeo=new THREE.BoxGeometry(.035,.035,2.2);
+
+  for(let i=-2;i<=2;i++){
+    const stripe=new THREE.Mesh(stripeGeo,darkMat);
+    stripe.position.set(i*.18,.38,.18);
+    stripe.rotation.z=i*.04;
+    group.add(stripe);
+  }
+
+  const antennaGeo=new THREE.CylinderGeometry(.018,.012,1.6,6);
+
+  [-1,1].forEach(side=>{
+    const antenna=new THREE.Mesh(antennaGeo,darkMat);
+    antenna.position.set(side*.28,.2,-2.16);
+    antenna.rotation.x=1.18;
+    antenna.rotation.z=side*.55;
+    group.add(antenna);
+  });
+
+  const legGeo=new THREE.CylinderGeometry(.026,.018,.95,6);
+  const legs=[];
+  const legZ=[-1.08,-.18,.78];
+
+  [-1,1].forEach(side=>{
+    legZ.forEach((z,i)=>{
+      const pivot=new THREE.Group();
+      pivot.position.set(side*.48,.13,z);
+
+      const upper=new THREE.Mesh(legGeo,darkMat);
+      upper.position.set(side*.38,0,0);
+      upper.rotation.z=Math.PI/2;
+      upper.rotation.y=(i-1)*.28;
+      pivot.add(upper);
+
+      const lower=new THREE.Mesh(legGeo,darkMat);
+      lower.position.set(side*.82,-.03,(i-1)*.18);
+      lower.rotation.z=Math.PI/2.35;
+      lower.rotation.y=side*.28;
+      pivot.add(lower);
+
+      pivot.userData={
+        side,
+        phase:i*.9+(side>0?Math.PI:0),
+        baseY:pivot.position.y,
+        baseZ:(i-1)*.22
+      };
+
+      group.add(pivot);
+      legs.push(pivot);
+    });
+  });
+
+  const shadowMat=new THREE.MeshBasicMaterial({
+    color:0x000000,
+    transparent:true,
+    opacity:.28,
+    depthWrite:false
+  });
+
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(1.45,24),shadowMat);
+  shadow.rotation.x=-Math.PI/2;
+  shadow.position.set(0,-.04,.08);
+  shadow.scale.set(1.1,.55,1);
+  group.add(shadow);
+
+  group.userData.legs=legs;
+  group.userData.baseScale=.59;
+  group.scale.set(.59,.59,.59);
+  group.visible=false;
+
+  return group;
+}
+
+function roachEase(x){
+  x=Math.max(0,Math.min(1,x));
+  return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+}
+
+function roachLerpVec(a,b,p){
+  return a.clone().lerp(b,roachEase(p));
+}
+
+function createCrackRoach(config){
+  const roach=createScamperingRoach();
+
+  roach.userData.timer=config.offset||0;
+  roach.userData.loop=config.loop||8;
+  roach.userData.played=false;
+  roach.userData.path=config.path;
+  roach.userData.nearDistance=config.nearDistance||70;
+
+  scene.add(roach);
+  return roach;
+}
+
+function getPointOnRoachPath(path,p){
+  p=Math.max(0,Math.min(1,p));
+
+  const segmentCount=path.length-1;
+  const raw=p*segmentCount;
+  const index=Math.min(path.length-2,Math.floor(raw));
+  const local=raw-index;
+
+  return roachLerpVec(path[index],path[index+1],local);
+}
+
+function setRoachOrientation(roach,path,p){
+  const here=getPointOnRoachPath(path,p);
+  const next=getPointOnRoachPath(path,Math.min(1,p+.012));
+
+  const dx=next.x-here.x;
+  const dz=next.z-here.z;
+
+  roach.position.copy(here);
+
+  if(here.y>-8.8){
+    roach.rotation.set(Math.PI/2,0,Math.atan2(dx,dz));
+  }else{
+    roach.rotation.set(0,Math.atan2(dx,dz),0);
+  }
+}
+
+const crackRoaches=[
+  createCrackRoach({
+    offset:0,
+    loop:6.4,
+    nearDistance:55,
+    path:[
+      new THREE.Vector3(cellCenter(13,2).x,.2,cellCenter(13,2).z-SIZE/2-.28),
+      new THREE.Vector3(cellCenter(13,2).x+.45,.0,cellCenter(13,2).z-SIZE/2-.32),
+      new THREE.Vector3(cellCenter(13,2).x+1.15,-.35,cellCenter(13,2).z-SIZE/2-.34),
+      new THREE.Vector3(cellCenter(13,2).x+.25,.3,cellCenter(13,2).z-SIZE/2-.31),
+      new THREE.Vector3(cellCenter(13,2).x,.2,cellCenter(13,2).z-SIZE/2-.28)
+    ]
+  }),
+
+  createCrackRoach({
+    offset:2.2,
+    loop:7.1,
+    nearDistance:55,
+    path:[
+      new THREE.Vector3(cellCenter(13,4).x,.8,cellCenter(13,4).z-SIZE/2-.28),
+      new THREE.Vector3(cellCenter(13,4).x-.35,.65,cellCenter(13,4).z-SIZE/2-.32),
+      new THREE.Vector3(cellCenter(13,4).x-1.05,.15,cellCenter(13,4).z-SIZE/2-.34),
+      new THREE.Vector3(cellCenter(13,4).x-.2,.9,cellCenter(13,4).z-SIZE/2-.31),
+      new THREE.Vector3(cellCenter(13,4).x,.8,cellCenter(13,4).z-SIZE/2-.28)
+    ]
+  }),
+
+  createCrackRoach({
+    offset:4.4,
+    loop:6.8,
+    nearDistance:55,
+    path:[
+      new THREE.Vector3(cellCenter(7,3).x,.4,cellCenter(7,3).z-SIZE/2-.28),
+      new THREE.Vector3(cellCenter(7,3).x+.35,.2,cellCenter(7,3).z-SIZE/2-.32),
+      new THREE.Vector3(cellCenter(7,3).x+1.05,-.15,cellCenter(7,3).z-SIZE/2-.34),
+      new THREE.Vector3(cellCenter(7,3).x+.15,.55,cellCenter(7,3).z-SIZE/2-.31),
+      new THREE.Vector3(cellCenter(7,3).x,.4,cellCenter(7,3).z-SIZE/2-.28)
+    ]
+  }),
+
+  createCrackRoach({
+    offset:1.1,
+    loop:7.6,
+    nearDistance:55,
+    path:[
+      new THREE.Vector3(cellCenter(11,7).x,-.5,cellCenter(11,7).z+SIZE/2+.28),
+      new THREE.Vector3(cellCenter(11,7).x-.4,-.65,cellCenter(11,7).z+SIZE/2+.32),
+      new THREE.Vector3(cellCenter(11,7).x-1.1,-1.0,cellCenter(11,7).z+SIZE/2+.34),
+      new THREE.Vector3(cellCenter(11,7).x-.2,-.35,cellCenter(11,7).z+SIZE/2+.31),
+      new THREE.Vector3(cellCenter(11,7).x,-.5,cellCenter(11,7).z+SIZE/2+.28)
+    ]
+  }),
+
+  createCrackRoach({
+    offset:5.5,
+    loop:8.2,
+    nearDistance:55,
+    path:[
+      new THREE.Vector3(cellCenter(3,10).x,.9,cellCenter(3,10).z-SIZE/2-.28),
+      new THREE.Vector3(cellCenter(3,10).x+.4,.7,cellCenter(3,10).z-SIZE/2-.32),
+      new THREE.Vector3(cellCenter(3,10).x+1.15,.25,cellCenter(3,10).z-SIZE/2-.34),
+      new THREE.Vector3(cellCenter(3,10).x+.25,1.05,cellCenter(3,10).z-SIZE/2-.31),
+      new THREE.Vector3(cellCenter(3,10).x,.9,cellCenter(3,10).z-SIZE/2-.28)
+    ]
+  })
+];
+
+function updateCrackRoaches(deltaTime,elapsedTime){
+  for(let i=0;i<crackRoaches.length;i++){
+    const roach=crackRoaches[i];
+
+    roach.userData.timer+=deltaTime;
+
+    const loop=roach.userData.loop;
+
+    if(roach.userData.timer>loop){
+      roach.userData.timer=0;
+      roach.userData.played=false;
+    }
+
+    const p=roach.userData.timer/loop;
+    const visible=p>.04&&p<.96;
+
+    roach.visible=visible;
+
+    if(!visible) continue;
+
+    const travelP=(p-.04)/.92;
+    setRoachOrientation(roach,roach.userData.path,travelP);
+
+    const distanceToPlayer=roach.position.distanceTo(camera.position);
+
+    if(!roach.userData.played&&p>.07&&distanceToPlayer<roach.userData.nearDistance){
+      playSound(sounds.roachScuttle);
+      roach.userData.played=true;
+    }
+
+    roach.scale.set(
+      roach.userData.baseScale,
+      roach.userData.baseScale,
+      roach.userData.baseScale
+    );
+
+    for(const leg of roach.userData.legs){
+      const speed=46;
+      const swing=Math.sin(elapsedTime*speed+leg.userData.phase+i*.8)*.7;
+      const lift=Math.max(0,Math.sin(elapsedTime*speed+leg.userData.phase+i*.8))*.18;
+
+      leg.rotation.z=leg.userData.side*(.35+swing*.22);
+      leg.rotation.y=leg.userData.baseZ+swing*.16;
+      leg.position.y=leg.userData.baseY+lift;
+    }
+
+    roach.rotation.z+=Math.sin(elapsedTime*32+i)*.025;
+  }
+}
+
+const ambientLight=new THREE.AmbientLight(0x404046,1.56);
 scene.add(ambientLight);
 
-const flashlight=new THREE.PointLight(0xffffff,isMobile?1.35:1.7,isMobile?19:23);
+const flashlight=new THREE.PointLight(0xffffff,isMobile?2.106:2.652,isMobile?30:36);
 scene.add(flashlight);
 
 container.addEventListener('click',()=>{
@@ -938,7 +1211,10 @@ function collectKeys(elapsedTime){
 
     key.traverse((child)=>{
       if(child.userData&&child.userData.isGlow){
-        child.material.opacity=.45+Math.sin(elapsedTime*3.5)*.08;
+        child.material.opacity=.78+Math.sin(elapsedTime*3.5)*.12;
+      }
+      if(child.userData&&child.userData.isKeyLight){
+        child.intensity=2.15+Math.sin(elapsedTime*3.5)*.35;
       }
     });
 
@@ -987,7 +1263,7 @@ function updateDoor(deltaTime){
 
   doorGroup.rotation.y=-eased*Math.PI*.62;
   doorGroup.position.z=doorZ-eased*3.8;
-  exitLight.intensity=eased*5.5;
+  exitLight.intensity=eased*8.58;
 
   if(eased>.45){
     document.getElementById('whiteout').style.opacity=String((eased-.45)/.55);
@@ -1008,52 +1284,17 @@ function checkDoorInteraction(){
   if(distance<9.5) tryDoorUnlock();
 }
 
-function updateRoach(deltaTime){
-  const roachTriggerPos=new THREE.Vector3(roachStart.x,0,roachStart.z);
-  const distance=camera.position.distanceTo(roachTriggerPos);
-
-  if(!roachState.triggered&&distance<14){
-    roachState.triggered=true;
-    roachState.active=true;
-    roachState.idle=false;
-    playSound(sounds.roachScuttle);
-  }
-
-  if(roachState.idle){
-    roachMesh.rotation.z=1.35+Math.sin(clock.elapsedTime*5)*.08;
-    roachMesh.scale.set(1+Math.sin(clock.elapsedTime*12)*.03,1-Math.sin(clock.elapsedTime*12)*.03,1);
-    return;
-  }
-
-  if(!roachState.active) return;
-
-  const step=roachState.speed*deltaTime;
-  roachMesh.position.x+=roachState.direction.x*step;
-  roachMesh.position.z+=roachState.direction.z*step;
-  roachMesh.rotation.z=Math.atan2(-roachState.direction.z,roachState.direction.x)-Math.PI/2;
-
-  const legWiggle=Math.sin(clock.elapsedTime*28)*.16;
-  roachMesh.scale.set(1+legWiggle*.08,1-legWiggle*.08,1);
-
-  roachState.distanceRun+=step;
-
-  if(roachState.distanceRun>roachState.maxDistance){
-    roachState.active=false;
-    roachMesh.visible=false;
-  }
-}
-
 let lastLightAudioTime=0;
 
 function updateLights(elapsedTime){
   for(const item of mazeLights){
     const flicker=Math.sin(elapsedTime*13+item.seed)*.04+Math.sin(elapsedTime*29+item.seed)*.025+(Math.random()>.996?-.34:0);
-    item.light.intensity=Math.max(.28,item.base+flicker);
+    item.light.intensity=Math.max(.43,item.base+flicker);
   }
 
   for(const glow of fakeLightGlows){
     const pulse=Math.sin(elapsedTime*5.5+glow.seed)*.035+Math.sin(elapsedTime*11+glow.seed)*.02;
-    glow.mesh.material.opacity=Math.max(.18,glow.baseOpacity+pulse);
+    glow.mesh.material.opacity=Math.max(.29,Math.min(.98,(glow.baseOpacity+pulse)*1.56));
   }
 
   if(audioUnlocked&&elapsedTime-lastLightAudioTime>4&&Math.random()>.996){
@@ -1084,7 +1325,7 @@ function animate(){
   flashlight.position.copy(camera.position);
 
   updateLights(elapsedTime);
-  updateRoach(deltaTime);
+  updateCrackRoaches(deltaTime,elapsedTime);
   collectKeys(elapsedTime);
   checkDoorInteraction();
   updateDoor(deltaTime);
