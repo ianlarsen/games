@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pip & Gantry - Textured Playful Stage</title>
+
+  <style>
+    /* --- STAGE & BACKGROUND --- */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% 30%, #2b2b4a 0%, #1a1a2e 60%, #10101d 100%);
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      padding: 10px;
+    }
+
+    .stage-container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* --- RESPONSIVE HARDFRAMED VIEWPORT --- */
+    .viewport-box {
+      width: 100%;
+      aspect-ratio: 6 / 4;
+      overflow: hidden;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+      background: #87CEEB;
+      touch-action: none;
+    }
+
+    #camera-rig {
+      width: 100%;
+      height: 100%;
+      transform-origin: 0% 0%;
+      transform: translate(0%, 0%) scale(1);
+      transition: transform 0.35s ease-in-out;
+    }
+
+    .viewport-box.zoom-pip #camera-rig {
+      transform: translate(-40%, -122.5%) scale(3.2) !important;
+    }
+
+    .viewport-box.zoom-gantry #camera-rig {
+      transform: translate(-168%, -82.5%) scale(3.2) !important;
+    }
+
+    .viewport-box.zoom-worm #camera-rig {
+      transform: translate(-104%, -165%) scale(3.2) !important;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #76cfff 0%, #b7edff 46%, #e8fbff 100%);
+      display: block;
+    }
+
+    /* --- BALANCED IDLE BREATHING --- */
+    .puppet-group {
+      animation: idleBreathe 4.5s infinite ease-in-out;
+    }
+
+    #puppet-pip {
+      transform-origin: 180px 280px;
+      animation-delay: 0s;
+    }
+
+    #puppet-gantry {
+      transform-origin: 420px 280px;
+      animation-delay: -1s;
+    }
+
+    @keyframes idleBreathe {
+      0%, 100% {
+        transform: scale(1, 1) translateY(0);
+      }
+
+      50% {
+        transform: scale(1.015, 0.985) translateY(0.4px);
+      }
+    }
+
+    .shadow-pip {
+      animation: pipShadowBreathe 4.5s infinite ease-in-out;
+      transform-origin: 180px 284px;
+    }
+
+    .shadow-gantry {
+      animation: gantryShadowBreathe 4.5s infinite ease-in-out;
+      transform-origin: 420px 284px;
+      animation-delay: -1s;
+    }
+
+    @keyframes pipShadowBreathe {
+      0%, 100% {
+        transform: scale(1, 1);
+        opacity: 0.18;
+      }
+
+      50% {
+        transform: scale(1.06, 0.9);
+        opacity: 0.14;
+      }
+    }
+
+    @keyframes gantryShadowBreathe {
+      0%, 100% {
+        transform: scale(1, 1);
+        opacity: 0.2;
+      }
+
+      50% {
+        transform: scale(1.06, 0.9);
+        opacity: 0.16;
+      }
+    }
+
+    /* --- TALKING EFFECTS --- */
+    .talking-body {
+      animation: talkStretch 0.26s infinite alternate ease-in-out !important;
+    }
+
+    @keyframes talkStretch {
+      0% {
+        transform: scale(0.95, 1.12) translateY(-1px);
+      }
+
+      100% {
+        transform: scale(1.04, 0.92) translateY(0.375px);
+      }
+    }
+
+    .talking-mouth {
+      animation: talkMouth 0.17s infinite alternate ease-in-out;
+      transform-origin: center;
+    }
+
+    @keyframes talkMouth {
+      0% {
+        transform: scaleY(0.2);
+      }
+
+      100% {
+        transform: scaleY(2.3);
+      }
+    }
+
+    /* --- BLINKING ANIMATIONS --- */
+    .blink-active {
+      animation: blinkTwice 0.8s ease-in-out forwards;
+    }
+
+    @keyframes blinkTwice {
+      0%, 20%, 50%, 80%, 100% {
+        transform: scaleY(1);
+      }
+
+      10% {
+        transform: scaleY(0.05);
+      }
+
+      65% {
+        transform: scaleY(0.05);
+      }
+    }
+
+    /* --- ONE-SHOT WORM POPUP --- */
+    .worm-active #worm-body {
+      animation: wormPopUp 3.5s ease-in-out forwards;
+    }
+
+    .worm-active #worm-eyes {
+      animation: wormLookAround 3.5s ease-in-out forwards;
+    }
+
+    .worm-active #dirt-mound {
+      animation: dirtAppear 3.5s ease-in-out forwards;
+    }
+
+    .worm-active #shadow-worm {
+      animation: wormShadowPop 3.5s ease-in-out forwards;
+    }
+
+    @keyframes wormPopUp {
+      0% {
+        transform: translateY(65px);
+      }
+
+      15% {
+        transform: translateY(0);
+      }
+
+      30% {
+        transform: rotate(-15deg) translateY(0);
+      }
+
+      50% {
+        transform: rotate(15deg) translateY(0);
+      }
+
+      70% {
+        transform: rotate(0deg) translateY(0);
+      }
+
+      85%, 100% {
+        transform: translateY(65px);
+      }
+    }
+
+    @keyframes wormShadowPop {
+      0%, 100% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      15%, 82% {
+        opacity: 0.18;
+        transform: scale(1);
+      }
+    }
+
+    .look-around-active #worm-eyes {
+      animation: wormLookAround 0.8s ease-in-out forwards;
+    }
+
+    @keyframes wormLookAround {
+      0%, 100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-4px);
+      }
+
+      75% {
+        transform: translateX(4px);
+      }
+    }
+
+    @keyframes dirtAppear {
+      0%, 100% {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      8%, 88% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* --- PERSISTENT X-KEY CONTROL STATES --- */
+    .worm-up #worm-body {
+      transform: translateY(0px) !important;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.18);
+    }
+
+    .worm-up #dirt-mound {
+      transform: scale(1) !important;
+      opacity: 1 !important;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .worm-up #shadow-worm {
+      opacity: 0.18 !important;
+      transform: scale(1) !important;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .worm-descending #worm-body {
+      transform: translateY(65px) !important;
+      transition: transform 0.45s ease-in;
+    }
+
+    .worm-descending #dirt-mound {
+      transform: scale(0) !important;
+      opacity: 0 !important;
+      transition: transform 0.45s ease-in, opacity 0.45s ease-in;
+    }
+
+    .worm-descending #shadow-worm {
+      transform: scale(0.5) !important;
+      opacity: 0 !important;
+      transition: transform 0.45s ease-in, opacity 0.45s ease-in;
+    }
+
+    /* --- BIRD FLIGHT --- */
+    .bird-active #bird-group {
+      animation: birdFlyAcross 4.0s linear forwards;
+    }
+
+    .bird-active .wing-top {
+      animation: flapTopBack 0.18s infinite alternate ease-in-out;
+      transform-origin: 18px 12px;
+    }
+
+    .bird-active .wing-bottom {
+      animation: flapBottomBack 0.18s infinite alternate ease-in-out;
+      transform-origin: 18px 20px;
+    }
+
+    @keyframes birdFlyAcross {
+      0% {
+        transform: translateX(650px);
+      }
+
+      100% {
+        transform: translateX(-50px);
+      }
+    }
+
+    @keyframes flapTopBack {
+      0% {
+        transform: rotate(-25deg);
+      }
+
+      100% {
+        transform: rotate(45deg);
+      }
+    }
+
+    @keyframes flapBottomBack {
+      0% {
+        transform: rotate(25deg);
+      }
+
+      100% {
+        transform: rotate(-45deg);
+      }
+    }
+
+    /* --- HYBRID INTERACTIVE CONTROL DECK --- */
+    .control-deck {
+      width: 100%;
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .btn {
+      background: #2a2a40;
+      color: #ffffff;
+      border: 2px solid #3d3d5c;
+      border-radius: 8px;
+      padding: 10px 4px;
+      font-size: 11px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn span.key {
+      font-size: 13px;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      background: #121224;
+      border-radius: 4px;
+      border-bottom: 2px solid #000;
+    }
+
+    .btn-pip {
+      border-color: #00ffff;
+      color: #e0ffff;
+    }
+
+    .btn-gantry {
+      border-color: #FFEB3B;
+      color: #fffee0;
+    }
+
+    .btn-worm {
+      border-color: #FF8DA1;
+      color: #ffeef1;
+    }
+
+    .btn-bird {
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+
+    .btn.active,
+    .btn:active {
+      background: #3e3e5c;
+      transform: translateY(1px);
+    }
+
+    .btn-pip.active,
+    .btn-pip:active {
+      background: #004444;
+    }
+
+    .btn-gantry.active,
+    .btn-gantry:active {
+      background: #444411;
+    }
+
+    .btn-worm.active,
+    .btn-worm:active {
+      background: #44222a;
+    }
+
+    @media (min-width: 768px) {
+      .control-deck {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .btn span.key {
+        display: inline-block;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .control-deck {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .btn {
+        padding: 12px 4px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stage-container">
+    <div id="viewport" class="viewport-box">
+      <div id="camera-rig">
+        <svg id="stage" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+
+          <defs>
+            <!-- SKY LIGHT -->
+            <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fff9c4" stop-opacity="1" />
+              <stop offset="42%" stop-color="#ffe066" stop-opacity="0.62" />
+              <stop offset="100%" stop-color="#ffe066" stop-opacity="0" />
+            </radialGradient>
+
+            <radialGradient id="stageVignette" cx="50%" cy="43%" r="78%">
+              <stop offset="62%" stop-color="#000000" stop-opacity="0" />
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.14" />
+            </radialGradient>
+
+            <!-- CHARACTER GRADIENTS -->
+            <linearGradient id="pipBodyGradient" x1="150" y1="220" x2="210" y2="280" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#8fffff" />
+              <stop offset="48%" stop-color="#00ffff" />
+              <stop offset="100%" stop-color="#00a9b5" />
+            </linearGradient>
+
+            <linearGradient id="gantryBodyGradient" x1="390" y1="160" x2="450" y2="280" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fff994" />
+              <stop offset="50%" stop-color="#FFEB3B" />
+              <stop offset="100%" stop-color="#c9ad00" />
+            </linearGradient>
+
+            <linearGradient id="wormBodyGradient" x1="288" y1="285" x2="312" y2="345" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffc3d0" />
+              <stop offset="45%" stop-color="#FF8DA1" />
+              <stop offset="100%" stop-color="#d95773" />
+            </linearGradient>
+
+            <linearGradient id="birdBodyGradient" x1="2" y1="10" x2="38" y2="22" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#333333" />
+              <stop offset="65%" stop-color="#000000" />
+              <stop offset="100%" stop-color="#222222" />
+            </linearGradient>
+
+            <linearGradient id="cloudShade" x1="0" y1="60" x2="0" y2="110" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.96" />
+              <stop offset="100%" stop-color="#d8f0fa" stop-opacity="0.88" />
+            </linearGradient>
+
+            <!-- TEXTURES -->
+            <pattern id="grassTexture" width="24" height="16" patternUnits="userSpaceOnUse">
+              <rect width="24" height="16" fill="#4CAF50" />
+              <path d="M3 16 L7 7 L10 16" stroke="#3f9f45" stroke-width="1.5" fill="none" stroke-linecap="round" />
+              <path d="M14 16 L17 9 L20 16" stroke="#66bb6a" stroke-width="1.2" fill="none" stroke-linecap="round" />
+              <path d="M8 16 L11 10 L13 16" stroke="#2f8f3c" stroke-width="1" fill="none" stroke-linecap="round" />
+              <circle cx="22" cy="12" r="1.4" fill="#388E3C" opacity="0.5" />
+              <circle cx="5" cy="4" r="1" fill="#7fdc76" opacity="0.5" />
+            </pattern>
+
+            <pattern id="skySpeckles" width="60" height="60" patternUnits="userSpaceOnUse">
+              <circle cx="10" cy="12" r="1" fill="#ffffff" opacity="0.12" />
+              <circle cx="38" cy="22" r="1.4" fill="#ffffff" opacity="0.08" />
+              <circle cx="52" cy="44" r="0.9" fill="#ffffff" opacity="0.11" />
+            </pattern>
+
+            <clipPath id="grass-cutout">
+              <rect x="0" y="0" width="600" height="340" />
+            </clipPath>
+
+            <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+            </filter>
+          </defs>
+
+          <!-- SKY BASE -->
+          <rect x="0" y="0" width="600" height="400" fill="url(#skySpeckles)" opacity="0.9" />
+
+          <!-- DEFINITE SUN / LIGHT SOURCE -->
+          <circle cx="82" cy="62" r="78" fill="url(#sunGlow)" />
+          <circle cx="82" cy="62" r="25" fill="#FFE066" opacity="0.98" />
+          <circle cx="73" cy="53" r="7" fill="#fff9c4" opacity="0.75" />
+
+          <!-- LIGHT RAYS -->
+          <g opacity="0.22" stroke="#fff4a3" stroke-width="4" stroke-linecap="round">
+            <line x1="82" y1="18" x2="82" y2="0" />
+            <line x1="82" y1="106" x2="82" y2="132" />
+            <line x1="38" y1="62" x2="12" y2="62" />
+            <line x1="126" y1="62" x2="154" y2="62" />
+            <line x1="50" y1="30" x2="31" y2="11" />
+            <line x1="114" y1="30" x2="135" y2="9" />
+            <line x1="50" y1="94" x2="29" y2="115" />
+            <line x1="114" y1="94" x2="136" y2="116" />
+          </g>
+
+          <!-- CLOUDS -->
+          <g opacity="0.92">
+            <g fill="url(#cloudShade)">
+              <circle cx="100" cy="80" r="30" />
+              <circle cx="140" cy="70" r="40" />
+              <circle cx="180" cy="80" r="25" />
+              <ellipse cx="140" cy="91" rx="78" ry="18" />
+            </g>
+            <path d="M70 92 Q126 108 207 91" stroke="#c9e9f5" stroke-width="7" opacity="0.5" fill="none" stroke-linecap="round" />
+            <circle cx="115" cy="66" r="5" fill="#ffffff" opacity="0.55" />
+          </g>
+
+          <g opacity="0.9">
+            <g fill="url(#cloudShade)">
+              <circle cx="440" cy="100" r="25" />
+              <circle cx="480" cy="90" r="35" />
+              <circle cx="515" cy="100" r="20" />
+              <ellipse cx="480" cy="111" rx="64" ry="15" />
+            </g>
+            <path d="M419 111 Q472 125 538 109" stroke="#c9e9f5" stroke-width="6" opacity="0.5" fill="none" stroke-linecap="round" />
+            <circle cx="463" cy="84" r="4" fill="#ffffff" opacity="0.5" />
+          </g>
+
+          <!-- BIRD -->
+          <g id="bird-scene">
+            <g id="bird-group" style="transform: translateX(650px);">
+              <g transform="translate(0, 65)">
+                <path class="wing-top" d="M 18,12 L 28,1 Q 20,-2 14,6 Z" fill="#111111" stroke="#000000" stroke-width="1" />
+                <path class="wing-bottom" d="M 18,20 L 28,31 Q 20,34 14,26 Z" fill="#111111" stroke="#000000" stroke-width="1" />
+                <ellipse cx="20" cy="16" rx="18" ry="9" fill="url(#birdBodyGradient)" />
+                <path d="M7 12 Q19 7 33 13" stroke="#ffffff" stroke-width="1.3" opacity="0.22" fill="none" stroke-linecap="round" />
+                <polygon points="2,13 -10,16 2,19" fill="#FF9800" stroke="#000000" stroke-width="1" />
+                <circle cx="10" cy="13" r="2" fill="#FFFFFF" />
+                <circle cx="9.5" cy="13" r="0.8" fill="#000000" />
+              </g>
+            </g>
+          </g>
+
+          <!-- GROUND -->
+          <rect x="0" y="280" width="600" height="120" fill="url(#grassTexture)" />
+          <line x1="0" y1="280" x2="600" y2="280" stroke="#2f7f3a" stroke-width="6" />
+          <line x1="0" y1="276" x2="600" y2="276" stroke="#74d36c" stroke-width="2" opacity="0.65" />
+
+          <!-- ENVIRONMENT DETAILS -->
+          <g id="ground-details">
+            <!-- flowers -->
+            <g transform="translate(72,322)">
+              <circle cx="-4" cy="0" r="3" fill="#ffffff" opacity="0.85" />
+              <circle cx="4" cy="0" r="3" fill="#ffffff" opacity="0.85" />
+              <circle cx="0" cy="-4" r="3" fill="#ffffff" opacity="0.85" />
+              <circle cx="0" cy="0" r="2" fill="#FFD54F" />
+              <line x1="0" y1="4" x2="0" y2="15" stroke="#2f8f3c" stroke-width="2" />
+            </g>
+
+            <g transform="translate(535,338)">
+              <circle cx="-4" cy="0" r="3" fill="#ffd1dc" opacity="0.9" />
+              <circle cx="4" cy="0" r="3" fill="#ffd1dc" opacity="0.9" />
+              <circle cx="0" cy="-4" r="3" fill="#ffd1dc" opacity="0.9" />
+              <circle cx="0" cy="0" r="2" fill="#ffeb3b" />
+              <line x1="0" y1="4" x2="0" y2="15" stroke="#2f8f3c" stroke-width="2" />
+            </g>
+
+            <!-- pebbles -->
+            <ellipse cx="110" cy="352" rx="5" ry="3" fill="#6d8b5d" opacity="0.5" />
+            <ellipse cx="132" cy="368" rx="3" ry="2" fill="#3f6f3f" opacity="0.45" />
+            <ellipse cx="472" cy="330" rx="4" ry="2.5" fill="#6d8b5d" opacity="0.5" />
+            <ellipse cx="515" cy="374" rx="5" ry="3" fill="#3f6f3f" opacity="0.38" />
+
+            <!-- grass tufts -->
+            <g stroke="#2d7f36" stroke-width="2" stroke-linecap="round" opacity="0.75">
+              <path d="M34 300 L38 286 L42 300" />
+              <path d="M250 315 L254 300 L258 315" />
+              <path d="M560 304 L564 288 L568 304" />
+              <path d="M350 365 L354 350 L358 365" />
+            </g>
+          </g>
+
+          <!-- CONTACT SHADOWS -->
+          <g id="character-shadows" fill="#000000" filter="url(#softShadow)">
+            <ellipse class="shadow-pip" cx="180" cy="284" rx="35" ry="8" opacity="0.18" />
+            <ellipse class="shadow-gantry" cx="420" cy="284" rx="38" ry="9" opacity="0.2" />
+            <ellipse id="shadow-worm" cx="300" cy="344" rx="36" ry="7" opacity="0" style="transform-origin: 300px 344px; transform: scale(0.5);" />
+          </g>
+
+          <!-- WORM -->
+          <g id="worm-scene" clip-path="url(#grass-cutout)">
+            <g id="worm-body" style="transform-origin: 300px 315px; transform: translateY(65px);">
+              <rect x="288" y="285" width="24" height="60" rx="10" fill="url(#wormBodyGradient)" stroke="#000000" stroke-width="4" />
+
+              <path d="M293 290 Q298 287 306 290" stroke="#ffffff" stroke-width="1.5" opacity="0.35" fill="none" stroke-linecap="round" />
+              <line x1="290" y1="312" x2="310" y2="312" stroke="#E0637B" stroke-width="3" />
+              <line x1="290" y1="322" x2="310" y2="322" stroke="#E0637B" stroke-width="3" />
+              <line x1="291" y1="333" x2="309" y2="333" stroke="#E0637B" stroke-width="2" opacity="0.75" />
+
+              <g id="worm-eyes" style="transform-origin: 300px 295px;">
+                <circle cx="295" cy="295" r="2.5" fill="#000000" />
+                <circle cx="305" cy="295" r="2.5" fill="#000000" />
+              </g>
+
+              <ellipse id="mouth-worm" cx="300" cy="303" rx="3" ry="1" fill="#000000" style="transform-origin: 300px 303px;" />
+            </g>
+
+            <g id="dirt-mound" style="transform-origin: 300px 340px; transform: scale(0); opacity: 0;">
+              <path d="M 265,342 Q 300,320 335,342 Z" fill="#795548" stroke="#000000" stroke-width="4" />
+              <path d="M275 339 Q300 327 326 339" stroke="#a3745d" stroke-width="3" opacity="0.65" fill="none" stroke-linecap="round" />
+              <circle cx="282" cy="337" r="4" fill="#5D4037" />
+              <circle cx="318" cy="338" r="3" fill="#5D4037" />
+              <circle cx="300" cy="331" r="4.5" fill="#5D4037" />
+              <circle cx="291" cy="341" r="2" fill="#3e2723" opacity="0.5" />
+            </g>
+          </g>
+
+          <!-- PIP -->
+          <g id="puppet-pip" class="puppet-group">
+            <rect x="150" y="220" width="60" height="60" rx="12" fill="url(#pipBodyGradient)" stroke="#000000" stroke-width="5" />
+
+            <!-- Pip texture/highlights -->
+            <path d="M158 232 Q173 224 194 229" stroke="#ffffff" stroke-width="2" opacity="0.32" fill="none" stroke-linecap="round" />
+            <circle cx="162" cy="232" r="2" fill="#ffffff" opacity="0.28" />
+            <circle cx="198" cy="267" r="1.6" fill="#007f88" opacity="0.22" />
+            <circle cx="156" cy="267" r="1.2" fill="#007f88" opacity="0.18" />
+            <path d="M205 236 L205 262" stroke="#007f88" stroke-width="2" opacity="0.18" stroke-linecap="round" />
+
+            <g class="face">
+              <g id="eyes-pip" style="transform-origin: 180px 245px;">
+                <circle cx="170" cy="245" r="6" fill="#000000" />
+                <circle cx="171.5" cy="243.5" r="2" fill="#ffffff" />
+
+                <circle cx="190" cy="245" r="6" fill="#000000" />
+                <circle cx="191.5" cy="243.5" r="2" fill="#ffffff" />
+              </g>
+
+              <circle cx="162" cy="254" r="3" fill="#ff007f" opacity="0.5" />
+              <circle cx="198" cy="254" r="3" fill="#ff007f" opacity="0.5" />
+
+              <ellipse id="mouth-pip" cx="180" cy="256" rx="6" ry="2" fill="#000000" style="transform-origin: 180px 256px;" />
+            </g>
+          </g>
+
+          <!-- GANTRY -->
+          <g id="puppet-gantry" class="puppet-group">
+            <rect x="390" y="160" width="60" height="120" rx="12" fill="url(#gantryBodyGradient)" stroke="#000000" stroke-width="5" />
+
+            <!-- Gantry texture/highlights -->
+            <path d="M399 174 Q417 163 440 171" stroke="#fffde0" stroke-width="2.2" opacity="0.45" fill="none" stroke-linecap="round" />
+            <circle cx="402" cy="178" r="2" fill="#ffffff" opacity="0.35" />
+            <circle cx="442" cy="258" r="1.7" fill="#8f7d00" opacity="0.24" />
+            <circle cx="397" cy="244" r="1.4" fill="#8f7d00" opacity="0.2" />
+            <path d="M445 184 L445 260" stroke="#8f7d00" stroke-width="2" opacity="0.2" stroke-linecap="round" />
+
+            <g class="face">
+              <g id="eyes-gantry" style="transform-origin: 420px 195px;">
+                <circle cx="410" cy="195" r="6" fill="#000000" />
+                <circle cx="411.5" cy="193.5" r="2" fill="#ffffff" />
+
+                <circle cx="430" cy="195" r="6" fill="#000000" />
+                <circle cx="431.5" cy="193.5" r="2" fill="#ffffff" />
+              </g>
+
+              <circle cx="402" cy="204" r="3" fill="#ff5722" opacity="0.5" />
+              <circle cx="438" cy="204" r="3" fill="#ff5722" opacity="0.5" />
+
+              <ellipse id="mouth-gantry" cx="420" cy="208" rx="6" ry="2" fill="#000000" style="transform-origin: 420px 208px;" />
+            </g>
+          </g>
+
+          <!-- SUBTLE STAGE VIGNETTE -->
+          <rect x="0" y="0" width="600" height="400" fill="url(#stageVignette)" pointer-events="none" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="control-deck">
+      <div class="btn btn-pip" id="ctrl-pip">
+        <span class="key">A</span>
+        Pip Close-up
+      </div>
+
+      <div class="btn btn-gantry" id="ctrl-gantry">
+        <span class="key">D</span>
+        Gantry Close-up
+      </div>
+
+      <div class="btn btn-worm" id="ctrl-worm">
+        <span class="key">X</span>
+        Worm Monologue
+      </div>
+
+      <div class="btn btn-bird" id="ctrl-actions">
+        <span class="key">W / F</span>
+        Mix Event
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const viewport = document.getElementById('viewport');
+    const wormScene = document.getElementById('worm-scene');
+    const birdScene = document.getElementById('bird-scene');
+
+    const puppetPip = document.getElementById('puppet-pip');
+    const mouthPip = document.getElementById('mouth-pip');
+    const eyesPip = document.getElementById('eyes-pip');
+
+    const puppetGantry = document.getElementById('puppet-gantry');
+    const mouthGantry = document.getElementById('mouth-gantry');
+    const eyesGantry = document.getElementById('eyes-gantry');
+
+    const mouthWorm = document.getElementById('mouth-worm');
+    const wormBody = document.getElementById('worm-body');
+
+    const ctrlPip = document.getElementById('ctrl-pip');
+    const ctrlGantry = document.getElementById('ctrl-gantry');
+    const ctrlWorm = document.getElementById('ctrl-worm');
+    const ctrlActions = document.getElementById('ctrl-actions');
+
+    const keysPressed = {
+      a: false,
+      d: false,
+      x: false,
+      a_zoomed: false,
+      d_zoomed: false,
+      x_zoomed: false
+    };
+
+    let wormZoomTimeout = null;
+    let wormDescentTimeout = null;
+
+    function updateCameraView() {
+      if (keysPressed.x_zoomed) {
+        viewport.className = 'viewport-box zoom-worm';
+      } else if (keysPressed.a_zoomed) {
+        viewport.className = 'viewport-box zoom-pip';
+      } else if (keysPressed.d_zoomed) {
+        viewport.className = 'viewport-box zoom-gantry';
+      } else {
+        viewport.className = 'viewport-box';
+      }
+    }
+
+    /* --- PIP SEQUENCES --- */
+    function startPipTalking() {
+      if (keysPressed.a) return;
+
+      keysPressed.a = true;
+      keysPressed.a_zoomed = true;
+
+      updateCameraView();
+
+      puppetPip.classList.add('talking-body');
+      mouthPip.classList.add('talking-mouth');
+      ctrlPip.classList.add('active');
+    }
+
+    function stopPipTalking() {
+      if (!keysPressed.a) return;
+
+      keysPressed.a = false;
+      keysPressed.a_zoomed = false;
+
+      updateCameraView();
+
+      puppetPip.classList.remove('talking-body');
+      mouthPip.classList.remove('talking-mouth');
+      ctrlPip.classList.remove('active');
+
+      eyesPip.classList.add('blink-active');
+
+      setTimeout(() => {
+        eyesPip.classList.remove('blink-active');
+      }, 800);
+    }
+
+    /* --- GANTRY SEQUENCES --- */
+    function startGantryTalking() {
+      if (keysPressed.d) return;
+
+      keysPressed.d = true;
+      keysPressed.d_zoomed = true;
+
+      updateCameraView();
+
+      puppetGantry.classList.add('talking-body');
+      mouthGantry.classList.add('talking-mouth');
+      ctrlGantry.classList.add('active');
+    }
+
+    function stopGantryTalking() {
+      if (!keysPressed.d) return;
+
+      keysPressed.d = false;
+      keysPressed.d_zoomed = false;
+
+      updateCameraView();
+
+      puppetGantry.classList.remove('talking-body');
+      mouthGantry.classList.remove('talking-mouth');
+      ctrlGantry.classList.remove('active');
+
+      eyesGantry.classList.add('blink-active');
+
+      setTimeout(() => {
+        eyesGantry.classList.remove('blink-active');
+      }, 800);
+    }
+
+    /* --- WORM SEQUENCES --- */
+    function startWormSequence() {
+      if (keysPressed.x) return;
+
+      keysPressed.x = true;
+      ctrlWorm.classList.add('active');
+
+      clearTimeout(wormZoomTimeout);
+      clearTimeout(wormDescentTimeout);
+
+      wormScene.classList.remove('worm-active', 'worm-descending', 'look-around-active');
+      wormScene.classList.add('worm-up');
+
+      wormZoomTimeout = setTimeout(() => {
+        if (!keysPressed.x) return;
+
+        keysPressed.x_zoomed = true;
+
+        updateCameraView();
+
+        wormBody.classList.add('talking-body');
+        mouthWorm.classList.add('talking-mouth');
+      }, 400);
+    }
+
+    function stopWormSequence() {
+      if (!keysPressed.x) return;
+
+      keysPressed.x = false;
+      ctrlWorm.classList.remove('active');
+
+      clearTimeout(wormZoomTimeout);
+
+      wormBody.classList.remove('talking-body');
+      mouthWorm.classList.remove('talking-mouth');
+
+      keysPressed.x_zoomed = false;
+
+      updateCameraView();
+
+      wormScene.classList.add('look-around-active');
+
+      wormDescentTimeout = setTimeout(() => {
+        if (keysPressed.x) return;
+
+        wormScene.classList.remove('worm-up', 'look-around-active');
+        wormScene.classList.add('worm-descending');
+
+        setTimeout(() => {
+          if (!keysPressed.x) {
+            wormScene.classList.remove('worm-descending');
+          }
+        }, 500);
+      }, 800);
+    }
+
+    function triggerScenicMix() {
+      if (!birdScene.classList.contains('bird-active')) {
+        birdScene.classList.add('bird-active');
+
+        setTimeout(() => {
+          birdScene.classList.remove('bird-active');
+        }, 4000);
+      }
+
+      if (
+        !wormScene.classList.contains('worm-up') &&
+        !wormScene.classList.contains('worm-active')
+      ) {
+        wormScene.classList.add('worm-active');
+
+        setTimeout(() => {
+          wormScene.classList.remove('worm-active');
+        }, 3500);
+      }
+    }
+
+    /* --- KEYBOARD INPUT ENGINE --- */
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+
+      if (key === 'a') {
+        startPipTalking();
+      }
+
+      if (key === 'd') {
+        startGantryTalking();
+      }
+
+      if (key === 'x') {
+        startWormSequence();
+      }
+
+      if (key === 'w' || key === 'f') {
+        ctrlActions.classList.add('active');
+        triggerScenicMix();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+
+      if (key === 'a') {
+        stopPipTalking();
+      }
+
+      if (key === 'd') {
+        stopGantryTalking();
+      }
+
+      if (key === 'x') {
+        stopWormSequence();
+      }
+
+      if (key === 'w' || key === 'f') {
+        ctrlActions.classList.remove('active');
+      }
+    });
+
+    /* --- TOUCH / MOUSE INPUT ENGINE --- */
+    function bindTouchControl(elementId, startCallback, endCallback) {
+      const element = document.getElementById(elementId);
+
+      element.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startCallback();
+      }, { passive: false });
+
+      element.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        endCallback();
+      }, { passive: false });
+
+      element.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        endCallback();
+      }, { passive: false });
+
+      element.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        startCallback();
+      });
+
+      element.addEventListener('mouseup', () => {
+        endCallback();
+      });
+
+      element.addEventListener('mouseleave', () => {
+        endCallback();
+      });
+    }
+
+    bindTouchControl('ctrl-pip', startPipTalking, stopPipTalking);
+    bindTouchControl('ctrl-gantry', startGantryTalking, stopGantryTalking);
+    bindTouchControl('ctrl-worm', startWormSequence, stopWormSequence);
+
+    ctrlActions.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      ctrlActions.classList.add('active');
+      triggerScenicMix();
+    }, { passive: false });
+
+    ctrlActions.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      ctrlActions.classList.remove('active');
+    }, { passive: false });
+
+    ctrlActions.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      ctrlActions.classList.remove('active');
+    }, { passive: false });
+
+    ctrlActions.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      ctrlActions.classList.add('active');
+      triggerScenicMix();
+    });
+
+    ctrlActions.addEventListener('mouseup', () => {
+      ctrlActions.classList.remove('active');
+    });
+
+    ctrlActions.addEventListener('mouseleave', () => {
+      ctrlActions.classList.remove('active');
+    });
+
+    ctrlActions.addEventListener('click', () => {
+      triggerScenicMix();
+    });
+  </script>
+</body>
+</html>
