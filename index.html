@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -27,7 +27,7 @@
       text-size-adjust: 100%;
     }
 
-    /* ── Map wrapper: full screen, centres the canvas ── */
+    /* â”€â”€ Map wrapper: full screen, centres the canvas â”€â”€ */
     #map-wrap {
       position: fixed;
       inset: 0;
@@ -38,7 +38,7 @@
            env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
     }
 
-    /* ── Map canvas: sized to image aspect ratio by JS ── */
+    /* â”€â”€ Map canvas: sized to image aspect ratio by JS â”€â”€ */
     #map-canvas {
       position: relative;
       flex-shrink: 0;
@@ -59,7 +59,7 @@
       -webkit-user-drag: none;
     }
 
-    /* ── Zone hotspots ── */
+    /* â”€â”€ Zone hotspots â”€â”€ */
     .zone-hotspot {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -94,7 +94,7 @@
     #zone-patterns .zone-label { background: #bbf7d0; }
     #zone-brain    .zone-label { background: #e9d5ff; }
 
-    /* ── Backdrop ── */
+    /* â”€â”€ Backdrop â”€â”€ */
     #drawer-backdrop {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0);
@@ -107,7 +107,7 @@
       pointer-events: auto;
     }
 
-    /* ── Drawer ── */
+    /* â”€â”€ Drawer â”€â”€ */
     #drawer {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -228,7 +228,7 @@
       line-height: 1.3;
     }
 
-    /* ── Landing (splash) ───────────────────────────────────────────── */
+    /* â”€â”€ Landing (splash) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     #landing {
       position: fixed;
       inset: 0;
@@ -360,7 +360,7 @@
       transform: scale(0.97);
     }
 
-    /* ── Narrow phones: lighter blur (GPU / battery) ───────────────── */
+    /* â”€â”€ Narrow phones: lighter blur (GPU / battery) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @media (max-width: 480px) {
       .landing-map-bg {
         filter: blur(40px);
@@ -415,7 +415,7 @@
     <img id="map-img" src="images/map.png" alt="Adventure Map" decoding="async"
          onerror="this.style.display='none'">
 
-    <!-- ── Zone pins ── -->
+    <!-- â”€â”€ Zone pins â”€â”€ -->
     <!-- PLACEHOLDER POSITIONS: adjust top/left % once you have the real map image -->
 
     <div class="zone-hotspot" id="zone-look"     style="top:15.3%; left:18.9%;" data-diam="38.6"><div class="zone-label">Look &amp; See</div></div>
@@ -432,7 +432,7 @@
   <div id="drawer-handle"></div>
   <div id="drawer-header">
     <h2 id="drawer-title"></h2>
-    <button id="drawer-close" aria-label="Close">✕</button>
+    <button id="drawer-close" aria-label="Close">âœ•</button>
   </div>
   <div id="drawer-games"></div>
 </div>
@@ -441,7 +441,7 @@
 <audio id="tap-sound" src="sounds/zone_tap.mp3" preload="auto" playsinline></audio>
 
 <script>
-  // ── Zone data ────────────────────────────────────────────────────
+  // â”€â”€ Zone data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const zones = {
     look: {
       title: 'Look & See',
@@ -456,6 +456,7 @@
         { label: 'Left or Right',    hint: 'Which way are they?',  href: 'leftright/index.html',     img: 'images/tiles/tile_left_right.png' },
         { label: 'Letter Reversals', hint: 'Tricky letters',       href: 'letterreverse/index.html', img: 'images/tiles/tile_letter_reversals.png' },
         { label: 'Cat Match',        hint: 'Find every cat pose', href: 'catmatch/index.html',      img: 'images/tiles/tile_cat_match.png' },
+        { label: 'Tap & Track',      hint: 'Find the picture',     href: 'taptrack/index.html',      img: 'images/tiles/tile_taptrack.png' },
       ]
     },
     words: {
@@ -467,6 +468,7 @@
         { label: 'Picture Spelling',  hint: 'Tap letters in order',href: 'spelling_sequence/index.html',  img: 'images/tiles/tile_spelling_sequence.png' },
         { label: 'Picture Detective', hint: 'Answer questions',    href: 'five_ws/index.html',            img: 'images/tiles/tile_picture_detective.png' },
         { label: 'Because!',          hint: 'Answer the Why?',     href: 'because/index.html',            img: 'images/tiles/tile_because.png' },
+        { label: 'Yes or No',         hint: 'Answer yes or no',    href: 'yes_or_no/index.html',          img: 'images/tiles/tile_yes_or_no.png' },
       ]
     },
     patterns: {
@@ -487,12 +489,13 @@
         { label: 'Sudoku',        hint: 'Fill the grid',      href: 'sudoku/index.html',        img: 'images/tiles/tile_sudoku.png' },
         { label: 'Tangrams',      hint: 'Snap shapes together', href: 'tangrams/index.html',      img: 'images/tiles/tile_tangrams.png' },
         { label: 'Twist Tiles',   hint: 'Turn and snap tiles',  href: 'tile_twist/index.html',    img: 'images/tiles/tile_twist_tile.png' },
+        { label: 'Link Logic',    hint: 'Make the connections', href: 'linklogicgame/index.html', img: 'images/tiles/tile_cats.png' },
         { label: 'Time Teacher',  hint: 'Read the clock',     href: 'clock_time/index.html',    img: 'images/tiles/tile_time_teacher.png' },
       ]
     }
   };
 
-  // ── DOM refs ─────────────────────────────────────────────────────
+  // â”€â”€ DOM refs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const drawer        = document.getElementById('drawer');
   const backdrop      = document.getElementById('drawer-backdrop');
   const drawerTitle   = document.getElementById('drawer-title');
@@ -511,7 +514,7 @@
     splashIconWrap.classList.add('is-fallback');
   }, { once: true });
 
-  // ── Audio ────────────────────────────────────────────────────────
+  // â”€â”€ Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let audioUnlocked = false;
   function playTap() {
     if (!audioUnlocked) {
@@ -525,7 +528,7 @@
     tapSound.play().catch(() => {});
   }
 
-  // ── Drawer ───────────────────────────────────────────────────────
+  // â”€â”€ Drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function openZone(key) {
     const zone = zones[key];
     playTap();
@@ -561,7 +564,7 @@
   document.getElementById('drawer-close').addEventListener('click', closeDrawer);
   backdrop.addEventListener('click', closeDrawer);
 
-  // ── Fit map to screen ────────────────────────────────────────────
+  // â”€â”€ Fit map to screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function fitMap() {
     const iw = mapImg.naturalWidth  || 1080;
     const ih = mapImg.naturalHeight || 1920;
@@ -591,7 +594,7 @@
     mapImg.addEventListener('error', fitMap);
   }
 
-  // ── Map + music (after Open, or when returning from a game) ───────
+  // â”€â”€ Map + music (after Open, or when returning from a game) â”€â”€â”€â”€â”€â”€â”€
   const MAP_SESSION_KEY = 'otgPlayShiftMap';
 
   function showMapAndStartMusic() {
@@ -627,7 +630,7 @@
     if (ev.persisted) tryReturnToMapFromGame();
   });
 
-  // ── Landing: Open starts background music (requires user gesture) ─
+  // â”€â”€ Landing: Open starts background music (requires user gesture) â”€
   openAppBtn.addEventListener('click', () => {
     tapSound.play().then(() => {
       tapSound.pause();
@@ -644,3 +647,4 @@
 </script>
 </body>
 </html>
+
