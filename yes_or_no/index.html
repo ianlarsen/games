@@ -66,14 +66,6 @@
       text-shadow: 1px 2px 0 rgba(15,23,42,0.08);
     }
 
-    .subtitle {
-      flex: 0 0 auto;
-      color: #475569;
-      font-size: clamp(0.85rem, 2.2vh, 1.1rem);
-      font-weight: 700;
-      margin-bottom: 0.45rem;
-    }
-
     .question-card {
       flex: 1 1 auto;
       min-height: 0;
@@ -183,16 +175,6 @@
       75% { transform: translateX(8px); }
     }
 
-    .feedback {
-      flex: 0 0 auto;
-      min-height: 1.9rem;
-      font-size: clamp(0.95rem, 2.2vh, 1.3rem);
-      font-weight: 900;
-    }
-
-    .feedback.correct { color: #15803d; }
-    .feedback.wrong { color: #dc2626; }
-
     .confetti-layer {
       position: fixed;
       inset: 0;
@@ -291,7 +273,6 @@
 
     @media (max-height: 600px) {
       h1 { font-size: clamp(1.3rem, 4.5vh, 2rem); }
-      .subtitle { font-size: 0.85rem; margin-bottom: 0.3rem; }
       .question-text { font-size: clamp(1.1rem, 3.2vh, 1.5rem); }
     }
   </style>
@@ -303,7 +284,6 @@
 
   <main>
     <h1>Yes or No</h1>
-    <p class="subtitle">Look at the picture. Tap the best answer.</p>
 
     <section class="question-card" aria-live="polite">
       <div class="image-wrap">
@@ -317,7 +297,6 @@
       <button class="answer-btn no" id="no-btn" type="button">No</button>
     </div>
 
-    <div class="feedback" id="feedback" aria-live="polite"></div>
   </main>
 
   <div class="confetti-layer" id="confetti-layer"></div>
@@ -408,7 +387,6 @@
     const questionSound = document.getElementById('question-sound');
     const yesBtn = document.getElementById('yes-btn');
     const noBtn = document.getElementById('no-btn');
-    const feedback = document.getElementById('feedback');
     const winOverlay = document.getElementById('win-overlay');
     const confettiLayer = document.getElementById('confetti-layer');
 
@@ -449,8 +427,6 @@
       const img = document.getElementById('question-img');
       img.src = `images/${q.image}`;
       img.alt = q.alt;
-      feedback.textContent = '';
-      feedback.className = 'feedback';
       yesBtn.classList.remove('correct', 'wrong', 'pressed');
       noBtn.classList.remove('correct', 'wrong', 'pressed');
       yesBtn.disabled = false;
@@ -469,8 +445,6 @@
       const isCorrect = choice === QUESTIONS[current].answer;
       if (isCorrect) {
         btn.classList.add('correct');
-        feedback.textContent = 'Yes, that is right!';
-        feedback.className = 'feedback correct';
         playSound(correctSound);
         launchConfetti(32);
         setTimeout(() => {
@@ -483,15 +457,11 @@
         }, 1150);
       } else {
         btn.classList.add('wrong');
-        feedback.textContent = 'Not quite. Try the other button.';
-        feedback.className = 'feedback wrong';
         setTimeout(() => {
           btn.classList.remove('wrong', 'pressed');
           yesBtn.disabled = false;
           noBtn.disabled = false;
           locked = false;
-          feedback.textContent = '';
-          feedback.className = 'feedback';
         }, 850);
       }
     }
