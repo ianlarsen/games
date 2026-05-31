@@ -458,13 +458,6 @@
         <svg id="stage" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
 
           <defs>
-            <!-- SKY LIGHT -->
-            <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#fff9c4" stop-opacity="1" />
-              <stop offset="42%" stop-color="#ffe066" stop-opacity="0.62" />
-              <stop offset="100%" stop-color="#ffe066" stop-opacity="0" />
-            </radialGradient>
-
             <radialGradient id="stageVignette" cx="50%" cy="43%" r="78%">
               <stop offset="62%" stop-color="#000000" stop-opacity="0" />
               <stop offset="100%" stop-color="#000000" stop-opacity="0.14" />
@@ -495,27 +488,6 @@
               <stop offset="100%" stop-color="#222222" />
             </linearGradient>
 
-            <linearGradient id="cloudShade" x1="0" y1="60" x2="0" y2="110" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.96" />
-              <stop offset="100%" stop-color="#d8f0fa" stop-opacity="0.88" />
-            </linearGradient>
-
-            <!-- TEXTURES -->
-            <pattern id="grassTexture" width="24" height="16" patternUnits="userSpaceOnUse">
-              <rect width="24" height="16" fill="#4CAF50" />
-              <path d="M3 16 L7 7 L10 16" stroke="#3f9f45" stroke-width="1.5" fill="none" stroke-linecap="round" />
-              <path d="M14 16 L17 9 L20 16" stroke="#66bb6a" stroke-width="1.2" fill="none" stroke-linecap="round" />
-              <path d="M8 16 L11 10 L13 16" stroke="#2f8f3c" stroke-width="1" fill="none" stroke-linecap="round" />
-              <circle cx="22" cy="12" r="1.4" fill="#388E3C" opacity="0.5" />
-              <circle cx="5" cy="4" r="1" fill="#7fdc76" opacity="0.5" />
-            </pattern>
-
-            <pattern id="skySpeckles" width="60" height="60" patternUnits="userSpaceOnUse">
-              <circle cx="10" cy="12" r="1" fill="#ffffff" opacity="0.12" />
-              <circle cx="38" cy="22" r="1.4" fill="#ffffff" opacity="0.08" />
-              <circle cx="52" cy="44" r="0.9" fill="#ffffff" opacity="0.11" />
-            </pattern>
-
             <clipPath id="grass-cutout">
               <rect x="0" y="0" width="600" height="340" />
             </clipPath>
@@ -525,48 +497,8 @@
             </filter>
           </defs>
 
-          <!-- SKY BASE -->
-          <rect x="0" y="0" width="600" height="400" fill="url(#skySpeckles)" opacity="0.9" />
-
-          <!-- DEFINITE SUN / LIGHT SOURCE -->
-          <circle cx="82" cy="62" r="78" fill="url(#sunGlow)" />
-          <circle cx="82" cy="62" r="25" fill="#FFE066" opacity="0.98" />
-          <circle cx="73" cy="53" r="7" fill="#fff9c4" opacity="0.75" />
-
-          <!-- LIGHT RAYS -->
-          <g opacity="0.22" stroke="#fff4a3" stroke-width="4" stroke-linecap="round">
-            <line x1="82" y1="18" x2="82" y2="0" />
-            <line x1="82" y1="106" x2="82" y2="132" />
-            <line x1="38" y1="62" x2="12" y2="62" />
-            <line x1="126" y1="62" x2="154" y2="62" />
-            <line x1="50" y1="30" x2="31" y2="11" />
-            <line x1="114" y1="30" x2="135" y2="9" />
-            <line x1="50" y1="94" x2="29" y2="115" />
-            <line x1="114" y1="94" x2="136" y2="116" />
-          </g>
-
-          <!-- CLOUDS -->
-          <g opacity="0.92">
-            <g fill="url(#cloudShade)">
-              <circle cx="100" cy="80" r="30" />
-              <circle cx="140" cy="70" r="40" />
-              <circle cx="180" cy="80" r="25" />
-              <ellipse cx="140" cy="91" rx="78" ry="18" />
-            </g>
-            <path d="M70 92 Q126 108 207 91" stroke="#c9e9f5" stroke-width="7" opacity="0.5" fill="none" stroke-linecap="round" />
-            <circle cx="115" cy="66" r="5" fill="#ffffff" opacity="0.55" />
-          </g>
-
-          <g opacity="0.9">
-            <g fill="url(#cloudShade)">
-              <circle cx="440" cy="100" r="25" />
-              <circle cx="480" cy="90" r="35" />
-              <circle cx="515" cy="100" r="20" />
-              <ellipse cx="480" cy="111" rx="64" ry="15" />
-            </g>
-            <path d="M419 111 Q472 125 538 109" stroke="#c9e9f5" stroke-width="6" opacity="0.5" fill="none" stroke-linecap="round" />
-            <circle cx="463" cy="84" r="4" fill="#ffffff" opacity="0.5" />
-          </g>
+          <!-- SKY BACKDROP (painted PNG) -->
+          <image href="assets/sky.png" x="0" y="0" width="600" height="280" preserveAspectRatio="xMinYMin slice" />
 
           <!-- BIRD -->
           <g id="bird-scene">
@@ -583,44 +515,9 @@
             </g>
           </g>
 
-          <!-- GROUND -->
-          <rect x="0" y="280" width="600" height="120" fill="url(#grassTexture)" />
-          <line x1="0" y1="280" x2="600" y2="280" stroke="#2f7f3a" stroke-width="6" />
-          <line x1="0" y1="276" x2="600" y2="276" stroke="#74d36c" stroke-width="2" opacity="0.65" />
-
-          <!-- ENVIRONMENT DETAILS -->
-          <g id="ground-details">
-            <!-- flowers -->
-            <g transform="translate(72,322)">
-              <circle cx="-4" cy="0" r="3" fill="#ffffff" opacity="0.85" />
-              <circle cx="4" cy="0" r="3" fill="#ffffff" opacity="0.85" />
-              <circle cx="0" cy="-4" r="3" fill="#ffffff" opacity="0.85" />
-              <circle cx="0" cy="0" r="2" fill="#FFD54F" />
-              <line x1="0" y1="4" x2="0" y2="15" stroke="#2f8f3c" stroke-width="2" />
-            </g>
-
-            <g transform="translate(535,338)">
-              <circle cx="-4" cy="0" r="3" fill="#ffd1dc" opacity="0.9" />
-              <circle cx="4" cy="0" r="3" fill="#ffd1dc" opacity="0.9" />
-              <circle cx="0" cy="-4" r="3" fill="#ffd1dc" opacity="0.9" />
-              <circle cx="0" cy="0" r="2" fill="#ffeb3b" />
-              <line x1="0" y1="4" x2="0" y2="15" stroke="#2f8f3c" stroke-width="2" />
-            </g>
-
-            <!-- pebbles -->
-            <ellipse cx="110" cy="352" rx="5" ry="3" fill="#6d8b5d" opacity="0.5" />
-            <ellipse cx="132" cy="368" rx="3" ry="2" fill="#3f6f3f" opacity="0.45" />
-            <ellipse cx="472" cy="330" rx="4" ry="2.5" fill="#6d8b5d" opacity="0.5" />
-            <ellipse cx="515" cy="374" rx="5" ry="3" fill="#3f6f3f" opacity="0.38" />
-
-            <!-- grass tufts -->
-            <g stroke="#2d7f36" stroke-width="2" stroke-linecap="round" opacity="0.75">
-              <path d="M34 300 L38 286 L42 300" />
-              <path d="M250 315 L254 300 L258 315" />
-              <path d="M560 304 L564 288 L568 304" />
-              <path d="M350 365 L354 350 L358 365" />
-            </g>
-          </g>
+          <!-- GROUND BACKDROP (painted PNG) -->
+          <image href="assets/grass.png" x="0" y="280" width="600" height="120" preserveAspectRatio="xMidYMid slice" />
+          <line x1="0" y1="280" x2="600" y2="280" stroke="#2f7f3a" stroke-width="4" opacity="0.85" />
 
           <!-- CONTACT SHADOWS -->
           <g id="character-shadows" fill="#000000" filter="url(#softShadow)">
@@ -734,8 +631,8 @@
       </div>
 
       <div class="btn btn-bird" id="ctrl-actions">
-        <span class="key">W / F</span>
-        Mix Event
+        <span class="key">W</span>
+        Bird Fly By
       </div>
     </div>
   </div>
@@ -915,17 +812,6 @@
           birdScene.classList.remove('bird-active');
         }, 4000);
       }
-
-      if (
-        !wormScene.classList.contains('worm-up') &&
-        !wormScene.classList.contains('worm-active')
-      ) {
-        wormScene.classList.add('worm-active');
-
-        setTimeout(() => {
-          wormScene.classList.remove('worm-active');
-        }, 3500);
-      }
     }
 
     /* --- KEYBOARD INPUT ENGINE --- */
@@ -944,7 +830,7 @@
         startWormSequence();
       }
 
-      if (key === 'w' || key === 'f') {
+      if (key === 'w') {
         ctrlActions.classList.add('active');
         triggerScenicMix();
       }
@@ -965,7 +851,7 @@
         stopWormSequence();
       }
 
-      if (key === 'w' || key === 'f') {
+      if (key === 'w') {
         ctrlActions.classList.remove('active');
       }
     });
