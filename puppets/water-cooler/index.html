@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Office Shorts</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: radial-gradient(circle at 50% 25%, #20232b 0%, #14161c 60%, #0c0d11 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* --- PAGE LAYOUT: STAGE + BUTTONS OUTSIDE THE SCREEN --- */
+    .game-shell {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(10px, 2vh, 18px);
+      padding: clamp(8px, 2vh, 18px);
+    }
+
+    /* --- VERTICAL 9:16-ish PHONE STAGE --- */
+    .viewport-box {
+      position: relative;
+      width: min(calc(100vw - 16px), calc((100vh - 150px) * 852 / 1012));
+      max-height: calc(100vh - 150px);
+      aspect-ratio: 852 / 1012;
+      overflow: hidden;
+      background: #cdc6b4;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+      touch-action: none;
+      user-select: none;
+      flex: 0 1 auto;
+    }
+
+    #camera-rig {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-origin: 0% 0%;
+      transform: translate(0%, 0%) scale(1);
+      transition: none;
+    }
+
+    .viewport-box.zoom-left #camera-rig {
+      transform: translate(-32%, -36.5%) scale(2.4);
+    }
+
+    .viewport-box.zoom-right #camera-rig {
+      transform: translate(-111.5%, -40.5%) scale(2.4);
+    }
+
+    .stage-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .scene-art {
+      z-index: 1;
+    }
+
+    .png-overlay {
+      z-index: 3;
+    }
+
+    /* HTML/CSS cooler bubbles only — no SVG water/cooler/bubble shapes. */
+    .cooler-bubble-field {
+      position: absolute;
+      left: 40.4%;
+      top: 34.4%;
+      width: 17.8%;
+      height: 15.4%;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: 46% 46% 35% 35%;
+      mix-blend-mode: screen;
+    }
+
+    .cooler-bubble {
+      position: absolute;
+      bottom: -10%;
+      left: var(--x);
+      width: var(--size);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: 2px solid rgba(235, 250, 255, 0.72);
+      background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0 10%, rgba(235, 250, 255, 0.26) 22%, rgba(235, 250, 255, 0.08) 58%, rgba(235, 250, 255, 0) 70%);
+      filter: blur(0.1px);
+      opacity: 0;
+      animation: bubbleRise var(--speed) linear infinite;
+      animation-delay: var(--delay);
+    }
+
+    @keyframes bubbleRise {
+      0% {
+        transform: translate(0, 0) scale(0.62);
+        opacity: 0;
+      }
+      12% {
+        opacity: 0.54;
+      }
+      70% {
+        opacity: 0.42;
+      }
+      100% {
+        transform: translate(var(--drift), -78px) scale(0.98);
+        opacity: 0;
+      }
+    }
+
+    .face-svg {
+      z-index: 4;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* --- TALKING MOUTHS (inner group animates; outer anchor holds position) --- */
+    .mouth-inner {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .talking-mouth {
+      animation: talkMouth 0.16s infinite alternate ease-in-out;
+    }
+
+    @keyframes talkMouth {
+      0%   { transform: scaleY(0.35); }
+      100% { transform: scaleY(2.2); }
+    }
+
+    /* --- EYES / BLINK (scale around each eye's local center — no drift) --- */
+    .eye-blink {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .eye-blink.blink-on {
+      animation: eyeBlink 0.14s ease-in-out;
+    }
+
+    @keyframes eyeBlink {
+      0%, 100% { transform: scaleY(1); }
+      50%      { transform: scaleY(0.08); }
+    }
+
+    /* --- BACKGROUND MONITOR FLICKER --- */
+    .monitor-flicker {
+      animation: flicker 2.8s steps(1, end) infinite;
+    }
+
+    @keyframes flicker {
+      0%   { opacity: 0.16; }
+      6%   { opacity: 0.34; }
+      8%   { opacity: 0.08; }
+      11%  { opacity: 0.30; }
+      38%  { opacity: 0.16; }
+      41%  { opacity: 0.36; }
+      43%  { opacity: 0.12; }
+      68%  { opacity: 0.24; }
+      71%  { opacity: 0.10; }
+      100% { opacity: 0.18; }
+    }
+
+    /* --- HOLD-TO-TALK CONTROLS: OUTSIDE .viewport-box --- */
+    .control-row {
+      width: min(calc(100vw - 16px), calc((100vh - 150px) * 852 / 1012));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex: 0 0 auto;
+      pointer-events: auto;
+    }
+
+    .talk-btn {
+      width: clamp(78px, 18vmin, 120px);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      background: rgba(20, 20, 28, 0.55);
+      backdrop-filter: blur(3px);
+      color: #fff;
+      font-size: clamp(11px, 2.6vmin, 15px);
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.1s ease;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .talk-btn .key {
+      font-size: 0.78em;
+      opacity: 0.7;
+      font-weight: 600;
+    }
+
+    .talk-btn.active {
+      background: rgba(220, 90, 60, 0.8);
+      transform: scale(0.93);
+    }
+
+    .hint {
+      position: absolute;
+      top: 2.5%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(20, 20, 28, 0.5);
+      color: #fff;
+      font-size: clamp(10px, 2.4vmin, 13px);
+      white-space: nowrap;
+      opacity: 0;
+      animation: hintFade 6s ease forwards;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes hintFade {
+      0%, 70% { opacity: 0.85; }
+      100%    { opacity: 0; }
+    }
+
+    @media (max-height: 700px) {
+      .game-shell {
+        gap: 8px;
+        padding: 6px;
+      }
+
+      .viewport-box,
+      .control-row {
+        width: min(calc(100vw - 12px), calc((100vh - 112px) * 852 / 1012));
+      }
+
+      .viewport-box {
+        max-height: calc(100vh - 112px);
+      }
+
+      .talk-btn {
+        width: clamp(62px, 16vmin, 88px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="game-shell">
+    <div id="viewport" class="viewport-box">
+      <div id="camera-rig">
+        <!-- Static baked art. Keep this as the full background image. -->
+        <img class="stage-layer scene-art" src="assets/office-scene.png" alt="Office water cooler scene">
+
+        <!-- HTML/CSS bubbles only. No SVG water/cooler/bubble shapes. -->
+        <div class="cooler-bubble-field" aria-hidden="true">
+          <span class="cooler-bubble" style="--x: 24%; --size: 5px; --speed: 4.8s; --delay: -0.5s; --drift: 5px;"></span>
+          <span class="cooler-bubble" style="--x: 36%; --size: 4px; --speed: 5.4s; --delay: -2.2s; --drift: -4px;"></span>
+          <span class="cooler-bubble" style="--x: 48%; --size: 7px; --speed: 6.0s; --delay: -3.7s; --drift: 4px;"></span>
+          <span class="cooler-bubble" style="--x: 59%; --size: 4px; --speed: 5.0s; --delay: -1.4s; --drift: -5px;"></span>
+          <span class="cooler-bubble" style="--x: 69%; --size: 6px; --speed: 6.4s; --delay: -4.8s; --drift: 4px;"></span>
+        </div>
+
+        <!-- PNG eyebrows and age lines. -->
+        <img class="stage-layer png-overlay" src="assets/eyebrows_age_lines_overlay.png" alt="" aria-hidden="true">
+
+        <!-- SVG layer is ONLY monitor flicker + animated face parts. -->
+        <svg class="stage-layer face-svg" id="stage" viewBox="0 0 852 1012" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <!-- BACKGROUND MONITOR FLICKER: aligned to the baked computer screen -->
+          <rect class="monitor-flicker" x="4" y="447" width="79" height="61" rx="2" fill="#bfe6ff" />
+
+          <!-- LEFT GUY (LOU) FACE (animated) -->
+          <g id="face-left">
+            <g id="eyes-left">
+              <g transform="translate(270, 322)">
+                <g class="eye-blink">
+                  <ellipse cx="0" cy="0" rx="6" ry="7.2" fill="#2b2b2b" />
+                  <circle cx="-2" cy="-3" r="1.7" fill="#ffffff" opacity="0.85" />
+                </g>
+              </g>
+              <g transform="translate(294, 321)">
+                <g class="eye-blink">
+                  <ellipse cx="0" cy="0" rx="6" ry="7.2" fill="#2b2b2b" />
+                  <circle cx="-2" cy="-3" r="1.7" fill="#ffffff" opacity="0.85" />
+                </g>
+              </g>
+            </g>
+            <g transform="translate(271, 361)">
+              <g id="mouth-left" class="mouth-inner">
+                <ellipse cx="0" cy="0" rx="13" ry="3" fill="#6b3f3f" />
+                <path class="lower-lip" d="M-12 3 Q0 6 12 3" stroke="#5a3535" stroke-width="0.8" fill="none" stroke-linecap="round" />
+              </g>
+            </g>
+          </g>
+
+          <!-- RIGHT GUY (VERN) FACE (animated) -->
+          <g id="face-right">
+            <g id="eyes-right">
+              <g transform="translate(579, 324)">
+                <g class="eye-blink">
+                  <ellipse cx="0" cy="0" rx="6" ry="7.2" fill="#2b2b2b" />
+                  <circle cx="-2" cy="-3" r="1.7" fill="#ffffff" opacity="0.85" />
+                </g>
+              </g>
+              <g transform="translate(600, 321)">
+                <g class="eye-blink">
+                  <ellipse cx="0" cy="0" rx="6" ry="7.2" fill="#2b2b2b" />
+                  <circle cx="-2" cy="-3" r="1.7" fill="#ffffff" opacity="0.85" />
+                </g>
+              </g>
+            </g>
+            <g transform="translate(594, 373)">
+              <g id="mouth-right" class="mouth-inner">
+                <ellipse cx="0" cy="0" rx="13" ry="3" fill="#6b3f3f" />
+                <path class="lower-lip" d="M-12 3 Q0 6 12 3" stroke="#5a3535" stroke-width="0.8" fill="none" stroke-linecap="round" />
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <div class="hint">Hold Q / P — or tap a button — to talk</div>
+    </div>
+
+    <div class="control-row" aria-label="Talk controls">
+      <button class="talk-btn left" id="btn-left" type="button">
+        <span>Lou</span><span class="key">Q</span>
+      </button>
+      <button class="talk-btn right" id="btn-right" type="button">
+        <span>Vern</span><span class="key">P</span>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    const viewport = document.getElementById('viewport');
+    const mouthLeft = document.getElementById('mouth-left');
+    const mouthRight = document.getElementById('mouth-right');
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+
+    const state = { left: false, right: false };
+
+    function updateCamera() {
+      if (state.left) {
+        viewport.className = 'viewport-box zoom-left';
+      } else if (state.right) {
+        viewport.className = 'viewport-box zoom-right';
+      } else {
+        viewport.className = 'viewport-box';
+      }
+    }
+
+    function startTalk(side) {
+      if (state[side]) return;
+      state[side] = true;
+      updateCamera();
+
+      if (side === 'left') {
+        mouthLeft.classList.add('talking-mouth');
+        btnLeft.classList.add('active');
+      } else {
+        mouthRight.classList.add('talking-mouth');
+        btnRight.classList.add('active');
+      }
+    }
+
+    function stopTalk(side) {
+      if (!state[side]) return;
+      state[side] = false;
+      updateCamera();
+
+      if (side === 'left') {
+        mouthLeft.classList.remove('talking-mouth');
+        btnLeft.classList.remove('active');
+      } else {
+        mouthRight.classList.remove('talking-mouth');
+        btnRight.classList.remove('active');
+      }
+    }
+
+    /* --- NATURAL BLINKING (~16/min, steady rhythm) --- */
+    const BLINK_BASE_MS = 3750;
+    const BLINK_JITTER_MS = 350;
+
+    function blinkEyes(eyeGroups) {
+      eyeGroups.forEach((el) => {
+        el.classList.remove('blink-on');
+        void el.offsetWidth;
+        el.classList.add('blink-on');
+        setTimeout(() => el.classList.remove('blink-on'), 160);
+      });
+    }
+
+    function scheduleBlink(eyeGroups) {
+      function next() {
+        const delay = BLINK_BASE_MS + (Math.random() * 2 - 1) * BLINK_JITTER_MS;
+        setTimeout(() => {
+          blinkEyes(eyeGroups);
+          if (Math.random() < 0.14) {
+            setTimeout(() => blinkEyes(eyeGroups), 260);
+          }
+          next();
+        }, delay);
+      }
+      next();
+    }
+
+    scheduleBlink(document.querySelectorAll('#eyes-left .eye-blink'));
+    scheduleBlink(document.querySelectorAll('#eyes-right .eye-blink'));
+
+    /* --- KEYBOARD --- */
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'q') startTalk('left');
+      if (k === 'p') startTalk('right');
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'q') stopTalk('left');
+      if (k === 'p') stopTalk('right');
+    });
+
+    /* --- TOUCH / MOUSE HOLD --- */
+    function bindHold(el, side) {
+      el.addEventListener('touchstart', (e) => { e.preventDefault(); startTalk(side); }, { passive: false });
+      el.addEventListener('touchend', (e) => { e.preventDefault(); stopTalk(side); }, { passive: false });
+      el.addEventListener('touchcancel', (e) => { e.preventDefault(); stopTalk(side); }, { passive: false });
+      el.addEventListener('mousedown', (e) => { e.preventDefault(); startTalk(side); });
+      el.addEventListener('mouseup', () => stopTalk(side));
+      el.addEventListener('mouseleave', () => stopTalk(side));
+    }
+
+    bindHold(btnLeft, 'left');
+    bindHold(btnRight, 'right');
+
+    /* --- HASH HOOK: open with #left or #right to auto-talk (handy for recording) --- */
+    function applyHash() {
+      const h = location.hash.toLowerCase();
+      if (h === '#left') { stopTalk('right'); startTalk('left'); }
+      else if (h === '#right') { stopTalk('left'); startTalk('right'); }
+      else { stopTalk('left'); stopTalk('right'); }
+    }
+
+    window.addEventListener('hashchange', applyHash);
+    applyHash();
+  </script>
+</body>
+</html>
