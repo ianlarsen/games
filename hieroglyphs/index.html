@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F5E6C8" />
+  <meta name="description" content="A fun offline hieroglyph alphabet adventure for kids" />
+  <title>Hieroglyph Name Adventure</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --sand: #f6e4bb;
+      --sand-2: #ffe8ac;
+      --sand-dark: #e6c77f;
+      --gold: #f2b93b;
+      --gold-dark: #b57915;
+      --brown: #3b240e;
+      --brown-soft: #6a4c2b;
+      --teal: #3fa6a3;
+      --teal-dark: #277a79;
+      --red: #d95b4a;
+      --green: #4c9b54;
+      --white: #fffaf0;
+      --purple: #8061b3;
+      --shadow: rgba(59, 36, 14, 0.22);
+      --radius: 22px;
+      --touch: 58px;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--brown);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.55) 0 6rem, transparent 6.1rem),
+        radial-gradient(circle at 88% 22%, rgba(242, 185, 59, 0.18) 0 5rem, transparent 5.1rem),
+        linear-gradient(180deg, #f8e9c2 0%, var(--sand) 100%);
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    #app {
+      min-height: 100dvh;
+      max-width: 540px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .screen {
+      padding: 1rem 1.15rem 2.5rem;
+      min-height: 100dvh;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 1.6rem 0 1rem;
+      position: relative;
+    }
+
+    .mascot {
+      width: 92px;
+      height: 92px;
+      margin: 0 auto 0.55rem;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 4px solid var(--brown);
+      background:
+        radial-gradient(circle at 38% 30%, #fff7d8 0 12%, transparent 13%),
+        linear-gradient(145deg, #ffe09a, #f6bc44);
+      box-shadow: 0 9px 0 var(--shadow);
+      font-size: 3.2rem;
+      animation: floaty 2.6s ease-in-out infinite;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 7vw, 2.75rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin-top: 0.45rem;
+      font-size: 1.08rem;
+      color: var(--brown-soft);
+      font-weight: 700;
+    }
+
+    .birthday-banner {
+      margin: 0.75rem auto 0;
+      padding: 0.65rem 0.85rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: #fff3ca;
+      border: 2px solid var(--gold-dark);
+      box-shadow: 0 4px 0 var(--shadow);
+      font-weight: 900;
+    }
+
+    .main-nav {
+      display: grid;
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .nav-btn,
+    .action-btn,
+    .choice-btn,
+    .name-letter-card,
+    .alphabet-cell,
+    .badge {
+      border: 3px solid var(--brown);
+      box-shadow: 0 5px 0 var(--shadow);
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      min-height: var(--touch);
+      padding: 0.95rem 1.1rem;
+      border-radius: var(--radius);
+      background: var(--white);
+      font-size: 1.13rem;
+      font-weight: 900;
+      color: var(--brown);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .nav-btn:active,
+    .action-btn:active,
+    .choice-btn:active,
+    .name-letter-card:active,
+    .alphabet-cell:active {
+      transform: translateY(3px) scale(0.99);
+      box-shadow: 0 2px 0 var(--shadow);
+    }
+
+    .nav-btn-primary {
+      background: var(--teal);
+      border-color: var(--teal-dark);
+      color: white;
+    }
+
+    .nav-btn-gold {
+      background: var(--gold);
+      border-color: var(--gold-dark);
+    }
+
+    .nav-btn-purple {
+      background: var(--purple);
+      border-color: #60448f;
+      color: white;
+    }
+
+    .nav-icon {
+      font-size: 1.55rem;
+      width: 2rem;
+      text-align: center;
+    }
+
+    .home-hint {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      border: 2px solid var(--sand-dark);
+      border-radius: 16px;
+      background: rgba(255, 250, 240, 0.75);
+      font-weight: 800;
+    }
+
+    .toggle-row input {
+      width: 26px;
+      height: 26px;
+      accent-color: var(--teal);
+    }
+
+    .top-bar {
+      display: grid;
+      grid-template-columns: var(--touch) 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .top-bar h2 {
+      font-size: 1.25rem;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .back-btn,
+    .round-btn {
+      min-width: var(--touch);
+      min-height: var(--touch);
+      border: 3px solid var(--brown);
+      border-radius: 50%;
+      background: var(--white);
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--brown);
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--shadow);
+    }
+
+    .round-btn-primary {
+      background: var(--teal);
+      border-color: var(--teal-dark);
+      color: white;
+    }
+
+    .round-btn:disabled,
+    .back-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .counter {
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: var(--brown-soft);
+      min-width: 3.2rem;
+      text-align: right;
+    }
+
+    .card {
+      background: rgba(255, 250, 240, 0.92);
+      border: 3px solid var(--brown);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 0 var(--shadow);
+      padding: 1.15rem;
+      text-align: center;
+    }
+
+    .sign-card {
+      min-height: 355px;
+    }
+
+    .glyph-showcase {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 140px;
+      margin-bottom: 0.75rem;
+    }
+
+    .glyph {
+      font-family: "Segoe UI Historic", "Noto Sans Egyptian Hieroglyphs", "Segoe UI Symbol", serif;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      color: var(--brown);
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .glyph-large {
+      width: 132px;
+      height: 132px;
+      font-size: 7.8rem;
+    }
+
+    .glyph-medium {
+      width: 74px;
+      height: 74px;
+      font-size: 4.35rem;
+    }
+
+    .glyph-small {
+      width: 54px;
+      height: 54px;
+      font-size: 3.15rem;
+    }
+
+    .glyph-tiny {
+      width: 36px;
+      height: 36px;
+      font-size: 2rem;
+    }
+
+    .glyph-bounce {
+      animation: pop 0.42s ease both;
+    }
+
+    .sign-label {
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .sign-sound {
+      margin-top: 0.35rem;
+      font-size: 1.1rem;
+    }
+
+    .sign-letters,
+    .detail-note,
+    .helper-text {
+      margin-top: 0.5rem;
+      color: var(--brown-soft);
+      line-height: 1.45;
+    }
+
+    .sign-code {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--brown-soft);
+    }
+
+    .learn-nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .action-btn {
+      min-height: 48px;
+      padding: 0.65rem 0.95rem;
+      border-radius: 16px;
+      background: var(--white);
+      color: var(--brown);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .action-btn.primary {
+      background: var(--teal);
+      border-color: var(--teal-dark);
+      color: white;
+    }
+
+    .action-btn.gold {
+      background: var(--gold);
+      border-color: var(--gold-dark);
+    }
+
+    .name-input-section {
+      margin-bottom: 1.1rem;
+    }
+
+    .input-label {
+      display: block;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+    }
+
+    .name-input {
+      width: 100%;
+      min-height: var(--touch);
+      padding: 0.75rem 1rem;
+      border: 3px solid var(--brown);
+      border-radius: var(--radius);
+      font-size: 1.35rem;
+      font-weight: 900;
+      background: var(--white);
+      color: var(--brown);
+      box-shadow: inset 0 2px 0 rgba(59, 36, 14, 0.08);
+    }
+
+    .name-input:focus {
+      outline: 4px solid rgba(63, 166, 163, 0.4);
+      outline-offset: 2px;
+    }
+
+    .result-heading {
+      font-size: 1.12rem;
+      margin-bottom: 0.75rem;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .name-glyphs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .name-letter-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.75rem;
+      border-radius: 18px;
+      background: var(--white);
+      cursor: pointer;
+      min-width: 90px;
+    }
+
+    .letter-tag {
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+
+    .empty-hint,
+    .skipped {
+      text-align: center;
+      color: var(--brown-soft);
+      margin-top: 1rem;
+      font-weight: 800;
+    }
+
+    .letter-detail {
+      margin-top: 1.15rem;
+      padding: 1rem;
+      background: linear-gradient(180deg, #ffe7aa, #ebd19b);
+      border-radius: var(--radius);
+      text-align: center;
+      box-shadow: inset 0 0 0 2px rgba(59, 36, 14, 0.08);
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin: 0.75rem 0;
+    }
+
+    .text-btn {
+      margin-top: 0.55rem;
+      border: none;
+      background: none;
+      font-weight: 900;
+      color: var(--teal-dark);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .parent-note {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 250, 240, 0.9);
+      border-radius: 14px;
+      border: 2px solid var(--sand-dark);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .parent-note summary {
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .parent-note p {
+      margin-top: 0.5rem;
+    }
+
+    .approx-list {
+      margin: 0.5rem 0 0;
+      padding-left: 1.25rem;
+    }
+
+    .alphabet-strip {
+      margin-top: 1.4rem;
+    }
+
+    .alphabet-strip h3 {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+      font-weight: 900;
+    }
+
+    .alphabet-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .alphabet-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+      padding: 0.5rem;
+      border-radius: 14px;
+      background: var(--white);
+      cursor: pointer;
+      min-height: 75px;
+    }
+
+    .cell-letter {
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .cartouche-wrap {
+      margin: 1rem auto 0;
+      padding: 1.1rem 0.8rem;
+      border: 5px solid var(--gold-dark);
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.55), transparent 58%),
+        linear-gradient(180deg, #ffdb6a, #f2b93b);
+      box-shadow:
+        inset 0 0 0 6px rgba(255, 255, 255, 0.35),
+        0 8px 0 var(--shadow);
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cartouche-wrap::before,
+    .cartouche-wrap::after {
+      content: "✦";
+      position: absolute;
+      font-size: 2rem;
+      color: white;
+      opacity: 0.85;
+      animation: twinkle 1.5s ease-in-out infinite;
+    }
+
+    .cartouche-wrap::before {
+      left: 1.1rem;
+      top: 1rem;
+    }
+
+    .cartouche-wrap::after {
+      right: 1.2rem;
+      bottom: 0.8rem;
+      animation-delay: 0.5s;
+    }
+
+    .cartouche-glyphs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem;
+      max-width: 92%;
+    }
+
+    .cartouche-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      margin-bottom: 0.35rem;
+    }
+
+    .quiz-question {
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+      margin-top: 0.8rem;
+    }
+
+    .choice-btn {
+      min-height: 118px;
+      border-radius: 18px;
+      background: var(--white);
+      cursor: pointer;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      padding: 0.45rem;
+    }
+
+    .choice-btn.correct {
+      background: #dff3c9;
+      border-color: var(--green);
+    }
+
+    .choice-btn.wrong {
+      background: #ffd7d0;
+      border-color: var(--red);
+    }
+
+    .feedback {
+      min-height: 2.4rem;
+      margin-top: 0.8rem;
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+
+    .score-pill {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      background: var(--white);
+      border: 2px solid var(--sand-dark);
+      font-weight: 900;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+      background: var(--white);
+      font-size: 0.9rem;
+      font-weight: 900;
+    }
+
+    .badge.locked {
+      opacity: 0.42;
+      filter: grayscale(1);
+    }
+
+    .certificate {
+      background: #fff7df;
+      border: 7px double var(--gold-dark);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      border-radius: 18px;
+    }
+
+    .certificate h2 {
+      font-size: 1.75rem;
+      line-height: 1.1;
+      margin-bottom: 0.7rem;
+    }
+
+    .certificate-name {
+      font-size: 1.7rem;
+      font-weight: 900;
+      margin: 0.7rem 0;
+      border-bottom: 3px solid var(--brown);
+      display: inline-block;
+      min-width: 60%;
+      padding: 0.25rem 1rem;
+    }
+
+    .confetti-piece {
+      position: fixed;
+      top: -12px;
+      width: 9px;
+      height: 14px;
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 50;
+      animation: confetti-fall 1.35s ease-in forwards;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 1.2rem;
+      transform: translateX(-50%);
+      background: var(--brown);
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 999px;
+      font-weight: 900;
+      box-shadow: 0 6px 0 var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 60;
+      animation: toast 2.1s ease forwards;
+      width: max-content;
+      max-width: calc(100vw - 2rem);
+      text-align: center;
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.82); }
+      65% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { transform: scale(0.75) rotate(0deg); opacity: 0.45; }
+      50% { transform: scale(1.12) rotate(18deg); opacity: 1; }
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+    }
+
+    @keyframes toast {
+      0% { opacity: 0; transform: translate(-50%, 18px); }
+      15%, 82% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, 18px); }
+    }
+
+    @media (max-width: 390px) {
+      .choice-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .choice-btn {
+        min-height: 88px;
+      }
+
+      .alphabet-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .screen > :not(.certificate),
+      .top-bar,
+      .action-row,
+      .parent-note {
+        display: none !important;
+      }
+
+      .screen {
+        padding: 0;
+        min-height: auto;
+      }
+
+      .certificate {
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 95vh;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .nav-btn:active,
+      .action-btn:active,
+      .choice-btn:active,
+      .name-letter-card:active,
+      .alphabet-cell:active {
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const UNILITERALS = [
+        { gardiner: "G1", unicode: "U+1313F", char: "𓄿", sound: "ꜣ", soundSimple: "ah", description: "Egyptian vulture", kid: "A bird sign that can help make an ah sound.", englishLetters: ["A"], englishNote: "Used for the vowel sound in A." },
+        { gardiner: "M17", unicode: "U+131CB", char: "𓇋", sound: "i", soundSimple: "ee", description: "Flowering reed", kid: "A tall reed sign that sounds like ee.", englishLetters: ["E", "I"], englishNote: "Used for E and I vowel sounds." },
+        { gardiner: "M18", unicode: "U+131CC", char: "𓇌", sound: "y", soundSimple: "y", description: "Two flowering reeds", kid: "Two reeds together make the y sound.", englishLetters: ["Y"], englishNote: "Used for Y." },
+        { gardiner: "D36", unicode: "U+1309D", char: "𓂝", sound: "ꜥ", soundSimple: "ah", description: "Forearm", kid: "A real Egyptian sound sign, but not used much for English names.", englishLetters: [], englishNote: "A real Egyptian sound, but not used for English name spelling." },
+        { gardiner: "G43", unicode: "U+13171", char: "𓅱", sound: "w", soundSimple: "w", description: "Quail chick", kid: "A tiny bird sign for O, U, and W sounds in names.", englishLetters: ["O", "U", "W"], englishNote: "Egyptian w covers O, U, and W in English names." },
+        { gardiner: "D58", unicode: "U+130C0", char: "𓃀", sound: "b", soundSimple: "b", description: "Foot", kid: "This foot sign steps in for the B sound.", englishLetters: ["B"], englishNote: "Used for B." },
+        { gardiner: "Q3", unicode: "U+132AA", char: "𓊪", sound: "p", soundSimple: "p", description: "Stool", kid: "A little stool sign that makes the P sound.", englishLetters: ["P"], englishNote: "Used for P." },
+        { gardiner: "I9", unicode: "U+13191", char: "𓆑", sound: "f", soundSimple: "f", description: "Horned viper", kid: "A snake sign that makes the F sound.", englishLetters: ["F", "V"], englishNote: "Used for F. V is approximated with F because Egyptian had no V." },
+        { gardiner: "G17", unicode: "U+13153", char: "𓅓", sound: "m", soundSimple: "m", description: "Owl", kid: "A wise owl sign that makes the M sound.", englishLetters: ["M"], englishNote: "Used for M." },
+        { gardiner: "N35", unicode: "U+13216", char: "𓈖", sound: "n", soundSimple: "n", description: "Water ripple", kid: "A wavy water sign that makes the N sound.", englishLetters: ["N"], englishNote: "Used for N." },
+        { gardiner: "D21", unicode: "U+1308B", char: "𓂋", sound: "r", soundSimple: "r", description: "Mouth", kid: "A mouth sign for the R sound. It also helps with L in names.", englishLetters: ["L", "R"], englishNote: "Used for R. L is approximated with R because Egyptian had no separate L." },
+        { gardiner: "O4", unicode: "U+13254", char: "𓉔", sound: "h", soundSimple: "h", description: "Reed shelter", kid: "A shelter sign that makes the H sound.", englishLetters: ["H"], englishNote: "Used for H." },
+        { gardiner: "V28", unicode: "U+1339B", char: "𓎛", sound: "ḥ", soundSimple: "h", description: "Twisted flax wick", kid: "A special Egyptian H sound.", englishLetters: [], englishNote: "A special emphatic H sound in Egyptian — not used for English names." },
+        { gardiner: "Aa1", unicode: "U+1340D", char: "𓐍", sound: "ḫ", soundSimple: "kh", description: "Placenta", kid: "A special Egyptian KH sound.", englishLetters: [], englishNote: "A special KH sound in Egyptian — not used for English names." },
+        { gardiner: "F31", unicode: "U+13121", char: "𓄡", sound: "ẖ", soundSimple: "kh", description: "Animal belly", kid: "A rare Egyptian sound sign.", englishLetters: [], englishNote: "A rare Egyptian sound — not used for English names." },
+        { gardiner: "S29", unicode: "U+13283", char: "𓊃", sound: "s", soundSimple: "s", description: "Door bolt", kid: "A door bolt sign for S, Z, and soft C.", englishLetters: ["C", "S", "Z"], englishNote: "Used for S and Z. Soft C before E/I/Y uses this sign; hard C uses K." },
+        { gardiner: "N37", unicode: "U+13219", char: "𓈙", sound: "š", soundSimple: "sh", description: "Garden pool", kid: "A pool sign for a sh sound.", englishLetters: [], englishNote: "SH sound in Egyptian — not used for English name spelling." },
+        { gardiner: "N29", unicode: "U+1320E", char: "𓈎", sound: "q", soundSimple: "k", description: "Hill slope", kid: "A hill sign for the Q sound.", englishLetters: ["Q"], englishNote: "Used for Q." },
+        { gardiner: "V31", unicode: "U+133A1", char: "𓎡", sound: "k", soundSimple: "k", description: "Basket with handle", kid: "A basket sign for K, hard C, and X.", englishLetters: ["C", "K", "X"], englishNote: "Used for K. Hard C and X as K use this sign." },
+        { gardiner: "W11", unicode: "U+133BC", char: "𓎼", sound: "g", soundSimple: "g", description: "Jar stand", kid: "A jar stand sign that makes the G sound.", englishLetters: ["G"], englishNote: "Used for G." },
+        { gardiner: "X1", unicode: "U+133CF", char: "𓏏", sound: "t", soundSimple: "t", description: "Bread loaf", kid: "A bread loaf sign that makes the T sound.", englishLetters: ["T"], englishNote: "Used for T." },
+        { gardiner: "M33", unicode: "U+1337F", char: "𓍿", sound: "ṯ", soundSimple: "ch", description: "Tethering rope", kid: "A rope sign for a ch sound.", englishLetters: [], englishNote: "CH sound in Egyptian — not used for English names." },
+        { gardiner: "D46", unicode: "U+130A7", char: "𓂧", sound: "d", soundSimple: "d", description: "Hand", kid: "A hand sign that makes the D sound.", englishLetters: ["D"], englishNote: "Used for D." },
+        { gardiner: "I10", unicode: "U+13193", char: "𓆓", sound: "ḏ", soundSimple: "j", description: "Cobra", kid: "A cobra sign that makes the J sound.", englishLetters: ["J"], englishNote: "Used for J." }
+      ];
+
+      const ENGLISH_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+      const byGardiner = Object.fromEntries(UNILITERALS.map((sign) => [sign.gardiner, sign]));
+      const letterToGardiner = {};
+      const quizSigns = UNILITERALS.filter((sign) => sign.englishLetters.length > 0);
+      const STORAGE = {
+        name: "hieroglyph-child-name",
+        badges: "hieroglyph-earned-badges",
+        birthday: "hieroglyph-birthday-mode"
+      };
+
+      for (const sign of UNILITERALS) {
+        for (const letter of sign.englishLetters) {
+          if (!letterToGardiner[letter]) letterToGardiner[letter] = sign.gardiner;
+        }
+      }
+
+      const app = document.getElementById("app");
+      const state = {
+        view: "home",
+        learnIndex: 0,
+        selectedLetter: null,
+        quiz: null,
+        feedback: "",
+        lastChoice: null,
+        birthday: localStorage.getItem(STORAGE.birthday) === "yes",
+        badges: loadBadges()
+      };
+
+      function loadBadges() {
+        try {
+          return new Set(JSON.parse(localStorage.getItem(STORAGE.badges) || "[]"));
+        } catch {
+          return new Set();
+        }
+      }
+
+      function saveBadges() {
+        localStorage.setItem(STORAGE.badges, JSON.stringify([...state.badges]));
+      }
+
+      function earnBadge(id) {
+        if (state.badges.has(id)) return;
+        state.badges.add(id);
+        saveBadges();
+        const badge = BADGES.find((item) => item.id === id);
+        if (badge) {
+          toast("Badge earned: " + badge.icon + " " + badge.name);
+          confetti(26);
+        }
+      }
+
+      const BADGES = [
+        { id: "name", icon: "✍️", name: "Name Scribe" },
+        { id: "cartouche", icon: "👑", name: "Cartouche Builder" },
+        { id: "owl", icon: "🦉", name: "Owl Expert" },
+        { id: "quiz3", icon: "⭐", name: "3 Quiz Stars" },
+        { id: "quiz5", icon: "🏺", name: "Scribe Scholar" },
+        { id: "birthday", icon: "🎂", name: "Birthday Scribe" }
+      ];
+
+      function savedName() {
+        return localStorage.getItem(STORAGE.name) || "";
+      }
+
+      function saveName(name) {
+        localStorage.setItem(STORAGE.name, name);
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function isSoftC(upperName, index) {
+        const next = upperName[index + 1];
+        return next && "EIY".includes(next);
+      }
+
+      function spellName(name) {
+        const cleaned = name.trim();
+        if (!cleaned) return { letters: [], skipped: [], note: null };
+
+        const upperName = cleaned.toUpperCase();
+        const letters = [];
+        const skipped = [];
+
+        for (let i = 0; i < cleaned.length; i++) {
+          const ch = cleaned[i];
+
+          if (!/[A-Za-z]/.test(ch)) {
+            if (ch.trim()) skipped.push(ch);
+            continue;
+          }
+
+          const letter = ch.toUpperCase();
+          let gardiner = letterToGardiner[letter];
+
+          if (letter === "C") {
+            gardiner = isSoftC(upperName, i) ? "S29" : "V31";
+          }
+
+          if (letter === "X") {
+            letters.push({ letter, gardiner: "V31", sign: byGardiner.V31, pair: "ks" });
+            letters.push({ letter, gardiner: "S29", sign: byGardiner.S29, pair: "ks" });
+            continue;
+          }
+
+          if (!gardiner) {
+            skipped.push(ch);
+            continue;
+          }
+
+          letters.push({ letter, gardiner, sign: byGardiner[gardiner] });
+        }
+
+        return {
+          letters,
+          skipped,
+          note: "Names are spelled using sound approximations. Egyptian writing usually left out most vowels — we include them here so names are easier to read."
+        };
+      }
+
+      function glyph(signOrGardiner, size = "medium", bounce = false) {
+        const sign = typeof signOrGardiner === "string" ? byGardiner[signOrGardiner] : signOrGardiner;
+        const char = sign ? sign.char : "";
+        const title = sign ? sign.description : "";
+        return '<span class="glyph glyph-' + size + (bounce ? " glyph-bounce" : "") + '" title="' + escapeHtml(title) + '">' + char + "</span>";
+      }
+
+      function speak(text) {
+        if (!("speechSynthesis" in window)) {
+          toast("Speech is not available in this browser.");
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.82;
+        utterance.pitch = 1.12;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function toast(message) {
+        const oldToast = document.querySelector(".toast");
+        if (oldToast) oldToast.remove();
+        const node = document.createElement("div");
+        node.className = "toast";
+        node.textContent = message;
+        document.body.appendChild(node);
+        window.setTimeout(() => node.remove(), 2200);
+      }
+
+      function confetti(count = 36) {
+        const colors = ["#f2b93b", "#3fa6a3", "#d95b4a", "#8061b3", "#ffffff"];
+        for (let i = 0; i < count; i++) {
+          const piece = document.createElement("span");
+          piece.className = "confetti-piece";
+          piece.style.left = Math.random() * 100 + "vw";
+          piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+          piece.style.animationDelay = Math.random() * 0.25 + "s";
+          piece.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+          document.body.appendChild(piece);
+          window.setTimeout(() => piece.remove(), 1700);
+        }
+      }
+
+      function renderBadges() {
+        return (
+          '<div class="badge-row" aria-label="Badges">' +
+          BADGES.map((badge) => {
+            const earned = state.badges.has(badge.id);
+            return '<span class="badge' + (earned ? "" : " locked") + '">' + badge.icon + " " + escapeHtml(badge.name) + "</span>";
+          }).join("") +
+          "</div>"
+        );
+      }
+
+      function renderHome() {
+        const name = savedName();
+        const birthday = state.birthday
+          ? '<div class="birthday-banner">🎂 Birthday Scribe Mode: Almost 7!</div>'
+          : "";
+
+        return (
+          '<main class="screen home-screen">' +
+            '<header class="hero">' +
+              '<div class="mascot" aria-hidden="true">🦉</div>' +
+              "<h1>Hieroglyph Name Adventure</h1>" +
+              '<p class="subtitle">Become a royal scribe and build your name!</p>' +
+              birthday +
+            "</header>" +
+            '<nav class="main-nav" aria-label="Main menu">' +
+              '<button class="nav-btn nav-btn-gold" data-go="cartouche"><span class="nav-icon">👑</span><span>Build My Cartouche</span></button>' +
+              '<button class="nav-btn nav-btn-primary" data-go="name"><span class="nav-icon">✨</span><span>Spell My Name</span></button>' +
+              '<button class="nav-btn" data-go="learn"><span class="nav-icon">📜</span><span>Learn the Signs</span></button>' +
+              '<button class="nav-btn nav-btn-purple" data-start-quiz><span class="nav-icon">🎯</span><span>Scribe Challenge</span></button>' +
+              '<button class="nav-btn" data-go="certificate"><span class="nav-icon">🏆</span><span>Print My Certificate</span></button>' +
+            "</nav>" +
+            (name ? '<p class="home-hint">Saved name: <strong>' + escapeHtml(name) + "</strong></p>" : "") +
+            '<label class="toggle-row"><span>🎂 Birthday mode for a royal almost-7 scribe</span><input type="checkbox" data-birthday-toggle ' + (state.birthday ? "checked" : "") + " /></label>" +
+            renderBadges() +
+            '<details class="parent-note"><summary>For parents</summary>' +
+              "<p>This is a playful sound-matching activity, not a perfect ancient Egyptian translation. It maps English letters to close Egyptian uniliteral signs so kids can explore their name.</p>" +
+            "</details>" +
+          "</main>"
+        );
+      }
+
+      function renderTopBar(title, right = "") {
+        return (
+          '<header class="top-bar">' +
+            '<button class="back-btn" data-go="home" aria-label="Back to home">←</button>' +
+            "<h2>" + escapeHtml(title) + "</h2>" +
+            '<span class="counter">' + right + "</span>" +
+          "</header>"
+        );
+      }
+
+      function renderLearn() {
+        const sign = UNILITERALS[state.learnIndex];
+        const usedFor = sign.englishLetters.length
+          ? "Used for: " + sign.englishLetters.join(", ")
+          : "Egyptian sound only";
+
+        return (
+          '<main class="screen learn-screen">' +
+            renderTopBar("Learn the Signs", state.learnIndex + 1 + " / " + UNILITERALS.length) +
+            '<article class="card sign-card">' +
+              '<div class="glyph-showcase">' + glyph(sign, "large", true) + "</div>" +
+              '<p class="sign-label">' + escapeHtml(sign.description) + "</p>" +
+              '<p class="sign-sound">Sounds like: <strong>' + escapeHtml(sign.soundSimple) + "</strong></p>" +
+              '<p class="sign-letters">' + escapeHtml(usedFor) + "</p>" +
+              '<p class="helper-text">' + escapeHtml(sign.kid) + "</p>" +
+              '<p class="sign-code">Gardiner ' + escapeHtml(sign.gardiner) + " · " + escapeHtml(sign.unicode) + "</p>" +
+              '<div class="action-row">' +
+                '<button class="action-btn primary" data-speak="' + escapeHtml(sign.soundSimple) + '">🔊 Hear Sound</button>' +
+                '<button class="action-btn" data-speak="' + escapeHtml(sign.description) + '">🗣️ Hear Name</button>' +
+              "</div>" +
+            "</article>" +
+            '<div class="learn-nav">' +
+              '<button class="round-btn" data-learn-prev ' + (state.learnIndex === 0 ? "disabled" : "") + ">←</button>" +
+              '<button class="round-btn round-btn-primary" data-learn-next ' + (state.learnIndex === UNILITERALS.length - 1 ? "disabled" : "") + ">→</button>" +
+            "</div>" +
+          "</main>"
+        );
+      }
+
+      function renderName() {
+        const name = savedName();
+        const result = spellName(name);
+
+        let resultSection = '<p class="empty-hint">Type a name above to see its hieroglyphs.</p>';
+
+        if (result.letters.length) {
+          resultSection =
+            '<section class="name-result">' +
+              '<h3 class="result-heading">' + escapeHtml(name) + " in hieroglyphs</h3>" +
+              '<div class="name-glyphs" role="list">' +
+                result.letters.map((item, index) =>
+                  '<button class="name-letter-card" data-letter-index="' + index + '" role="listitem">' +
+                    glyph(item.sign, "medium") +
+                    '<span class="letter-tag">' + escapeHtml(item.letter) + "</span>" +
+                  "</button>"
+                ).join("") +
+              "</div>" +
+              (result.skipped.length ? '<p class="skipped">Could not map: ' + escapeHtml(result.skipped.join(", ")) + "</p>" : "") +
+              '<div class="action-row">' +
+                '<button class="action-btn primary" data-go="cartouche">👑 Make Cartouche</button>' +
+                '<button class="action-btn" data-speak-name>🔊 Say My Name</button>' +
+              "</div>" +
+            "</section>";
+        }
+
+        const detail =
+          state.selectedLetter !== null && result.letters[state.selectedLetter]
+            ? renderLetterDetail(result.letters[state.selectedLetter])
+            : "";
+
+        return (
+          '<main class="screen name-screen">' +
+            renderTopBar("Spell My Name") +
+            renderNameInput(name) +
+            resultSection +
+            detail +
+            renderHowNamesWork() +
+            renderAlphabetStrip() +
+          "</main>"
+        );
+      }
+
+      function renderNameInput(name) {
+        return (
+          '<section class="name-input-section">' +
+            '<label for="name-input" class="input-label">Type a name</label>' +
+            '<input id="name-input" class="name-input" data-name-input type="text" autocomplete="name" autocapitalize="words" placeholder="e.g. Leo" value="' + escapeHtml(name) + '" />' +
+          "</section>"
+        );
+      }
+
+      function renderLetterDetail(item) {
+        const sign = item.sign;
+        if (sign.gardiner === "G17") earnBadge("owl");
+
+        return (
+          '<aside class="letter-detail">' +
+            "<p><strong>" + escapeHtml(item.letter) + "</strong> uses the <strong>" + escapeHtml(sign.description) + "</strong> sign</p>" +
+            '<div class="detail-row">' + glyph(sign, "medium", true) + glyph(sign, "medium") + "</div>" +
+            '<p class="detail-note">' + escapeHtml(sign.englishNote) + "</p>" +
+            '<button class="text-btn" data-speak="' + escapeHtml(sign.kid) + '">Hear this clue</button> · ' +
+            '<button class="text-btn" data-close-detail>Close</button>' +
+          "</aside>"
+        );
+      }
+
+      function renderHowNamesWork() {
+        return (
+          '<details class="parent-note"><summary>How names are spelled</summary>' +
+            "<p>Names are spelled using sound approximations. Egyptian writing usually left out most vowels, but this game includes them so names are easier for kids to read.</p>" +
+            '<ul class="approx-list">' +
+              "<li><strong>L</strong> → mouth sign because Egyptian did not have a separate L.</li>" +
+              "<li><strong>V</strong> → horned viper because Egyptian did not have V.</li>" +
+              "<li><strong>Soft C</strong> before E, I, or Y → door bolt.</li>" +
+              "<li><strong>Hard C</strong> → basket.</li>" +
+            "</ul>" +
+          "</details>"
+        );
+      }
+
+      function renderAlphabetStrip() {
+        const cells = ENGLISH_ALPHABET.map((letter) => {
+          const sign = getPrimarySignForLetter(letter);
+          if (!sign) return "";
+          return (
+            '<button class="alphabet-cell" data-preview-letter="' + letter + '" title="' + escapeHtml(sign.description) + '">' +
+              '<span class="cell-letter">' + letter + "</span>" +
+              glyph(sign, "tiny") +
+            "</button>"
+          );
+        }).join("");
+
+        return (
+          '<section class="alphabet-strip">' +
+            "<h3>English letter chart</h3>" +
+            '<div class="alphabet-grid">' + cells + "</div>" +
+          "</section>"
+        );
+      }
+
+      function getPrimarySignForLetter(letter) {
+        const upper = letter.toUpperCase();
+        if (upper === "C" || upper === "X") return byGardiner.V31;
+        const gardiner = letterToGardiner[upper];
+        return gardiner ? byGardiner[gardiner] : null;
+      }
+
+      function renderCartouche() {
+        const name = savedName();
+        const result = spellName(name);
+        const hasName = result.letters.length > 0;
+
+        return (
+          '<main class="screen cartouche-screen">' +
+            renderTopBar("Royal Cartouche") +
+            '<section class="card">' +
+              '<p class="cartouche-title">' + (name ? escapeHtml(name) + "'s Royal Cartouche" : "Build Your Royal Cartouche") + "</p>" +
+              renderNameInput(name) +
+              '<div class="cartouche-wrap" aria-label="Cartouche">' +
+                '<div class="cartouche-glyphs">' +
+                  (hasName ? result.letters.map((item) => glyph(item.sign, "small", true)).join("") : '<p class="empty-hint">Type your name above!</p>') +
+                "</div>" +
+              "</div>" +
+              '<div class="action-row">' +
+                '<button class="action-btn gold" data-cartouche-celebrate>✨ Royal Sparkles</button>' +
+                '<button class="action-btn primary" data-go="certificate">🏆 Certificate</button>' +
+              "</div>" +
+              '<p class="helper-text">A cartouche is a special oval frame that surrounded royal names in ancient Egypt.</p>' +
+            "</section>" +
+          "</main>"
+        );
+      }
+
+      function startQuiz() {
+        const sign = quizSigns[Math.floor(Math.random() * quizSigns.length)];
+        const choices = shuffle([
+          sign,
+          ...shuffle(quizSigns.filter((item) => item.gardiner !== sign.gardiner)).slice(0, 2)
+        ]);
+
+        state.quiz = {
+          questionNumber: state.quiz ? state.quiz.questionNumber + 1 : 1,
+          score: state.quiz ? state.quiz.score : 0,
+          answer: sign.gardiner,
+          choices
+        };
+        state.feedback = "";
+        state.lastChoice = null;
+        state.view = "quiz";
+        render();
+      }
+
+      function renderQuiz() {
+        if (!state.quiz) startQuiz();
+        const quiz = state.quiz;
+        const answerSign = byGardiner[quiz.answer];
+        const letter = answerSign.englishLetters[0];
+
+        return (
+          '<main class="screen quiz-screen">' +
+            renderTopBar("Scribe Challenge", '<span class="score-pill">⭐ ' + quiz.score + "</span>") +
+            '<section class="card">' +
+              '<p class="helper-text">Tap the hieroglyph that matches the sound.</p>' +
+              '<p class="quiz-question">Which sign can make <strong>' + escapeHtml(letter) + "</strong>?</p>" +
+              '<div class="choice-grid">' +
+                quiz.choices.map((choice) => {
+                  let className = "choice-btn";
+                  if (state.lastChoice === choice.gardiner) {
+                    className += choice.gardiner === quiz.answer ? " correct" : " wrong";
+                  }
+                  return '<button class="' + className + '" data-quiz-choice="' + choice.gardiner + '">' + glyph(choice, "medium") + "</button>";
+                }).join("") +
+              "</div>" +
+              '<p class="feedback">' + escapeHtml(state.feedback) + "</p>" +
+              '<div class="action-row">' +
+                '<button class="action-btn" data-start-quiz>Next Question →</button>' +
+                '<button class="action-btn primary" data-speak="' + escapeHtml("Find the sign for " + letter) + '">🔊 Repeat</button>' +
+              "</div>" +
+            "</section>" +
+          "</main>"
+        );
+      }
+
+      function renderCertificate() {
+        const name = savedName() || "Royal Scribe";
+        const result = spellName(name);
+
+        return (
+          '<main class="screen certificate-screen">' +
+            renderTopBar("Certificate") +
+            '<section class="certificate">' +
+              "<h2>Certificate of Royal Scribe Training</h2>" +
+              "<p>This certifies that</p>" +
+              '<div class="certificate-name">' + escapeHtml(name) + "</div>" +
+              "<p>built a name in hieroglyphs and explored ancient Egyptian sound signs.</p>" +
+              '<div class="cartouche-wrap">' +
+                '<div class="cartouche-glyphs">' + (result.letters.length ? result.letters.map((item) => glyph(item.sign, "small")).join("") : glyph(byGardiner.G17, "small")) + "</div>" +
+              "</div>" +
+              '<p class="helper-text">Royal Scribe Badge Awarded 🏆</p>' +
+            "</section>" +
+            '<div class="action-row">' +
+              '<button class="action-btn primary" data-print>🖨️ Print Certificate</button>' +
+              '<button class="action-btn gold" data-cartouche-celebrate>✨ Celebrate</button>' +
+            "</div>" +
+          "</main>"
+        );
+      }
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function render() {
+        let html = "";
+        if (state.view === "home") html = renderHome();
+        else if (state.view === "learn") html = renderLearn();
+        else if (state.view === "name") html = renderName();
+        else if (state.view === "cartouche") html = renderCartouche();
+        else if (state.view === "quiz") html = renderQuiz();
+        else if (state.view === "certificate") html = renderCertificate();
+
+        app.innerHTML = html;
+      }
+
+      function afterNameInput(value) {
+        saveName(value);
+        state.selectedLetter = null;
+        if (value.trim()) earnBadge("name");
+        render();
+
+        const input = app.querySelector("[data-name-input]");
+        if (input) {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+      }
+
+      app.addEventListener("click", (event) => {
+        const go = event.target.closest("[data-go]");
+        if (go) {
+          state.view = go.dataset.go;
+          state.selectedLetter = null;
+          render();
+          return;
+        }
+
+        const speakButton = event.target.closest("[data-speak]");
+        if (speakButton) {
+          speak(speakButton.dataset.speak);
+          return;
+        }
+
+        if (event.target.closest("[data-speak-name]")) {
+          const name = savedName();
+          speak(name || "Type your name first");
+          return;
+        }
+
+        if (event.target.closest("[data-learn-prev]")) {
+          if (state.learnIndex > 0) state.learnIndex--;
+          render();
+          return;
+        }
+
+        if (event.target.closest("[data-learn-next]")) {
+          if (state.learnIndex < UNILITERALS.length - 1) state.learnIndex++;
+          render();
+          return;
+        }
+
+        const letterCard = event.target.closest("[data-letter-index]");
+        if (letterCard) {
+          state.selectedLetter = Number(letterCard.dataset.letterIndex);
+          render();
+          return;
+        }
+
+        if (event.target.closest("[data-close-detail]")) {
+          state.selectedLetter = null;
+          render();
+          return;
+        }
+
+        const previewLetter = event.target.closest("[data-preview-letter]");
+        if (previewLetter) {
+          afterNameInput(savedName() + previewLetter.dataset.previewLetter);
+          return;
+        }
+
+        if (event.target.closest("[data-cartouche-celebrate]")) {
+          earnBadge("cartouche");
+          confetti(state.birthday ? 70 : 42);
+          speak(state.birthday ? "Happy almost seventh birthday, royal scribe!" : "Royal cartouche complete!");
+          return;
+        }
+
+        if (event.target.closest("[data-start-quiz]")) {
+          if (!state.quiz || state.view !== "quiz") {
+            state.quiz = { questionNumber: 0, score: 0, answer: "", choices: [] };
+          }
+          startQuiz();
+          return;
+        }
+
+        const quizChoice = event.target.closest("[data-quiz-choice]");
+        if (quizChoice && state.quiz) {
+          const selected = quizChoice.dataset.quizChoice;
+          state.lastChoice = selected;
+          if (selected === state.quiz.answer) {
+            const sign = byGardiner[state.quiz.answer];
+            state.quiz.score++;
+            state.feedback = "Yes! " + sign.description + " can make that sound!";
+            confetti(18);
+            speak("Yes! Great job!");
+            if (state.quiz.score >= 3) earnBadge("quiz3");
+            if (state.quiz.score >= 5) earnBadge("quiz5");
+          } else {
+            const sign = byGardiner[state.quiz.answer];
+            state.feedback = "Good try! Look for the " + sign.description + ".";
+            speak("Good try. Look for the " + sign.description + ".");
+          }
+          render();
+          return;
+        }
+
+        if (event.target.closest("[data-print]")) {
+          window.print();
+        }
+      });
+
+      app.addEventListener("input", (event) => {
+        if (event.target.matches("[data-name-input]")) {
+          afterNameInput(event.target.value);
+        }
+
+        if (event.target.matches("[data-birthday-toggle]")) {
+          state.birthday = event.target.checked;
+          localStorage.setItem(STORAGE.birthday, state.birthday ? "yes" : "no");
+          if (state.birthday) earnBadge("birthday");
+          render();
+        }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
