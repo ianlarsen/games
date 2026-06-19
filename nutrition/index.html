@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Lean Fuel Tracker</title>
+  <style>
+    :root {
+      --bg: #fffaf0;
+      --card: #ffffff;
+      --card-soft: #fff4d6;
+      --ink: #243126;
+      --muted: #6b756c;
+      --line: #eadfca;
+      --accent: #70a95b;
+      --accent-dark: #477a39;
+      --accent-soft: #eaf6e6;
+      --warn: #f3a13b;
+      --danger: #d75b5b;
+      --shadow: 0 10px 30px rgba(77, 57, 25, 0.10);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --tap: 48px;
+      --font: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(255, 225, 144, 0.35), transparent 30rem),
+        radial-gradient(circle at bottom right, rgba(160, 220, 146, 0.25), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 92px;
+    }
+
+    header {
+      padding: env(safe-area-inset-top) 18px 10px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 250, 240, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(234, 223, 202, 0.8);
+    }
+
+    .topbar {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #fff2b6, #d9f2cd);
+      box-shadow: var(--shadow);
+      font-size: 25px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      margin: 0;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+
+    .datebox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    input[type="date"] {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      font: inherit;
+      background: var(--card);
+      color: var(--ink);
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 14px 24px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    @media (min-width: 800px) {
+      .grid.two { grid-template-columns: 1.1fr .9fr; align-items: start; }
+      .grid.three { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(234, 223, 202, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 15px;
+    }
+
+    .card.soft {
+      background: linear-gradient(135deg, #fff9e9, #f8fff4);
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.03rem;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      margin: 14px 0 8px;
+      font-size: .94rem;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .78rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (min-width: 520px) {
+      .summary { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .metric {
+      border-radius: 18px;
+      padding: 12px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(112, 169, 91, 0.22);
+      min-height: 92px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric::after {
+      content: attr(data-emoji);
+      position: absolute;
+      right: 8px;
+      bottom: -6px;
+      font-size: 2.2rem;
+      opacity: .20;
+    }
+
+    .metric-label {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    .metric-value {
+      margin-top: 4px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .metric-target {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    .bar {
+      height: 9px;
+      background: rgba(36, 49, 38, .08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), #9fcf6a);
+      transition: width .25s ease;
+    }
+
+    .fill.warn { background: linear-gradient(90deg, var(--warn), #f6cb62); }
+    .fill.danger { background: linear-gradient(90deg, var(--danger), #f09a9a); }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .row.nowrap { flex-wrap: nowrap; }
+
+    button, .button {
+      min-height: var(--tap);
+      border: 0;
+      border-radius: 16px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 8px 18px rgba(71, 122, 57, .18);
+      touch-action: manipulation;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--accent-dark);
+      border: 1px dashed rgba(71, 122, 57, .35);
+      box-shadow: none;
+    }
+
+    button.danger {
+      background: #fff2f2;
+      color: var(--danger);
+      border: 1px solid #f2caca;
+      box-shadow: none;
+    }
+
+    button.small {
+      min-height: 36px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .78rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      min-height: 46px;
+      border-radius: 15px;
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 78px;
+    }
+
+    label {
+      display: block;
+      font-size: .78rem;
+      color: var(--muted);
+      margin: 0 0 5px 3px;
+      font-weight: 700;
+    }
+
+    .formgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .formgrid.one { grid-template-columns: 1fr; }
+    .formgrid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    @media (max-width: 430px) {
+      .formgrid.three { grid-template-columns: 1fr 1fr; }
+    }
+
+    .food-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .food-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 18px;
+      padding: 10px;
+    }
+
+    .food-name {
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .food-meta {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      margin: 3px 4px 0 0;
+      background: #f8f2e6;
+      color: #63543c;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .meal-block {
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .meal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .meal-title {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .log-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-top: 1px solid #f0e8d9;
+    }
+
+    .log-row:first-child { border-top: 0; }
+
+    .empty {
+      padding: 14px;
+      border-radius: 18px;
+      background: #fff9e9;
+      color: var(--muted);
+      border: 1px dashed #ead9aa;
+      font-size: .9rem;
+    }
+
+    .tabs {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      background: rgba(255,250,240,.92);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(234, 223, 202, 0.9);
+    }
+
+    .tab-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .tab {
+      min-height: 54px;
+      border-radius: 18px;
+      background: #fff;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      box-shadow: none;
+      padding: 6px 4px;
+      font-size: .74rem;
+      line-height: 1.1;
+    }
+
+    .tab span {
+      display: block;
+      font-size: 1.2rem;
+      line-height: 1.1;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .template-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .template-title {
+      font-weight: 900;
+      font-size: .98rem;
+    }
+
+    .template-desc {
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .kitchen-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .checkline {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 9px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    input[type="checkbox"] {
+      width: 22px;
+      min-height: 22px;
+      accent-color: var(--accent);
+    }
+
+    .hint {
+      font-size: .84rem;
+      color: var(--muted);
+    }
+
+    .callout {
+      border-radius: 20px;
+      padding: 12px;
+      background: #f0f8e9;
+      border: 1px solid rgba(112, 169, 91, 0.25);
+      color: #334b2d;
+    }
+
+    .callout strong { color: #243126; }
+
+    .tiny {
+      font-size: .72rem;
+      color: var(--muted);
+    }
+
+    .right { text-align: right; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(36,49,38,.25);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      padding: 16px;
+    }
+
+    .modal-backdrop.active { display: flex; }
+
+    .modal {
+      width: min(720px, 100%);
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 26px;
+      box-shadow: 0 20px 80px rgba(0,0,0,.24);
+      border: 1px solid var(--line);
+      padding: 16px;
+      max-height: 88vh;
+      overflow: auto;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .searchbar {
+      position: sticky;
+      top: -16px;
+      background: #fff;
+      padding: 0 0 10px;
+      z-index: 2;
+    }
+
+    .import-export {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .78rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .confetti {
+      position: fixed;
+      pointer-events: none;
+      inset: 0;
+      overflow: hidden;
+      z-index: 200;
+    }
+
+    .confetti span {
+      position: absolute;
+      top: -30px;
+      animation: fall 850ms ease-in forwards;
+      font-size: 20px;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(160deg); opacity: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🥦</div>
+        <div>
+          <h1>Lean Fuel Tracker</h1>
+          <div class="subtitle">Aldi-friendly cutting companion</div>
+        </div>
+      </div>
+      <div class="datebox">
+        <input id="datePicker" type="date" />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="screenToday" class="screen active">
+      <div class="grid two">
+        <div class="grid">
+          <div class="card soft">
+            <div class="section-title">
+              <h2>Today’s fuel 🌞</h2>
+              <span id="fastingPill" class="pill">Fasting friendly</span>
+            </div>
+            <div class="summary">
+              <div class="metric" data-emoji="🔥">
+                <div class="metric-label">Calories</div>
+                <div class="metric-value"><span id="calNow">0</span></div>
+                <div class="metric-target">of <span id="calTarget">2600</span></div>
+                <div class="bar"><div id="calBar" class="fill"></div></div>
+              </div>
+              <div class="metric" data-emoji="🍗">
+                <div class="metric-label">Protein</div>
+                <div class="metric-value"><span id="proNow">0</span>g</div>
+                <div class="metric-target">of <span id="proTarget">200</span>g</div>
+                <div class="bar"><div id="proBar" class="fill"></div></div>
+              </div>
+              <div class="metric" data-emoji="🥑">
+                <div class="metric-label">Fat</div>
+                <div class="metric-value"><span id="fatNow">0</span>g</div>
+                <div class="metric-target">target <span id="fatTarget">75</span>g</div>
+                <div class="bar"><div id="fatBar" class="fill"></div></div>
+              </div>
+              <div class="metric" data-emoji="🍚">
+                <div class="metric-label">Carbs</div>
+                <div class="metric-value"><span id="carbNow">0</span>g</div>
+                <div class="metric-target">target <span id="carbTarget">225</span>g</div>
+                <div class="bar"><div id="carbBar" class="fill"></div></div>
+              </div>
+            </div>
+            <div id="dailyAdvice" class="callout" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>Quick log 🍽️</h2>
+              <button class="small secondary" onclick="openFoodModal()">Food library</button>
+            </div>
+
+            <div class="formgrid">
+              <div>
+                <label for="mealSelect">Meal</label>
+                <select id="mealSelect">
+                  <option>Dinner</option>
+                  <option>Protein snack</option>
+                  <option>Coffee / fasting</option>
+                  <option>Lunch</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label for="foodSelect">Aldi-style food</label>
+                <select id="foodSelect"></select>
+              </div>
+            </div>
+
+            <div class="formgrid three" style="margin-top:10px;">
+              <div>
+                <label for="servings">Servings</label>
+                <input id="servings" type="number" min="0.1" step="0.1" value="1" />
+              </div>
+              <div>
+                <label for="calories">Calories</label>
+                <input id="calories" type="number" min="0" step="1" />
+              </div>
+              <div>
+                <label for="protein">Protein g</label>
+                <input id="protein" type="number" min="0" step="1" />
+              </div>
+              <div>
+                <label for="carbs">Carbs g</label>
+                <input id="carbs" type="number" min="0" step="1" />
+              </div>
+              <div>
+                <label for="fat">Fat g</label>
+                <input id="fat" type="number" min="0" step="1" />
+              </div>
+              <div>
+                <label for="fiber">Fiber g</label>
+                <input id="fiber" type="number" min="0" step="1" />
+              </div>
+            </div>
+
+            <div style="margin-top:10px;">
+              <label for="foodName">Name / note</label>
+              <input id="foodName" placeholder="Example: chicken bowl, Greek yogurt, coffee" />
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+              <button onclick="addLog()">Add food 🥕</button>
+              <button class="secondary" onclick="logCreatineCoffee()">Creatine + coffee ☕</button>
+              <button class="secondary" onclick="logWater()">Water 💧</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>Today’s log 📒</h2>
+              <button class="small danger" onclick="clearDay()">Clear day</button>
+            </div>
+            <div id="mealLog"></div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="section-title">
+              <h2>Cutting guardrails 🛡️</h2>
+              <span class="pill">Muscle first</span>
+            </div>
+            <div class="kitchen-list">
+              <div class="checkline"><input id="habitProtein" type="checkbox" /><div><strong>Hit protein</strong><div class="hint">Aim for 180–220g, especially if fasting.</div></div><span>🍗</span></div>
+              <div class="checkline"><input id="habitSteps" type="checkbox" /><div><strong>Steps/cardio done</strong><div class="hint">Fat loss layer without wrecking lifting.</div></div><span>🚶</span></div>
+              <div class="checkline"><input id="habitVeg" type="checkbox" /><div><strong>Vegetables/fiber</strong><div class="hint">Keeps dinner huge without blowing calories.</div></div><span>🥗</span></div>
+              <div class="checkline"><input id="habitNoAlcohol" type="checkbox" /><div><strong>No alcohol / no snack spiral</strong><div class="hint">The boring cheat code.</div></div><span>🧃</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>Simple dinner builders 🍳</h2>
+              <span class="pill">Aldi mode</span>
+            </div>
+            <div id="templates" class="grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenMeals" class="screen">
+      <div class="card soft">
+        <div class="section-title">
+          <h2>Meal templates 🥘</h2>
+          <span class="pill">Low-fuss, high-protein</span>
+        </div>
+        <div class="grid three" id="allTemplates"></div>
+      </div>
+    </section>
+
+    <section id="screenGrocery" class="screen">
+      <div class="grid two">
+        <div class="card soft">
+          <div class="section-title">
+            <h2>Aldi grocery list 🛒</h2>
+            <button class="small secondary" onclick="resetGrocery()">Reset</button>
+          </div>
+          <div id="groceryList" class="kitchen-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">
+            <h2>Meal prep idea 🍱</h2>
+            <span class="pill">90-ish minutes</span>
+          </div>
+          <div class="callout">
+            <strong>Prep 3–4 dinners:</strong> cook chicken or turkey, microwave rice/potatoes, roast or air-fry vegetables, keep Greek yogurt/cottage cheese for a protein snack. Your fasting pattern is fine, but dinner needs to carry the day instead of becoming random.
+          </div>
+          <h3>Easy weekly rhythm</h3>
+          <p class="hint">Buy 2–3 proteins, 2 carb bases, 3 vegetables, one high-protein snack, and one “rescue meal” for nights you do not want to cook.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenSettings" class="screen">
+      <div class="grid two">
+        <div class="card soft">
+          <div class="section-title">
+            <h2>Targets ⚙️</h2>
+            <span class="pill">Saved locally</span>
+          </div>
+
+          <div class="formgrid">
+            <div>
+              <label for="bodyWeight">Body weight</label>
+              <input id="bodyWeight" type="number" min="1" step="1" />
+            </div>
+            <div>
+              <label for="goal">Goal</label>
+              <select id="goal">
+                <option value="cut">Cut / fat loss</option>
+                <option value="maintain">Maintain</option>
+                <option value="leanbulk">Lean bulk</option>
+              </select>
+            </div>
+            <div>
+              <label for="targetCalories">Calories</label>
+              <input id="targetCalories" type="number" min="800" step="10" />
+            </div>
+            <div>
+              <label for="targetProtein">Protein g</label>
+              <input id="targetProtein" type="number" min="50" step="5" />
+            </div>
+            <div>
+              <label for="targetFat">Fat g</label>
+              <input id="targetFat" type="number" min="20" step="5" />
+            </div>
+            <div>
+              <label for="targetCarbs">Carbs g</label>
+              <input id="targetCarbs" type="number" min="20" step="5" />
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <label for="notes">Personal notes</label>
+            <textarea id="notes" placeholder="Example: I usually fast until dinner. Aldi shopping. Keep cooking simple."></textarea>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <button onclick="saveSettings()">Save settings 🌱</button>
+            <button class="secondary" onclick="autoSetCut()">Auto-set cut targets</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">
+            <h2>Backup / restore 💾</h2>
+            <span class="pill">LocalStorage</span>
+          </div>
+          <p class="hint">Like your workout app, this stores data only in this browser on this device. Export a backup occasionally.</p>
+          <div class="row">
+            <button class="secondary" onclick="exportData()">Export</button>
+            <button class="secondary" onclick="importData()">Import</button>
+          </div>
+          <textarea id="backupBox" class="import-export" style="margin-top:12px;" placeholder="Export appears here. Paste backup JSON here to import."></textarea>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <div class="tab-inner">
+      <button class="tab active" onclick="showScreen('Today', this)"><span>🥦</span>Today</button>
+      <button class="tab" onclick="showScreen('Meals', this)"><span>🥘</span>Meals</button>
+      <button class="tab" onclick="showScreen('Grocery', this)"><span>🛒</span>Aldi</button>
+      <button class="tab" onclick="showScreen('Settings', this)"><span>⚙️</span>Settings</button>
+    </div>
+  </nav>
+
+  <div id="foodModal" class="modal-backdrop" onclick="modalBackdropClick(event)">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Food library 🥑</h2>
+        <button class="small secondary" onclick="closeFoodModal()">Done</button>
+      </div>
+      <div class="searchbar">
+        <input id="foodSearch" placeholder="Search chicken, yogurt, rice..." oninput="renderFoodLibrary()" />
+      </div>
+      <div id="foodLibrary" class="food-list"></div>
+    </div>
+  </div>
+
+  <div id="confetti" class="confetti"></div>
+
+  <script>
+    const STORAGE_KEY = "leanFuelTracker.v1";
+
+    const foodLibraryBase = [
+      { emoji:"🍗", name:"Chicken breast, cooked", serving:"6 oz", cal:280, p:52, c:0, f:6, fiber:0, tags:["protein", "dinner"] },
+      { emoji:"🍗", name:"Chicken thighs, cooked", serving:"6 oz", cal:360, p:42, c:0, f:20, fiber:0, tags:["protein", "dinner"] },
+      { emoji:"🦃", name:"93% lean ground turkey", serving:"6 oz cooked", cal:300, p:44, c:0, f:13, fiber:0, tags:["protein", "easy"] },
+      { emoji:"🥩", name:"Lean ground beef", serving:"6 oz cooked", cal:380, p:42, c:0, f:22, fiber:0, tags:["protein", "easy"] },
+      { emoji:"🐟", name:"Salmon fillet", serving:"6 oz", cal:360, p:39, c:0, f:22, fiber:0, tags:["protein", "healthy fat"] },
+      { emoji:"🐟", name:"Tuna packet/can", serving:"1 packet/can", cal:110, p:24, c:0, f:1, fiber:0, tags:["protein", "fast"] },
+      { emoji:"🥚", name:"Eggs", serving:"2 large", cal:140, p:12, c:1, f:10, fiber:0, tags:["breakfast", "protein"] },
+      { emoji:"🥚", name:"Liquid egg whites", serving:"1 cup", cal:125, p:26, c:2, f:0, fiber:0, tags:["protein", "lean"] },
+      { emoji:"🥛", name:"Greek yogurt, plain nonfat", serving:"1 cup", cal:130, p:23, c:9, f:0, fiber:0, tags:["protein", "snack"] },
+      { emoji:"🥣", name:"Cottage cheese, low fat", serving:"1 cup", cal:180, p:28, c:8, f:5, fiber:0, tags:["protein", "snack"] },
+      { emoji:"🥤", name:"Whey protein scoop", serving:"1 scoop", cal:120, p:24, c:3, f:2, fiber:0, tags:["protein", "fast"] },
+      { emoji:"🧂", name:"Creatine", serving:"1 scoop", cal:0, p:0, c:0, f:0, fiber:0, tags:["supplement"] },
+      { emoji:"☕", name:"Black coffee", serving:"1 cup", cal:5, p:0, c:0, f:0, fiber:0, tags:["fasting"] },
+      { emoji:"🍚", name:"Microwave jasmine rice", serving:"1 cup cooked", cal:205, p:4, c:45, f:0, fiber:1, tags:["carb", "easy"] },
+      { emoji:"🍚", name:"Brown rice", serving:"1 cup cooked", cal:215, p:5, c:45, f:2, fiber:4, tags:["carb", "fiber"] },
+      { emoji:"🥔", name:"Baby potatoes", serving:"10 oz", cal:220, p:6, c:50, f:0, fiber:5, tags:["carb", "filling"] },
+      { emoji:"🍠", name:"Sweet potato", serving:"1 large", cal:180, p:4, c:41, f:0, fiber:6, tags:["carb", "fiber"] },
+      { emoji:"🌯", name:"Low-carb tortilla", serving:"1 tortilla", cal:70, p:5, c:19, f:2, fiber:15, tags:["wrap", "fiber"] },
+      { emoji:"🍝", name:"Protein pasta", serving:"2 oz dry", cal:190, p:13, c:34, f:2, fiber:5, tags:["carb", "protein"] },
+      { emoji:"🥦", name:"Frozen broccoli", serving:"2 cups", cal:100, p:7, c:18, f:1, fiber:8, tags:["veg", "fiber"] },
+      { emoji:"🥬", name:"Salad kit, light dressing", serving:"1/2 bag", cal:180, p:6, c:16, f:11, fiber:4, tags:["veg", "easy"] },
+      { emoji:"🫑", name:"Frozen peppers/onions", serving:"1.5 cups", cal:70, p:2, c:15, f:0, fiber:4, tags:["veg", "easy"] },
+      { emoji:"🥒", name:"Cucumber/tomato salad", serving:"2 cups", cal:80, p:3, c:16, f:1, fiber:5, tags:["veg", "volume"] },
+      { emoji:"🫘", name:"Black beans", serving:"1 cup", cal:225, p:15, c:40, f:1, fiber:15, tags:["fiber", "carb"] },
+      { emoji:"🥑", name:"Avocado", serving:"1/2 medium", cal:120, p:2, c:6, f:11, fiber:5, tags:["fat", "fiber"] },
+      { emoji:"🫒", name:"Olive oil", serving:"1 tbsp", cal:120, p:0, c:0, f:14, fiber:0, tags:["fat"] },
+      { emoji:"🍎", name:"Apple", serving:"1 medium", cal:95, p:0, c:25, f:0, fiber:4, tags:["fruit", "snack"] },
+      { emoji:"🫐", name:"Frozen berries", serving:"1 cup", cal:80, p:1, c:18, f:0, fiber:6, tags:["fruit", "fiber"] },
+      { emoji:"🥜", name:"Peanut butter", serving:"1 tbsp", cal:95, p:4, c:3, f:8, fiber:1, tags:["fat", "snack"] },
+      { emoji:"🧀", name:"Light string cheese", serving:"1 stick", cal:60, p:7, c:1, f:3, fiber:0, tags:["snack", "protein"] }
+    ];
+
+    const templates = [
+      {
+        emoji:"🍗",
+        title:"Chicken rice bowl",
+        desc:"Chicken breast + microwave rice + broccoli + salsa or Greek yogurt sauce.",
+        items:["Chicken breast, cooked", "Microwave jasmine rice", "Frozen broccoli"],
+        cal:585, p:63, c:63, f:7
+      },
+      {
+        emoji:"🦃",
+        title:"Turkey taco bowl",
+        desc:"Lean turkey + black beans + peppers/onions + low-carb tortilla or rice.",
+        items:["93% lean ground turkey", "Black beans", "Frozen peppers/onions", "Low-carb tortilla"],
+        cal:665, p:66, c:74, f:16
+      },
+      {
+        emoji:"🐟",
+        title:"Salmon potato plate",
+        desc:"Salmon + baby potatoes + cucumber/tomato salad. Simple and filling.",
+        items:["Salmon fillet", "Baby potatoes", "Cucumber/tomato salad"],
+        cal:660, p:48, c:66, f:23
+      },
+      {
+        emoji:"🥩",
+        title:"Beef & broccoli rescue meal",
+        desc:"Lean beef + broccoli + rice. Easy fallback when you want real food fast.",
+        items:["Lean ground beef", "Frozen broccoli", "Microwave jasmine rice"],
+        cal:685, p:53, c:63, f:23
+      },
+      {
+        emoji:"🥣",
+        title:"Protein dessert bowl",
+        desc:"Greek yogurt + berries + protein scoop. Best for protein catch-up at night.",
+        items:["Greek yogurt, plain nonfat", "Frozen berries", "Whey protein scoop"],
+        cal:330, p:48, c:30, f:2
+      },
+      {
+        emoji:"🥚",
+        title:"Egg-white scramble",
+        desc:"Egg whites + whole eggs + peppers/onions + low-carb tortilla.",
+        items:["Liquid egg whites", "Eggs", "Frozen peppers/onions", "Low-carb tortilla"],
+        cal:405, p:45, c:37, f:12
+      }
+    ];
+
+    const groceryBase = [
+      ["🍗", "Chicken breast or tenderloins"],
+      ["🦃", "93% lean ground turkey"],
+      ["🐟", "Salmon or tuna packets"],
+      ["🥚", "Eggs and/or liquid egg whites"],
+      ["🥛", "Plain Greek yogurt"],
+      ["🥣", "Low-fat cottage cheese"],
+      ["🥤", "Whey protein"],
+      ["🍚", "Microwave rice or brown rice"],
+      ["🥔", "Baby potatoes or sweet potatoes"],
+      ["🌯", "Low-carb tortillas"],
+      ["🥦", "Frozen broccoli"],
+      ["🫑", "Frozen peppers/onions"],
+      ["🥬", "Salad kits or greens"],
+      ["🫘", "Black beans"],
+      ["🫐", "Frozen berries"],
+      ["🥑", "Avocados"],
+      ["☕", "Coffee"],
+      ["🧂", "Creatine"]
+    ];
+
+    let state = loadState();
+
+    function defaultState() {
+      return {
+        settings: {
+          bodyWeight: 230,
+          goal: "cut",
+          targetCalories: 2600,
+          targetProtein: 200,
+          targetFat: 75,
+          targetCarbs: 225,
+          notes: "I usually fast until dinner. Aldi shopping. Keep cooking simple."
+        },
+        days: {},
+        groceryChecked: {},
+        customFoods: []
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? Object.assign(defaultState(), JSON.parse(raw)) : defaultState();
+      } catch {
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function todayISO() {
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60000);
+      return local.toISOString().slice(0, 10);
+    }
+
+    function currentDate() {
+      return document.getElementById("datePicker").value || todayISO();
+    }
+
+    function getDay(date = currentDate()) {
+      if (!state.days[date]) {
+        state.days[date] = {
+          logs: [],
+          habits: {
+            protein: false,
+            steps: false,
+            veg: false,
+            noAlcohol: false
+          }
+        };
+      }
+      return state.days[date];
+    }
+
+    function allFoods() {
+      return [...foodLibraryBase, ...(state.customFoods || [])];
+    }
+
+    function init() {
+      document.getElementById("datePicker").value = todayISO();
+      document.getElementById("datePicker").addEventListener("change", render);
+      ["habitProtein","habitSteps","habitVeg","habitNoAlcohol"].forEach(id => {
+        document.getElementById(id).addEventListener("change", saveHabits);
+      });
+      document.getElementById("foodSelect").addEventListener("change", fillSelectedFood);
+      document.getElementById("servings").addEventListener("input", fillSelectedFood);
+      populateFoodSelect();
+      renderSettings();
+      render();
+    }
+
+    function populateFoodSelect() {
+      const select = document.getElementById("foodSelect");
+      select.innerHTML = "";
+      allFoods().forEach((f, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `${f.emoji} ${f.name} — ${f.serving}`;
+        select.appendChild(opt);
+      });
+      fillSelectedFood();
+    }
+
+    function fillSelectedFood() {
+      const idx = Number(document.getElementById("foodSelect").value || 0);
+      const servings = Number(document.getElementById("servings").value || 1);
+      const f = allFoods()[idx];
+      if (!f) return;
+      document.getElementById("foodName").value = `${f.emoji} ${f.name}`;
+      document.getElementById("calories").value = Math.round(f.cal * servings);
+      document.getElementById("protein").value = Math.round(f.p * servings);
+      document.getElementById("carbs").value = Math.round(f.c * servings);
+      document.getElementById("fat").value = Math.round(f.f * servings);
+      document.getElementById("fiber").value = Math.round((f.fiber || 0) * servings);
+    }
+
+    function addLog(foodOverride = null) {
+      const day = getDay();
+      const entry = foodOverride || {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        meal: document.getElementById("mealSelect").value,
+        name: document.getElementById("foodName").value.trim() || "Food",
+        cal: num("calories"),
+        p: num("protein"),
+        c: num("carbs"),
+        f: num("fat"),
+        fiber: num("fiber"),
+        at: new Date().toISOString()
+      };
+      day.logs.push(entry);
+      saveState();
+      render();
+      maybeCelebrate();
+    }
+
+    function logCreatineCoffee() {
+      addLog({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        meal: "Coffee / fasting",
+        name: "☕ Black coffee + creatine",
+        cal: 5, p: 0, c: 0, f: 0, fiber: 0,
+        at: new Date().toISOString()
+      });
+    }
+
+    function logWater() {
+      addLog({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        meal: "Coffee / fasting",
+        name: "💧 Water",
+        cal: 0, p: 0, c: 0, f: 0, fiber: 0,
+        at: new Date().toISOString()
+      });
+    }
+
+    function num(id) {
+      return Number(document.getElementById(id).value || 0);
+    }
+
+    function totals(day = getDay()) {
+      return day.logs.reduce((acc, x) => {
+        acc.cal += Number(x.cal || 0);
+        acc.p += Number(x.p || 0);
+        acc.c += Number(x.c || 0);
+        acc.f += Number(x.f || 0);
+        acc.fiber += Number(x.fiber || 0);
+        return acc;
+      }, { cal:0, p:0, c:0, f:0, fiber:0 });
+    }
+
+    function render() {
+      renderSummary();
+      renderMealLog();
+      renderHabits();
+      renderTemplates();
+      renderGrocery();
+    }
+
+    function renderSummary() {
+      const t = totals();
+      const s = state.settings;
+
+      setText("calNow", Math.round(t.cal));
+      setText("proNow", Math.round(t.p));
+      setText("fatNow", Math.round(t.f));
+      setText("carbNow", Math.round(t.c));
+
+      setText("calTarget", s.targetCalories);
+      setText("proTarget", s.targetProtein);
+      setText("fatTarget", s.targetFat);
+      setText("carbTarget", s.targetCarbs);
+
+      updateBar("calBar", t.cal, s.targetCalories, true);
+      updateBar("proBar", t.p, s.targetProtein, false);
+      updateBar("fatBar", t.f, s.targetFat, true);
+      updateBar("carbBar", t.c, s.targetCarbs, true);
+
+      const caloriesLeft = s.targetCalories - t.cal;
+      const proteinLeft = s.targetProtein - t.p;
+      const day = getDay();
+      const hasLunch = day.logs.some(x => x.meal === "Lunch");
+      const advice = document.getElementById("dailyAdvice");
+
+      let msg = "";
+      if (t.cal === 0) {
+        msg = "<strong>Fasting day so far.</strong> Coffee, water, and creatine are fine if you feel good. Dinner should be planned, not improvised.";
+      } else if (proteinLeft > 70 && caloriesLeft < 900) {
+        msg = "<strong>Protein is behind.</strong> Use a lean rescue: chicken breast, tuna, Greek yogurt, cottage cheese, or whey before adding fats/carbs.";
+      } else if (proteinLeft <= 0 && t.cal <= s.targetCalories) {
+        msg = "<strong>Protein goal hit.</strong> Nice. Now keep dinner controlled and do not let snacks erase the deficit.";
+      } else if (caloriesLeft < 0) {
+        msg = "<strong>Calories are over target.</strong> No drama. Keep the rest of the night lean: water, vegetables, protein only if needed.";
+      } else if (!hasLunch && t.cal < 400) {
+        msg = "<strong>Intermittent fasting mode.</strong> You skipped lunch, so dinner probably needs a big protein anchor plus vegetables.";
+      } else {
+        msg = `<strong>${Math.max(0, Math.round(caloriesLeft))} calories left.</strong> Protein remaining: ${Math.max(0, Math.round(proteinLeft))}g.`;
+      }
+
+      advice.innerHTML = msg;
+      document.getElementById("fastingPill").textContent = hasLunch ? "Fed window open" : "Fasting friendly";
+    }
+
+    function updateBar(id, now, target, warnOnOver) {
+      const el = document.getElementById(id);
+      const pct = target ? Math.min(130, (now / target) * 100) : 0;
+      el.style.width = Math.min(100, pct) + "%";
+      el.classList.remove("warn", "danger");
+      if (warnOnOver && pct > 110) el.classList.add("danger");
+      else if (warnOnOver && pct > 95) el.classList.add("warn");
+    }
+
+    function renderMealLog() {
+      const container = document.getElementById("mealLog");
+      const day = getDay();
+      if (!day.logs.length) {
+        container.innerHTML = `<div class="empty">No food logged yet. The tiny broccoli is watching. 🥦</div>`;
+        return;
+      }
+
+      const groups = {};
+      day.logs.forEach(x => {
+        if (!groups[x.meal]) groups[x.meal] = [];
+        groups[x.meal].push(x);
+      });
+
+      const order = ["Coffee / fasting", "Lunch", "Dinner", "Protein snack", "Other"];
+      container.innerHTML = order.filter(meal => groups[meal]).map(meal => {
+        const items = groups[meal].map(x => `
+          <div class="log-row">
+            <div>
+              <div class="food-name">${escapeHTML(x.name)}</div>
+              <div class="food-meta">${Math.round(x.cal)} cal · ${Math.round(x.p)}p / ${Math.round(x.c)}c / ${Math.round(x.f)}f · fiber ${Math.round(x.fiber || 0)}g</div>
+            </div>
+            <button class="small danger" onclick="deleteLog('${x.id}')">Remove</button>
+          </div>
+        `).join("");
+        const mt = groups[meal].reduce((a, x) => {
+          a.cal += x.cal; a.p += x.p; return a;
+        }, {cal:0,p:0});
+        return `
+          <div class="meal-block">
+            <div class="meal-head">
+              <div class="meal-title">${meal}</div>
+              <div class="tiny">${Math.round(mt.cal)} cal · ${Math.round(mt.p)}g protein</div>
+            </div>
+            ${items}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function deleteLog(id) {
+      const day = getDay();
+      day.logs = day.logs.filter(x => x.id !== id);
+      saveState();
+      render();
+    }
+
+    function clearDay() {
+      if (!confirm("Clear today’s nutrition log?")) return;
+      state.days[currentDate()] = { logs: [], habits: { protein:false, steps:false, veg:false, noAlcohol:false } };
+      saveState();
+      render();
+    }
+
+    function renderHabits() {
+      const h = getDay().habits;
+      document.getElementById("habitProtein").checked = !!h.protein;
+      document.getElementById("habitSteps").checked = !!h.steps;
+      document.getElementById("habitVeg").checked = !!h.veg;
+      document.getElementById("habitNoAlcohol").checked = !!h.noAlcohol;
+    }
+
+    function saveHabits() {
+      const h = getDay().habits;
+      h.protein = document.getElementById("habitProtein").checked;
+      h.steps = document.getElementById("habitSteps").checked;
+      h.veg = document.getElementById("habitVeg").checked;
+      h.noAlcohol = document.getElementById("habitNoAlcohol").checked;
+      saveState();
+      maybeCelebrate();
+    }
+
+    function renderTemplates() {
+      const mini = document.getElementById("templates");
+      const all = document.getElementById("allTemplates");
+      const cardHTML = (tpl) => `
+        <div class="template-card">
+          <div class="template-title">${tpl.emoji} ${tpl.title}</div>
+          <div class="template-desc">${tpl.desc}</div>
+          <div class="food-meta">${tpl.cal} cal · ${tpl.p}p / ${tpl.c}c / ${tpl.f}f</div>
+          <div>${tpl.items.map(i => `<span class="tag">${escapeHTML(i)}</span>`).join("")}</div>
+          <button class="small secondary" onclick="logTemplate('${escapeJS(tpl.title)}')">Log template</button>
+        </div>
+      `;
+      mini.innerHTML = templates.slice(0,3).map(cardHTML).join("");
+      all.innerHTML = templates.map(cardHTML).join("");
+    }
+
+    function logTemplate(title) {
+      const tpl = templates.find(t => t.title === title);
+      if (!tpl) return;
+      addLog({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        meal: title.includes("dessert") ? "Protein snack" : "Dinner",
+        name: `${tpl.emoji} ${tpl.title}`,
+        cal: tpl.cal, p: tpl.p, c: tpl.c, f: tpl.f, fiber: 8,
+        at: new Date().toISOString()
+      });
+    }
+
+    function renderGrocery() {
+      const el = document.getElementById("groceryList");
+      el.innerHTML = groceryBase.map(([emoji, item], idx) => {
+        const key = `g${idx}`;
+        const checked = state.groceryChecked[key] ? "checked" : "";
+        return `
+          <div class="checkline">
+            <input type="checkbox" ${checked} onchange="toggleGrocery('${key}', this.checked)" />
+            <div><strong>${escapeHTML(item)}</strong></div>
+            <span>${emoji}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function toggleGrocery(key, checked) {
+      state.groceryChecked[key] = checked;
+      saveState();
+    }
+
+    function resetGrocery() {
+      state.groceryChecked = {};
+      saveState();
+      renderGrocery();
+    }
+
+    function renderSettings() {
+      const s = state.settings;
+      document.getElementById("bodyWeight").value = s.bodyWeight;
+      document.getElementById("goal").value = s.goal;
+      document.getElementById("targetCalories").value = s.targetCalories;
+      document.getElementById("targetProtein").value = s.targetProtein;
+      document.getElementById("targetFat").value = s.targetFat;
+      document.getElementById("targetCarbs").value = s.targetCarbs;
+      document.getElementById("notes").value = s.notes || "";
+    }
+
+    function saveSettings() {
+      state.settings = {
+        bodyWeight: num("bodyWeight"),
+        goal: document.getElementById("goal").value,
+        targetCalories: num("targetCalories"),
+        targetProtein: num("targetProtein"),
+        targetFat: num("targetFat"),
+        targetCarbs: num("targetCarbs"),
+        notes: document.getElementById("notes").value
+      };
+      saveState();
+      render();
+      flash("Saved 🌱");
+    }
+
+    function autoSetCut() {
+      const bw = num("bodyWeight") || 230;
+      const cals = Math.round((bw * 11.3) / 10) * 10;
+      const protein = Math.round((bw * 0.88) / 5) * 5;
+      const fat = Math.round((bw * 0.32) / 5) * 5;
+      const carbs = Math.round(((cals - protein * 4 - fat * 9) / 4) / 5) * 5;
+      document.getElementById("targetCalories").value = cals;
+      document.getElementById("targetProtein").value = protein;
+      document.getElementById("targetFat").value = fat;
+      document.getElementById("targetCarbs").value = Math.max(50, carbs);
+      document.getElementById("goal").value = "cut";
+      saveSettings();
+    }
+
+    function showScreen(name, btn) {
+      document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
+      document.getElementById(`screen${name}`).classList.add("active");
+      document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+      btn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openFoodModal() {
+      document.getElementById("foodModal").classList.add("active");
+      document.getElementById("foodSearch").value = "";
+      renderFoodLibrary();
+    }
+
+    function closeFoodModal() {
+      document.getElementById("foodModal").classList.remove("active");
+    }
+
+    function modalBackdropClick(e) {
+      if (e.target.id === "foodModal") closeFoodModal();
+    }
+
+    function renderFoodLibrary() {
+      const q = document.getElementById("foodSearch").value.toLowerCase().trim();
+      const el = document.getElementById("foodLibrary");
+      const foods = allFoods().filter(f => {
+        const hay = `${f.name} ${f.serving} ${(f.tags || []).join(" ")}`.toLowerCase();
+        return !q || hay.includes(q);
+      });
+
+      el.innerHTML = foods.map((f, i) => {
+        const originalIndex = allFoods().findIndex(x => x.name === f.name);
+        return `
+          <div class="food-item">
+            <div>
+              <div class="food-name">${f.emoji} ${escapeHTML(f.name)}</div>
+              <div class="food-meta">${escapeHTML(f.serving)} · ${f.cal} cal · ${f.p}p/${f.c}c/${f.f}f · fiber ${f.fiber || 0}g</div>
+              <div>${(f.tags || []).map(t => `<span class="tag">${escapeHTML(t)}</span>`).join("")}</div>
+            </div>
+            <button class="small secondary" onclick="selectFood(${originalIndex})">Use</button>
+          </div>
+        `;
+      }).join("") || `<div class="empty">No matching foods. Try “chicken,” “yogurt,” or “rice.”</div>`;
+    }
+
+    function selectFood(index) {
+      document.getElementById("foodSelect").value = index;
+      fillSelectedFood();
+      closeFoodModal();
+    }
+
+    function exportData() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        app: "leanFuelTracker",
+        version: 1,
+        state
+      };
+      document.getElementById("backupBox").value = JSON.stringify(payload, null, 2);
+    }
+
+    function importData() {
+      const box = document.getElementById("backupBox");
+      try {
+        const parsed = JSON.parse(box.value);
+        if (parsed.state) state = parsed.state;
+        else state = parsed;
+        saveState();
+        renderSettings();
+        populateFoodSelect();
+        render();
+        flash("Imported ✅");
+      } catch {
+        alert("That does not look like valid backup JSON.");
+      }
+    }
+
+    function maybeCelebrate() {
+      const t = totals();
+      const h = getDay().habits;
+      if (t.p >= state.settings.targetProtein && h.steps && h.veg && h.noAlcohol) {
+        confetti(["🥦","🍗","🥑","🫐","💪"]);
+      }
+    }
+
+    function confetti(items) {
+      const wrap = document.getElementById("confetti");
+      wrap.innerHTML = "";
+      for (let i = 0; i < 20; i++) {
+        const s = document.createElement("span");
+        s.textContent = items[Math.floor(Math.random() * items.length)];
+        s.style.left = Math.random() * 100 + "vw";
+        s.style.animationDelay = Math.random() * 250 + "ms";
+        s.style.fontSize = (18 + Math.random() * 14) + "px";
+        wrap.appendChild(s);
+      }
+      setTimeout(() => wrap.innerHTML = "", 1300);
+    }
+
+    function flash(msg) {
+      const old = document.querySelector(".toast");
+      if (old) old.remove();
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      Object.assign(t.style, {
+        position:"fixed", left:"50%", bottom:"92px", transform:"translateX(-50%)",
+        background:"#243126", color:"#fff", padding:"10px 14px",
+        borderRadius:"999px", zIndex:300, boxShadow:"0 8px 24px rgba(0,0,0,.2)",
+        fontWeight:"800"
+      });
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1200);
+    }
+
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>"']/g, m => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+      }[m]));
+    }
+
+    function escapeJS(str) {
+      return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+
+    function setText(id, val) {
+      document.getElementById(id).textContent = val;
+    }
+
+    init();
+  </script>
+</body>
+</html>
