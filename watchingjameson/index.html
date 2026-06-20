@@ -157,7 +157,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      padding: 8px 0 12px;
+      padding: 0 0 12px;
       backdrop-filter: blur(8px);
     }
 
@@ -528,6 +528,102 @@
       50% { transform: scale(1.18); opacity: 1; }
     }
 
+
+    body.theme-bedtime {
+      background:
+        radial-gradient(circle at 18% 11%, rgba(255, 233, 153, 0.95) 0 52px, transparent 54px),
+        radial-gradient(circle at 81% 7%, rgba(255,255,255,0.84) 0 3px, transparent 4px),
+        radial-gradient(circle at 91% 19%, rgba(255,255,255,0.75) 0 4px, transparent 5px),
+        radial-gradient(circle at 70% 35%, rgba(255,255,255,0.72) 0 3px, transparent 4px),
+        radial-gradient(circle at 13% 36%, rgba(255,255,255,0.74) 0 3px, transparent 4px),
+        linear-gradient(180deg, #132653 0%, #285ba9 42%, #dbeafe 100%);
+    }
+
+    body.theme-feeding {
+      --blue-900: #7f1d1d;
+      --blue-800: #991b1b;
+      --blue-700: #b91c1c;
+      --blue-600: #dc2626;
+      --blue-300: #fca5a5;
+      --blue-100: #fee2e2;
+      --blue-50: #fff1f2;
+      --ink: #581c1c;
+      --muted: #8b5a5a;
+      background:
+        radial-gradient(circle at 18% 11%, rgba(255, 211, 145, 0.95) 0 52px, transparent 54px),
+        radial-gradient(circle at 84% 12%, rgba(255,255,255,0.8) 0 4px, transparent 5px),
+        radial-gradient(circle at 72% 30%, rgba(255,255,255,0.65) 0 3px, transparent 4px),
+        linear-gradient(180deg, #7f1d1d 0%, #dc2626 42%, #fff1f2 100%);
+    }
+
+    body.theme-activities {
+      --blue-900: #713f12;
+      --blue-800: #854d0e;
+      --blue-700: #a16207;
+      --blue-600: #ca8a04;
+      --blue-300: #fde68a;
+      --blue-100: #fef3c7;
+      --blue-50: #fffbeb;
+      --ink: #422006;
+      --muted: #80622f;
+      background:
+        radial-gradient(circle at 18% 11%, rgba(255, 245, 157, 0.96) 0 52px, transparent 54px),
+        radial-gradient(circle at 82% 12%, rgba(255,255,255,0.84) 0 4px, transparent 5px),
+        radial-gradient(circle at 70% 32%, rgba(255,255,255,0.72) 0 3px, transparent 4px),
+        linear-gradient(180deg, #92400e 0%, #f59e0b 44%, #fffbeb 100%);
+    }
+
+    body.theme-feeding .hero::after {
+      content: "🍽️";
+      opacity: 0.72;
+    }
+
+    body.theme-activities .hero::after {
+      content: "🧸";
+      opacity: 0.72;
+    }
+
+    body.theme-feeding .hero {
+      background:
+        radial-gradient(circle at 86% 84%, rgba(254, 226, 226, 0.9) 0 70px, transparent 72px),
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,241,242,0.94));
+    }
+
+    body.theme-activities .hero {
+      background:
+        radial-gradient(circle at 84% 84%, rgba(254, 243, 199, 0.95) 0 70px, transparent 72px),
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,251,235,0.94));
+    }
+
+    body.theme-activities .rule-card .icon:nth-child(1),
+    body.theme-activities .step .icon:nth-child(1) {
+      background: #fef3c7;
+    }
+
+    .toy-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 0 0 14px;
+    }
+
+    .toy-tile {
+      min-height: 92px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #fff7cc, #ffffff);
+      border: 2px solid rgba(202, 138, 4, 0.18);
+      box-shadow: var(--soft-shadow);
+      font-size: 2.4rem;
+    }
+
+    @media (max-width: 760px) {
+      .toy-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     @media (max-width: 760px) {
       .status-grid,
       .controls,
@@ -566,12 +662,16 @@
     }
   </style>
 </head>
-<body>
+<body class="theme-bedtime">
   <main class="app">
+    <nav class="tabs" aria-label="App sections">
+      <button class="tab-button active" data-tab="bedtime">🌙 Bedtime</button>
+      <button class="tab-button" data-tab="feeding">🍎 Feeding</button>
+      <button class="tab-button" data-tab="activities">🚗 Activities</button>
+    </nav>
+
     <section class="hero">
       <h1>Jameson Watch <span class="star">✨</span></h1>
-      <p class="subtitle">A blue, cozy guide for bedtime, dinner, activities, and calm caregiving while Dad is out.</p>
-
       <div class="status-grid">
         <div class="status-card">
           <span class="label">Now</span>
@@ -594,12 +694,6 @@
         <div class="progress" id="progressBar"></div>
       </div>
     </section>
-
-    <nav class="tabs" aria-label="App sections">
-      <button class="tab-button active" data-tab="bedtime">🌙 Bedtime</button>
-      <button class="tab-button" data-tab="feeding">🍽️ Feeding</button>
-      <button class="tab-button" data-tab="activities">🧩 Activities</button>
-    </nav>
 
     <section class="controls">
       <button class="primary" id="enableNotifications">🔔 Enable bedtime alerts</button>
@@ -643,7 +737,7 @@
           <div class="icon">🪥</div>
           <div>
             <h2>Brush teeth</h2>
-            <p>Brush, rinse, and smile like a sleepy superhero.</p>
+            <p>Brush, rinse, and get ready for bed.</p>
           </div>
           <button class="check" aria-label="Complete brush teeth">✓</button>
         </article>
@@ -681,11 +775,11 @@
 
       <section class="story-card" style="margin-top:14px;">
         <h2>Bedtime story card</h2>
-        <p>Choose a story. These are gentle public-domain retellings with the important adventure beats included.</p>
+        <p>Choose a bedtime story.</p>
         <div class="story-controls">
           <select id="storySelect" aria-label="Choose bedtime story">
             <option value="gilgamesh">The Epic of Gilgamesh</option>
-            <option value="rapunzel">Rapunzel — original rampion version</option>
+            <option value="rapunzel">Rapunzel</option>
             <option value="tailor">The Brave Little Tailor</option>
           </select>
           <button class="primary" id="readStory">📖 Show story</button>
@@ -695,6 +789,12 @@
     </section>
 
     <section class="tab-panel" id="feeding">
+      <div class="toy-strip" aria-hidden="true">
+        <div class="toy-tile">🍽️</div>
+        <div class="toy-tile">💧</div>
+        <div class="toy-tile">🥤</div>
+        <div class="toy-tile">🥔</div>
+      </div>
       <h2 class="section-title">Dinner and snacks</h2>
       <section class="card-grid">
         <article class="rule-card">
@@ -742,6 +842,12 @@
     </section>
 
     <section class="tab-panel" id="activities">
+      <div class="toy-strip" aria-hidden="true">
+        <div class="toy-tile">🧩</div>
+        <div class="toy-tile">🚗</div>
+        <div class="toy-tile">🧸</div>
+        <div class="toy-tile">🛤️</div>
+      </div>
       <h2 class="section-title">Best activities</h2>
       <section class="card-grid">
         <article class="rule-card">
@@ -963,6 +1069,8 @@ And so the little tailor, who used courage, cleverness, and a little bold braggi
         const tab = button.dataset.tab;
         document.querySelectorAll(".tab-button").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
         document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.toggle("active", panel.id === tab));
+        document.body.classList.remove("theme-bedtime", "theme-feeding", "theme-activities");
+        document.body.classList.add("theme-" + tab);
       });
     });
 
