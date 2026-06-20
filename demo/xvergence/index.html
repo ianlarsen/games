@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Convergence / Divergence Prototype</title>
+
+<style>
+  :root {
+    --bg: #f6f1e8;
+    --card: #ffffff;
+    --ink: #202020;
+    --muted: #6c6c6c;
+    --blue: #2f6173;
+    --blue-soft: #e8f3f6;
+    --green: #2f8f5b;
+    --red: #b84a4a;
+    --gold: #d9a431;
+    --line: #d9d0c4;
+    --shadow: 0 10px 28px rgba(0,0,0,.09);
+    --radius: 24px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at 10% 0%, #ffffff 0, var(--bg) 45%, #ece0d0 100%);
+    color: var(--ink);
+  }
+
+  .app {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: var(--blue);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 30px;
+    box-shadow: var(--shadow);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.45rem, 3.5vw, 2.2rem);
+    line-height: 1.05;
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .pill {
+    background: rgba(255,255,255,.75);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-weight: 850;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+
+  .panel {
+    background: rgba(255,255,255,.78);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+  }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .progress-wrap {
+    height: 14px;
+    border-radius: 999px;
+    background: #e3d9cc;
+    border: 1px solid #d1c6b8;
+    overflow: hidden;
+  }
+
+  .progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--blue), #6b9dad);
+    transition: width .3s ease;
+  }
+
+  .score {
+    font-weight: 900;
+    color: var(--blue);
+  }
+
+  button {
+    font: inherit;
+  }
+
+  .small-btn,
+  .primary-btn,
+  .secondary-btn,
+  .choice-btn,
+  .item-btn {
+    cursor: pointer;
+  }
+
+  .small-btn {
+    border: 1px solid var(--line);
+    background: white;
+    color: var(--blue);
+    border-radius: 999px;
+    padding: 9px 13px;
+    font-weight: 850;
+  }
+
+  .game-card {
+    min-height: 575px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: clamp(16px, 3vw, 30px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mission {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff7df;
+    color: #7a5511;
+    border: 1px solid #ead39a;
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-weight: 900;
+    margin-bottom: 14px;
+  }
+
+  .prompt {
+    font-size: clamp(1.55rem, 4vw, 2.4rem);
+    line-height: 1.12;
+    margin: 0 0 8px;
+    letter-spacing: -.02em;
+  }
+
+  .helper {
+    color: var(--muted);
+    margin: 0 0 22px;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .activity-picker {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .activity-card {
+    border: 2px solid var(--line);
+    background: #fff;
+    border-radius: 24px;
+    padding: 24px;
+    min-height: 230px;
+    text-align: left;
+    box-shadow: 0 4px 0 #d8d0c2;
+  }
+
+  .activity-card:hover {
+    border-color: #8fb8c4;
+    background: var(--blue-soft);
+  }
+
+  .activity-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+
+  .activity-card strong {
+    display: block;
+    font-size: 1.45rem;
+    margin-bottom: 8px;
+  }
+
+  .activity-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.35;
+    font-weight: 650;
+  }
+
+  .example-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0 26px;
+  }
+
+  .example-card {
+    width: min(150px, 30vw);
+    min-height: 132px;
+    background: #fbfaf7;
+    border: 2px solid #ddd5c8;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+  }
+
+  .emoji {
+    font-size: clamp(2.6rem, 8vw, 4.6rem);
+    line-height: 1;
+    text-align: center;
+  }
+
+  .label {
+    margin-top: 8px;
+    text-align: center;
+    font-weight: 900;
+    color: #3b3b3b;
+  }
+
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .choice-btn {
+    border: 2px solid #d2cabb;
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px 14px;
+    min-height: 78px;
+    font-weight: 900;
+    font-size: clamp(1.05rem, 3vw, 1.35rem);
+    color: var(--ink);
+    box-shadow: 0 3px 0 #d8d0c2;
+  }
+
+  .choice-btn:hover {
+    background: var(--blue-soft);
+    border-color: #8fb8c4;
+  }
+
+  .choice-btn.correct {
+    background: #e9f8ef;
+    border-color: var(--green);
+  }
+
+  .choice-btn.wrong {
+    background: #fff0f0;
+    border-color: var(--red);
+    animation: shake .24s linear;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .item-btn {
+    border: 2px solid #d2cabb;
+    background: #fff;
+    border-radius: 20px;
+    min-height: 126px;
+    padding: 10px;
+    display: grid;
+    place-items: center;
+    position: relative;
+    box-shadow: 0 3px 0 #d8d0c2;
+  }
+
+  .item-btn:hover {
+    background: #fbfaf7;
+  }
+
+  .item-btn.selected {
+    background: #e9f8ef;
+    border-color: var(--green);
+  }
+
+  .item-btn.wrong {
+    background: #fff0f0;
+    border-color: var(--red);
+    animation: shake .24s linear;
+  }
+
+  .check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--green);
+    color: #fff;
+    border-radius: 999px;
+    font-size: .85rem;
+    padding: 3px 7px;
+    font-weight: 900;
+  }
+
+  .feedback {
+    min-height: 56px;
+    margin-top: 18px;
+    border-radius: 18px;
+    padding: 14px;
+    background: #f5f1e9;
+    border: 1px solid var(--line);
+    font-weight: 800;
+  }
+
+  .feedback.good {
+    background: #e9f8ef;
+    border-color: #b8e0c5;
+    color: #215c3b;
+  }
+
+  .feedback.bad {
+    background: #fff0f0;
+    border-color: #efc2c2;
+    color: #873333;
+  }
+
+  .footer-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  .primary-btn {
+    border: 0;
+    background: var(--blue);
+    color: white;
+    border-radius: 999px;
+    padding: 15px 22px;
+    font-weight: 950;
+    font-size: 1.05rem;
+    box-shadow: 0 4px 0 #244957;
+  }
+
+  .primary-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  .secondary-btn {
+    border: 2px solid var(--blue);
+    background: white;
+    color: var(--blue);
+    border-radius: 999px;
+    padding: 13px 20px;
+    font-weight: 950;
+    font-size: 1.05rem;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 16px;
+    opacity: .95;
+    animation: confettiFall 900ms linear forwards;
+    pointer-events: none;
+  }
+
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(-20px) rotate(0deg);
+    }
+    100% {
+      transform: translateY(680px) rotate(540deg);
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    30% { transform: translateX(-4px); }
+    70% { transform: translateX(4px); }
+  }
+
+  .review-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .review-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    background: #fbfaf7;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 12px;
+  }
+
+  .review-row .emoji {
+    font-size: 2.2rem;
+  }
+
+  .review-row strong {
+    display: block;
+  }
+
+  .review-row span {
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  @media (max-width: 760px) {
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .topbar {
+      grid-template-columns: 1fr;
+    }
+
+    .activity-picker,
+    .choices {
+      grid-template-columns: 1fr;
+    }
+
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">🧠</div>
+      <div>
+        <h1>Category Detective</h1>
+        <p class="subtitle">Convergence or divergence activity prototype</p>
+      </div>
+    </div>
+    <div class="pill" id="modePill">Choose activity</div>
+  </header>
+
+  <section class="panel">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress" id="progress"></div>
+      </div>
+      <div class="score">⭐ <span id="score">0</span></div>
+      <button class="small-btn" id="restartBtn">Restart</button>
+    </div>
+
+    <main class="game-card" id="game" aria-live="polite"></main>
+  </section>
+</div>
+
+<script>
+const cleanCategories = [
+  {
+    name: "Animals",
+    items: [
+      ["lion", "🦁"],
+      ["bear", "🐻"],
+      ["seal", "🦭"],
+      ["dog", "🐶"],
+      ["cat", "🐱"],
+      ["frog", "🐸"]
+    ]
+  },
+  {
+    name: "Transportation",
+    items: [
+      ["car", "🚗"],
+      ["bus", "🚌"],
+      ["bike", "🚲"],
+      ["train", "🚆"],
+      ["airplane", "✈️"],
+      ["boat", "⛵"]
+    ]
+  },
+  {
+    name: "Food",
+    items: [
+      ["apple", "🍎"],
+      ["pizza", "🍕"],
+      ["taco", "🌮"],
+      ["sandwich", "🥪"],
+      ["carrot", "🥕"],
+      ["grapes", "🍇"]
+    ]
+  },
+  {
+    name: "Clothing",
+    items: [
+      ["shirt", "👕"],
+      ["shoe", "👟"],
+      ["pants", "👖"],
+      ["hat", "🧢"],
+      ["dress", "👗"],
+      ["sock", "🧦"]
+    ]
+  }
+];
+
+const allItems = cleanCategories.flatMap(category =>
+  category.items.map(item => ({
+    label: item[0],
+    emoji: item[1],
+    category: category.name
+  }))
+);
+
+let state = {
+  activity: null,
+  round: 0,
+  totalRounds: 8,
+  score: 0,
+  currentCategory: null,
+  promptItems: [],
+  gridItems: [],
+  selectedIndexes: [],
+  needed: 3,
+  locked: false
+};
+
+const game = document.getElementById("game");
+const progress = document.getElementById("progress");
+const score = document.getElementById("score");
+const modePill = document.getElementById("modePill");
+
+document.getElementById("restartBtn").addEventListener("click", showActivityPicker);
+
+function shuffle(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+function sample(array, count) {
+  return shuffle(array).slice(0, count);
+}
+
+function titleCase(text) {
+  return text.replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
+function itemHTML(item) {
+  return `
+    <div>
+      <div class="emoji">${item.emoji}</div>
+      <div class="label">${titleCase(item.label)}</div>
+    </div>
+  `;
+}
+
+function updateTop() {
+  score.textContent = state.score;
+  if (!state.activity) {
+    progress.style.width = "0%";
+    modePill.textContent = "Choose activity";
+    return;
+  }
+
+  const percent = ((state.round - 1) / state.totalRounds) * 100;
+  progress.style.width = `${percent}%`;
+  modePill.textContent =
+    `${state.activity === "convergence" ? "Convergence" : "Divergence"} · ${state.round} of ${state.totalRounds}`;
+}
+
+function showActivityPicker() {
+  state = {
+    activity: null,
+    round: 0,
+    totalRounds: 8,
+    score: 0,
+    currentCategory: null,
+    promptItems: [],
+    gridItems: [],
+    selectedIndexes: [],
+    needed: 3,
+    locked: false
+  };
+
+  updateTop();
+
+  game.innerHTML = `
+    <div class="mission">Choose the therapy target</div>
+    <h2 class="prompt">Which activity are you doing?</h2>
+    <p class="helper">
+      Pick one mode before starting. This keeps the task clinically clear and avoids mixing goals accidentally.
+    </p>
+
+    <div class="activity-picker">
+      <button class="activity-card" id="chooseConvergence">
+        <div class="activity-icon">🔎</div>
+        <strong>Convergence</strong>
+        <span>
+          The student sees several items and identifies the one shared category.
+          Example: lion, bear, seal → Animals.
+        </span>
+      </button>
+
+      <button class="activity-card" id="chooseDivergence">
+        <div class="activity-icon">🧩</div>
+        <strong>Divergence</strong>
+        <span>
+          The student sees one category and finds several examples.
+          Example: Transportation → car, bus, train.
+        </span>
+      </button>
+    </div>
+  `;
+
+  document.getElementById("chooseConvergence").addEventListener("click", () => {
+    startActivity("convergence");
+  });
+
+  document.getElementById("chooseDivergence").addEventListener("click", () => {
+    startActivity("divergence");
+  });
+}
+
+function startActivity(activity) {
+  state.activity = activity;
+  state.round = 0;
+  state.score = 0;
+  nextRound();
+}
+
+function nextRound() {
+  state.round++;
+  state.locked = false;
+  state.selectedIndexes = [];
+
+  if (state.round > state.totalRounds) {
+    showEndScreen();
+    return;
+  }
+
+  state.currentCategory = cleanCategories[(state.round - 1) % cleanCategories.length];
+
+  if (state.activity === "convergence") {
+    setupConvergenceRound();
+    renderConvergenceRound();
+  } else {
+    setupDivergenceRound();
+    renderDivergenceRound();
+  }
+
+  updateTop();
+}
+
+function setupConvergenceRound() {
+  state.promptItems = sample(state.currentCategory.items, 3).map(item => ({
+    label: item[0],
+    emoji: item[1],
+    category: state.currentCategory.name
+  }));
+}
+
+function renderConvergenceRound() {
+  const wrongCategories = sample(
+    cleanCategories.filter(c => c.name !== state.currentCategory.name),
+    3
+  ).map(c => c.name);
+
+  const choices = shuffle([
+    state.currentCategory.name,
+    ...wrongCategories
+  ]);
+
+  game.innerHTML = `
+    <div class="mission">Convergence Activity</div>
+    <h2 class="prompt">What category do these belong to?</h2>
+    <p class="helper">
+      Choose the one category that matches all three items.
+    </p>
+
+    <div class="example-row">
+      ${state.promptItems.map(item => `
+        <div class="example-card">${itemHTML(item)}</div>
+      `).join("")}
+    </div>
+
+    <div class="choices">
+      ${choices.map(choice => `
+        <button class="choice-btn" data-choice="${choice}">
+          ${choice}
+        </button>
+      `).join("")}
+    </div>
+
+    <div class="feedback" id="feedback">
+      Pick one answer.
+    </div>
+  `;
+
+  document.querySelectorAll(".choice-btn").forEach(button => {
+    button.addEventListener("click", () => checkConvergenceAnswer(button));
+  });
+}
+
+function checkConvergenceAnswer(button) {
+  if (state.locked) return;
+
+  const answer = button.dataset.choice;
+  const feedback = document.getElementById("feedback");
+
+  if (answer === state.currentCategory.name) {
+    state.locked = true;
+    state.score++;
+    score.textContent = state.score;
+    button.classList.add("correct");
+    feedback.className = "feedback good";
+    feedback.innerHTML = `Correct. These are all <strong>${state.currentCategory.name}</strong>.`;
+    launchConfetti();
+
+    setTimeout(showConvergenceReview, 1100);
+  } else {
+    button.classList.add("wrong");
+    feedback.className = "feedback bad";
+    feedback.innerHTML = `Try again. These items are not all ${answer}.`;
+    setTimeout(() => button.classList.remove("wrong"), 600);
+  }
+}
+
+function showConvergenceReview() {
+  const itemNames = state.promptItems.map(item => titleCase(item.label)).join(", ");
+
+  game.innerHTML = `
+    <div class="mission">Labeling Review</div>
+    <h2 class="prompt">${state.currentCategory.name}</h2>
+    <p class="helper">
+      Review the item labels and the category label.
+    </p>
+
+    <div class="review-list">
+      ${state.promptItems.map(item => `
+        <div class="review-row">
+          <div class="emoji">${item.emoji}</div>
+          <div>
+            <strong>${titleCase(item.label)}</strong>
+            <span>Category: ${state.currentCategory.name}</span>
+          </div>
+          <div>✓</div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="feedback good">
+      ${itemNames} are all ${state.currentCategory.name}.
+    </div>
+
+    <div class="footer-actions">
+      <button class="secondary-btn" id="backToMenuBtn">Change activity</button>
+      <button class="primary-btn" id="nextBtn">Next round</button>
+    </div>
+  `;
+
+  document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
+  document.getElementById("nextBtn").addEventListener("click", nextRound);
+}
+
+function setupDivergenceRound() {
+  state.needed = 3;
+
+  const targetItems = sample(state.currentCategory.items, state.needed).map(item => ({
+    label: item[0],
+    emoji: item[1],
+    category: state.currentCategory.name,
+    target: true
+  }));
+
+  const wrongItems = sample(
+    allItems.filter(item => item.category !== state.currentCategory.name),
+    6
+  ).map(item => ({
+    ...item,
+    target: false
+  }));
+
+  state.gridItems = shuffle([...targetItems, ...wrongItems]);
+}
+
+function renderDivergenceRound() {
+  const found = state.selectedIndexes.length;
+  const remaining = state.needed - found;
+
+  game.innerHTML = `
+    <div class="mission">Divergence Activity</div>
+    <h2 class="prompt">Find ${state.needed} examples of ${state.currentCategory.name}.</h2>
+    <p class="helper">
+      Select only items that belong in this category.
+    </p>
+
+    <div class="grid">
+      ${state.gridItems.map((item, index) => {
+        const selected = state.selectedIndexes.includes(index);
+        return `
+          <button class="item-btn ${selected ? "selected" : ""}" data-index="${index}">
+            ${selected ? `<div class="check">✓</div>` : ""}
+            ${itemHTML(item)}
+          </button>
+        `;
+      }).join("")}
+    </div>
+
+    <div class="feedback ${found === state.needed ? "good" : ""}" id="feedback">
+      ${
+        found === state.needed
+        ? `Correct. You found ${state.needed} examples of ${state.currentCategory.name}.`
+        : `Find ${remaining} more.`
+      }
+    </div>
+
+    <div class="footer-actions">
+      <button class="secondary-btn" id="backToMenuBtn">Change activity</button>
+      <button class="primary-btn" id="reviewBtn" ${found === state.needed ? "" : "disabled"}>
+        Review labels
+      </button>
+    </div>
+  `;
+
+  document.querySelectorAll(".item-btn").forEach(button => {
+    button.addEventListener("click", () => checkDivergenceItem(button));
+  });
+
+  document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
+  document.getElementById("reviewBtn").addEventListener("click", showDivergenceReview);
+}
+
+function checkDivergenceItem(button) {
+  if (state.locked) return;
+
+  const index = Number(button.dataset.index);
+  const item = state.gridItems[index];
+  const feedback = document.getElementById("feedback");
+
+  if (state.selectedIndexes.includes(index)) return;
+
+  if (item.category === state.currentCategory.name) {
+    state.selectedIndexes.push(index);
+
+    if (state.selectedIndexes.length === state.needed) {
+      state.locked = true;
+      state.score++;
+      score.textContent = state.score;
+      launchConfetti();
+    }
+
+    renderDivergenceRound();
+  } else {
+    button.classList.add("wrong");
+    feedback.className = "feedback bad";
+    feedback.innerHTML = `${titleCase(item.label)} is not ${state.currentCategory.name}. Try again.`;
+    setTimeout(() => button.classList.remove("wrong"), 600);
+  }
+}
+
+function showDivergenceReview() {
+  const selectedItems = state.selectedIndexes.map(index => state.gridItems[index]);
+  const itemNames = selectedItems.map(item => titleCase(item.label)).join(", ");
+
+  game.innerHTML = `
+    <div class="mission">Labeling Review</div>
+    <h2 class="prompt">${state.currentCategory.name}</h2>
+    <p class="helper">
+      Review the item labels and the category label.
+    </p>
+
+    <div class="review-list">
+      ${selectedItems.map(item => `
+        <div class="review-row">
+          <div class="emoji">${item.emoji}</div>
+          <div>
+            <strong>${titleCase(item.label)}</strong>
+            <span>Category: ${state.currentCategory.name}</span>
+          </div>
+          <div>✓</div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="feedback good">
+      ${itemNames} are examples of ${state.currentCategory.name}.
+    </div>
+
+    <div class="footer-actions">
+      <button class="secondary-btn" id="backToMenuBtn">Change activity</button>
+      <button class="primary-btn" id="nextBtn">Next round</button>
+    </div>
+  `;
+
+  document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
+  document.getElementById("nextBtn").addEventListener("click", nextRound);
+}
+
+function showEndScreen() {
+  progress.style.width = "100%";
+  modePill.textContent = "Complete";
+
+  const activityName = state.activity === "convergence" ? "Convergence" : "Divergence";
+
+  game.innerHTML = `
+    <div class="mission">Activity complete</div>
+    <h2 class="prompt">${activityName} finished!</h2>
+    <p class="helper">
+      This prototype kept the activity focused on one target at a time.
+    </p>
+
+    <div class="feedback good">
+      Score: <strong>${state.score}</strong> out of <strong>${state.totalRounds}</strong>
+    </div>
+
+    <div class="review-list">
+      <div class="review-row">
+        <div class="emoji">${state.activity === "convergence" ? "🔎" : "🧩"}</div>
+        <div>
+          <strong>${activityName}</strong>
+          <span>
+            ${
+              state.activity === "convergence"
+              ? "Student identified the shared category from several items."
+              : "Student identified several examples from one given category."
+            }
+          </span>
+        </div>
+        <div>✓</div>
+      </div>
+
+      <div class="review-row">
+        <div class="emoji">🏷️</div>
+        <div>
+          <strong>Labeling</strong>
+          <span>Student reviewed item names and category labels.</span>
+        </div>
+        <div>✓</div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="secondary-btn" id="backToMenuBtn">Choose different activity</button>
+      <button class="primary-btn" id="playAgainBtn">Play again</button>
+    </div>
+  `;
+
+  document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
+  document.getElementById("playAgainBtn").addEventListener("click", () => startActivity(state.activity));
+}
+
+function launchConfetti() {
+  const colors = ["#2f6173", "#2f8f5b", "#d9a431", "#b85c9e", "#e66b4d", "#6a7fd1"];
+  const card = game;
+
+  for (let i = 0; i < 42; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = `${Math.random() * 180}ms`;
+    piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+    card.appendChild(piece);
+
+    setTimeout(() => {
+      piece.remove();
+    }, 1200);
+  }
+}
+
+showActivityPicker();
+</script>
+</body>
+</html>
