@@ -939,6 +939,56 @@
       }
     }
 
+
+    .activity-filters {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 13px;
+      background: rgba(255,255,255,0.9);
+      border: 2px solid rgba(202,138,4,0.18);
+      border-left: 8px solid var(--blue-600);
+      border-radius: 22px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .activity-filters label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 18px;
+      background: white;
+      color: var(--blue-900);
+      border: 2px solid rgba(202,138,4,0.12);
+      font-weight: 900;
+      user-select: none;
+    }
+
+    .activity-filters input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--blue-600);
+      flex: 0 0 auto;
+    }
+
+    .activity-category.hidden {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .activity-filters {
+        gap: 7px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .activity-filters label {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+    }
+
   </style>
 </head>
 <body class="theme-bedtime">
@@ -1180,14 +1230,7 @@
     </section>
 
     <section class="tab-panel" id="activities">
-      <div class="toy-strip" aria-hidden="true">
-        <div class="toy-tile">🧩</div>
-        <div class="toy-tile">🚗</div>
-        <div class="toy-tile">🧸</div>
-        <div class="toy-tile">🛝</div>
-      </div>
-
-      <h2 class="section-title">Quiet table activities</h2>
+<h2 class="section-title">Quiet table activities</h2>
       <section class="card-grid">
         <article class="rule-card">
           <div class="icon">🧩</div>
@@ -1225,7 +1268,9 @@
           </div>
         </article>
       </section>
+      </div>
 
+      <div class="activity-category" data-activity-category="kinesthetic">
       <h2 class="section-title">Kinesthetic and building</h2>
       <section class="card-grid">
         <article class="rule-card">
@@ -1240,7 +1285,9 @@
           </div>
         </article>
       </section>
+      </div>
 
+      <div class="activity-category" data-activity-category="outdoor">
       <h2 class="section-title">Outdoor</h2>
       <section class="card-grid">
         <article class="rule-card">
@@ -1291,7 +1338,9 @@
           </div>
         </article>
       </section>
+      </div>
 
+      <div class="activity-category" data-activity-category="screen">
       <h2 class="section-title">Screen time</h2>
       <section class="card-grid">
         <article class="rule-card">
@@ -1336,7 +1385,9 @@
           <button class="danger" id="resetGameTimer">↺ Reset</button>
         </div>
       </section>
+      </div>
 
+      <div class="activity-category" data-activity-category="not-available">
       <h2 class="section-title">Not available tonight</h2>
       <section class="card-grid">
         <article class="rule-card">
@@ -1374,6 +1425,7 @@
           </div>
         </article>
       </section>
+      </div>
     </section>
 
     <p class="footer">Blue moon, calm choices, clean hands, cozy room, safe fun. 💙</p>
@@ -1708,6 +1760,21 @@ By the end, the pumpkin has changed the fortunes of the people around it, and ev
       box.addEventListener("change", updateStoryDropdown);
     });
 
+
+    function updateActivityCategories() {
+      const visibleCategories = Array.from(document.querySelectorAll(".activity-check"))
+        .filter(box => box.checked)
+        .map(box => box.value);
+
+      document.querySelectorAll(".activity-category").forEach(section => {
+        section.classList.toggle("hidden", !visibleCategories.includes(section.dataset.activityCategory));
+      });
+    }
+
+    document.querySelectorAll(".activity-check").forEach(box => {
+      box.addEventListener("change", updateActivityCategories);
+    });
+
     const timerLabel = document.getElementById("timerLabel");
     const timerDisplay = document.getElementById("timerDisplay");
 
@@ -2014,6 +2081,7 @@ By the end, the pumpkin has changed the fortunes of the people around it, and ev
     }
 
     updateStoryDropdown();
+    updateActivityCategories();
     render();
     tickClock();
     setInterval(tickClock, 15000);
