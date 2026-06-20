@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Convergence / Divergence Prototype</title>
+<title>Category Detective Prototype</title>
 
 <style>
   :root {
@@ -15,7 +15,6 @@
     --blue-soft: #e8f3f6;
     --green: #2f8f5b;
     --red: #b84a4a;
-    --gold: #d9a431;
     --line: #d9d0c4;
     --shadow: 0 10px 28px rgba(0,0,0,.09);
     --radius: 24px;
@@ -35,40 +34,42 @@
   }
 
   .app {
-    max-width: 1000px;
+    max-width: 1050px;
     margin: 0 auto;
-    padding: 18px;
+    padding: 14px;
   }
 
   header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 12px;
   }
 
   .brand {
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
   }
 
   .logo {
-    width: 56px;
-    height: 56px;
+    width: 54px;
+    height: 54px;
     border-radius: 18px;
     background: var(--blue);
     color: white;
     display: grid;
     place-items: center;
-    font-size: 30px;
+    font-size: 29px;
     box-shadow: var(--shadow);
+    flex: 0 0 auto;
   }
 
   h1 {
     margin: 0;
-    font-size: clamp(1.45rem, 3.5vw, 2.2rem);
+    font-size: clamp(1.35rem, 3.5vw, 2.15rem);
     line-height: 1.05;
   }
 
@@ -76,16 +77,7 @@
     margin: 4px 0 0;
     color: var(--muted);
     font-weight: 600;
-  }
-
-  .pill {
-    background: rgba(255,255,255,.75);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 9px 14px;
-    font-weight: 850;
-    color: var(--blue);
-    white-space: nowrap;
+    font-size: .98rem;
   }
 
   .panel {
@@ -93,15 +85,15 @@
     border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 16px;
+    padding: 14px;
   }
 
   .topbar {
     display: grid;
     grid-template-columns: 1fr auto auto;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 10px;
+    margin-bottom: 12px;
   }
 
   .progress-wrap {
@@ -122,6 +114,7 @@
   .score {
     font-weight: 900;
     color: var(--blue);
+    white-space: nowrap;
   }
 
   button {
@@ -133,8 +126,10 @@
   .secondary-btn,
   .choice-btn,
   .item-btn,
-  .activity-card {
+  .activity-card,
+  .odd-card {
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .small-btn {
@@ -147,7 +142,7 @@
   }
 
   .game-card {
-    min-height: 575px;
+    min-height: 600px;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -157,46 +152,27 @@
     overflow: hidden;
   }
 
-  .mission {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #fff7df;
-    color: #7a5511;
-    border: 1px solid #ead39a;
-    border-radius: 999px;
-    padding: 8px 13px;
-    font-weight: 900;
-    margin-bottom: 14px;
-  }
-
   .prompt {
-    font-size: clamp(1.55rem, 4vw, 2.4rem);
+    font-size: clamp(1.55rem, 5vw, 2.35rem);
     line-height: 1.12;
-    margin: 0 0 8px;
+    margin: 0 0 22px;
     letter-spacing: -.02em;
   }
 
-  .helper {
-    color: var(--muted);
-    margin: 0 0 22px;
-    font-size: 1.05rem;
-    font-weight: 600;
-  }
-
-  .activity-picker {
+  .activity-picker,
+  .level-picker {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
-    margin-top: 24px;
+    margin-top: 20px;
   }
 
   .activity-card {
     border: 2px solid var(--line);
     background: #fff;
     border-radius: 24px;
-    padding: 24px;
-    min-height: 230px;
+    padding: 22px;
+    min-height: 215px;
     text-align: left;
     box-shadow: 0 4px 0 #d8d0c2;
   }
@@ -213,7 +189,7 @@
 
   .activity-card strong {
     display: block;
-    font-size: 1.45rem;
+    font-size: 1.35rem;
     margin-bottom: 8px;
   }
 
@@ -230,7 +206,7 @@
     gap: 14px;
     justify-content: center;
     flex-wrap: wrap;
-    margin: 20px 0 26px;
+    margin: 18px 0 24px;
   }
 
   .example-card {
@@ -245,7 +221,7 @@
   }
 
   .emoji {
-    font-size: clamp(2.6rem, 8vw, 4.6rem);
+    font-size: clamp(2.65rem, 9vw, 4.6rem);
     line-height: 1;
     text-align: center;
   }
@@ -271,7 +247,7 @@
     padding: 18px 14px;
     min-height: 78px;
     font-weight: 900;
-    font-size: clamp(1.05rem, 3vw, 1.35rem);
+    font-size: clamp(1.08rem, 3.6vw, 1.35rem);
     color: var(--ink);
     box-shadow: 0 3px 0 #d8d0c2;
   }
@@ -348,6 +324,10 @@
     font-weight: 800;
   }
 
+  .feedback.empty {
+    visibility: hidden;
+  }
+
   .feedback.good {
     background: #e9f8ef;
     border-color: #b8e0c5;
@@ -380,11 +360,6 @@
     box-shadow: 0 4px 0 #244957;
   }
 
-  .primary-btn:disabled {
-    opacity: .45;
-    cursor: not-allowed;
-  }
-
   .secondary-btn {
     border: 2px solid var(--blue);
     background: white;
@@ -395,14 +370,72 @@
     font-size: 1.05rem;
   }
 
+  .worksheet-wrap {
+    display: grid;
+    place-items: center;
+    margin-top: 6px;
+  }
+
+  .worksheet-card {
+    width: min(760px, 100%);
+    background: #fff;
+    border: 7px solid #111;
+    box-shadow: 0 8px 18px rgba(0,0,0,.08);
+    padding: clamp(14px, 3vw, 24px);
+  }
+
+  .worksheet-title {
+    text-align: center;
+    font-size: clamp(1.35rem, 4vw, 2rem);
+    font-weight: 950;
+    margin: 0 0 20px;
+  }
+
+  .odd-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(12px, 2vw, 22px);
+  }
+
+  .odd-card {
+    border: 4px solid transparent;
+    background: #fff;
+    min-height: 150px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    padding: 10px;
+  }
+
+  .odd-card:hover {
+    border-color: #8fb8c4;
+    background: #f7fbfc;
+  }
+
+  .odd-card.correct {
+    border-color: var(--green);
+    background: #e9f8ef;
+  }
+
+  .odd-card.wrong {
+    border-color: var(--red);
+    background: #fff0f0;
+    animation: shake .24s linear;
+  }
+
+  .odd-card .emoji {
+    font-size: clamp(3.2rem, 12vw, 5.8rem);
+  }
+
   .confetti-piece {
-    position: absolute;
+    position: fixed;
     top: -20px;
     width: 10px;
     height: 16px;
     opacity: .95;
     animation: confettiFall 900ms linear forwards;
     pointer-events: none;
+    z-index: 999;
   }
 
   @keyframes confettiFall {
@@ -410,7 +443,7 @@
       transform: translateY(-20px) rotate(0deg);
     }
     100% {
-      transform: translateY(680px) rotate(540deg);
+      transform: translateY(105vh) rotate(540deg);
     }
   }
 
@@ -420,29 +453,149 @@
     70% { transform: translateX(4px); }
   }
 
-  @media (max-width: 760px) {
-    header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .topbar {
-      grid-template-columns: 1fr;
-    }
-
+  @media (max-width: 820px) {
     .activity-picker,
-    .choices {
+    .level-picker {
       grid-template-columns: 1fr;
-    }
-
-    .grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 700px) {
+    .app {
+      padding: 10px;
+    }
+
+    header {
+      margin-bottom: 10px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      font-size: 25px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+    }
+
+    .subtitle {
+      font-size: .86rem;
+    }
+
+    .panel {
+      padding: 10px;
+      border-radius: 20px;
+    }
+
+    .topbar {
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .topbar .small-btn {
+      grid-column: 1 / -1;
+      justify-self: stretch;
+    }
+
+    .game-card {
+      min-height: calc(100vh - 190px);
+      padding: 14px;
+      border-radius: 20px;
+    }
+
+    .prompt {
+      margin-bottom: 16px;
+    }
+
+    .choices {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      min-height: 70px;
+      padding: 15px 12px;
+    }
+
     .grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .item-btn {
+      min-height: 116px;
+      border-radius: 18px;
+      padding: 8px;
+    }
+
+    .label {
+      font-size: .92rem;
+    }
+
+    .example-card {
+      width: calc(33.333% - 12px);
+      min-height: 112px;
+      border-radius: 18px;
+      padding: 8px;
+    }
+
+    .activity-card {
+      min-height: auto;
+      padding: 18px;
+    }
+
+    .activity-icon {
+      font-size: 2.5rem;
+    }
+
+    .worksheet-card {
+      border-width: 5px;
+      padding: 12px;
+    }
+
+    .worksheet-title {
+      margin-bottom: 14px;
+    }
+
+    .odd-grid {
+      gap: 10px;
+    }
+
+    .odd-card {
+      min-height: 128px;
+      padding: 8px;
+    }
+
+    .footer-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .example-card {
+      width: 100%;
+      min-height: 96px;
+    }
+
+    .example-row {
+      gap: 8px;
+    }
+
+    .item-btn,
+    .odd-card {
+      min-height: 108px;
+    }
+
+    .label {
+      font-size: .86rem;
     }
   }
 </style>
@@ -455,10 +608,9 @@
       <div class="logo">🧠</div>
       <div>
         <h1>Category Detective</h1>
-        <p class="subtitle">Convergence or divergence activity prototype</p>
+        <p class="subtitle">Convergence · Divergence</p>
       </div>
     </div>
-    <div class="pill" id="modePill">Choose activity</div>
   </header>
 
   <section class="panel">
@@ -478,6 +630,7 @@
 const cleanCategories = [
   {
     name: "Animals",
+    singular: "animal",
     items: [
       ["lion", "🦁"],
       ["bear", "🐻"],
@@ -489,6 +642,7 @@ const cleanCategories = [
   },
   {
     name: "Transportation",
+    singular: "type of transportation",
     items: [
       ["car", "🚗"],
       ["bus", "🚌"],
@@ -500,6 +654,7 @@ const cleanCategories = [
   },
   {
     name: "Food",
+    singular: "food",
     items: [
       ["apple", "🍎"],
       ["pizza", "🍕"],
@@ -511,6 +666,7 @@ const cleanCategories = [
   },
   {
     name: "Clothing",
+    singular: "piece of clothing",
     items: [
       ["shirt", "👕"],
       ["shoe", "👟"],
@@ -519,6 +675,18 @@ const cleanCategories = [
       ["dress", "👗"],
       ["sock", "🧦"]
     ]
+  },
+  {
+    name: "Shapes",
+    singular: "shape",
+    items: [
+      ["circle", "🟢"],
+      ["square", "🟥"],
+      ["triangle", "🔺"],
+      ["diamond", "🔷"],
+      ["heart", "💚"],
+      ["star", "⭐"]
+    ]
   }
 ];
 
@@ -526,12 +694,14 @@ const allItems = cleanCategories.flatMap(category =>
   category.items.map(item => ({
     label: item[0],
     emoji: item[1],
-    category: category.name
+    category: category.name,
+    singular: category.singular
   }))
 );
 
 let state = {
   activity: null,
+  divergenceLevel: null,
   round: 0,
   totalRounds: 8,
   score: 0,
@@ -539,6 +709,8 @@ let state = {
   promptItems: [],
   gridItems: [],
   selectedIndexes: [],
+  oddItems: [],
+  oddAnswerIndex: null,
   locked: false,
   roundComplete: false
 };
@@ -546,7 +718,6 @@ let state = {
 const game = document.getElementById("game");
 const progress = document.getElementById("progress");
 const score = document.getElementById("score");
-const modePill = document.getElementById("modePill");
 
 document.getElementById("restartBtn").addEventListener("click", showActivityPicker);
 
@@ -576,20 +747,17 @@ function updateTop() {
 
   if (!state.activity) {
     progress.style.width = "0%";
-    modePill.textContent = "Choose activity";
     return;
   }
 
   const percent = ((state.round - 1) / state.totalRounds) * 100;
   progress.style.width = `${percent}%`;
-
-  modePill.textContent =
-    `${state.activity === "convergence" ? "Convergence" : "Divergence"} · ${state.round} of ${state.totalRounds}`;
 }
 
-function showActivityPicker() {
+function resetState() {
   state = {
     activity: null,
+    divergenceLevel: null,
     round: 0,
     totalRounds: 8,
     score: 0,
@@ -597,51 +765,84 @@ function showActivityPicker() {
     promptItems: [],
     gridItems: [],
     selectedIndexes: [],
+    oddItems: [],
+    oddAnswerIndex: null,
     locked: false,
     roundComplete: false
   };
+}
 
+function showActivityPicker() {
+  resetState();
   updateTop();
 
   game.innerHTML = `
-    <div class="mission">Choose the therapy target</div>
     <h2 class="prompt">Which activity are you doing?</h2>
-    <p class="helper">
-      Pick one mode before starting.
-    </p>
 
     <div class="activity-picker">
       <button class="activity-card" id="chooseConvergence">
         <div class="activity-icon">🔎</div>
         <strong>Convergence</strong>
-        <span>
-          The student sees several items and identifies the one shared category.
-          Example: lion, bear, seal → Animals.
-        </span>
+        <span>See several items and identify the shared category.</span>
       </button>
 
       <button class="activity-card" id="chooseDivergence">
         <div class="activity-icon">🧩</div>
         <strong>Divergence</strong>
-        <span>
-          The student sees one category and finds every matching item.
-          Example: Transportation → car, bus, bike, train, airplane, boat.
-        </span>
+        <span>Find items in a category, then move up to what does not belong.</span>
       </button>
     </div>
   `;
 
-  document.getElementById("chooseConvergence").addEventListener("click", () => {
-    startActivity("convergence");
-  });
-
-  document.getElementById("chooseDivergence").addEventListener("click", () => {
-    startActivity("divergence");
-  });
+  document.getElementById("chooseConvergence").addEventListener("click", startConvergence);
+  document.getElementById("chooseDivergence").addEventListener("click", showDivergenceLevelPicker);
 }
 
-function startActivity(activity) {
-  state.activity = activity;
+function showDivergenceLevelPicker() {
+  state.activity = "divergence";
+  state.divergenceLevel = null;
+  state.round = 0;
+  state.score = 0;
+  updateTop();
+
+  game.innerHTML = `
+    <h2 class="prompt">Choose a divergence level.</h2>
+
+    <div class="level-picker">
+      <button class="activity-card" id="chooseDivergenceLevel1">
+        <div class="activity-icon">🧩</div>
+        <strong>Level 1</strong>
+        <span>Find all items in the category.</span>
+      </button>
+
+      <button class="activity-card" id="chooseDivergenceLevel2">
+        <div class="activity-icon">🚫</div>
+        <strong>Level 2</strong>
+        <span>Choose the one that does not belong.</span>
+      </button>
+    </div>
+
+    <div class="footer-actions">
+      <button class="secondary-btn" id="backToMenuBtn">Return to menu</button>
+    </div>
+  `;
+
+  document.getElementById("chooseDivergenceLevel1").addEventListener("click", () => startDivergence(1));
+  document.getElementById("chooseDivergenceLevel2").addEventListener("click", () => startDivergence(2));
+  document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
+}
+
+function startConvergence() {
+  state.activity = "convergence";
+  state.divergenceLevel = null;
+  state.round = 0;
+  state.score = 0;
+  nextRound();
+}
+
+function startDivergence(level) {
+  state.activity = "divergence";
+  state.divergenceLevel = level;
   state.round = 0;
   state.score = 0;
   nextRound();
@@ -652,6 +853,8 @@ function nextRound() {
   state.locked = false;
   state.roundComplete = false;
   state.selectedIndexes = [];
+  state.oddItems = [];
+  state.oddAnswerIndex = null;
 
   if (state.round > state.totalRounds) {
     showEndScreen();
@@ -663,19 +866,35 @@ function nextRound() {
   if (state.activity === "convergence") {
     setupConvergenceRound();
     renderConvergenceRound();
-  } else {
+  }
+
+  if (state.activity === "divergence" && state.divergenceLevel === 1) {
     setupDivergenceRound();
     renderDivergenceRound();
+  }
+
+  if (state.activity === "divergence" && state.divergenceLevel === 2) {
+    setupOddOneOutRound();
+    renderOddOneOutRound();
   }
 
   updateTop();
 }
 
+function advanceAfterCorrect() {
+  setTimeout(() => {
+    nextRound();
+  }, 1000);
+}
+
+/* ---------------- CONVERGENCE ---------------- */
+
 function setupConvergenceRound() {
   state.promptItems = sample(state.currentCategory.items, 3).map(item => ({
     label: item[0],
     emoji: item[1],
-    category: state.currentCategory.name
+    category: state.currentCategory.name,
+    singular: state.currentCategory.singular
   }));
 }
 
@@ -691,11 +910,7 @@ function renderConvergenceRound() {
   ]);
 
   game.innerHTML = `
-    <div class="mission">Convergence Activity</div>
     <h2 class="prompt">What category do these belong to?</h2>
-    <p class="helper">
-      Choose the one category that matches all three items.
-    </p>
 
     <div class="example-row">
       ${state.promptItems.map(item => `
@@ -711,13 +926,10 @@ function renderConvergenceRound() {
       `).join("")}
     </div>
 
-    <div class="feedback" id="feedback">
-      Pick one answer.
-    </div>
+    <div class="feedback empty" id="feedback"></div>
 
     <div class="footer-actions">
-      <button class="secondary-btn" id="backToMenuBtn">Change activity</button>
-      <button class="primary-btn" id="nextBtn" disabled>Next round</button>
+      <button class="secondary-btn" id="backToMenuBtn">Return to menu</button>
     </div>
   `;
 
@@ -726,7 +938,6 @@ function renderConvergenceRound() {
   });
 
   document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
-  document.getElementById("nextBtn").addEventListener("click", nextRound);
 }
 
 function checkConvergenceAnswer(button) {
@@ -734,7 +945,6 @@ function checkConvergenceAnswer(button) {
 
   const answer = button.dataset.choice;
   const feedback = document.getElementById("feedback");
-  const nextBtn = document.getElementById("nextBtn");
 
   if (answer === state.currentCategory.name) {
     state.locked = true;
@@ -744,26 +954,31 @@ function checkConvergenceAnswer(button) {
 
     button.classList.add("correct");
     feedback.className = "feedback good";
-    feedback.innerHTML = `Correct. These are all <strong>${state.currentCategory.name}</strong>.`;
+    feedback.innerHTML = `Correct.`;
 
-    nextBtn.disabled = false;
     launchConfetti();
+    advanceAfterCorrect();
   } else {
     button.classList.add("wrong");
     feedback.className = "feedback bad";
-    feedback.innerHTML = `Try again. These items are not all ${answer}.`;
+    feedback.innerHTML = `Try again.`;
 
     setTimeout(() => {
       button.classList.remove("wrong");
-    }, 600);
+      feedback.className = "feedback empty";
+      feedback.innerHTML = "";
+    }, 700);
   }
 }
+
+/* ---------------- DIVERGENCE LEVEL 1 ---------------- */
 
 function setupDivergenceRound() {
   const targetItems = state.currentCategory.items.map(item => ({
     label: item[0],
     emoji: item[1],
     category: state.currentCategory.name,
+    singular: state.currentCategory.singular,
     target: true
   }));
 
@@ -780,15 +995,9 @@ function setupDivergenceRound() {
 
 function renderDivergenceRound() {
   const totalTargets = state.currentCategory.items.length;
-  const found = state.selectedIndexes.length;
-  const remaining = totalTargets - found;
 
   game.innerHTML = `
-    <div class="mission">Divergence Activity</div>
     <h2 class="prompt">Find all ${totalTargets} ${state.currentCategory.name}.</h2>
-    <p class="helper">
-      Select every item that belongs in this category.
-    </p>
 
     <div class="grid">
       ${state.gridItems.map((item, index) => {
@@ -802,17 +1011,12 @@ function renderDivergenceRound() {
       }).join("")}
     </div>
 
-    <div class="feedback ${state.roundComplete ? "good" : ""}" id="feedback">
-      ${
-        state.roundComplete
-        ? `Correct. You found all ${totalTargets} ${state.currentCategory.name}.`
-        : `Find ${remaining} more.`
-      }
+    <div class="feedback ${state.roundComplete ? "good" : "empty"}" id="feedback">
+      ${state.roundComplete ? `Correct.` : ""}
     </div>
 
     <div class="footer-actions">
-      <button class="secondary-btn" id="backToMenuBtn">Change activity</button>
-      <button class="primary-btn" id="nextBtn" ${state.roundComplete ? "" : "disabled"}>Next round</button>
+      <button class="secondary-btn" id="backToMenuBtn">Return to menu</button>
     </div>
   `;
 
@@ -821,7 +1025,6 @@ function renderDivergenceRound() {
   });
 
   document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
-  document.getElementById("nextBtn").addEventListener("click", nextRound);
 }
 
 function checkDivergenceItem(button) {
@@ -844,59 +1047,157 @@ function checkDivergenceItem(button) {
       score.textContent = state.score;
       renderDivergenceRound();
       launchConfetti();
+      advanceAfterCorrect();
     } else {
       renderDivergenceRound();
     }
   } else {
     button.classList.add("wrong");
     feedback.className = "feedback bad";
-    feedback.innerHTML = `${titleCase(item.label)} is not ${state.currentCategory.name}. Try again.`;
+    feedback.innerHTML = `Try again.`;
 
     setTimeout(() => {
       button.classList.remove("wrong");
-    }, 600);
+      feedback.className = "feedback empty";
+      feedback.innerHTML = "";
+    }, 700);
   }
 }
 
+/* ---------------- DIVERGENCE LEVEL 2 ---------------- */
+
+function setupOddOneOutRound() {
+  const categoryItems = sample(state.currentCategory.items, 3).map(item => ({
+    label: item[0],
+    emoji: item[1],
+    category: state.currentCategory.name,
+    singular: state.currentCategory.singular,
+    target: false
+  }));
+
+  const outlierCategory = sample(
+    cleanCategories.filter(category => category.name !== state.currentCategory.name),
+    1
+  )[0];
+
+  const outlierItemRaw = sample(outlierCategory.items, 1)[0];
+
+  const outlierItem = {
+    label: outlierItemRaw[0],
+    emoji: outlierItemRaw[1],
+    category: outlierCategory.name,
+    singular: outlierCategory.singular,
+    target: true
+  };
+
+  const mixed = shuffle([...categoryItems, outlierItem]);
+
+  state.oddItems = mixed;
+  state.oddAnswerIndex = mixed.findIndex(item => item.target === true);
+}
+
+function renderOddOneOutRound() {
+  game.innerHTML = `
+    <h2 class="prompt">Choose the one that does not belong.</h2>
+
+    <div class="worksheet-wrap">
+      <section class="worksheet-card">
+        <h3 class="worksheet-title">Which one doesn't belong? Why?</h3>
+
+        <div class="odd-grid">
+          ${state.oddItems.map((item, index) => {
+            const isCorrect = state.roundComplete && index === state.oddAnswerIndex;
+            return `
+              <button class="odd-card ${isCorrect ? "correct" : ""}" data-index="${index}">
+                ${itemHTML(item)}
+              </button>
+            `;
+          }).join("")}
+        </div>
+      </section>
+    </div>
+
+    <div class="feedback ${state.roundComplete ? "good" : "empty"}" id="feedback">
+      ${state.roundComplete ? `Correct.` : ""}
+    </div>
+
+    <div class="footer-actions">
+      <button class="secondary-btn" id="backToMenuBtn">Return to menu</button>
+    </div>
+  `;
+
+  document.querySelectorAll(".odd-card").forEach(button => {
+    button.addEventListener("click", () => checkOddOneOutAnswer(button));
+  });
+
+  document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
+}
+
+function checkOddOneOutAnswer(button) {
+  if (state.roundComplete) return;
+
+  const index = Number(button.dataset.index);
+  const feedback = document.getElementById("feedback");
+
+  if (index === state.oddAnswerIndex) {
+    state.roundComplete = true;
+    state.locked = true;
+    state.score++;
+    score.textContent = state.score;
+
+    renderOddOneOutRound();
+    launchConfetti();
+    advanceAfterCorrect();
+  } else {
+    button.classList.add("wrong");
+    feedback.className = "feedback bad";
+    feedback.innerHTML = `Try again.`;
+
+    setTimeout(() => {
+      button.classList.remove("wrong");
+      feedback.className = "feedback empty";
+      feedback.innerHTML = "";
+    }, 700);
+  }
+}
+
+/* ---------------- END / CONFETTI ---------------- */
+
 function showEndScreen() {
   progress.style.width = "100%";
-  modePill.textContent = "Complete";
-
-  const activityName = state.activity === "convergence" ? "Convergence" : "Divergence";
 
   game.innerHTML = `
-    <div class="mission">Activity complete</div>
-    <h2 class="prompt">${activityName} finished!</h2>
-    <p class="helper">
-      This prototype kept the activity focused on one target at a time.
-    </p>
+    <h2 class="prompt">Finished!</h2>
 
     <div class="feedback good">
       Score: <strong>${state.score}</strong> out of <strong>${state.totalRounds}</strong>
     </div>
 
     <div class="footer-actions">
-      <button class="secondary-btn" id="backToMenuBtn">Choose different activity</button>
+      <button class="secondary-btn" id="backToMenuBtn">Return to menu</button>
       <button class="primary-btn" id="playAgainBtn">Play again</button>
     </div>
   `;
 
   document.getElementById("backToMenuBtn").addEventListener("click", showActivityPicker);
-  document.getElementById("playAgainBtn").addEventListener("click", () => startActivity(state.activity));
+  document.getElementById("playAgainBtn").addEventListener("click", () => {
+    if (state.activity === "convergence") startConvergence();
+    if (state.activity === "divergence") startDivergence(state.divergenceLevel);
+  });
 }
 
 function launchConfetti() {
   const colors = ["#2f6173", "#2f8f5b", "#d9a431", "#b85c9e", "#e66b4d", "#6a7fd1"];
 
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < 44; i++) {
     const piece = document.createElement("div");
     piece.className = "confetti-piece";
     piece.style.left = `${Math.random() * 100}%`;
     piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.animationDelay = `${Math.random() * 180}ms`;
+    piece.style.animationDelay = `${Math.random() * 120}ms`;
     piece.style.transform = `rotate(${Math.random() * 180}deg)`;
 
-    game.appendChild(piece);
+    document.body.appendChild(piece);
 
     setTimeout(() => {
       piece.remove();
