@@ -618,6 +618,233 @@
       font-size: 2.4rem;
     }
 
+
+    .mobile-note {
+      background: rgba(255, 255, 255, 0.93);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      border-left: 8px solid var(--blue-600);
+      border-radius: 22px;
+      padding: 12px 14px;
+      margin: 0 0 12px;
+      color: var(--ink);
+      box-shadow: var(--soft-shadow);
+      line-height: 1.35;
+      font-size: 0.98rem;
+    }
+
+    .mobile-note strong {
+      color: var(--blue-900);
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 8px 10px 24px;
+      }
+
+      .tabs {
+        padding: 0 0 8px;
+        gap: 6px;
+      }
+
+      .tab-button {
+        border-radius: 18px;
+        padding: 10px 5px;
+        font-size: 0.9rem;
+        min-height: 48px;
+      }
+
+      .hero {
+        border-radius: 26px;
+        padding: 14px 13px 13px;
+        margin: 0 0 10px;
+      }
+
+      .hero::after {
+        right: 12px;
+        top: 12px;
+        font-size: 42px;
+      }
+
+      h1 {
+        margin-right: 52px;
+        font-size: clamp(1.75rem, 9vw, 2.8rem);
+        letter-spacing: -0.8px;
+      }
+
+      .status-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .status-card {
+        min-height: unset;
+        padding: 9px 7px;
+        border-radius: 17px;
+      }
+
+      .label {
+        font-size: 0.63rem;
+        letter-spacing: 0.045em;
+      }
+
+      .big {
+        font-size: clamp(1rem, 5vw, 1.35rem);
+        margin-top: 3px;
+      }
+
+      .small {
+        font-size: 0.72rem;
+        line-height: 1.15;
+      }
+
+      .progress-wrap {
+        height: 12px;
+        margin-top: 10px;
+      }
+
+      .controls {
+        gap: 8px;
+        margin: 8px 0;
+      }
+
+      button {
+        border-radius: 19px;
+        padding: 12px 13px;
+      }
+
+      .mobile-note {
+        border-radius: 18px;
+        padding: 10px 11px;
+        font-size: 0.88rem;
+        margin-bottom: 8px;
+      }
+
+      .section-title {
+        margin: 14px 4px 7px;
+        font-size: 1.12rem;
+      }
+
+      .routine,
+      .card-grid {
+        gap: 10px;
+      }
+
+      .step,
+      .rule-card {
+        border-radius: 22px;
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+        font-size: 1.55rem;
+      }
+
+      .step h2,
+      .rule-card h2,
+      .note-card h2 {
+        font-size: 1.12rem;
+      }
+
+      .step p,
+      .rule-card p,
+      .note-card p,
+      .choice-card p,
+      .story-card p,
+      .timer-card p {
+        font-size: 0.9rem;
+      }
+
+      .check {
+        min-height: 44px;
+        height: 44px;
+        border-radius: 15px;
+      }
+
+      .choice-card,
+      .note-card,
+      .story-card,
+      .timer-card {
+        border-radius: 22px;
+        padding: 13px;
+      }
+
+      .choice-card h2,
+      .story-card h2,
+      .timer-card h2 {
+        font-size: 1.28rem;
+      }
+
+      .choice {
+        min-height: 62px;
+      }
+
+      .toy-strip {
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .toy-tile {
+        min-height: 68px;
+        border-radius: 20px;
+        font-size: 2rem;
+      }
+
+      .story-box {
+        max-height: 280px;
+        font-size: 0.92rem;
+        padding: 13px;
+      }
+
+      .timer-display {
+        width: min(280px, 100%);
+        margin: 10px auto;
+      }
+
+      .timer-display::before {
+        inset: 14px;
+      }
+
+      .timer-time {
+        font-size: clamp(2.8rem, 15vw, 4.4rem);
+      }
+
+      .timer-label {
+        font-size: 0.9rem;
+      }
+
+      .footer {
+        margin-top: 14px;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .tab-button {
+        font-size: 0.78rem;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status-card {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 8px;
+        align-items: baseline;
+      }
+
+      .status-card .small {
+        grid-column: 1 / -1;
+      }
+    }
+
     @media (max-width: 760px) {
       .toy-strip {
         grid-template-columns: repeat(2, 1fr);
@@ -660,6 +887,58 @@
         padding-top: max(18px, env(safe-area-inset-top));
       }
     }
+
+    .region-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.78);
+      border: 2px solid rgba(45,108,223,0.14);
+      border-radius: 22px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .filter-title {
+      width: 100%;
+      color: var(--blue-900);
+      font-weight: 950;
+      font-size: 0.95rem;
+    }
+
+    .region-filters label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 10px;
+      border-radius: 999px;
+      background: white;
+      color: var(--blue-900);
+      border: 2px solid rgba(45,108,223,0.12);
+      font-weight: 900;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+
+    .region-filters input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue-600);
+    }
+
+    @media (max-width: 760px) {
+      .region-filters {
+        gap: 6px;
+        padding: 10px;
+      }
+
+      .region-filters label {
+        font-size: 0.82rem;
+        padding: 8px 9px;
+      }
+    }
+
   </style>
 </head>
 <body class="theme-bedtime">
@@ -696,8 +975,13 @@
     </section>
 
     <section class="controls">
-      <button class="primary" id="enableNotifications">🔔 Enable bedtime alerts</button>
+      <button class="primary" id="enableNotifications">🔔 Enable helper alerts while app is open</button>
       <button class="secondary" id="resetTonight">🌙 Reset tonight</button>
+    </section>
+
+
+    <section class="mobile-note" aria-label="Reminder reliability note">
+      <strong>Reliable reminder tip:</strong> Use phone alarms for <b>7:30 PM</b> and <b>8:00 PM</b>. These web alerts are helper alerts and only work when the browser/app is active enough to run.
     </section>
 
     <section class="tab-panel active" id="bedtime">
@@ -778,12 +1062,33 @@
         <p>Choose a bedtime story.</p>
         <div class="story-controls">
           <select id="storySelect" aria-label="Choose bedtime story">
-            <option value="gilgamesh">The Epic of Gilgamesh</option>
-            <option value="rapunzel">Rapunzel</option>
-            <option value="tailor">The Brave Little Tailor</option>
+            <option value="aliBaba" data-region="Middle East">Ali Baba and the Forty Thieves — Middle East</option>
+            <option value="tailor" data-region="Central Europe">The Brave Little Tailor — Central Europe</option>
+            <option value="cruelMotherInLaw" data-region="Mesopotamia">The Cruel Mother-In-Law — Mesopotamia</option>
+            <option value="gilgamesh" data-region="Mesopotamia">The Epic of Gilgamesh — Ancient Mesopotamia</option>
+            <option value="fartingSisters" data-region="Levant">The Farting Sisters — Historic Palestine</option>
+            <option value="fishermanWife" data-region="Central Europe">The Fisherman and His Wife — Pomerania</option>
+            <option value="pumpkin" data-region="Balkans">The Pumpkin — Greek lands</option>
+            <option value="pussInBoots" data-region="Western Europe">Puss in Boots — Western Europe</option>
+            <option value="rapunzel" data-region="Central Europe">Rapunzel — German lands</option>
+            <option value="redSlipper" data-region="Jewish diaspora">The Red Slipper — Jewish diaspora</option>
+            <option value="rumpelstiltskin" data-region="Central Europe">Rumpelstiltskin — German lands</option>
+            <option value="serpentWife" data-region="Eastern Europe">The Serpent Wife — Cossack lands</option>
           </select>
-          <button class="primary" id="readStory">📖 Show story</button>
+          <button class="primary" id="readStory">📖 Show selected story</button>
         </div>
+        <div class="region-filters" aria-label="Filter stories by region">
+          <div class="filter-title">Show regions</div>
+          <label><input type="checkbox" class="region-check" value="Balkans" checked> Balkans</label>
+          <label><input type="checkbox" class="region-check" value="Central Europe" checked> Central Europe</label>
+          <label><input type="checkbox" class="region-check" value="Eastern Europe" checked> Eastern Europe</label>
+          <label><input type="checkbox" class="region-check" value="Jewish diaspora" checked> Jewish diaspora</label>
+          <label><input type="checkbox" class="region-check" value="Levant" checked> Levant</label>
+          <label><input type="checkbox" class="region-check" value="Mesopotamia" checked> Mesopotamia</label>
+          <label><input type="checkbox" class="region-check" value="Middle East" checked> Middle East</label>
+          <label><input type="checkbox" class="region-check" value="Western Europe" checked> Western Europe</label>
+        </div>
+
         <div class="story-box" id="storyBox"></div>
       </section>
     </section>
@@ -1035,7 +1340,161 @@ Some people still doubted him because he was only a tailor. One night they plann
 
 The listeners grew frightened and ran away. No one dared trouble him again.
 
-And so the little tailor, who used courage, cleverness, and a little bold bragging, lived happily as a brave and clever king.`
+And so the little tailor, who used courage, cleverness, and a little bold bragging, lived happily as a brave and clever king.`,
+
+      fartingSisters: `The Farting Sisters
+
+Once there were two sisters who married two brothers. One household was rich, and the other was poor. The poor sister had very little, but she still had spirit, stubbornness, and a strange problem that made everyone laugh: whenever she was nervous, surprised, or trying to be polite, she farted loudly.
+
+Her rich sister was ashamed of her and tried to make herself seem better. She showed off her nice things, her full pantry, and her fine house. But the poor sister kept visiting anyway, because sisters are sisters, even when one of them is unkind.
+
+One day, the poor sister’s embarrassing trouble caused a great commotion. People laughed, people shouted, and the rich sister thought it was the worst thing in the world. But the poor sister discovered that what embarrassed her could also save her. Her loud farts startled people, scattered troublemakers, and made serious adults act silly.
+
+Soon the poor sister was no longer treated as helpless. Her strange gift became part of the adventure. She used timing, boldness, and a little noisy surprise to get through danger and confusion.
+
+In the end, the story turns the joke around. The sister who seemed poor and shameful proves clever and resilient, while the sister who only cared about status learns that pride can make people foolish.
+
+And whenever Jameson hears this story, he may laugh, because some old folktales knew a secret: sometimes the funniest thing in the room is also the thing that changes the whole story.`,
+
+      pussInBoots: `Puss in Boots
+
+A miller died and left his sons what little he had. The eldest received the mill, the second received the donkey, and the youngest received only the cat.
+
+The youngest son thought he had been left with nothing useful. But the cat spoke up and said, “Give me a pair of boots and a bag, and you will see what I can do.”
+
+So the young man gave the cat boots and a bag. Puss set out like a clever gentleman. He caught rabbits and birds, then brought them to the king as gifts from his master, whom he called the Marquis of Carabas.
+
+The king was pleased. Again and again, Puss brought fine gifts, always using the grand name he had invented.
+
+One day, when the king and princess were riding by, Puss told his master to bathe in the river. Then Puss hid the young man’s clothes and cried out that the Marquis of Carabas had been robbed. The king sent fine clothes, and the young man looked noble indeed.
+
+Puss ran ahead and told the workers in the fields to say the land belonged to the Marquis of Carabas, or else there would be trouble. So when the king asked whose fields they were, everyone answered, “The Marquis of Carabas.”
+
+At last Puss came to the castle of a powerful ogre. The ogre could turn into any animal. To prove it, he became a lion, and Puss trembled. Then Puss cleverly asked whether he could become something tiny, like a mouse. The proud ogre changed into a mouse, and Puss pounced.
+
+When the king arrived, Puss welcomed him to the castle of the Marquis of Carabas. The king was impressed, the princess liked the young man, and the young man became a great lord.
+
+Puss kept his boots and lived comfortably, because a clever cat should never be underestimated.`,
+
+      fishermanWife: `The Fisherman and His Wife
+
+A poor fisherman lived with his wife in a small hut near the sea. One day he caught a strange flounder who spoke with a human voice.
+
+“Please let me go,” said the fish. “I am not an ordinary fish.”
+
+The fisherman was kind and released him. When he told his wife, she said he should have asked for a reward. She sent him back to the sea to ask for a better house.
+
+The fisherman called to the flounder, and the fish granted the wish. The hut became a fine cottage.
+
+But the wife was not satisfied for long. She wanted to be rich. Then she wanted to live in a castle. Then she wanted to be queen. Each time, the fisherman returned to the sea, and each time the water grew darker and rougher.
+
+The flounder granted the wishes, but the wife’s wanting only grew. She wanted to be emperor. Then pope. Still she was not content.
+
+At last she wanted to command the sun and moon themselves. The fisherman went to the stormy sea and made the terrible request.
+
+The flounder said only, “Go home.”
+
+When the fisherman returned, the grand palaces were gone. His wife sat again in the small hut.
+
+And so the story reminds listeners that wanting more and more can make someone lose sight of what was already enough.`,
+
+      rumpelstiltskin: `Rumpelstiltskin
+
+A miller once bragged to the king that his daughter could spin straw into gold. This was not true, but the king believed him. He locked the daughter in a room full of straw and told her to spin it into gold by morning.
+
+The girl cried because she could not do it. Then a strange little man appeared and offered to help. For her necklace, he spun the straw into gold.
+
+The king wanted more. The next night, the girl gave the little man her ring, and again he spun straw into gold.
+
+On the third night, she had nothing left to give. The little man said he would help if she promised him her first child when she became queen. Frightened and desperate, she agreed.
+
+The king married her, and later she had a baby. The little man returned to claim the child. The queen begged him not to take the baby.
+
+He gave her three days to discover his name. If she guessed it, she could keep her child.
+
+The queen sent messengers everywhere. They brought back many names, but none were right. Then one messenger saw the little man dancing near a fire and singing that his name was Rumpelstiltskin.
+
+The queen waited. When the little man came, she guessed wrong names first. Then she said, “Is your name Rumpelstiltskin?”
+
+He was furious, because she had discovered the secret.
+
+The queen kept her child, and the strange little man disappeared from her life forever.`,
+
+      aliBaba: `Ali Baba and the Forty Thieves
+
+Ali Baba was a poor woodcutter. One day, while gathering wood, he saw forty thieves ride to a hidden cave. Their leader called, “Open, Sesame!” and the cave opened. Inside was treasure.
+
+After the thieves left, Ali Baba said the magic words. The cave opened, and he took only a little treasure home.
+
+His brother Cassim learned the secret and went to the cave himself. Greedy and excited, he went inside and gathered riches, but he forgot the words to leave. The thieves found him.
+
+Ali Baba later found what had happened and brought his brother home. But now the thieves knew someone else had discovered the cave.
+
+The cleverest person in Ali Baba’s house was Morgiana, a brave servant. She noticed danger before anyone else did. When the thieves marked Ali Baba’s door, she marked many doors the same way and confused them.
+
+Later the thieves tried to hide in oil jars to attack the household. Morgiana discovered the trick and stopped them.
+
+Finally, the leader of the thieves came disguised as a guest. Morgiana recognized him, danced at the feast, and saved Ali Baba again.
+
+Ali Baba was grateful. Morgiana’s courage and cleverness saved the family, and the secret of the cave no longer belonged to the thieves.
+
+And so the story teaches that treasure is useful, but wisdom and quick thinking are worth even more.`,
+
+      cruelMotherInLaw: `The Cruel Mother-In-Law
+
+Once there was a young wife who came to live with her husband’s family. She tried to be patient, helpful, and respectful, but her mother-in-law was harsh with her. No matter what the young wife did, the older woman found fault.
+
+If the young wife cooked, the food was wrong. If she cleaned, the room was not clean enough. If she was quiet, she was called lazy. If she spoke, she was called rude.
+
+The young wife did not want to make the household worse, so she watched carefully and learned what everyone truly needed. She learned which neighbors were kind, which relatives were proud, and which moments required silence instead of argument.
+
+One day, the mother-in-law set a task that seemed impossible. She wanted the young wife to prove herself in front of the whole family. The young wife did not shout or cry. Instead, she used cleverness. She solved the problem in a way that made everyone see the truth: cruelty had made the house unhappy, not the young wife.
+
+The family began to understand. The husband saw his wife’s patience. The neighbors saw her wisdom. Even the mother-in-law, embarrassed by her own behavior, could no longer pretend that meanness was strength.
+
+The young wife stayed calm, kept her dignity, and changed the household not by becoming cruel herself, but by being wiser than cruelty.
+
+And so the tale says that patience is not weakness, and a kind person with a clear mind can outlast unfairness.`,
+
+      serpentWife: `The Serpent Wife
+
+There was once a lonely laborer who often walked by himself through the woods. The other workers laughed at him because he did not spend his evenings with them, but he had a secret. Deep in the forest, he visited a mysterious wife who was not like ordinary people.
+
+She was connected to the serpent world. In her own hidden place, she was beautiful, powerful, and strange. She cared for him and gave him food, comfort, and gifts, but she warned him that he must respect her secret.
+
+The laborer’s companions grew curious. They teased him, followed him, and tried to discover where he went. At last the secret came out, and the fragile trust between the human world and the hidden world was broken.
+
+The serpent wife was not simply a monster. She was a being with her own laws, her own dignity, and her own magic. When people treated her secret as something to steal or mock, everything changed.
+
+Depending on how the tale is told, the laborer loses her, or must search for her, or learns too late that wonder cannot be kept by someone who lets others laugh at it.
+
+And so the story becomes a warning: some gifts come with promises, and some promises must be protected even when other people do not understand them.`,
+
+      redSlipper: `The Red Slipper
+
+Rosy-Red was a kind girl with bright hair and a gentle heart. Her mother had died when she was very young, and her grandmother cared for her with love.
+
+One day, Rosy-Red received a beautiful red slipper. It was not just pretty; it became part of a path that would test her courage and goodness.
+
+As in many old stories, there were people who judged by appearances. Some looked at wealth, some looked at status, and some did not notice quiet kindness. Rosy-Red had to move through a world where a small object, like a slipper, could reveal a much larger truth.
+
+The red slipper passed through trouble, misunderstanding, and discovery. It helped identify Rosy-Red not only by what she wore, but by who she was: patient, brave, and worthy of love.
+
+At the end, the right person was recognized, wrongs were set right, and Rosy-Red’s goodness mattered more than jealousy or pride.
+
+And so the tale reminds listeners that a small sign can reveal a hidden truth, but a good heart is the real treasure.`,
+
+      pumpkin: `The Pumpkin
+
+Once there was a pumpkin that was not content to be only a pumpkin in a field. Round, orange, and full of surprise, it rolled into a story where ordinary things became magical.
+
+People saw the pumpkin and thought they understood it. A pumpkin was food, or decoration, or something to be carried away. But this pumpkin had a destiny. It tumbled down paths, bumped along roads, and brought wonder wherever it went.
+
+In some tellings, the pumpkin hides a secret. In others, it helps a poor girl, tests a family, or brings a strange little miracle into the house. The people who are greedy or unkind misunderstand it. The people who are patient and generous discover that the pumpkin is more than it seems.
+
+The pumpkin’s round shape makes it funny, but its story is also about transformation. Something plain can become precious. Something laughed at can become important. Something small in a garden can roll into a great adventure.
+
+By the end, the pumpkin has changed the fortunes of the people around it, and everyone remembers that magic does not always arrive with trumpets and crowns. Sometimes it arrives quietly, from the garden, round and orange and full of possibility.`
     };
 
     const defaultState = () => ({
@@ -1061,6 +1520,60 @@ And so the little tailor, who used courage, cleverness, and a little bold braggi
     const toast = document.getElementById("toast");
     const storyBox = document.getElementById("storyBox");
     const timerTime = document.getElementById("timerTime");
+
+    const storySelect = document.getElementById("storySelect");
+    const originalStoryOptions = Array.from(storySelect.options).map(option => ({
+      value: option.value,
+      label: option.textContent,
+      region: option.dataset.region
+    }));
+
+    function selectedRegions() {
+      return Array.from(document.querySelectorAll(".region-check"))
+        .filter(box => box.checked)
+        .map(box => box.value);
+    }
+
+    function updateStoryDropdown() {
+      const allowedRegions = selectedRegions();
+      const currentValue = storySelect.value;
+      const matchingStories = originalStoryOptions.filter(story => allowedRegions.includes(story.region));
+
+      storySelect.innerHTML = "";
+
+      if (matchingStories.length === 0) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No stories match the selected regions";
+        storySelect.appendChild(option);
+        storySelect.disabled = true;
+        document.getElementById("readStory").disabled = true;
+        storyBox.textContent = "Check at least one region to choose a story.";
+        return;
+      }
+
+      storySelect.disabled = false;
+      document.getElementById("readStory").disabled = false;
+
+      matchingStories.forEach(story => {
+        const option = document.createElement("option");
+        option.value = story.value;
+        option.textContent = story.label;
+        option.dataset.region = story.region;
+        storySelect.appendChild(option);
+      });
+
+      if (matchingStories.some(story => story.value === currentValue)) {
+        storySelect.value = currentValue;
+      }
+
+      storyBox.textContent = "Choose a story above, then tap “Show selected story.”";
+    }
+
+    document.querySelectorAll(".region-check").forEach(box => {
+      box.addEventListener("change", updateStoryDropdown);
+    });
+
     const timerLabel = document.getElementById("timerLabel");
     const timerDisplay = document.getElementById("timerDisplay");
 
@@ -1109,8 +1622,8 @@ And so the little tailor, who used courage, cleverness, and a little bold braggi
 
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
-        showToast("Bedtime alerts are enabled for this page. Keep it open or installed for best results. 🔔");
-        notify("Bedtime alerts enabled", "You should receive reminders at 7:30 PM and 8:00 PM when this page is active.");
+        showToast("Helper alerts are enabled. Keep this app open or installed for best results. 🔔");
+        notify("Helper alerts enabled", "This app can remind you at 7:30 PM and 8:00 PM while the browser/app is active enough to run.");
       } else {
         showToast("Notifications were not enabled. You can still use the checklist.");
       }
@@ -1366,7 +1879,7 @@ And so the little tailor, who used courage, cleverness, and a little bold braggi
       toastTimer = setTimeout(() => toast.classList.remove("show"), 4200);
     }
 
-    storyBox.textContent = stories.gilgamesh;
+    updateStoryDropdown();
     render();
     tickClock();
     setInterval(tickClock, 15000);
