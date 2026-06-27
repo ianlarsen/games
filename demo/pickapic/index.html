@@ -4,27 +4,31 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pick-a-Pic</title>
+
 <style>
   :root {
     --bg: #fff7dc;
     --card: #ffffff;
     --ink: #243047;
     --accent: #ffb703;
-    --good: #4caf50;
-    --bad: #ff5c5c;
+    --accent-dark: #d99100;
+    --good: #20b15a;
     --blue: #219ebc;
+    --soft-blue: #dff6ff;
+    --shadow: rgba(0, 0, 0, 0.14);
   }
 
   * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: radial-gradient(circle at top, #fff3b0, var(--bg));
-    color: var(--ink);
     min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, #fff1a8, var(--bg));
+    color: var(--ink);
     display: flex;
     justify-content: center;
   }
@@ -32,7 +36,7 @@
   .app {
     width: 100%;
     max-width: 520px;
-    padding: 18px;
+    padding: 16px;
   }
 
   header {
@@ -42,42 +46,49 @@
 
   h1 {
     margin: 0;
-    font-size: 2.4rem;
-    letter-spacing: 1px;
+    font-size: clamp(2rem, 9vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #16324f;
   }
 
   .subtitle {
+    margin-top: 4px;
     font-size: 1rem;
+    font-weight: 650;
     opacity: 0.8;
   }
 
   .card {
     background: var(--card);
     border-radius: 28px;
-    padding: 18px;
-    box-shadow: 0 10px 0 #e0c56a, 0 16px 28px rgba(0,0,0,0.12);
+    padding: 16px;
     border: 4px solid #ffe08a;
+    box-shadow: 0 10px 0 #e0c56a, 0 16px 28px var(--shadow);
   }
 
   .topbar {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 10px;
-    margin-bottom: 16px;
-    font-weight: 800;
+    margin-bottom: 12px;
+    font-weight: 900;
   }
 
   .pill {
-    background: #f0f9ff;
-    border: 3px solid #bdeaff;
+    background: var(--soft-blue);
+    border: 3px solid #abe9ff;
     padding: 8px 12px;
     border-radius: 999px;
+    min-width: 72px;
+    text-align: center;
   }
 
   .question {
     text-align: center;
-    font-size: clamp(1.7rem, 7vw, 2.5rem);
-    font-weight: 900;
+    font-size: clamp(1.65rem, 7vw, 2.45rem);
+    font-weight: 950;
     line-height: 1.1;
     margin: 14px 0 18px;
   }
@@ -85,6 +96,7 @@
   .word {
     color: var(--blue);
     text-decoration: underline;
+    text-underline-offset: 4px;
   }
 
   .choices {
@@ -93,80 +105,130 @@
     gap: 14px;
   }
 
-  button.choice {
+  button {
+    font-family: inherit;
+  }
+
+  .choice {
     aspect-ratio: 1 / 1;
     border-radius: 26px;
-    border: 4px solid #d9e8ee;
-    background: #fff;
-    font-size: clamp(3.2rem, 18vw, 5.5rem);
+    border: 4px solid #d8ecf2;
+    background: #ffffff;
+    font-size: clamp(3.3rem, 18vw, 5.7rem);
     cursor: pointer;
-    box-shadow: 0 7px 0 #c8d8df;
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    box-shadow: 0 7px 0 #c6dbe1;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  button.choice:active {
+  .choice:active {
     transform: translateY(5px);
-    box-shadow: 0 2px 0 #c8d8df;
+    box-shadow: 0 2px 0 #c6dbe1;
   }
 
-  button.correct {
+  .choice.correct {
     border-color: var(--good);
-    background: #eaffea;
+    background: #dbffe9;
+    box-shadow: 0 7px 0 #129346;
   }
 
-  button.wrong {
-    border-color: var(--bad);
-    background: #ffecec;
+  .choice.disabled {
+    pointer-events: none;
   }
 
   .feedback {
-    min-height: 42px;
+    min-height: 44px;
     margin-top: 16px;
     font-size: 1.35rem;
-    font-weight: 900;
+    font-weight: 950;
     text-align: center;
+    color: #16324f;
   }
 
   .controls {
     display: flex;
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 14px;
   }
 
   .controls button {
     flex: 1;
     border: 0;
     border-radius: 18px;
-    padding: 14px;
+    padding: 15px 12px;
     font-size: 1.05rem;
-    font-weight: 900;
+    font-weight: 950;
     background: var(--accent);
     color: var(--ink);
-    box-shadow: 0 5px 0 #d99100;
+    box-shadow: 0 5px 0 var(--accent-dark);
+    cursor: pointer;
   }
 
   .controls button:active {
     transform: translateY(4px);
-    box-shadow: 0 1px 0 #d99100;
+    box-shadow: 0 1px 0 var(--accent-dark);
   }
 
   .pop {
     animation: pop 0.35s ease;
   }
 
+  .shake {
+    animation: shake 0.25s ease;
+  }
+
   @keyframes pop {
     0% { transform: scale(1); }
-    50% { transform: scale(1.18) rotate(-3deg); }
+    50% { transform: scale(1.15) rotate(-3deg); }
     100% { transform: scale(1); }
   }
 
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-7px); }
+    50% { transform: translateX(7px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+  }
+
   .done {
+    grid-column: 1 / -1;
     text-align: center;
-    font-size: 1.4rem;
-    font-weight: 800;
+    font-size: 1.45rem;
+    line-height: 1.35;
+    font-weight: 900;
+    padding: 24px 12px;
+  }
+
+  .big-emoji {
+    font-size: 4.5rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 360px) {
+    .app {
+      padding: 10px;
+    }
+
+    .card {
+      padding: 12px;
+      border-radius: 24px;
+    }
+
+    .choices {
+      gap: 10px;
+    }
+
+    .choice {
+      border-radius: 22px;
+    }
   }
 </style>
 </head>
+
 <body>
   <main class="app">
     <header>
@@ -199,7 +261,7 @@ const questions = [
     prompt: "Which picture is heavy?",
     word: "heavy",
     answer: "🛏️",
-    choices: ["❄️", "✉️", "🎈", "🛏️"]
+    choices: ["🛏️", "🎈", "🪶", "❄️"]
   },
   {
     prompt: "Which picture is light?",
@@ -208,58 +270,70 @@ const questions = [
     choices: ["🗄️", "🪶", "🚗", "🚜"]
   },
   {
-    prompt: "Which picture is new?",
-    word: "new",
-    answer: "🎁",
-    choices: ["☎️", "🪆", "🎁", "📰"]
+    prompt: "Which picture is tall?",
+    word: "tall",
+    answer: "🌳",
+    choices: ["🌳", "🌷", "🐜", "🪨"]
   },
   {
-    prompt: "Which picture is old?",
-    word: "old",
-    answer: "☎️",
-    choices: ["🍌", "🎁", "👦", "☎️"]
+    prompt: "Which picture is short?",
+    word: "short",
+    answer: "🌷",
+    choices: ["🦒", "🌷", "🏙️", "🌳"]
+  },
+  {
+    prompt: "Which picture is big?",
+    word: "big",
+    answer: "🐘",
+    choices: ["🐘", "🐭", "🐞", "🐜"]
+  },
+  {
+    prompt: "Which picture is small?",
+    word: "small",
+    answer: "🐭",
+    choices: ["🐘", "🦛", "🐭", "🚌"]
   },
   {
     prompt: "Which picture is cold?",
     word: "cold",
     answer: "🍦",
-    choices: ["☕", "☀️", "🍦", "🍲"]
+    choices: ["☕", "☀️", "🍦", "🔥"]
   },
   {
     prompt: "Which picture is hot?",
     word: "hot",
     answer: "🔥",
-    choices: ["🥤", "🧃", "👕", "🔥"]
+    choices: ["🥤", "🧊", "👕", "🔥"]
   },
   {
     prompt: "Which picture is fast?",
     word: "fast",
     answer: "🚀",
-    choices: ["🐌", "🚀", "🎈", "🐧"]
+    choices: ["🐌", "🚀", "🎈", "🐢"]
   },
   {
     prompt: "Which picture is slow?",
     word: "slow",
     answer: "🐢",
-    choices: ["⚽", "🐝", "⛷️", "🐢"]
+    choices: ["⚽", "🚀", "✈️", "🐢"]
   },
   {
     prompt: "Which picture is quiet?",
     word: "quiet",
-    answer: "🐭",
-    choices: ["🧨", "🎵", "🐭", "🥁"]
+    answer: "🤫",
+    choices: ["🥁", "🎆", "🤫", "📣"]
   },
   {
     prompt: "Which picture is loud?",
     word: "loud",
-    answer: "⛈️",
-    choices: ["🧘", "🔥", "🌊", "⛈️"]
+    answer: "🥁",
+    choices: ["🦋", "🤫", "🥁", "🐭"]
   }
 ];
 
-let index = 0;
+let currentIndex = 0;
 let score = 0;
-let locked = false;
+let answered = false;
 
 const questionEl = document.getElementById("question");
 const choicesEl = document.getElementById("choices");
@@ -271,23 +345,34 @@ const restartBtn = document.getElementById("restartBtn");
 
 function speak(text) {
   if (!window.speechSynthesis) return;
-  speechSynthesis.cancel();
-  const voice = new SpeechSynthesisUtterance(text);
-  voice.rate = 0.9;
-  speechSynthesis.speak(voice);
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.88;
+  utterance.pitch = 1.05;
+  window.speechSynthesis.speak(utterance);
 }
 
 function shuffle(array) {
-  return [...array].sort(() => Math.random() - 0.5);
+  const copy = [...array];
+
+  for (let i = copy.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
+  }
+
+  return copy;
 }
 
 function renderQuestion() {
-  locked = false;
-  feedbackEl.textContent = "";
+  answered = false;
 
-  const q = questions[index];
-  roundEl.textContent = `${index + 1} / ${questions.length}`;
+  const q = questions[currentIndex];
+
+  roundEl.textContent = `${currentIndex + 1} / ${questions.length}`;
   scoreEl.textContent = `⭐ ${score}`;
+  feedbackEl.textContent = "";
 
   questionEl.innerHTML = q.prompt.replace(
     q.word,
@@ -296,62 +381,83 @@ function renderQuestion() {
 
   choicesEl.innerHTML = "";
 
-  shuffle(q.choices).forEach(choice => {
-    const btn = document.createElement("button");
-    btn.className = "choice";
-    btn.textContent = choice;
-    btn.setAttribute("aria-label", choice);
-    btn.onclick = () => checkAnswer(btn, choice);
-    choicesEl.appendChild(btn);
+  const shuffledChoices = shuffle(q.choices);
+
+  shuffledChoices.forEach(choice => {
+    const button = document.createElement("button");
+    button.className = "choice";
+    button.textContent = choice;
+    button.setAttribute("aria-label", choice);
+    button.addEventListener("click", () => checkAnswer(button, choice));
+    choicesEl.appendChild(button);
   });
 
   speak(q.prompt);
 }
 
 function checkAnswer(button, choice) {
-  if (locked) return;
+  const q = questions[currentIndex];
 
-  const q = questions[index];
+  if (answered) return;
 
   if (choice === q.answer) {
-    locked = true;
+    answered = true;
     score++;
+
     button.classList.add("correct", "pop");
     feedbackEl.textContent = "Pop! You got it!";
     scoreEl.textContent = `⭐ ${score}`;
+
+    document.querySelectorAll(".choice").forEach(btn => {
+      btn.classList.add("disabled");
+    });
+
     speak("Pop! You got it!");
   } else {
-    button.classList.add("wrong");
+    button.classList.add("shake");
     feedbackEl.textContent = "Try again!";
-    speak("Try again");
+    speak("Try again.");
+
+    setTimeout(() => {
+      button.classList.remove("shake");
+    }, 300);
   }
 }
 
 function nextQuestion() {
-  if (index < questions.length - 1) {
-    index++;
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
     renderQuestion();
   } else {
-    showDone();
+    showFinishedScreen();
   }
 }
 
-function showDone() {
+function showFinishedScreen() {
   questionEl.textContent = "Great job!";
-  choicesEl.innerHTML = `<div class="done">You got ${score} out of ${questions.length}! 🎉</div>`;
-  feedbackEl.textContent = "";
   roundEl.textContent = "Done";
+  scoreEl.textContent = `⭐ ${score}`;
+  feedbackEl.textContent = "";
+
+  choicesEl.innerHTML = `
+    <div class="done">
+      <span class="big-emoji">🎉</span>
+      You got ${score} out of ${questions.length}!<br>
+      Nice picking!
+    </div>
+  `;
+
   speak(`Great job! You got ${score} out of ${questions.length}.`);
 }
 
 function restartGame() {
-  index = 0;
+  currentIndex = 0;
   score = 0;
   renderQuestion();
 }
 
-nextBtn.onclick = nextQuestion;
-restartBtn.onclick = restartGame;
+nextBtn.addEventListener("click", nextQuestion);
+restartBtn.addEventListener("click", restartGame);
 
 renderQuestion();
 </script>
