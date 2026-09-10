@@ -109,6 +109,10 @@
       margin-bottom: 14px;
     }
 
+    .topbar.hidden {
+      display: none;
+    }
+
     .brand {
       display: flex;
       align-items: center;
@@ -683,7 +687,7 @@
     }
 
     @media (orientation: landscape) {
-      .app::after {
+      .is-ipad .app::after {
         position: fixed;
         z-index: 200;
         inset: 0;
@@ -748,9 +752,14 @@
 
     const STORAGE_KEY = "mobile-spelling-quest-v1";
     const screen = document.getElementById("screen");
+    const topbar = document.querySelector(".topbar");
     const levelPill = document.getElementById("levelPill");
     const audio = new Audio();
     audio.preload = "auto";
+
+    const isIPad = /iPad/i.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    document.body.classList.toggle("is-ipad", isIPad);
 
     let state = loadState();
     let selectedWord = null;
@@ -857,6 +866,7 @@
     }
 
     function updateHeader(showLevel = false) {
+      topbar.classList.toggle("hidden", !showLevel);
       levelPill.classList.toggle("visible", showLevel);
       levelPill.textContent = showLevel ? `Level ${state.level} · ${levelName(state.level)}` : "";
     }
@@ -867,14 +877,11 @@
       screen.innerHTML = `
         <div class="card hero">
           <div class="hero-orbit" aria-hidden="true">🚀</div>
-          <p class="eyebrow">Ready, word explorer?</p>
           <h1>Spelling Quest</h1>
-          <p class="subtitle">Listen, play, and spell your way through three fun levels!</p>
           <button class="primary-button wide-button" id="startButton">
             <span aria-hidden="true">${hasProgress ? "▶" : "★"}</span>
             ${hasProgress ? "Keep Going" : "Start the Quest"}
           </button>
-          ${hasProgress ? '<p class="resume-note">Your progress is saved on this iPad.</p>' : ""}
         </div>
       `;
       document.getElementById("startButton").addEventListener("click", () => {
@@ -938,12 +945,10 @@
       screen.innerHTML = `
         ${progressMarkup()}
         <div class="round-card" id="roundCard">
-          <p class="eyebrow">Drag the best word</p>
           <h2>Finish the sentence</h2>
-          <p class="helper">Tap any word to hear it. Drag it to the blank, or tap it and then tap the blank.</p>
           ${trickyBadge(target)}
           <p class="sentence">
-            ${escapeHtml(sentenceParts[0])}<button class="drop-zone" id="dropZone" aria-label="Sentence blank">drop here</button>${escapeHtml(sentenceParts[1] || "")}
+            ${escapeHtml(sentenceParts[0])}<button class="drop-zone" id="dropZone" aria-label="Sentence blank">blank</button>${escapeHtml(sentenceParts[1] || "")}
           </p>
           <div class="choices" id="choices">
             ${choices.map((item) => `
@@ -1068,7 +1073,6 @@
         <div class="round-card" id="roundCard">
           <p class="eyebrow">Listen and spell</p>
           <h2>Build the word</h2>
-          <p class="helper">Type one letter in each space.</p>
           <div class="audio-stage">
             <div class="emoji-bubble" aria-hidden="true">${target.emoji}</div>
             <button class="sound-button" id="soundButton" aria-label="Play the spelling word again">
@@ -1109,7 +1113,6 @@
         <div class="round-card" id="roundCard">
           <p class="eyebrow">Final challenge</p>
           <h2>Spell what you hear</h2>
-          <p class="helper">This time there are no letter clues. You can do it!</p>
           <div class="audio-stage">
             <div class="emoji-bubble" aria-hidden="true">${target.emoji}</div>
             <button class="sound-button" id="soundButton" aria-label="Play the spelling word again">
@@ -1234,7 +1237,7 @@
           item.setAttribute("aria-pressed", "false");
         });
         const dropZone = document.getElementById("dropZone");
-        dropZone.textContent = "drop here";
+        dropZone.textContent = "blank";
         dropZone.setAttribute("aria-label", "Sentence blank");
         dropZone.classList.remove("ready");
       }
