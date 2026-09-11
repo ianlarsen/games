@@ -837,14 +837,35 @@
           1: shuffled(WORDS.map((item) => item.word)),
           2: shuffled(WORDS.map((item) => item.word)),
           3: shuffled(WORDS.map((item) => item.word))
-        }
+        },
+        mastered: { 1: [], 2: [], 3: [] },
+        roundHadError: false
       };
     }
 
     function validOrder(order) {
       return Array.isArray(order)
-        && order.length === WORDS.length
+        && order.length >= WORDS.length
+        && order.every((word) => wordData(word))
         && WORDS.every((item) => order.includes(item.word));
+    }
+
+    function validMastered(list) {
+      return Array.isArray(list)
+        && new Set(list).size === list.length
+        && list.every((word) => wordData(word));
+    }
+
+    function inferMastered(saved) {
+      const mastered = { 1: [], 2: [], 3: [] };
+      [1, 2, 3].forEach((level) => {
+        if (saved.level > level) {
+          mastered[level] = WORDS.map((item) => item.word);
+        } else if (saved.level === level) {
+          mastered[level] = [...new Set(saved.orders[level].slice(0, saved.round))];
+        }
+      });
+      return mastered;
     }
 
     function loadState() {
@@ -857,12 +878,18 @@
           && saved.level <= 4
           && Number.isInteger(saved.round)
           && saved.round >= 0
-          && saved.round <= WORDS.length
           && saved.orders
           && validOrder(saved.orders[1])
           && validOrder(saved.orders[2])
           && validOrder(saved.orders[3])
+          && saved.round <= (saved.level === 4 ? 0 : saved.orders[saved.level].length)
         ) {
+          const hasValidMastery = saved.mastered
+            && validMastered(saved.mastered[1])
+            && validMastered(saved.mastered[2])
+            && validMastered(saved.mastered[3]);
+          saved.mastered = hasValidMastery ? saved.mastered : inferMastered(saved);
+          saved.roundHadError = Boolean(saved.roundHadError);
           return saved;
         }
       } catch (error) {
@@ -877,6 +904,34 @@
       } catch (error) {
         console.info("Progress could not be saved on this device.");
       }
+    }
+
+    function recordIncorrectAttempt() {
+      if (state.roundHadError) return;
+      state.roundHadError = true;
+      saveState();
+    }
+
+    function queueWordForRetry(word) {
+      const order = state.orders[state.level];
+      const earliestPosition = state.round + 1 < order.length
+        ? state.round + 2
+        : state.round + 1;
+      const openPositions = order.length - earliestPosition + 1;
+      const insertAt = earliestPosition + Math.floor(Math.random() * openPositions);
+      order.splice(insertAt, 0, word);
+    }
+
+    function advanceAfterCorrect(word) {
+      const needsRetry = state.roundHadError;
+      if (needsRetry) {
+        queueWordForRetry(word);
+      } else if (!state.mastered[state.level].includes(word)) {
+        state.mastered[state.level].push(word);
+      }
+      state.roundHadError = false;
+      state.round += 1;
+      return needsRetry;
     }
 
     function wordData(word) {
@@ -952,12 +1007,12 @@
     }
 
     function progressMarkup() {
-      const completed = state.round;
+      const completed = state.mastered[state.level].length;
       const percent = (completed / WORDS.length) * 100;
       return `
         <div class="progress-wrap">
           <div class="progress-copy">
-            <span>Word ${Math.min(state.round + 1, WORDS.length)} of ${WORDS.length}</span>
+            <span>${completed} of ${WORDS.length} words mastered</span>
             <span>${completed} stars earned</span>
           </div>
           <div class="progress-track" role="progressbar" aria-label="Level progress" aria-valuemin="0" aria-valuemax="${WORDS.length}" aria-valuenow="${completed}">
@@ -972,7 +1027,7 @@
       locked = false;
       updateHeader(true);
 
-      if (state.round >= WORDS.length) {
+      if (state.round >= state.orders[state.level].length) {
         renderLevelComplete();
         return;
       }
@@ -1225,6 +1280,7 @@
         if (answer === target.word) {
           checkAnswer(answer);
         } else {
+          recordIncorrectAttempt();
           feedback.textContent = "Good try! Listen once more and try again.";
           feedback.className = "feedback try";
           roundCard.classList.remove("shake");
@@ -1438,6 +1494,7 @@
           return;
         }
 
+        recordIncorrectAttempt();
         const results = evaluateLetters(letters, target.word);
         results.forEach((result, index) => {
           if (result === "absent") {
@@ -1476,15 +1533,16 @@
 
       if (answer.toLowerCase() === target.word) {
         locked = true;
-        state.round += 1;
+        const needsRetry = advanceAfterCorrect(target.word);
         saveState();
         const feedback = document.getElementById("feedback");
         if (feedback) {
           feedback.textContent = "You got it!";
           feedback.className = "feedback good";
         }
-        window.setTimeout(() => renderWordSuccess(target), 420);
+        window.setTimeout(() => renderWordSuccess(target, needsRetry), 420);
       } else {
+        recordIncorrectAttempt();
         const card = document.getElementById("roundCard");
         const feedback = document.getElementById("feedback");
         feedback.textContent = "Almost! Try another word.";
@@ -1504,23 +1562,23 @@
       }
     }
 
-    function renderWordSuccess(target) {
+    function renderWordSuccess(target, needsRetry = false) {
       updateHeader(true);
-      const isLast = state.round === WORDS.length;
+      const isLast = state.round >= state.orders[state.level].length;
       screen.innerHTML = `
         <div class="card success-panel">
           <span class="success-emoji" aria-hidden="true">${target.emoji}</span>
-          <p class="eyebrow">Star earned</p>
+          <p class="eyebrow">${needsRetry ? "Good correction" : "Star earned"}</p>
           <h2>${escapeHtml(target.word)}</h2>
-          <p class="subtitle">${encouragement()}</p>
-          <div class="stars-earned" aria-label="Three stars">★ ★ ★</div>
+          <p class="subtitle">${needsRetry ? "You fixed it! This word will return later so you can master it on the first try." : encouragement()}</p>
+          <div class="stars-earned" aria-label="${needsRetry ? "Word will return" : "Three stars"}">${needsRetry ? "↻" : "★ ★ ★"}</div>
           <button class="primary-button wide-button" id="nextButton">
             ${isLast ? "Finish the Level" : "Next Word"}
             <span aria-hidden="true">→</span>
           </button>
         </div>
       `;
-      burstConfetti(18);
+      burstConfetti(needsRetry ? 8 : 18);
       document.getElementById("nextButton").addEventListener("click", () => {
         renderRound({ autoplay: state.level > 1 });
       });
@@ -1566,6 +1624,7 @@
       document.getElementById("nextLevelButton").addEventListener("click", () => {
         state.level = nextLevel;
         state.round = 0;
+        state.roundHadError = false;
         saveState();
         renderRound({ autoplay: true });
       });
