@@ -521,13 +521,67 @@
       font-weight: 950;
       text-transform: lowercase;
       background: #f8f7ff;
+      transition: transform 150ms ease, background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .letter-slot.selected {
+      border-color: var(--purple);
+      background: var(--purple-soft);
+      box-shadow: 0 0 0 4px rgba(98, 84, 231, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .letter-slot.correct {
+      border-color: #218b63;
+      color: #0d6243;
+      background: #c9f3df;
+      box-shadow: inset 0 -4px 0 rgba(22, 123, 86, 0.12);
+    }
+
+    .letter-slot.misplaced {
+      border-color: #d49a20;
+      color: #7a4b00;
+      background: #ffecad;
+      box-shadow: inset 0 -4px 0 rgba(160, 105, 0, 0.12);
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .letter-slot.misplaced:active {
+      cursor: grabbing;
+    }
+
+    .letter-slot.drag-over {
+      border-color: var(--purple);
+      background: #ddd9ff;
+      transform: scale(1.08);
+    }
+
+    .letter-drag-ghost {
+      position: fixed;
+      z-index: 101;
+      display: grid;
+      width: 52px;
+      height: 64px;
+      pointer-events: none;
+      place-items: center;
+      border: 3px solid #d49a20;
+      border-radius: 12px;
+      color: #7a4b00;
+      font-size: 2rem;
+      font-weight: 950;
+      text-transform: lowercase;
+      background: #ffecad;
+      box-shadow: 0 16px 30px rgba(54, 44, 126, 0.25);
+      transform: translate(-50%, -50%) rotate(-5deg) scale(1.05);
     }
 
     .typing-capture {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      min-height: 100%;
+      left: 50%;
+      bottom: 0;
+      width: 1px;
+      height: 1px;
       opacity: 0.01;
       border: 0;
       color: transparent;
@@ -1081,15 +1135,14 @@
             </button>
             ${trickyBadge(target)}
           </div>
-          <div class="slots-wrap" id="slotsWrap" tabindex="0" role="group" aria-label="${target.word.length} letter spaces. Tap to type.">
-            ${Array.from({ length: target.word.length }, (_, index) => `<span class="letter-slot" data-index="${index}"></span>`).join("")}
+          <div class="slots-wrap" id="slotsWrap" role="group" aria-label="${target.word.length} letter spaces. Tap a space to type there.">
+            ${Array.from({ length: target.word.length }, (_, index) => `<span class="letter-slot" data-index="${index}" tabindex="0" role="button" aria-label="Letter space ${index + 1}, blank"></span>`).join("")}
             <input
               class="typing-capture"
               id="spellInput"
               type="text"
               inputmode="text"
               enterkeyhint="done"
-              maxlength="${target.word.length}"
               autocapitalize="none"
               autocomplete="off"
               autocorrect="off"
@@ -1151,30 +1204,14 @@
       document.getElementById("soundButton").addEventListener("click", () => playAudio(target.word));
 
       if (hasSlots) {
-        const slotsWrap = document.getElementById("slotsWrap");
-        const focusInput = () => input.focus({ preventScroll: false });
-        slotsWrap.addEventListener("click", focusInput);
-        slotsWrap.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            focusInput();
-          }
-        });
-        input.addEventListener("input", () => {
-          const clean = input.value.toLowerCase().replace(/[^a-z]/g, "");
-          input.value = clean;
-          document.querySelectorAll(".letter-slot").forEach((slot, index) => {
-            slot.textContent = clean[index] || "";
-          });
-          feedback.textContent = "";
-          feedback.className = "feedback";
-        });
-      } else {
-        input.addEventListener("input", () => {
-          feedback.textContent = "";
-          feedback.className = "feedback";
-        });
+        wireSlotSpellingInput(target, input, feedback, roundCard);
+        return;
       }
+
+      input.addEventListener("input", () => {
+        feedback.textContent = "";
+        feedback.className = "feedback";
+      });
 
       const submit = () => {
         if (locked) return;
@@ -1207,6 +1244,230 @@
       });
 
       input.focus();
+    }
+
+    function evaluateLetters(letters, targetWord) {
+      const results = Array(letters.length).fill("absent");
+      const remaining = {};
+
+      letters.forEach((letter, index) => {
+        if (letter === targetWord[index]) {
+          results[index] = "correct";
+        } else {
+          remaining[targetWord[index]] = (remaining[targetWord[index]] || 0) + 1;
+        }
+      });
+
+      letters.forEach((letter, index) => {
+        if (results[index] === "correct") return;
+        if (remaining[letter] > 0) {
+          results[index] = "misplaced";
+          remaining[letter] -= 1;
+        }
+      });
+
+      return results;
+    }
+
+    function wireSlotSpellingInput(target, input, feedback, roundCard) {
+      const slots = [...document.querySelectorAll(".letter-slot")];
+      const letters = Array(target.word.length).fill("");
+      const statuses = Array(target.word.length).fill("empty");
+      let selectedIndex = null;
+      let dragState = null;
+      let ignoreClicksUntil = 0;
+
+      const focusKeyboard = () => input.focus({ preventScroll: true });
+
+      const renderSlots = () => {
+        slots.forEach((slot, index) => {
+          slot.textContent = letters[index];
+          slot.classList.toggle("correct", statuses[index] === "correct");
+          slot.classList.toggle("misplaced", statuses[index] === "misplaced");
+          slot.classList.toggle("selected", selectedIndex === index);
+          const description = letters[index] || "blank";
+          const result = statuses[index] === "correct"
+            ? ", correct and locked"
+            : statuses[index] === "misplaced"
+              ? ", correct letter in the wrong place, draggable"
+              : "";
+          slot.setAttribute("aria-label", `Letter space ${index + 1}, ${description}${result}`);
+          slot.setAttribute("aria-disabled", statuses[index] === "correct" ? "true" : "false");
+        });
+      };
+
+      const chooseSlot = (index) => {
+        if (statuses[index] === "correct") return;
+        selectedIndex = index;
+        renderSlots();
+        focusKeyboard();
+      };
+
+      const firstBlank = () => letters.findIndex((letter) => !letter);
+
+      const placeLetter = (letter) => {
+        let index = selectedIndex;
+        if (index === null || statuses[index] === "correct") index = firstBlank();
+        if (index < 0) {
+          feedback.textContent = "All spaces are full. Tap a letter to replace it.";
+          feedback.className = "feedback try";
+          return;
+        }
+        letters[index] = letter;
+        statuses[index] = "unmarked";
+        selectedIndex = null;
+        feedback.textContent = "";
+        feedback.className = "feedback";
+        renderSlots();
+      };
+
+      const removeLetter = () => {
+        let index = selectedIndex;
+        if (index === null || statuses[index] === "correct" || !letters[index]) {
+          index = -1;
+          for (let cursor = letters.length - 1; cursor >= 0; cursor -= 1) {
+            if (letters[cursor] && statuses[cursor] !== "correct") {
+              index = cursor;
+              break;
+            }
+          }
+        }
+        if (index < 0) return;
+        letters[index] = "";
+        statuses[index] = "empty";
+        selectedIndex = index;
+        renderSlots();
+      };
+
+      const finishDrag = (event) => {
+        if (!dragState) return;
+        const { source, ghost, dragging } = dragState;
+        if (ghost) ghost.remove();
+        slots.forEach((slot) => slot.classList.remove("drag-over"));
+
+        if (dragging) {
+          ignoreClicksUntil = performance.now() + 250;
+          const targetSlot = document.elementFromPoint(event.clientX, event.clientY)?.closest(".letter-slot");
+          const destination = targetSlot ? Number(targetSlot.dataset.index) : -1;
+          if (destination >= 0 && destination !== source && statuses[destination] !== "correct") {
+            [letters[source], letters[destination]] = [letters[destination], letters[source]];
+            [statuses[source], statuses[destination]] = [statuses[destination], statuses[source]];
+            if (!letters[source]) statuses[source] = "empty";
+            selectedIndex = null;
+            renderSlots();
+            feedback.textContent = "Letter moved. Fill any blank spaces, then check again.";
+            feedback.className = "feedback";
+            focusKeyboard();
+          }
+        }
+        dragState = null;
+      };
+
+      slots.forEach((slot, index) => {
+        slot.addEventListener("click", () => {
+          if (performance.now() < ignoreClicksUntil) return;
+          chooseSlot(index);
+        });
+        slot.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            chooseSlot(index);
+          }
+        });
+        slot.addEventListener("pointerdown", (event) => {
+          if (statuses[index] !== "misplaced" || event.button > 0) return;
+          slot.setPointerCapture(event.pointerId);
+          dragState = {
+            source: index,
+            startX: event.clientX,
+            startY: event.clientY,
+            dragging: false,
+            ghost: null
+          };
+        });
+        slot.addEventListener("pointermove", (event) => {
+          if (!dragState || dragState.source !== index) return;
+          const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
+          if (distance < 8 && !dragState.dragging) return;
+          if (!dragState.dragging) {
+            dragState.dragging = true;
+            dragState.ghost = document.createElement("span");
+            dragState.ghost.className = "letter-drag-ghost";
+            dragState.ghost.textContent = letters[index];
+            document.body.appendChild(dragState.ghost);
+          }
+          dragState.ghost.style.left = `${event.clientX}px`;
+          dragState.ghost.style.top = `${event.clientY}px`;
+          slots.forEach((item) => item.classList.remove("drag-over"));
+          const targetSlot = document.elementFromPoint(event.clientX, event.clientY)?.closest(".letter-slot");
+          if (targetSlot && statuses[Number(targetSlot.dataset.index)] !== "correct") {
+            targetSlot.classList.add("drag-over");
+          }
+        });
+        slot.addEventListener("pointerup", (event) => {
+          if (slot.hasPointerCapture(event.pointerId)) slot.releasePointerCapture(event.pointerId);
+          finishDrag(event);
+        });
+        slot.addEventListener("pointercancel", (event) => finishDrag(event));
+      });
+
+      input.addEventListener("input", (event) => {
+        if (event.inputType?.startsWith("delete")) {
+          removeLetter();
+        } else {
+          const typed = (event.data || input.value).toLowerCase().replace(/[^a-z]/g, "");
+          [...typed].forEach(placeLetter);
+        }
+        input.value = "";
+      });
+
+      const submit = () => {
+        if (locked) return;
+        if (letters.some((letter) => !letter)) {
+          feedback.textContent = "Fill every letter space before checking.";
+          feedback.className = "feedback try";
+          selectedIndex = firstBlank();
+          renderSlots();
+          focusKeyboard();
+          return;
+        }
+
+        const answer = letters.join("");
+        if (answer === target.word) {
+          checkAnswer(answer);
+          return;
+        }
+
+        const results = evaluateLetters(letters, target.word);
+        results.forEach((result, index) => {
+          if (result === "absent") {
+            letters[index] = "";
+            statuses[index] = "empty";
+          } else {
+            statuses[index] = result;
+          }
+        });
+        selectedIndex = null;
+        renderSlots();
+        feedback.textContent = "Green letters are correct. Move the yellow letters, then fill the blanks.";
+        feedback.className = "feedback try";
+        roundCard.classList.remove("shake");
+        void roundCard.offsetWidth;
+        roundCard.classList.add("shake");
+        playAudio(target.word);
+        focusKeyboard();
+      };
+
+      document.getElementById("checkButton").addEventListener("click", submit);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          submit();
+        }
+      });
+
+      renderSlots();
+      focusKeyboard();
     }
 
     function checkAnswer(answer) {
