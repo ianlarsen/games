@@ -150,6 +150,97 @@
       display: flex;
     }
 
+    .level-pill::after {
+      margin-left: 3px;
+      content: "▾";
+      font-size: 0.72rem;
+    }
+
+    .start-levels {
+      display: grid;
+      gap: 12px;
+      width: min(100%, 390px);
+      margin: 22px auto 0;
+    }
+
+    .level-choice-button {
+      display: flex;
+      min-height: 66px;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 18px;
+      border: 3px solid #dedafc;
+      border-radius: 18px;
+      color: var(--ink);
+      text-align: left;
+      background: #f8f7ff;
+      box-shadow: 0 5px 0 #dedafc;
+    }
+
+    .level-choice-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #dedafc;
+    }
+
+    .level-choice-number {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      font-weight: 950;
+      background: var(--purple);
+    }
+
+    .level-choice-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-weight: 950;
+    }
+
+    .level-choice-copy small {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 750;
+    }
+
+    .level-switcher-backdrop {
+      position: fixed;
+      z-index: 300;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+      background: rgba(36, 48, 71, 0.52);
+      backdrop-filter: blur(8px);
+    }
+
+    .level-switcher {
+      width: min(100%, 430px);
+      padding: 24px;
+      border-radius: 26px;
+      background: white;
+      box-shadow: 0 24px 70px rgba(25, 20, 70, 0.3);
+    }
+
+    .level-switcher h2 {
+      margin-bottom: 17px;
+      text-align: center;
+    }
+
+    .close-level-switcher {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 16px;
+      border-radius: 15px;
+      color: var(--purple-dark);
+      font-weight: 900;
+      background: var(--purple-soft);
+    }
+
     .screen {
       position: relative;
       z-index: 1;
@@ -424,10 +515,8 @@
       position: fixed;
       z-index: 99;
       display: flex;
-      width: 104px;
-      min-height: 72px;
       pointer-events: none;
-      transform: translate(-50%, -50%) rotate(-4deg) scale(1.04);
+      transform: translate(-50%, -50%) rotate(-2deg);
       opacity: 0.93;
       border: 3px solid var(--purple);
       border-radius: 18px;
@@ -438,6 +527,12 @@
       font-weight: 900;
       background: white;
       box-shadow: 0 18px 35px rgba(54, 44, 126, 0.25);
+      transition: transform 100ms ease, background 100ms ease;
+    }
+
+    .drag-ghost.snapped {
+      transform: translate(-50%, -50%) scale(1.02);
+      background: #dff9ef;
     }
 
     .audio-stage {
@@ -561,8 +656,6 @@
       position: fixed;
       z-index: 101;
       display: grid;
-      width: 52px;
-      height: 64px;
       pointer-events: none;
       place-items: center;
       border: 3px solid #d49a20;
@@ -574,6 +667,12 @@
       background: #ffecad;
       box-shadow: 0 16px 30px rgba(54, 44, 126, 0.25);
       transform: translate(-50%, -50%) rotate(-5deg) scale(1.05);
+      transition: transform 100ms ease, background 100ms ease;
+    }
+
+    .letter-drag-ghost.snapped {
+      transform: translate(-50%, -50%) scale(1.02);
+      background: #ddd9ff;
     }
 
     .typing-capture {
@@ -783,7 +882,7 @@
         <span class="brand-mark" aria-hidden="true">Aa</span>
         <span class="brand-text">Spelling Quest</span>
       </div>
-      <div class="level-pill" id="levelPill" aria-live="polite"></div>
+      <button class="level-pill" id="levelPill" type="button" aria-label="Change level" aria-haspopup="dialog"></button>
     </header>
     <section class="screen" id="screen" aria-live="polite"></section>
   </main>
@@ -810,6 +909,8 @@
     const levelPill = document.getElementById("levelPill");
     const audio = new Audio();
     audio.preload = "auto";
+    const effectAudio = new Audio();
+    effectAudio.preload = "auto";
 
     const isIPad = /iPad/i.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -818,6 +919,7 @@
     let state = loadState();
     let selectedWord = null;
     let locked = false;
+    let viewVersion = 0;
 
     function shuffled(items) {
       const copy = [...items];
@@ -832,14 +934,14 @@
       return {
         started: false,
         level: 1,
-        round: 0,
+        rounds: { 1: 0, 2: 0, 3: 0 },
         orders: {
           1: shuffled(WORDS.map((item) => item.word)),
           2: shuffled(WORDS.map((item) => item.word)),
           3: shuffled(WORDS.map((item) => item.word))
         },
         mastered: { 1: [], 2: [], 3: [] },
-        roundHadError: false
+        roundHadError: { 1: false, 2: false, 3: false }
       };
     }
 
@@ -856,13 +958,13 @@
         && list.every((word) => wordData(word));
     }
 
-    function inferMastered(saved) {
+    function inferMastered(saved, rounds) {
       const mastered = { 1: [], 2: [], 3: [] };
       [1, 2, 3].forEach((level) => {
         if (saved.level > level) {
           mastered[level] = WORDS.map((item) => item.word);
-        } else if (saved.level === level) {
-          mastered[level] = [...new Set(saved.orders[level].slice(0, saved.round))];
+        } else {
+          mastered[level] = [...new Set(saved.orders[level].slice(0, rounds[level]))];
         }
       });
       return mastered;
@@ -876,20 +978,46 @@
           && Number.isInteger(saved.level)
           && saved.level >= 1
           && saved.level <= 4
-          && Number.isInteger(saved.round)
-          && saved.round >= 0
           && saved.orders
           && validOrder(saved.orders[1])
           && validOrder(saved.orders[2])
           && validOrder(saved.orders[3])
-          && saved.round <= (saved.level === 4 ? 0 : saved.orders[saved.level].length)
         ) {
+          const hasValidRounds = saved.rounds
+            && [1, 2, 3].every((level) => Number.isInteger(saved.rounds[level])
+              && saved.rounds[level] >= 0
+              && saved.rounds[level] <= saved.orders[level].length);
+          const oldRound = Number.isInteger(saved.round) && saved.round >= 0 ? saved.round : 0;
+          const rounds = hasValidRounds ? saved.rounds : { 1: 0, 2: 0, 3: 0 };
+          if (!hasValidRounds) {
+            [1, 2, 3].forEach((level) => {
+              rounds[level] = saved.level > level
+                ? saved.orders[level].length
+                : saved.level === level
+                  ? Math.min(oldRound, saved.orders[level].length)
+                  : 0;
+            });
+          }
           const hasValidMastery = saved.mastered
             && validMastered(saved.mastered[1])
             && validMastered(saved.mastered[2])
             && validMastered(saved.mastered[3]);
-          saved.mastered = hasValidMastery ? saved.mastered : inferMastered(saved);
-          saved.roundHadError = Boolean(saved.roundHadError);
+          saved.rounds = rounds;
+          saved.mastered = hasValidMastery ? saved.mastered : inferMastered(saved, rounds);
+          const oldRoundHadError = Boolean(saved.roundHadError);
+          saved.roundHadError = saved.roundHadError
+            && typeof saved.roundHadError === "object"
+            ? {
+                1: Boolean(saved.roundHadError[1]),
+                2: Boolean(saved.roundHadError[2]),
+                3: Boolean(saved.roundHadError[3])
+              }
+            : {
+                1: saved.level === 1 && oldRoundHadError,
+                2: saved.level === 2 && oldRoundHadError,
+                3: saved.level === 3 && oldRoundHadError
+              };
+          delete saved.round;
           return saved;
         }
       } catch (error) {
@@ -906,31 +1034,36 @@
       }
     }
 
+    function currentRound() {
+      return state.rounds[state.level];
+    }
+
     function recordIncorrectAttempt() {
-      if (state.roundHadError) return;
-      state.roundHadError = true;
+      if (state.roundHadError[state.level]) return;
+      state.roundHadError[state.level] = true;
       saveState();
     }
 
     function queueWordForRetry(word) {
       const order = state.orders[state.level];
-      const earliestPosition = state.round + 1 < order.length
-        ? state.round + 2
-        : state.round + 1;
+      const round = currentRound();
+      const earliestPosition = round + 1 < order.length
+        ? round + 2
+        : round + 1;
       const openPositions = order.length - earliestPosition + 1;
       const insertAt = earliestPosition + Math.floor(Math.random() * openPositions);
       order.splice(insertAt, 0, word);
     }
 
     function advanceAfterCorrect(word) {
-      const needsRetry = state.roundHadError;
+      const needsRetry = state.roundHadError[state.level];
       if (needsRetry) {
         queueWordForRetry(word);
       } else if (!state.mastered[state.level].includes(word)) {
         state.mastered[state.level].push(word);
       }
-      state.roundHadError = false;
-      state.round += 1;
+      state.roundHadError[state.level] = false;
+      state.rounds[state.level] += 1;
       return needsRetry;
     }
 
@@ -939,7 +1072,7 @@
     }
 
     function currentWord() {
-      return wordData(state.orders[state.level][state.round]);
+      return wordData(state.orders[state.level][currentRound()]);
     }
 
     function escapeHtml(value) {
@@ -966,6 +1099,18 @@
       }
     }
 
+    function playEffect(name, onEnded = null) {
+      effectAudio.pause();
+      effectAudio.onended = null;
+      effectAudio.src = `sounds/${name}.mp3`;
+      effectAudio.currentTime = 0;
+      if (onEnded) effectAudio.onended = onEnded;
+      const promise = effectAudio.play();
+      if (promise) promise.catch(() => {
+        if (onEnded) onEnded();
+      });
+    }
+
     function levelName(level) {
       return {
         1: "Sentence Match",
@@ -980,30 +1125,87 @@
       levelPill.textContent = showLevel ? `Level ${state.level} · ${levelName(state.level)}` : "";
     }
 
+    function levelProgressText(level) {
+      const mastered = state.mastered[level].length;
+      if (mastered === WORDS.length) return "Complete · tap to replay";
+      if (state.rounds[level] > 0) return `${mastered} of ${WORDS.length} mastered`;
+      return "Start this level";
+    }
+
+    function levelButtonsMarkup() {
+      return [1, 2, 3].map((level) => `
+        <button class="level-choice-button" data-select-level="${level}">
+          <span class="level-choice-number">${level}</span>
+          <span class="level-choice-copy">
+            <span>${levelName(level)}</span>
+            <small>${levelProgressText(level)}</small>
+          </span>
+        </button>
+      `).join("");
+    }
+
+    function resetLevel(level) {
+      state.orders[level] = shuffled(WORDS.map((item) => item.word));
+      state.mastered[level] = [];
+      state.rounds[level] = 0;
+      state.roundHadError[level] = false;
+    }
+
+    function selectLevel(level) {
+      if (state.mastered[level].length === WORDS.length) resetLevel(level);
+      state.level = level;
+      state.started = true;
+      saveState();
+      document.querySelector(".level-switcher-backdrop")?.remove();
+      renderRound({ autoplay: level > 1 });
+    }
+
+    function wireLevelButtons(container = document) {
+      container.querySelectorAll("[data-select-level]").forEach((button) => {
+        button.addEventListener("click", () => selectLevel(Number(button.dataset.selectLevel)));
+      });
+    }
+
+    function openLevelMenu() {
+      if (document.querySelector(".level-switcher-backdrop")) return;
+      const backdrop = document.createElement("div");
+      backdrop.className = "level-switcher-backdrop";
+      backdrop.setAttribute("role", "dialog");
+      backdrop.setAttribute("aria-modal", "true");
+      backdrop.setAttribute("aria-labelledby", "levelSwitcherTitle");
+      backdrop.innerHTML = `
+        <div class="level-switcher">
+          <h2 id="levelSwitcherTitle">Choose a level</h2>
+          <div class="start-levels">${levelButtonsMarkup()}</div>
+          <button class="close-level-switcher" type="button">Keep Playing</button>
+        </div>
+      `;
+      document.body.appendChild(backdrop);
+      wireLevelButtons(backdrop);
+      const close = () => backdrop.remove();
+      backdrop.querySelector(".close-level-switcher").addEventListener("click", close);
+      backdrop.addEventListener("pointerdown", (event) => {
+        if (event.target === backdrop) close();
+      });
+      backdrop.querySelector("[data-select-level]")?.focus();
+    }
+
     function renderStart() {
+      if ([1, 2, 3].every((level) => state.mastered[level].length === WORDS.length)) {
+        state.level = 4;
+        saveState();
+        renderComplete();
+        return;
+      }
       updateHeader(false);
-      const hasProgress = state.started && (state.level > 1 || state.round > 0);
       screen.innerHTML = `
         <div class="card hero">
           <div class="hero-orbit" aria-hidden="true">🚀</div>
           <h1>Spelling Quest</h1>
-          <button class="primary-button wide-button" id="startButton">
-            <span aria-hidden="true">${hasProgress ? "▶" : "★"}</span>
-            ${hasProgress ? "Keep Going" : "Start the Quest"}
-          </button>
+          <div class="start-levels">${levelButtonsMarkup()}</div>
         </div>
       `;
-      document.getElementById("startButton").addEventListener("click", () => {
-        if (!state.started) {
-          state.started = true;
-          saveState();
-        }
-        if (state.level === 4) {
-          renderComplete();
-        } else {
-          renderRound({ autoplay: state.level > 1 });
-        }
-      });
+      wireLevelButtons(screen);
     }
 
     function progressMarkup() {
@@ -1023,11 +1225,12 @@
     }
 
     function renderRound(options = {}) {
+      viewVersion += 1;
       selectedWord = null;
       locked = false;
       updateHeader(true);
 
-      if (state.round >= state.orders[state.level].length) {
+      if (currentRound() >= state.orders[state.level].length) {
         renderLevelComplete();
         return;
       }
@@ -1088,6 +1291,14 @@
       let dragging = false;
       let ghost = null;
       let suppressClick = false;
+      const isNearDrop = (x, y) => {
+        const rect = dropZone.getBoundingClientRect();
+        const margin = 22;
+        return x >= rect.left - margin
+          && x <= rect.right + margin
+          && y >= rect.top - margin
+          && y <= rect.bottom + margin;
+      };
 
       choice.addEventListener("pointerdown", (event) => {
         if (locked || event.button > 0) return;
@@ -1108,19 +1319,20 @@
           dragging = true;
           suppressClick = true;
           const item = wordData(choice.dataset.word);
+          const dropRect = dropZone.getBoundingClientRect();
           ghost = document.createElement("div");
           ghost.className = "drag-ghost";
-          ghost.innerHTML = `<span aria-hidden="true">${item.emoji}</span><span>${item.word}</span>`;
+          ghost.textContent = item.word;
+          ghost.style.width = `${dropRect.width}px`;
+          ghost.style.height = `${dropRect.height}px`;
           document.body.appendChild(ghost);
         }
 
-        ghost.style.left = `${event.clientX}px`;
-        ghost.style.top = `${event.clientY}px`;
         const rect = dropZone.getBoundingClientRect();
-        const over = event.clientX >= rect.left
-          && event.clientX <= rect.right
-          && event.clientY >= rect.top
-          && event.clientY <= rect.bottom;
+        const over = isNearDrop(event.clientX, event.clientY);
+        ghost.classList.toggle("snapped", over);
+        ghost.style.left = `${over ? rect.left + rect.width / 2 : event.clientX}px`;
+        ghost.style.top = `${over ? rect.top + rect.height / 2 : event.clientY}px`;
         dropZone.classList.toggle("drag-over", over);
       });
 
@@ -1132,12 +1344,7 @@
         dropZone.classList.remove("drag-over");
 
         if (dragging) {
-          const rect = dropZone.getBoundingClientRect();
-          const dropped = event.clientX >= rect.left
-            && event.clientX <= rect.right
-            && event.clientY >= rect.top
-            && event.clientY <= rect.bottom;
-          if (dropped) checkAnswer(choice.dataset.word);
+          if (isNearDrop(event.clientX, event.clientY)) checkAnswer(choice.dataset.word);
         }
       });
 
@@ -1332,8 +1539,17 @@
       let selectedIndex = null;
       let dragState = null;
       let ignoreClicksUntil = 0;
+      const captureSentinel = "\u200B";
 
-      const focusKeyboard = () => input.focus({ preventScroll: true });
+      const resetCaptureInput = () => {
+        input.value = captureSentinel;
+        input.setSelectionRange(input.value.length, input.value.length);
+      };
+
+      const focusKeyboard = () => {
+        resetCaptureInput();
+        input.focus({ preventScroll: true });
+      };
 
       const renderSlots = () => {
         slots.forEach((slot, index) => {
@@ -1395,13 +1611,13 @@
         renderSlots();
       };
 
-      const finishDrag = (event) => {
+      const finishDrag = (event, shouldDrop = true) => {
         if (!dragState) return;
         const { source, ghost, dragging } = dragState;
         if (ghost) ghost.remove();
         slots.forEach((slot) => slot.classList.remove("drag-over"));
 
-        if (dragging) {
+        if (dragging && shouldDrop) {
           ignoreClicksUntil = performance.now() + 250;
           const targetSlot = document.elementFromPoint(event.clientX, event.clientY)?.closest(".letter-slot");
           const destination = targetSlot ? Number(targetSlot.dataset.index) : -1;
@@ -1447,24 +1663,40 @@
           if (distance < 8 && !dragState.dragging) return;
           if (!dragState.dragging) {
             dragState.dragging = true;
+            const sourceRect = slot.getBoundingClientRect();
             dragState.ghost = document.createElement("span");
             dragState.ghost.className = "letter-drag-ghost";
             dragState.ghost.textContent = letters[index];
+            dragState.ghost.style.width = `${sourceRect.width}px`;
+            dragState.ghost.style.height = `${sourceRect.height}px`;
             document.body.appendChild(dragState.ghost);
           }
-          dragState.ghost.style.left = `${event.clientX}px`;
-          dragState.ghost.style.top = `${event.clientY}px`;
           slots.forEach((item) => item.classList.remove("drag-over"));
           const targetSlot = document.elementFromPoint(event.clientX, event.clientY)?.closest(".letter-slot");
-          if (targetSlot && statuses[Number(targetSlot.dataset.index)] !== "correct") {
+          const validTarget = targetSlot && statuses[Number(targetSlot.dataset.index)] !== "correct";
+          dragState.ghost.classList.toggle("snapped", Boolean(validTarget));
+          if (validTarget) {
+            const targetRect = targetSlot.getBoundingClientRect();
+            dragState.ghost.style.left = `${targetRect.left + targetRect.width / 2}px`;
+            dragState.ghost.style.top = `${targetRect.top + targetRect.height / 2}px`;
             targetSlot.classList.add("drag-over");
+          } else {
+            dragState.ghost.style.left = `${event.clientX}px`;
+            dragState.ghost.style.top = `${event.clientY}px`;
           }
         });
         slot.addEventListener("pointerup", (event) => {
           if (slot.hasPointerCapture(event.pointerId)) slot.releasePointerCapture(event.pointerId);
           finishDrag(event);
         });
-        slot.addEventListener("pointercancel", (event) => finishDrag(event));
+        slot.addEventListener("pointercancel", (event) => finishDrag(event, false));
+      });
+
+      input.addEventListener("beforeinput", (event) => {
+        if (!event.inputType?.startsWith("delete")) return;
+        event.preventDefault();
+        removeLetter();
+        resetCaptureInput();
       });
 
       input.addEventListener("input", (event) => {
@@ -1474,7 +1706,7 @@
           const typed = (event.data || input.value).toLowerCase().replace(/[^a-z]/g, "");
           [...typed].forEach(placeLetter);
         }
-        input.value = "";
+        resetCaptureInput();
       });
 
       const submit = () => {
@@ -1517,6 +1749,12 @@
 
       document.getElementById("checkButton").addEventListener("click", submit);
       input.addEventListener("keydown", (event) => {
+        if (event.key === "Backspace" || event.key === "Delete") {
+          event.preventDefault();
+          removeLetter();
+          resetCaptureInput();
+          return;
+        }
         if (event.key === "Enter") {
           event.preventDefault();
           submit();
@@ -1534,13 +1772,18 @@
       if (answer.toLowerCase() === target.word) {
         locked = true;
         const needsRetry = advanceAfterCorrect(target.word);
+        const finishedLevel = currentRound() >= state.orders[state.level].length;
         saveState();
+        playEffect("correct", finishedLevel ? () => playEffect("win") : null);
         const feedback = document.getElementById("feedback");
         if (feedback) {
           feedback.textContent = "You got it!";
           feedback.className = "feedback good";
         }
-        window.setTimeout(() => renderWordSuccess(target, needsRetry), 420);
+        const successViewVersion = viewVersion;
+        window.setTimeout(() => {
+          if (viewVersion === successViewVersion) renderWordSuccess(target, needsRetry);
+        }, 420);
       } else {
         recordIncorrectAttempt();
         const card = document.getElementById("roundCard");
@@ -1564,7 +1807,7 @@
 
     function renderWordSuccess(target, needsRetry = false) {
       updateHeader(true);
-      const isLast = state.round >= state.orders[state.level].length;
+      const isLast = currentRound() >= state.orders[state.level].length;
       screen.innerHTML = `
         <div class="card success-panel">
           <span class="success-emoji" aria-hidden="true">${target.emoji}</span>
@@ -1597,16 +1840,17 @@
 
     function renderLevelComplete() {
       const completedLevel = state.level;
-      if (completedLevel === 3) {
+      const allLevelsComplete = [1, 2, 3].every((level) => state.mastered[level].length === WORDS.length);
+      if (allLevelsComplete) {
         state.level = 4;
-        state.round = 0;
         saveState();
         renderComplete();
         return;
       }
 
-      updateHeader(false);
-      const nextLevel = completedLevel + 1;
+      updateHeader(true);
+      const unfinishedLevels = [1, 2, 3].filter((level) => state.mastered[level].length < WORDS.length);
+      const nextLevel = unfinishedLevels.find((level) => level > completedLevel) || unfinishedLevels[0];
       screen.innerHTML = `
         <div class="card level-panel">
           <span class="success-emoji" aria-hidden="true">🏆</span>
@@ -1622,11 +1866,7 @@
       `;
       burstConfetti(38);
       document.getElementById("nextLevelButton").addEventListener("click", () => {
-        state.level = nextLevel;
-        state.round = 0;
-        state.roundHadError = false;
-        saveState();
-        renderRound({ autoplay: true });
+        selectLevel(nextLevel);
       });
     }
 
@@ -1634,8 +1874,9 @@
       return `
         <div class="level-map" aria-label="Quest map">
           ${[1, 2, 3].map((level) => {
-            const status = level < current ? "done" : level === current ? "current" : "";
-            const number = level < current ? "✓" : level;
+            const complete = state.mastered[level].length === WORDS.length;
+            const status = complete ? "done" : level === current ? "current" : "";
+            const number = complete ? "✓" : level;
             return `
               <div class="map-step ${status}">
                 <span class="map-number">${number}</span>
@@ -1656,19 +1897,11 @@
           <h1>Super Speller!</h1>
           <p class="subtitle">You finished all three levels and spelled every word. That was incredible!</p>
           <div class="stars-earned" aria-label="Five stars">★ ★ ★ ★ ★</div>
-          <button class="primary-button wide-button" id="againButton">
-            <span aria-hidden="true">↻</span>
-            Play Again
-          </button>
+          <div class="start-levels">${levelButtonsMarkup()}</div>
         </div>
       `;
       burstConfetti(70);
-      document.getElementById("againButton").addEventListener("click", () => {
-        state = freshState();
-        state.started = true;
-        saveState();
-        renderRound();
-      });
+      wireLevelButtons(screen);
     }
 
     function burstConfetti(count) {
@@ -1687,6 +1920,10 @@
       }
     }
 
+    levelPill.addEventListener("click", openLevelMenu);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") document.querySelector(".level-switcher-backdrop")?.remove();
+    });
     renderStart();
   </script>
 </body>
