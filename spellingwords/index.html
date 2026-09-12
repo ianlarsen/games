@@ -727,6 +727,43 @@
     .feedback.good { color: #167b56; }
     .feedback.try { color: #b64f47; }
 
+    .correction-backdrop {
+      position: fixed;
+      z-index: 350;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+      background: rgba(36, 48, 71, 0.58);
+      backdrop-filter: blur(8px);
+    }
+
+    .correction-dialog {
+      width: min(100%, 430px);
+      padding: clamp(24px, 6vw, 36px);
+      border-radius: 28px;
+      text-align: center;
+      background: white;
+      box-shadow: 0 24px 70px rgba(25, 20, 70, 0.32);
+      animation: pop 300ms cubic-bezier(.2, 1.2, .5, 1);
+    }
+
+    .correction-word {
+      margin: 22px 0 28px;
+      color: var(--ink);
+      font-size: clamp(2.3rem, 13vw, 4rem);
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+    }
+
+    .corrected-letter {
+      color: var(--purple-dark);
+      font-weight: 950;
+      text-decoration: underline;
+      text-decoration-thickness: 0.12em;
+      text-underline-offset: 0.14em;
+    }
+
     .shake {
       animation: shake 320ms ease-in-out;
     }
@@ -1458,6 +1495,45 @@
       wireSpellingInput(target, false);
     }
 
+    function showCorrectionPopup(target, attempt, input, feedback) {
+      if (document.querySelector(".correction-backdrop")) return;
+      input.blur();
+      const correctedWord = [...target.word].map((letter, index) => {
+        const safeLetter = escapeHtml(letter);
+        return attempt[index] === letter
+          ? `<span>${safeLetter}</span>`
+          : `<strong class="corrected-letter">${safeLetter}</strong>`;
+      }).join("");
+
+      const backdrop = document.createElement("div");
+      backdrop.className = "correction-backdrop";
+      backdrop.setAttribute("role", "alertdialog");
+      backdrop.setAttribute("aria-modal", "true");
+      backdrop.setAttribute("aria-labelledby", "correctionTitle");
+      backdrop.setAttribute("aria-describedby", "correctionWord");
+      backdrop.innerHTML = `
+        <div class="correction-dialog">
+          <p class="eyebrow">Correct spelling</p>
+          <h2 id="correctionTitle">Look closely</h2>
+          <div class="correction-word" id="correctionWord" aria-label="The correct spelling is ${escapeHtml(target.word)}">
+            ${correctedWord}
+          </div>
+          <button class="primary-button wide-button" id="tryAgainButton">Try again.</button>
+        </div>
+      `;
+      document.body.appendChild(backdrop);
+
+      const tryAgainButton = document.getElementById("tryAgainButton");
+      tryAgainButton.addEventListener("click", () => {
+        backdrop.remove();
+        input.value = "";
+        feedback.textContent = "";
+        feedback.className = "feedback";
+        input.focus();
+      });
+      tryAgainButton.focus();
+    }
+
     function wireSpellingInput(target, hasSlots) {
       const input = document.getElementById("spellInput");
       const feedback = document.getElementById("feedback");
@@ -1488,13 +1564,10 @@
           checkAnswer(answer);
         } else {
           recordIncorrectAttempt();
-          feedback.textContent = "Good try! Listen once more and try again.";
-          feedback.className = "feedback try";
           roundCard.classList.remove("shake");
           void roundCard.offsetWidth;
           roundCard.classList.add("shake");
-          playAudio(target.word);
-          input.select();
+          showCorrectionPopup(target, answer, input, feedback);
         }
       };
 
