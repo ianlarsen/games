@@ -28,6 +28,8 @@
 
     html,
     body {
+      width: 100%;
+      max-width: 100%;
       min-height: 100%;
       margin: 0;
     }
@@ -65,6 +67,7 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      width: 100%;
       min-height: 100dvh;
       max-width: 760px;
       margin: 0 auto;
@@ -241,10 +244,15 @@
       display: flex;
       flex: 1;
       flex-direction: column;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .card {
       width: 100%;
+      min-width: 0;
+      max-width: 100%;
       margin: auto 0;
       padding: clamp(22px, 5vw, 38px);
       border: 1px solid rgba(255, 255, 255, 0.85);
@@ -385,7 +393,10 @@
       flex: 1;
       flex-direction: column;
       justify-content: center;
+      width: 100%;
       min-height: 0;
+      min-width: 0;
+      max-width: 100%;
       padding: clamp(19px, 4.8vw, 34px);
       border-radius: 28px;
       background: var(--paper);
@@ -408,12 +419,14 @@
     }
 
     .sentence {
+      max-width: 100%;
       margin: 10px 0 26px;
       font-family: Georgia, "Times New Roman", serif;
       font-size: clamp(1.42rem, 5.4vw, 2rem);
       font-weight: 700;
       line-height: 1.5;
       text-align: center;
+      overflow-wrap: anywhere;
     }
 
     .drop-zone {
@@ -450,11 +463,14 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
+      width: 100%;
+      min-width: 0;
       margin-top: 4px;
     }
 
     .word-choice {
       display: flex;
+      min-width: 0;
       min-height: 92px;
       touch-action: none;
       user-select: none;
@@ -701,12 +717,14 @@
 
     .letter-recap-word {
       display: flex;
+      width: 100%;
+      min-width: 0;
       align-items: baseline;
       justify-content: center;
-      gap: clamp(7px, 2.5vw, 15px);
+      gap: clamp(3px, 1.5vw, 10px);
       min-height: 86px;
       color: var(--ink);
-      font-size: clamp(2.5rem, 13vw, 5rem);
+      font-size: clamp(2rem, 10vw, 5rem);
       font-weight: 850;
       letter-spacing: 0.01em;
       text-transform: lowercase;
@@ -752,8 +770,8 @@
     .correction-word {
       margin: 22px 0 28px;
       color: var(--ink);
-      font-size: clamp(2.3rem, 13vw, 4rem);
-      letter-spacing: 0.06em;
+      font-size: clamp(1.8rem, 10vw, 4rem);
+      letter-spacing: 0.03em;
       text-transform: lowercase;
     }
 
@@ -1108,6 +1126,14 @@
         .replaceAll("'", "&#039;");
     }
 
+    function positionGhost(ghost, x, y) {
+      const transformAllowance = 8;
+      const halfWidth = ghost.offsetWidth / 2 + transformAllowance;
+      const halfHeight = ghost.offsetHeight / 2 + transformAllowance;
+      ghost.style.left = `${Math.max(halfWidth, Math.min(window.innerWidth - halfWidth, x))}px`;
+      ghost.style.top = `${Math.max(halfHeight, Math.min(window.innerHeight - halfHeight, y))}px`;
+    }
+
     function playAudio(word) {
       audio.pause();
       audio.src = `sounds/${word}.mp3`;
@@ -1353,8 +1379,11 @@
         const rect = dropZone.getBoundingClientRect();
         const over = isNearDrop(event.clientX, event.clientY);
         ghost.classList.toggle("snapped", over);
-        ghost.style.left = `${over ? rect.left + rect.width / 2 : event.clientX}px`;
-        ghost.style.top = `${over ? rect.top + rect.height / 2 : event.clientY}px`;
+        positionGhost(
+          ghost,
+          over ? rect.left + rect.width / 2 : event.clientX,
+          over ? rect.top + rect.height / 2 : event.clientY
+        );
         dropZone.classList.toggle("drag-over", over);
       });
 
@@ -1733,12 +1762,14 @@
           dragState.ghost.classList.toggle("snapped", Boolean(validTarget));
           if (validTarget) {
             const targetRect = targetSlot.getBoundingClientRect();
-            dragState.ghost.style.left = `${targetRect.left + targetRect.width / 2}px`;
-            dragState.ghost.style.top = `${targetRect.top + targetRect.height / 2}px`;
+            positionGhost(
+              dragState.ghost,
+              targetRect.left + targetRect.width / 2,
+              targetRect.top + targetRect.height / 2
+            );
             targetSlot.classList.add("drag-over");
           } else {
-            dragState.ghost.style.left = `${event.clientX}px`;
-            dragState.ghost.style.top = `${event.clientY}px`;
+            positionGhost(dragState.ghost, event.clientX, event.clientY);
           }
         });
         slot.addEventListener("pointerup", (event) => {
@@ -1982,12 +2013,19 @@
       const colors = ["#6254e7", "#55d6a2", "#ffca5c", "#ff7c78", "#36bad5"];
       for (let index = 0; index < count; index += 1) {
         const piece = document.createElement("span");
+        const edgeAllowance = 4;
+        const startX = edgeAllowance + Math.random() * Math.max(0, window.innerWidth - 19);
+        const rawDrift = -90 + Math.random() * 180;
+        const drift = Math.max(
+          edgeAllowance - startX,
+          Math.min(window.innerWidth - 15 - startX, rawDrift)
+        );
         piece.className = "confetti";
-        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.left = `${startX}px`;
         piece.style.background = colors[index % colors.length];
         piece.style.animationDelay = `${Math.random() * 0.55}s`;
         piece.style.animationDuration = `${1.8 + Math.random() * 1.2}s`;
-        piece.style.setProperty("--drift", `${-90 + Math.random() * 180}px`);
+        piece.style.setProperty("--drift", `${drift}px`);
         document.body.appendChild(piece);
         window.setTimeout(() => piece.remove(), 3300);
       }
