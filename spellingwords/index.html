@@ -150,12 +150,6 @@
       display: flex;
     }
 
-    .level-pill::after {
-      margin-left: 3px;
-      content: "▾";
-      font-size: 0.72rem;
-    }
-
     .start-levels {
       display: grid;
       gap: 12px;
@@ -277,17 +271,6 @@
       box-shadow: inset 0 -8px 0 rgba(240, 170, 45, 0.13), 0 16px 30px rgba(240, 170, 45, 0.2);
       animation: hero-bob 3s ease-in-out infinite;
     }
-
-    .hero-orbit::before,
-    .hero-orbit::after {
-      position: absolute;
-      content: "★";
-      color: var(--purple);
-      font-size: 26px;
-    }
-
-    .hero-orbit::before { left: -13px; top: 14px; transform: rotate(-18deg); }
-    .hero-orbit::after { right: -11px; bottom: 12px; transform: rotate(15deg) scale(0.7); }
 
     @keyframes hero-bob {
       0%, 100% { transform: translateY(0); }
@@ -489,12 +472,6 @@
       transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
     }
 
-    .word-choice .emoji {
-      font-size: clamp(1.7rem, 7vw, 2.35rem);
-      line-height: 1;
-      pointer-events: none;
-    }
-
     .word-choice .word {
       overflow: hidden;
       max-width: 100%;
@@ -540,18 +517,6 @@
       flex-direction: column;
       align-items: center;
       margin: 8px 0 18px;
-    }
-
-    .emoji-bubble {
-      display: grid;
-      width: 92px;
-      height: 92px;
-      margin-bottom: 14px;
-      place-items: center;
-      border-radius: 28px;
-      font-size: 50px;
-      background: linear-gradient(145deg, #fff4bc, #ffe18a);
-      box-shadow: inset 0 -6px 0 rgba(220, 160, 42, 0.12);
     }
 
     .sound-button {
@@ -727,6 +692,42 @@
     .feedback.good { color: #167b56; }
     .feedback.try { color: #b64f47; }
 
+    .letter-recap {
+      display: grid;
+      min-height: 210px;
+      place-items: center;
+      text-align: center;
+    }
+
+    .letter-recap-word {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: clamp(7px, 2.5vw, 15px);
+      min-height: 86px;
+      color: var(--ink);
+      font-size: clamp(2.5rem, 13vw, 5rem);
+      font-weight: 850;
+      letter-spacing: 0.01em;
+      text-transform: lowercase;
+    }
+
+    .recap-letter {
+      display: inline-block;
+      animation: emphasize-letter 340ms ease-in-out both;
+    }
+
+    @keyframes emphasize-letter {
+      0%, 100% {
+        color: var(--ink);
+        transform: scale(1);
+      }
+      50% {
+        color: var(--purple-dark);
+        transform: scale(1.22);
+      }
+    }
+
     .correction-backdrop {
       position: fixed;
       z-index: 350;
@@ -780,13 +781,6 @@
       text-align: center;
     }
 
-    .success-emoji {
-      display: block;
-      margin-bottom: 12px;
-      font-size: clamp(4.5rem, 19vw, 7rem);
-      animation: pop 500ms cubic-bezier(.2, 1.45, .5, 1);
-    }
-
     @keyframes pop {
       from { transform: scale(0.2) rotate(-12deg); opacity: 0; }
       to { transform: scale(1) rotate(0); opacity: 1; }
@@ -795,8 +789,9 @@
     .stars-earned {
       margin: 15px 0 24px;
       color: #efad28;
-      font-size: 2.2rem;
-      letter-spacing: 5px;
+      font-size: 1.08rem;
+      font-weight: 900;
+      letter-spacing: 0;
     }
 
     .level-map {
@@ -865,7 +860,6 @@
       .sentence { margin-top: 4px; margin-bottom: 15px; }
       .word-choice { min-height: 76px; }
       .audio-stage { margin-top: 0; margin-bottom: 10px; }
-      .emoji-bubble { width: 72px; height: 72px; margin-bottom: 8px; font-size: 40px; }
     }
 
     @media (max-width: 390px) {
@@ -906,13 +900,6 @@
   </style>
 </head>
 <body>
-  <div class="sparkles" aria-hidden="true">
-    <span class="sparkle">✦</span>
-    <span class="sparkle">✎</span>
-    <span class="sparkle">★</span>
-    <span class="sparkle">✦</span>
-  </div>
-
   <main class="app">
     <header class="topbar">
       <div class="brand">
@@ -928,16 +915,16 @@
     "use strict";
 
     const WORDS = [
-      { word: "bandit", emoji: "🥷", sentence: "The sneaky ___ wore a mask." },
-      { word: "box", emoji: "📦", sentence: "Put the new toy inside the ___." },
-      { word: "drift", emoji: "🍂", sentence: "We watched the leaf ___ across the pond." },
-      { word: "munch", emoji: "😋", sentence: "The rabbits ___ on crunchy carrots." },
-      { word: "picnic", emoji: "🧺", sentence: "We ate sandwiches at our sunny ___." },
-      { word: "she", emoji: "👧", sentence: "___ is reading her favorite book." },
-      { word: "shelf", emoji: "📚", sentence: "Please put the book back on the ___." },
-      { word: "sprang", emoji: "🐸", sentence: "The green frog ___ into the pond." },
-      { word: "think", emoji: "🤔", sentence: "Stop and ___ before you answer." },
-      { word: "wish", emoji: "🌠", sentence: "Make a ___ before you blow out the candles." }
+      { word: "bandit", sentence: "The sneaky ___ wore a mask." },
+      { word: "box", sentence: "Put the new toy inside the ___." },
+      { word: "drift", sentence: "We watched the leaf ___ across the pond." },
+      { word: "munch", sentence: "The rabbits ___ on crunchy carrots." },
+      { word: "picnic", sentence: "We ate sandwiches at our sunny ___." },
+      { word: "she", sentence: "___ is reading her favorite book." },
+      { word: "shelf", sentence: "Please put the book back on the ___." },
+      { word: "sprang", sentence: "The green frog ___ into the pond." },
+      { word: "think", sentence: "Stop and ___ before you answer." },
+      { word: "wish", sentence: "Make a ___ before you blow out the candles." }
     ];
 
     const STORAGE_KEY = "mobile-spelling-quest-v1";
@@ -1237,7 +1224,6 @@
       updateHeader(false);
       screen.innerHTML = `
         <div class="card hero">
-          <div class="hero-orbit" aria-hidden="true">🚀</div>
           <h1>Spelling Quest</h1>
           <div class="start-levels">${levelButtonsMarkup()}</div>
         </div>
@@ -1301,8 +1287,7 @@
           </p>
           <div class="choices" id="choices">
             ${choices.map((item) => `
-              <button class="word-choice" data-word="${item.word}" aria-label="${item.word}, ${item.emoji}" aria-pressed="false">
-                <span class="emoji" aria-hidden="true">${item.emoji}</span>
+              <button class="word-choice" data-word="${item.word}" aria-label="${item.word}" aria-pressed="false">
                 <span class="word">${item.word}</span>
               </button>
             `).join("")}
@@ -1427,7 +1412,6 @@
           <p class="eyebrow">Listen and spell</p>
           <h2>Build the word</h2>
           <div class="audio-stage">
-            <div class="emoji-bubble" aria-hidden="true">${target.emoji}</div>
             <button class="sound-button" id="soundButton" aria-label="Play the spelling word again">
               <span class="play-icon" aria-hidden="true"></span>
               Hear the word
@@ -1466,7 +1450,6 @@
           <p class="eyebrow">Final challenge</p>
           <h2>Spell what you hear</h2>
           <div class="audio-stage">
-            <div class="emoji-bubble" aria-hidden="true">${target.emoji}</div>
             <button class="sound-button" id="soundButton" aria-label="Play the spelling word again">
               <span class="play-icon" aria-hidden="true"></span>
               Hear the word
@@ -1838,6 +1821,28 @@
       focusKeyboard();
     }
 
+    function showLetterRecap(target, needsRetry, expectedViewVersion) {
+      if (viewVersion !== expectedViewVersion) return;
+      const roundCard = document.getElementById("roundCard");
+      if (!roundCard) return;
+
+      const spokenLetters = [...target.word].join("-");
+      roundCard.innerHTML = `
+        <div class="letter-recap">
+          <div class="letter-recap-word" aria-label="${escapeHtml(spokenLetters)}">
+            ${[...target.word].map((letter, index) => `
+              <span class="recap-letter" style="animation-delay: ${index * 340}ms">${escapeHtml(letter)}</span>
+            `).join("")}
+          </div>
+        </div>
+      `;
+
+      const sequenceDuration = target.word.length * 340 + 220;
+      window.setTimeout(() => {
+        if (viewVersion === expectedViewVersion) renderWordSuccess(target, needsRetry);
+      }, sequenceDuration);
+    }
+
     function checkAnswer(answer) {
       if (locked) return;
       const target = currentWord();
@@ -1855,8 +1860,8 @@
         }
         const successViewVersion = viewVersion;
         window.setTimeout(() => {
-          if (viewVersion === successViewVersion) renderWordSuccess(target, needsRetry);
-        }, 420);
+          showLetterRecap(target, needsRetry, successViewVersion);
+        }, 180);
       } else {
         recordIncorrectAttempt();
         const card = document.getElementById("roundCard");
@@ -1883,14 +1888,12 @@
       const isLast = currentRound() >= state.orders[state.level].length;
       screen.innerHTML = `
         <div class="card success-panel">
-          <span class="success-emoji" aria-hidden="true">${target.emoji}</span>
           <p class="eyebrow">${needsRetry ? "Good correction" : "Star earned"}</p>
           <h2>${escapeHtml(target.word)}</h2>
           <p class="subtitle">${needsRetry ? "You fixed it! This word will return later so you can master it on the first try." : encouragement()}</p>
-          <div class="stars-earned" aria-label="${needsRetry ? "Word will return" : "Three stars"}">${needsRetry ? "↻" : "★ ★ ★"}</div>
+          <div class="stars-earned">${needsRetry ? "This word will return" : "First-try correct"}</div>
           <button class="primary-button wide-button" id="nextButton">
             ${isLast ? "Finish the Level" : "Next Word"}
-            <span aria-hidden="true">→</span>
           </button>
         </div>
       `;
@@ -1926,14 +1929,12 @@
       const nextLevel = unfinishedLevels.find((level) => level > completedLevel) || unfinishedLevels[0];
       screen.innerHTML = `
         <div class="card level-panel">
-          <span class="success-emoji" aria-hidden="true">🏆</span>
           <p class="eyebrow">Level ${completedLevel} complete</p>
           <h2>Amazing work!</h2>
           <p class="subtitle">You earned all ten stars. Your next challenge is ready.</p>
           ${levelMap(nextLevel)}
           <button class="primary-button wide-button" id="nextLevelButton">
             Start Level ${nextLevel}
-            <span aria-hidden="true">→</span>
           </button>
         </div>
       `;
@@ -1949,7 +1950,7 @@
           ${[1, 2, 3].map((level) => {
             const complete = state.mastered[level].length === WORDS.length;
             const status = complete ? "done" : level === current ? "current" : "";
-            const number = complete ? "✓" : level;
+            const number = level;
             return `
               <div class="map-step ${status}">
                 <span class="map-number">${number}</span>
@@ -1965,11 +1966,10 @@
       updateHeader(false);
       screen.innerHTML = `
         <div class="card hero">
-          <div class="hero-orbit" aria-hidden="true">🏆</div>
           <p class="eyebrow">Quest complete</p>
           <h1>Super Speller!</h1>
           <p class="subtitle">You finished all three levels and spelled every word. That was incredible!</p>
-          <div class="stars-earned" aria-label="Five stars">★ ★ ★ ★ ★</div>
+          <div class="stars-earned">All levels mastered</div>
           <div class="start-levels">${levelButtonsMarkup()}</div>
         </div>
       `;
