@@ -563,24 +563,12 @@
       border-left: 15px solid currentColor;
     }
 
-    .tricky-badge {
-      display: inline-flex;
-      min-height: 34px;
-      align-items: center;
-      margin-top: 10px;
-      padding: 6px 11px;
-      border-radius: 999px;
-      color: #8b4b00;
-      font-size: 0.78rem;
-      font-weight: 950;
-      background: #fff0b5;
-    }
-
     .slots-wrap {
       position: relative;
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(var(--letter-count), minmax(0, 52px));
       justify-content: center;
-      gap: clamp(4px, 1.7vw, 9px);
+      gap: clamp(3px, 1.2vw, 9px);
       width: 100%;
       margin: 6px auto 22px;
       cursor: text;
@@ -588,7 +576,8 @@
 
     .letter-slot {
       display: grid;
-      width: clamp(34px, 10vw, 52px);
+      width: 100%;
+      min-width: 0;
       height: clamp(50px, 13vw, 68px);
       place-items: center;
       border-bottom: 5px solid #9389e7;
@@ -721,10 +710,10 @@
       min-width: 0;
       align-items: baseline;
       justify-content: center;
-      gap: clamp(3px, 1.5vw, 10px);
+      gap: clamp(2px, 1vw, 8px);
       min-height: 86px;
       color: var(--ink);
-      font-size: clamp(2rem, 10vw, 5rem);
+      font-size: clamp(1.6rem, 8vw, 5rem);
       font-weight: 850;
       letter-spacing: 0.01em;
       text-transform: lowercase;
@@ -732,18 +721,16 @@
 
     .recap-letter {
       display: inline-block;
-      animation: emphasize-letter 340ms ease-in-out both;
+      transition: color 100ms ease, transform 100ms ease;
     }
 
-    @keyframes emphasize-letter {
-      0%, 100% {
-        color: var(--ink);
-        transform: scale(1);
-      }
-      50% {
-        color: var(--purple-dark);
-        transform: scale(1.22);
-      }
+    .recap-letter.active {
+      color: var(--purple-dark);
+      font-weight: 950;
+      text-decoration: underline;
+      text-decoration-thickness: 0.12em;
+      text-underline-offset: 0.14em;
+      transform: scale(1.18);
     }
 
     .correction-backdrop {
@@ -770,7 +757,7 @@
     .correction-word {
       margin: 22px 0 28px;
       color: var(--ink);
-      font-size: clamp(1.8rem, 10vw, 4rem);
+      font-size: clamp(1.5rem, 8vw, 2.35rem);
       letter-spacing: 0.03em;
       text-transform: lowercase;
     }
@@ -888,6 +875,18 @@
       .level-pill { font-size: 0.8rem; }
     }
 
+    @media (max-width: 520px) {
+      .choices {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .word-choice {
+        min-height: 54px;
+        border-radius: 16px;
+      }
+    }
+
     @media (orientation: landscape) {
       .is-ipad .app::after {
         position: fixed;
@@ -933,16 +932,16 @@
     "use strict";
 
     const WORDS = [
-      { word: "bandit", sentence: "The sneaky ___ wore a mask." },
-      { word: "box", sentence: "Put the new toy inside the ___." },
-      { word: "drift", sentence: "We watched the leaf ___ across the pond." },
-      { word: "munch", sentence: "The rabbits ___ on crunchy carrots." },
-      { word: "picnic", sentence: "We ate sandwiches at our sunny ___." },
-      { word: "she", sentence: "___ is reading her favorite book." },
-      { word: "shelf", sentence: "Please put the book back on the ___." },
-      { word: "sprang", sentence: "The green frog ___ into the pond." },
-      { word: "think", sentence: "Stop and ___ before you answer." },
-      { word: "wish", sentence: "Make a ___ before you blow out the candles." }
+      { word: "snacking", sentence: "I am ___ on apple slices." },
+      { word: "mixing", sentence: "Dad is ___ the cake batter." },
+      { word: "smelling", sentence: "The puppy is ___ the flower." },
+      { word: "running", sentence: "The dog is ___ across the yard." },
+      { word: "kissing", sentence: "The mother is ___ her baby goodnight." },
+      { word: "buzzing", sentence: "A bee is ___ near the flowers." },
+      { word: "hitting", sentence: "He is ___ the ball with a bat." },
+      { word: "until", sentence: "Wait ___ the light turns green." },
+      { word: "problem", sentence: "I solved the math ___." },
+      { word: "how", sentence: "___ do you build a kite?" }
     ];
 
     const STORAGE_KEY = "mobile-spelling-quest-v1";
@@ -1152,6 +1151,8 @@
     function playEffect(name, onEnded = null) {
       effectAudio.pause();
       effectAudio.onended = null;
+      effectAudio.onerror = null;
+      effectAudio.onplaying = null;
       effectAudio.src = `sounds/${name}.mp3`;
       effectAudio.currentTime = 0;
       if (onEnded) effectAudio.onended = onEnded;
@@ -1307,7 +1308,6 @@
         ${progressMarkup()}
         <div class="round-card" id="roundCard">
           <h2>Finish the sentence</h2>
-          ${trickyBadge(target)}
           <p class="sentence">
             ${escapeHtml(sentenceParts[0])}<button class="drop-zone" id="dropZone" aria-label="Sentence blank">blank</button>${escapeHtml(sentenceParts[1] || "")}
           </p>
@@ -1427,12 +1427,6 @@
       });
     }
 
-    function trickyBadge(target) {
-      return target.word === "she"
-        ? '<span class="tricky-badge">Tricky Word</span>'
-        : "";
-    }
-
     function renderSlotRound() {
       const target = currentWord();
       screen.innerHTML = `
@@ -1445,9 +1439,8 @@
               <span class="play-icon" aria-hidden="true"></span>
               Hear the word
             </button>
-            ${trickyBadge(target)}
           </div>
-          <div class="slots-wrap" id="slotsWrap" role="group" aria-label="${target.word.length} letter spaces. Tap a space to type there.">
+          <div class="slots-wrap" id="slotsWrap" style="--letter-count: ${target.word.length}" role="group" aria-label="${target.word.length} letter spaces. Tap a space to type there.">
             ${Array.from({ length: target.word.length }, (_, index) => `<span class="letter-slot" data-index="${index}" tabindex="0" role="button" aria-label="Letter space ${index + 1}, blank"></span>`).join("")}
             <input
               class="typing-capture"
@@ -1483,7 +1476,6 @@
               <span class="play-icon" aria-hidden="true"></span>
               Hear the word
             </button>
-            ${trickyBadge(target)}
           </div>
           <input
             class="plain-input"
@@ -1852,7 +1844,45 @@
       focusKeyboard();
     }
 
-    function showLetterRecap(target, needsRetry, expectedViewVersion) {
+    function playRecapLetter(letter, element, onFinished) {
+      let settled = false;
+      let fallbackScheduled = false;
+      let fallbackTimer;
+
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        effectAudio.onended = null;
+        effectAudio.onerror = null;
+        effectAudio.onplaying = null;
+        element.classList.remove("active");
+        window.setTimeout(onFinished, 70);
+      };
+
+      const animateWithoutAudio = () => {
+        if (settled || fallbackScheduled) return;
+        fallbackScheduled = true;
+        window.clearTimeout(fallbackTimer);
+        element.classList.add("active");
+        fallbackTimer = window.setTimeout(finish, 850);
+      };
+
+      effectAudio.pause();
+      effectAudio.onended = finish;
+      effectAudio.onerror = animateWithoutAudio;
+      effectAudio.onplaying = () => element.classList.add("active");
+      effectAudio.src = `sounds/letters/${letter.toLowerCase()}.mp3`;
+      effectAudio.currentTime = 0;
+
+      const promise = effectAudio.play();
+      fallbackTimer = window.setTimeout(animateWithoutAudio, 2500);
+      if (promise) {
+        promise.catch(animateWithoutAudio);
+      }
+    }
+
+    function showLetterRecap(target, needsRetry, expectedViewVersion, finishedLevel) {
       if (viewVersion !== expectedViewVersion) return;
       const roundCard = document.getElementById("roundCard");
       if (!roundCard) return;
@@ -1861,17 +1891,35 @@
       roundCard.innerHTML = `
         <div class="letter-recap">
           <div class="letter-recap-word" aria-label="${escapeHtml(spokenLetters)}">
-            ${[...target.word].map((letter, index) => `
-              <span class="recap-letter" style="animation-delay: ${index * 340}ms">${escapeHtml(letter)}</span>
+            ${[...target.word].map((letter) => `
+              <span class="recap-letter">${escapeHtml(letter)}</span>
             `).join("")}
           </div>
         </div>
       `;
 
-      const sequenceDuration = target.word.length * 340 + 220;
-      window.setTimeout(() => {
-        if (viewVersion === expectedViewVersion) renderWordSuccess(target, needsRetry);
-      }, sequenceDuration);
+      const letters = [...roundCard.querySelectorAll(".recap-letter")];
+      let letterIndex = 0;
+
+      const playNextLetter = () => {
+        if (viewVersion !== expectedViewVersion) {
+          effectAudio.pause();
+          return;
+        }
+        if (letterIndex >= letters.length) {
+          if (finishedLevel) playEffect("win");
+          window.setTimeout(() => {
+            if (viewVersion === expectedViewVersion) renderWordSuccess(target, needsRetry);
+          }, 150);
+          return;
+        }
+
+        const index = letterIndex;
+        letterIndex += 1;
+        playRecapLetter(target.word[index], letters[index], playNextLetter);
+      };
+
+      playEffect("correct", playNextLetter);
     }
 
     function checkAnswer(answer) {
@@ -1883,16 +1931,13 @@
         const needsRetry = advanceAfterCorrect(target.word);
         const finishedLevel = currentRound() >= state.orders[state.level].length;
         saveState();
-        playEffect("correct", finishedLevel ? () => playEffect("win") : null);
         const feedback = document.getElementById("feedback");
         if (feedback) {
           feedback.textContent = "You got it!";
           feedback.className = "feedback good";
         }
         const successViewVersion = viewVersion;
-        window.setTimeout(() => {
-          showLetterRecap(target, needsRetry, successViewVersion);
-        }, 180);
+        showLetterRecap(target, needsRetry, successViewVersion, finishedLevel);
       } else {
         recordIncorrectAttempt();
         const card = document.getElementById("roundCard");
