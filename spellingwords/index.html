@@ -721,7 +721,7 @@
 
     .recap-letter {
       display: inline-block;
-      transition: color 100ms ease, transform 100ms ease;
+      transition: color 50ms ease, transform 50ms ease;
     }
 
     .recap-letter.active {
@@ -1133,10 +1133,23 @@
       ghost.style.top = `${Math.max(halfHeight, Math.min(window.innerHeight - halfHeight, y))}px`;
     }
 
+    function stopAllAudio() {
+      audio.pause();
+      audio.onended = null;
+      audio.onerror = null;
+      effectAudio.pause();
+      effectAudio.onended = null;
+      effectAudio.onerror = null;
+      effectAudio.onplaying = null;
+    }
+
     function playAudio(word) {
       audio.pause();
+      audio.onended = null;
+      audio.onerror = null;
       audio.src = `sounds/${word}.mp3`;
       audio.currentTime = 0;
+      audio.playbackRate = 1;
       const promise = audio.play();
       if (promise) {
         promise.catch(() => {
@@ -1148,6 +1161,26 @@
       }
     }
 
+    function playWordForRecap(word, onEnded) {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        audio.onended = null;
+        audio.onerror = null;
+        onEnded();
+      };
+
+      audio.pause();
+      audio.onended = finish;
+      audio.onerror = finish;
+      audio.src = `sounds/${word}.mp3`;
+      audio.currentTime = 0;
+      audio.playbackRate = 1;
+      const promise = audio.play();
+      if (promise) promise.catch(finish);
+    }
+
     function playEffect(name, onEnded = null) {
       effectAudio.pause();
       effectAudio.onended = null;
@@ -1155,6 +1188,7 @@
       effectAudio.onplaying = null;
       effectAudio.src = `sounds/${name}.mp3`;
       effectAudio.currentTime = 0;
+      effectAudio.playbackRate = 1;
       if (onEnded) effectAudio.onended = onEnded;
       const promise = effectAudio.play();
       if (promise) promise.catch(() => {
@@ -1275,6 +1309,7 @@
     }
 
     function renderRound(options = {}) {
+      stopAllAudio();
       viewVersion += 1;
       selectedWord = null;
       locked = false;
@@ -1844,7 +1879,7 @@
       focusKeyboard();
     }
 
-    function playRecapLetter(letter, element, onFinished) {
+    function playRecapLetter(letter, element, onFinished, expectedViewVersion) {
       let settled = false;
       let fallbackScheduled = false;
       let fallbackTimer;
@@ -1853,19 +1888,29 @@
         if (settled) return;
         settled = true;
         window.clearTimeout(fallbackTimer);
+        if (viewVersion !== expectedViewVersion) {
+          element.classList.remove("active");
+          return;
+        }
         effectAudio.onended = null;
         effectAudio.onerror = null;
         effectAudio.onplaying = null;
         element.classList.remove("active");
-        window.setTimeout(onFinished, 70);
+        window.setTimeout(onFinished, 35);
       };
 
       const animateWithoutAudio = () => {
         if (settled || fallbackScheduled) return;
+        if (viewVersion !== expectedViewVersion) {
+          settled = true;
+          window.clearTimeout(fallbackTimer);
+          element.classList.remove("active");
+          return;
+        }
         fallbackScheduled = true;
         window.clearTimeout(fallbackTimer);
         element.classList.add("active");
-        fallbackTimer = window.setTimeout(finish, 850);
+        fallbackTimer = window.setTimeout(finish, 425);
       };
 
       effectAudio.pause();
@@ -1874,9 +1919,9 @@
       effectAudio.onplaying = () => element.classList.add("active");
       effectAudio.src = `sounds/letters/${letter.toLowerCase()}.mp3`;
       effectAudio.currentTime = 0;
+      effectAudio.playbackRate = 2;
 
       const promise = effectAudio.play();
-      fallbackTimer = window.setTimeout(animateWithoutAudio, 2500);
       if (promise) {
         promise.catch(animateWithoutAudio);
       }
@@ -1902,10 +1947,7 @@
       let letterIndex = 0;
 
       const playNextLetter = () => {
-        if (viewVersion !== expectedViewVersion) {
-          effectAudio.pause();
-          return;
-        }
+        if (viewVersion !== expectedViewVersion) return;
         if (letterIndex >= letters.length) {
           if (finishedLevel) playEffect("win");
           window.setTimeout(() => {
@@ -1916,10 +1958,18 @@
 
         const index = letterIndex;
         letterIndex += 1;
-        playRecapLetter(target.word[index], letters[index], playNextLetter);
+        playRecapLetter(target.word[index], letters[index], playNextLetter, expectedViewVersion);
       };
 
-      playEffect("correct", playNextLetter);
+      audio.pause();
+      audio.onended = null;
+      audio.onerror = null;
+      playEffect("correct", () => {
+        if (viewVersion !== expectedViewVersion) return;
+        playWordForRecap(target.word, () => {
+          if (viewVersion === expectedViewVersion) playNextLetter();
+        });
+      });
     }
 
     function checkAnswer(answer) {
