@@ -1955,7 +1955,7 @@
         fallbackScheduled = true;
         window.clearTimeout(fallbackTimer);
         element.classList.add("active");
-        fallbackTimer = window.setTimeout(finish, 425);
+        fallbackTimer = window.setTimeout(finish, 850);
       };
 
       effectAudio.pause();
@@ -1964,7 +1964,7 @@
       effectAudio.onplaying = () => element.classList.add("active");
       effectAudio.src = `sounds/letters/${letter.toLowerCase()}.mp3`;
       effectAudio.currentTime = 0;
-      effectAudio.playbackRate = 2;
+      effectAudio.playbackRate = 1;
 
       const promise = effectAudio.play();
       if (promise) {
