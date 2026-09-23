@@ -952,6 +952,8 @@
     audio.preload = "auto";
     const effectAudio = new Audio();
     effectAudio.preload = "auto";
+    const keyAudio = new Audio();
+    keyAudio.preload = "auto";
 
     const isIPad = /iPad/i.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -1141,6 +1143,22 @@
       effectAudio.onended = null;
       effectAudio.onerror = null;
       effectAudio.onplaying = null;
+      keyAudio.pause();
+      keyAudio.onerror = null;
+    }
+
+    function playTypedLetter(value) {
+      const letters = String(value || "").toLowerCase().replace(/[^a-z]/g, "");
+      const letter = letters.at(-1);
+      if (!letter) return;
+
+      keyAudio.pause();
+      keyAudio.onerror = null;
+      keyAudio.src = `sounds/letters/${letter}.mp3`;
+      keyAudio.currentTime = 0;
+      keyAudio.playbackRate = 1;
+      const promise = keyAudio.play();
+      if (promise) promise.catch(() => {});
     }
 
     function playAudio(word) {
@@ -1566,6 +1584,7 @@
       tryAgainButton.addEventListener("click", () => {
         backdrop.remove();
         input.value = "";
+        input.dataset.previousValue = "";
         feedback.textContent = "";
         feedback.className = "feedback";
         input.focus();
@@ -1585,7 +1604,28 @@
         return;
       }
 
-      input.addEventListener("input", () => {
+      input.dataset.previousValue = input.value;
+      input.addEventListener("input", (event) => {
+        const previousValue = input.dataset.previousValue || "";
+        const explicitDelete = event.inputType?.startsWith("delete");
+        const inferredDelete = !event.inputType
+          && event.data == null
+          && input.value.length < previousValue.length;
+        if (!explicitDelete && !inferredDelete) {
+          let firstDifference = 0;
+          while (
+            firstDifference < previousValue.length
+            && previousValue[firstDifference] === input.value[firstDifference]
+          ) {
+            firstDifference += 1;
+          }
+          const insertedLength = Math.max(1, input.value.length - previousValue.length);
+          const inserted = event.data
+            || input.value.slice(firstDifference, firstDifference + insertedLength)
+            || input.value;
+          playTypedLetter(inserted);
+        }
+        input.dataset.previousValue = input.value;
         feedback.textContent = "";
         feedback.className = "feedback";
       });
@@ -1814,10 +1854,15 @@
       });
 
       input.addEventListener("input", (event) => {
-        if (event.inputType?.startsWith("delete")) {
+        const explicitDelete = event.inputType?.startsWith("delete");
+        const inferredDelete = !event.inputType
+          && event.data == null
+          && input.value.replaceAll(captureSentinel, "") === "";
+        if (explicitDelete || inferredDelete) {
           removeLetter();
         } else {
           const typed = (event.data || input.value).toLowerCase().replace(/[^a-z]/g, "");
+          playTypedLetter(typed);
           [...typed].forEach(placeLetter);
         }
         resetCaptureInput();
@@ -1961,6 +2006,8 @@
         playRecapLetter(target.word[index], letters[index], playNextLetter, expectedViewVersion);
       };
 
+      keyAudio.pause();
+      keyAudio.onerror = null;
       audio.pause();
       audio.onended = null;
       audio.onerror = null;
