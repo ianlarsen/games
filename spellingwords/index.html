@@ -733,6 +733,29 @@
       transform: scale(1.18);
     }
 
+    .letter-recap-word.tornado {
+      animation: tornado-word 1.55s cubic-bezier(.45, 0, .3, 1);
+    }
+
+    @keyframes tornado-word {
+      0% { transform: translateY(0) rotate(0) scale(1); }
+      20% { transform: translateY(-22px) rotate(150deg) scale(0.78); }
+      45% { transform: translateY(15px) rotate(330deg) scale(1.12); }
+      70% { transform: translateY(-10px) rotate(540deg) scale(0.82); }
+      100% { transform: translateY(0) rotate(720deg) scale(1); }
+    }
+
+    .letter-recap-word.rolling {
+      animation: rolling-word 1.65s cubic-bezier(.25, .7, .25, 1);
+    }
+
+    @keyframes rolling-word {
+      0% { transform: translateX(-24%) rotate(-360deg) scale(0.86); }
+      48% { transform: translateX(20%) rotate(310deg) scale(1.06); }
+      78% { transform: translateX(-5%) rotate(620deg) scale(0.96); }
+      100% { transform: translateX(0) rotate(720deg) scale(1); }
+    }
+
     .correction-backdrop {
       position: fixed;
       z-index: 350;
@@ -944,7 +967,7 @@
       { word: "should", sentence: "You ___ wear a coat today." }
     ];
 
-    const STORAGE_KEY = "mobile-spelling-quest-v1";
+    const STORAGE_KEY = "mobile-spelling-quest-v2";
     const screen = document.getElementById("screen");
     const topbar = document.querySelector(".topbar");
     const levelPill = document.getElementById("levelPill");
@@ -974,6 +997,7 @@
     }
 
     function freshState() {
+      const newStreaks = () => Object.fromEntries(WORDS.map((item) => [item.word, 0]));
       return {
         started: false,
         level: 1,
@@ -984,6 +1008,7 @@
           3: shuffled(WORDS.map((item) => item.word))
         },
         mastered: { 1: [], 2: [], 3: [] },
+        streaks: { 1: newStreaks(), 2: newStreaks(), 3: newStreaks() },
         roundHadError: { 1: false, 2: false, 3: false }
       };
     }
@@ -999,6 +1024,13 @@
       return Array.isArray(list)
         && new Set(list).size === list.length
         && list.every((word) => wordData(word));
+    }
+
+    function validStreaks(streaks) {
+      return streaks
+        && WORDS.every((item) => Number.isInteger(streaks[item.word])
+          && streaks[item.word] >= 0
+          && streaks[item.word] <= 3);
     }
 
     function inferMastered(saved, rounds) {
@@ -1025,6 +1057,10 @@
           && validOrder(saved.orders[1])
           && validOrder(saved.orders[2])
           && validOrder(saved.orders[3])
+          && saved.streaks
+          && validStreaks(saved.streaks[1])
+          && validStreaks(saved.streaks[2])
+          && validStreaks(saved.streaks[3])
         ) {
           const hasValidRounds = saved.rounds
             && [1, 2, 3].every((level) => Number.isInteger(saved.rounds[level])
@@ -1041,12 +1077,12 @@
                   : 0;
             });
           }
-          const hasValidMastery = saved.mastered
-            && validMastered(saved.mastered[1])
-            && validMastered(saved.mastered[2])
-            && validMastered(saved.mastered[3]);
           saved.rounds = rounds;
-          saved.mastered = hasValidMastery ? saved.mastered : inferMastered(saved, rounds);
+          saved.mastered = {
+            1: WORDS.filter((item) => saved.streaks[1][item.word] === 3).map((item) => item.word),
+            2: WORDS.filter((item) => saved.streaks[2][item.word] === 3).map((item) => item.word),
+            3: WORDS.filter((item) => saved.streaks[3][item.word] === 3).map((item) => item.word)
+          };
           const oldRoundHadError = Boolean(saved.roundHadError);
           saved.roundHadError = saved.roundHadError
             && typeof saved.roundHadError === "object"
@@ -1100,14 +1136,29 @@
 
     function advanceAfterCorrect(word) {
       const needsRetry = state.roundHadError[state.level];
+      let streak = state.streaks[state.level][word];
       if (needsRetry) {
+        streak = 0;
+        state.streaks[state.level][word] = 0;
         queueWordForRetry(word);
-      } else if (!state.mastered[state.level].includes(word)) {
-        state.mastered[state.level].push(word);
+      } else {
+        streak = Math.min(3, streak + 1);
+        state.streaks[state.level][word] = streak;
+        if (streak === 3) {
+          if (!state.mastered[state.level].includes(word)) {
+            state.mastered[state.level].push(word);
+          }
+        } else {
+          queueWordForRetry(word);
+        }
       }
       state.roundHadError[state.level] = false;
       state.rounds[state.level] += 1;
-      return needsRetry;
+      return {
+        needsRetry,
+        streak,
+        masteredNow: !needsRetry && streak === 3
+      };
     }
 
     function wordData(word) {
@@ -1152,6 +1203,9 @@
       const letter = letters.at(-1);
       if (!letter) return;
 
+      audio.pause();
+      audio.onended = null;
+      audio.onerror = null;
       keyAudio.pause();
       keyAudio.onerror = null;
       keyAudio.src = `sounds/letters/${letter}.mp3`;
@@ -1162,6 +1216,8 @@
     }
 
     function playAudio(word) {
+      keyAudio.pause();
+      keyAudio.onerror = null;
       audio.pause();
       audio.onended = null;
       audio.onerror = null;
@@ -1250,6 +1306,7 @@
     function resetLevel(level) {
       state.orders[level] = shuffled(WORDS.map((item) => item.word));
       state.mastered[level] = [];
+      state.streaks[level] = Object.fromEntries(WORDS.map((item) => [item.word, 0]));
       state.rounds[level] = 0;
       state.roundHadError[level] = false;
     }
@@ -1972,7 +2029,41 @@
       }
     }
 
-    function showLetterRecap(target, needsRetry, expectedViewVersion, finishedLevel) {
+    function playSpellingPass(target, letters, expectedViewVersion, onFinished) {
+      let letterIndex = 0;
+      const playNextLetter = () => {
+        if (viewVersion !== expectedViewVersion) return;
+        if (letterIndex >= letters.length) {
+          onFinished();
+          return;
+        }
+
+        const index = letterIndex;
+        letterIndex += 1;
+        playRecapLetter(target.word[index], letters[index], playNextLetter, expectedViewVersion);
+      };
+      playNextLetter();
+    }
+
+    function animateRecapWord(element, className, duration, expectedViewVersion, onFinished) {
+      if (viewVersion !== expectedViewVersion) return;
+      let settled = false;
+      let fallbackTimer;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        element.removeEventListener("animationend", finish);
+        element.classList.remove(className);
+        if (viewVersion === expectedViewVersion) onFinished();
+      };
+
+      element.addEventListener("animationend", finish);
+      element.classList.add(className);
+      fallbackTimer = window.setTimeout(finish, duration + 250);
+    }
+
+    function showLetterRecap(target, masteryResult, expectedViewVersion, finishedLevel) {
       if (viewVersion !== expectedViewVersion) return;
       const roundCard = document.getElementById("roundCard");
       if (!roundCard) return;
@@ -1989,21 +2080,36 @@
       `;
 
       const letters = [...roundCard.querySelectorAll(".recap-letter")];
-      let letterIndex = 0;
+      const recapWord = roundCard.querySelector(".letter-recap-word");
+      const stages = [
+        (next) => playWordForRecap(target.word, next),
+        (next) => playSpellingPass(target, letters, expectedViewVersion, next),
+        (next) => animateRecapWord(recapWord, "tornado", 1550, expectedViewVersion, next),
+        (next) => playWordForRecap(target.word, next),
+        (next) => playSpellingPass(target, letters, expectedViewVersion, next),
+        (next) => playWordForRecap(target.word, next),
+        (next) => animateRecapWord(recapWord, "rolling", 1650, expectedViewVersion, next),
+        (next) => playWordForRecap(target.word, next),
+        (next) => playSpellingPass(target, letters, expectedViewVersion, next),
+        (next) => playWordForRecap(target.word, next)
+      ];
+      let stageIndex = 0;
 
-      const playNextLetter = () => {
+      const runNextStage = () => {
         if (viewVersion !== expectedViewVersion) return;
-        if (letterIndex >= letters.length) {
+        if (stageIndex >= stages.length) {
           if (finishedLevel) playEffect("win");
           window.setTimeout(() => {
-            if (viewVersion === expectedViewVersion) renderWordSuccess(target, needsRetry);
+            if (viewVersion === expectedViewVersion) renderWordSuccess(target, masteryResult);
           }, 150);
           return;
         }
 
-        const index = letterIndex;
-        letterIndex += 1;
-        playRecapLetter(target.word[index], letters[index], playNextLetter, expectedViewVersion);
+        const stage = stages[stageIndex];
+        stageIndex += 1;
+        stage(() => {
+          if (viewVersion === expectedViewVersion) runNextStage();
+        });
       };
 
       keyAudio.pause();
@@ -2012,10 +2118,7 @@
       audio.onended = null;
       audio.onerror = null;
       playEffect("correct", () => {
-        if (viewVersion !== expectedViewVersion) return;
-        playWordForRecap(target.word, () => {
-          if (viewVersion === expectedViewVersion) playNextLetter();
-        });
+        if (viewVersion === expectedViewVersion) runNextStage();
       });
     }
 
@@ -2025,7 +2128,7 @@
 
       if (answer.toLowerCase() === target.word) {
         locked = true;
-        const needsRetry = advanceAfterCorrect(target.word);
+        const masteryResult = advanceAfterCorrect(target.word);
         const finishedLevel = currentRound() >= state.orders[state.level].length;
         saveState();
         const feedback = document.getElementById("feedback");
@@ -2034,7 +2137,7 @@
           feedback.className = "feedback good";
         }
         const successViewVersion = viewVersion;
-        showLetterRecap(target, needsRetry, successViewVersion, finishedLevel);
+        showLetterRecap(target, masteryResult, successViewVersion, finishedLevel);
       } else {
         recordIncorrectAttempt();
         const card = document.getElementById("roundCard");
@@ -2056,21 +2159,32 @@
       }
     }
 
-    function renderWordSuccess(target, needsRetry = false) {
+    function renderWordSuccess(target, masteryResult) {
       updateHeader(true);
       const isLast = currentRound() >= state.orders[state.level].length;
+      const { needsRetry, streak, masteredNow } = masteryResult;
+      const eyebrow = needsRetry
+        ? "Good correction"
+        : masteredNow
+          ? "Word mastered"
+          : `${streak} in a row`;
+      const message = needsRetry
+        ? "You fixed it! This word will return with its streak restarted."
+        : masteredNow
+          ? "Three first-try spellings in a row!"
+          : `${3 - streak} more first-try ${3 - streak === 1 ? "spelling" : "spellings"} to master this word.`;
       screen.innerHTML = `
         <div class="card success-panel">
-          <p class="eyebrow">${needsRetry ? "Good correction" : "Star earned"}</p>
+          <p class="eyebrow">${eyebrow}</p>
           <h2>${escapeHtml(target.word)}</h2>
-          <p class="subtitle">${needsRetry ? "You fixed it! This word will return later so you can master it on the first try." : encouragement()}</p>
-          <div class="stars-earned">${needsRetry ? "This word will return" : "First-try correct"}</div>
+          <p class="subtitle">${message}</p>
+          <div class="stars-earned">${streak} of 3 in a row</div>
           <button class="primary-button wide-button" id="nextButton">
             ${isLast ? "Finish the Level" : "Next Word"}
           </button>
         </div>
       `;
-      burstConfetti(needsRetry ? 8 : 18);
+      burstConfetti(masteredNow ? 18 : 8);
       document.getElementById("nextButton").addEventListener("click", () => {
         renderRound({ autoplay: state.level > 1 });
       });
