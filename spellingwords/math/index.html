@@ -550,11 +550,64 @@
         transition-duration: 0.01ms !important;
       }
     }
+.math-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.math-links { position:sticky; top:0; z-index:20; padding-top:env(safe-area-inset-top); background:#edf6fb; border-radius:16px; }
+.math-links .home-link { min-height: 44px; }
+.practice-launch { margin-top: 24px; width: 100%; }
+.practice-card { margin: 0; padding: clamp(18px,4vw,30px); }
+.practice-card h1 { font-size: clamp(2rem,7vw,3rem); }
+.practice-card h2 { font-size: clamp(1.4rem,5vw,2rem); }
+.practice-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.practice-tile { min-height:150px; padding:18px 14px; border:2px solid #d7e5ff; border-radius:20px; background:#f5f9ff; color:var(--ink); text-align:left; }
+.practice-tile span { display:block; font-size:1.8rem; margin-bottom:10px; }
+.practice-tile strong,.practice-tile small { display:block; }
+.practice-tile small { color:var(--muted); line-height:1.45; margin-top:8px; }
+.practice-actions { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px; margin:16px 0; }
+.practice-actions button { min-height:48px; padding:12px 18px; }
+.practice-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+.practice-heading button { min-height:44px; padding:10px 14px; }
+.practice-heading h2 { margin:0; }
+.practice-help { color:var(--muted); line-height:1.45; font-size:1rem; text-align:center; }
+.practice-number { text-align:center; font-size:clamp(3rem,15vw,5rem); font-weight:950; color:var(--blue-dark); line-height:1.1; margin:14px 0; }
+.practice-equation { text-align:center; font-weight:850; font-size:clamp(1.1rem,4vw,1.5rem); margin:14px 0; }
+.practice-history { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:14px 0; }
+.practice-history span { border-radius:12px; padding:8px 10px; background:var(--blue-soft); color:var(--blue-dark); font-weight:850; }
+.practice-input { width:min(100%,240px); display:block; margin:12px auto; padding:14px; border:3px solid #bbd0f5; border-radius:16px; text-align:center; font-size:1.8rem; background:#f9fbff; color:var(--ink); }
+.practice-label { display:block; text-align:center; font-weight:850; }
+.practice-note { color:var(--green); text-align:center; min-height:24px; line-height:1.45; font-weight:800; margin:12px 0; }
+.practice-chart { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:2px; width:100%; margin:12px 0; }
+.practice-cell { display:grid; place-items:center; min-width:0; height:clamp(29px,4.2vw,42px); border:1px solid #d9e2f2; font-size:clamp(.68rem,2.6vw,1rem); font-weight:750; border-radius:4px; background:#f7f9fd; }
+.practice-cell.hop { background:var(--green-soft); color:#086442; }
+.practice-cell.current { background:var(--blue); color:white; outline:2px solid #092c7c; outline-offset:-2px; font-weight:950; }
+.practice-chart-label { text-align:center; font-weight:850; margin:10px 0; }
+.practice-dice { display:flex; justify-content:center; gap:14px; margin:20px 0; }
+.practice-die { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); width:72px; height:72px; padding:10px; gap:5px; border:3px solid #afd0f8; border-radius:16px; background:#edf5ff; box-shadow:0 5px 0 #d3e4f9; }
+.practice-die i { border-radius:50%; background:var(--blue-dark); }
+.practice-objects { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:16px 0; }
+.practice-group { padding:10px; border:2px solid #d3ecdf; border-radius:14px; background:#f2fcf6; text-align:center; }
+.practice-group .items { display:flex; flex-wrap:wrap; justify-content:center; gap:5px; font-size:1.5rem; }
+.practice-group small { display:block; margin-top:8px; color:var(--green); font-weight:850; }
+.practice-object-choice[aria-pressed="true"] { outline:3px solid var(--blue); outline-offset:2px; }
+.practice-card .primary-button:disabled { opacity:.55; cursor:default; }
+@media(max-width:360px) { .practice-menu { gap:8px; } .practice-tile { padding:14px 10px; } .practice-heading { flex-wrap:wrap; } }
+@media(min-width:700px) and (orientation:landscape) { .practice-card { padding:22px; } .practice-chart { max-width:540px; margin:12px auto; } .practice-cell { height:30px; } }
+.practice-chart-scroll { width:100%; overflow-x:auto; position:relative; padding:4px; overscroll-behavior-x:contain; border-radius:12px; }
+.practice-chart { min-width:458px; margin:4px 0; max-width:none; }
+.practice-chart .practice-cell { height:44px; min-width:44px; padding:0; font-size:1rem; touch-action:manipulation; }
+.practice-cell.correct, .practice-cell.correct.current { color:#086442; background:#c7f4d9; border-color:#16854e; }
+.practice-cell.wrong, .practice-cell.wrong.current { color:#922626; background:#ffcece; border-color:#d63e3e; animation:wrong-chart-answer 350ms ease; }
+.practice-cell.chart-blank { background:transparent; border-color:transparent; }
+.practice-cell:disabled { cursor:default; opacity:1; }
+.chart-practice .practice-number { font-size:3rem; margin:8px 0; }
+.chart-practice .practice-actions { margin:10px 0; }
+.chart-practice .practice-help { margin-bottom:10px; }
+@keyframes wrong-chart-answer { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-4px)} 40%,80%{transform:translateX(4px)} }
+
   </style>
 </head>
 <body>
   <main class="app">
-    <a class="home-link" href="../index.html">Back to All Subjects</a>
+    <nav class="math-links" aria-label="Math navigation"><a class="home-link" href="../index.html">Back to All Subjects</a><button class="home-link" id="mathHome">Math Home</button><button class="home-link" id="learningGames">Learning Games</button></nav>
     <section class="screen" id="screen" aria-live="polite"></section>
   </main>
 
@@ -632,7 +685,7 @@
           && Array.isArray(saved.sequence)
           && saved.sequence.length === TOTAL_QUESTIONS + 1
           && saved.sequence.every((value, index) => value === expectedSequence[index])
-          && saved.sequence.at(-1) <= 100;
+          && saved.sequence.at(-1) <= 99;
         const masteredSet = new Set(saved?.mastered || []);
         const queueContainsEveryUnmastered = Array.from(
           { length: TOTAL_QUESTIONS },
@@ -649,7 +702,7 @@
           && saved.step <= 10
           && Number.isInteger(saved.start)
           && saved.start >= 1
-          && saved.start <= Math.max(1, 100 - saved.step * TOTAL_QUESTIONS)
+          && saved.start <= Math.max(1, 99 - saved.step * TOTAL_QUESTIONS)
           && validTasks(saved.queue)
           && validTasks(saved.mastered)
           && uniqueQueue
@@ -686,7 +739,7 @@
 
     function startGame(step) {
       stopGameAudio();
-      const maxStart = Math.max(1, 100 - step * TOTAL_QUESTIONS);
+      const maxStart = Math.max(1, 99 - step * TOTAL_QUESTIONS);
       const start = 1 + Math.floor(Math.random() * maxStart);
       state = {
         active: true,
@@ -715,9 +768,11 @@
               <button class="step-button" data-step="${step}">By ${step}</button>
             `).join("")}
           </div>
+          <button class="secondary-button practice-launch" id="practiceLaunch">Learning Games · By 5s</button>
         </div>
       `;
 
+      document.getElementById("practiceLaunch").addEventListener("click", renderCountingMenu);
       document.getElementById("continueButton")?.addEventListener("click", renderQuestion);
       document.querySelectorAll("[data-step]").forEach((button) => {
         button.addEventListener("click", () => startGame(Number(button.dataset.step)));
@@ -739,7 +794,7 @@
       return `
         <div class="progress-copy">
           <span>${state.mastered.length} of ${TOTAL_QUESTIONS} complete</span>
-          <span>${100 - state.sequence.at(-1)} spaces below 100</span>
+          <span>${99 - state.sequence.at(-1)} spaces to 99</span>
         </div>
         <div class="progress-track" role="progressbar" aria-label="Game progress" aria-valuemin="0" aria-valuemax="${TOTAL_QUESTIONS}" aria-valuenow="${state.mastered.length}">
           <div class="progress-fill" style="width: ${percent}%"></div>
@@ -808,7 +863,7 @@
 
       const input = document.getElementById("numberInput");
       input.addEventListener("input", () => {
-        input.value = input.value.replace(/\D/g, "").slice(0, 3);
+        input.value = input.value.replace(/\D/g, "").slice(0, 2);
       });
       input.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
@@ -919,6 +974,128 @@
       });
     }
 
+// Separate, relaxed practice. The original trail and its saved state stay intact.
+const COUNTING_ACTIVITIES = [
+  ['anywhere','⭐','Start Anywhere','Start with a surprise number. Say or write the next number.'],
+  ['chart','🔢','Hundreds Chart','Tap the next number after adding five.'],
+  ['dice','🎲','Roll & Count','Roll two dice to make a number. Add five once, then roll again.'],
+  ['objects','🧱','Real-World Objects','Add five coins, blocks, or snacks at a time.']
+];
+let countingPractice = null;
+let practiceVersion = 0;
+function stopCountingPractice() {
+  practiceVersion += 1;
+  stopGameAudio();
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+function sayCountingNumber(number) {
+  if (!('speechSynthesis' in window)) { practiceNote('Say the number out loud together.'); return; }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(String(number));
+  utterance.lang = 'en-US'; utterance.rate = .85;
+  window.speechSynthesis.speak(utterance);
+}
+function practiceNote(text) { const note = document.getElementById('practiceNote'); if (note) note.textContent = text; }
+function renderCountingMenu() {
+  stopCountingPractice();
+  screen.innerHTML = `<div class="card practice-card"><p class="eyebrow">Learn at your own pace</p><h1>Counting by 5s</h1><p class="subtitle">Add five each time, using numbers up to 99. No timer or score — use a helper whenever you like.</p><div class="practice-menu">${COUNTING_ACTIVITIES.map(([id,icon,name,copy]) => `<button class="practice-tile" data-counting="${id}"><span aria-hidden="true">${icon}</span><strong>${name}</strong><small>${copy}</small></button>`).join('')}</div><div class="practice-actions"><button class="secondary-button" id="backToTrail">Back to Skip Count Trail</button></div></div>`;
+  screen.querySelectorAll('[data-counting]').forEach(button => button.onclick = () => startCountingPractice(button.dataset.counting));
+  document.getElementById('backToTrail').onclick = () => { stopCountingPractice(); renderStart(); };
+}
+function startCountingPractice(id) {
+  stopCountingPractice();
+  const dice = Array.from({length:2}, () => 1 + Math.floor(Math.random()*6));
+  const start = id === 'dice' ? dice[0]*10+dice[1] : 1+Math.floor(Math.random()*49);
+  countingPractice = {id,start,current:start,history:[start],dice,object:'🧱',help:false,last:null};
+  renderCountingPractice();
+}
+function diceMarkup(digits) {
+  const pips = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  return `<div class="practice-dice" role="group" aria-label="Tens ${digits[0]}, ones ${digits[1]}">${digits.map(digit => `<div class="practice-die" role="img" aria-label="Die showing ${digit}">${Array.from({length:9},(_,index) => pips[digit].includes(index) ? '<i></i>' : '<span></span>').join('')}</div>`).join('')}</div>`;
+}
+function countingChartMarkup(p) {
+  const done=p.history.length>=11;
+  return `<p class="practice-chart-label">Number chart: 1–99</p><p class="practice-help">Slide the chart sideways if you need more room.</p><div class="practice-chart-scroll" tabindex="0" role="group" aria-label="Scrollable number chart"><div class="practice-chart" role="group" aria-label="Number chart from 1 to 99">${Array.from({length:99},(_,index) => {
+    const number=index+1;
+    const correct=p.history.slice(1).includes(number);
+    return `<button class="practice-cell ${correct ? 'correct' : ''} ${number===p.current ? 'current' : ''}" data-chart-number="${number}" ${done ? 'disabled' : ''} aria-label="${number}${number===p.current ? ', current number' : correct ? ', correct answer' : ''}">${number}</button>`;
+  }).join('')}<span class="practice-cell chart-blank" aria-hidden="true"></span></div></div>`;
+}
+function practiceHistoryMarkup(p) {
+  return `<div class="practice-history" aria-label="Numbers counted">${p.history.map(number => `<span>${number}</span>`).join('')}</div>`;
+}
+function renderCountingPractice() {
+  const p = countingPractice;
+  const game = COUNTING_ACTIVITIES.find(item => item[0]===p.id);
+  const hops = p.history.length-1;
+  const limit = p.id==='dice' ? 1 : 10;
+  const done = hops>=limit;
+  let body = '';
+  let copy = '';
+  if (p.id==='chart') {
+    copy = 'Add five to the big number, then tap your answer on the chart. Green means you got it!';
+    body = countingChartMarkup(p);
+  } else if(p.id==='dice') {
+    copy = 'The dice make your starting number: tens and ones. Add five just once, then roll again.';
+    body = diceMarkup(p.dice)+practiceHistoryMarkup(p);
+  } else if(p.id==='objects') {
+    copy = `Pretend you already have ${p.start} objects. Add a group of five and say your new total. You can try this with real objects too!`;
+    body = `<div class="practice-actions" role="group" aria-label="Choose objects">${[['🪙','Coins'],['🧱','Blocks'],['🍎','Snacks']].map(([icon,name]) => `<button class="secondary-button practice-object-choice" data-object="${icon}" aria-pressed="${p.object===icon}">${icon} ${name}</button>`).join('')}</div><div class="practice-objects">${Array.from({length:hops},(_,index) => `<div class="practice-group"><div class="items" aria-label="Five added objects">${Array.from({length:5},()=>`<span aria-hidden="true">${p.object}</span>`).join('')}</div><small>Group ${index+1}: +5</small></div>`).join('')}</div><p class="practice-equation">${p.start} to start + ${hops*5} added = ${p.current}</p>`;
+  } else {
+    copy = 'Say the next number out loud, or type it below. Add five to the number you see.';
+    body = practiceHistoryMarkup(p)+(!done ? `<label class="practice-label" for="practiceAnswer">What comes after ${p.current}?</label><input class="practice-input" id="practiceAnswer" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" aria-label="Next number after adding five"><div class="practice-actions"><button class="primary-button" id="practiceCheck">Check my number</button><button class="secondary-button" id="practiceHelp">Show +5 helper</button></div>` : '');
+  }
+  screen.innerHTML = `<div class="card practice-card ${p.id==='chart' ? 'chart-practice' : ''}"><div class="practice-heading"><button class="secondary-button" id="practiceBack">← Learning Games</button><h2>${game[2]}</h2></div><p class="practice-help">${copy}</p><div class="practice-number" aria-label="Current number ${p.current}">${p.current}</div><div class="practice-actions"><button class="secondary-button" id="practiceHear">Hear ${p.current}</button><span>${p.id==='dice' ? (done ? 'Ready to roll again' : 'One hop of five') : `${hops} of ${limit} hops`}</span></div>${body}<div id="practiceHelper">${p.help&&!done ? helperMarkup(p.current) : ''}</div><p class="practice-note" id="practiceNote" role="status">${done ? (p.id==='dice' ? `${p.start} + 5 = ${p.current}. Roll again for a new number!` : 'Ten gentle hops! Try a new start whenever you are ready.') : p.last!==null ? `${p.last} + 5 = ${p.current}` : ''}</p><div class="practice-actions">${!done&&p.id!=='chart' ? `<button class="${p.id==='anywhere' ? 'secondary' : 'primary'}-button" id="practiceHop">${p.id==='objects' ? 'Add 5 objects' : p.id==='anywhere' ? 'Count together: +5' : 'Hop +5'}</button>` : ''}<button class="secondary-button" id="practiceNew">${p.id==='dice' ? 'Roll again' : 'New starting number'}</button></div></div>`;
+  document.getElementById('practiceBack').onclick = renderCountingMenu;
+  document.getElementById('practiceHear').onclick = () => sayCountingNumber(p.current);
+  document.getElementById('practiceNew').onclick = () => startCountingPractice(p.id);
+  document.getElementById('practiceHop')?.addEventListener('click', hopCountingPractice);
+  const chartScroll=document.querySelector('.practice-chart-scroll');
+  if(chartScroll) chartScroll.scrollLeft=p.chartScroll||0;
+  screen.querySelectorAll('[data-chart-number]').forEach(button=>button.onclick=()=>{
+    if(p.history.length>=11)return;
+    const answer=Number(button.dataset.chartNumber);
+    if(answer!==p.current+5){
+      button.classList.remove('wrong');void button.offsetWidth;button.classList.add('wrong');
+      practiceNote(`Try again: add five to ${p.current}.`);
+      return;
+    }
+    p.chartScroll=chartScroll.scrollLeft;
+    hopCountingPractice();
+    playGameSound('correct');
+    const selected=document.querySelector('.practice-cell.current');
+    const viewport=document.querySelector('.practice-chart-scroll');
+    if(selected.offsetLeft<viewport.scrollLeft)viewport.scrollLeft=selected.offsetLeft;
+    else if(selected.offsetLeft+selected.offsetWidth>viewport.scrollLeft+viewport.clientWidth)viewport.scrollLeft=selected.offsetLeft+selected.offsetWidth-viewport.clientWidth;
+    selected.focus({preventScroll:true});
+  });
+  screen.querySelectorAll('[data-object]').forEach(button => button.onclick = () => { p.object=button.dataset.object; renderCountingPractice(); });
+  const answer=document.getElementById('practiceAnswer');
+  if(answer) {
+    answer.oninput=()=>{answer.value=answer.value.replace(/\D/g,'').slice(0,2);};
+    const check=()=>{
+      if(!answer.value) { practiceNote('Say your next number, or type it here.'); return; }
+      if(Number(answer.value)===p.current+5) hopCountingPractice();
+      else { p.help=true; document.getElementById('practiceHelper').innerHTML=helperMarkup(p.current); practiceNote('Take your time. Count five more with the helper, then try again.'); }
+    };
+    document.getElementById('practiceCheck').onclick=check;
+    answer.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();check();}};
+    document.getElementById('practiceHelp').onclick=()=>{p.help=true;document.getElementById('practiceHelper').innerHTML=helperMarkup(p.current);};
+  }
+}
+function helperMarkup(number) {
+  return `<p class="practice-help">Five little steps:</p><div class="practice-history" aria-label="Count five more starting at ${number}">${Array.from({length:6},(_,index)=>`<span>${number+index}</span>`).join('')}</div><p class="practice-equation">${number} + 5 = ${number+5}</p>`;
+}
+function hopCountingPractice() {
+  const p=countingPractice;
+  const limit=p.id==='dice' ? 1 : 10;
+  if(p.history.length-1>=limit||p.current+5>99)return;
+  p.last=p.current;p.current+=5;p.history.push(p.current);p.help=false;
+  renderCountingPractice();if(p.id!=='chart')sayCountingNumber(p.current);
+}
+
+    document.getElementById("learningGames").addEventListener("click", renderCountingMenu);
+    document.getElementById("mathHome").addEventListener("click", () => { stopCountingPractice(); renderStart(); });
     if (state.active && state.complete) renderComplete();
     else if (state.active && state.queue.length > 0) renderQuestion();
     else renderStart();
