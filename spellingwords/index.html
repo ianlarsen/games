@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3156d3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Study Games</title>
+  <style>
+    :root {
+      --ink: #1d2b49;
+      --muted: #64718a;
+      --paper: rgba(255, 255, 255, 0.96);
+      --shadow: 0 22px 60px rgba(36, 49, 100, 0.17);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-height: 100dvh;
+      color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 13%, rgba(255, 201, 91, 0.55) 0 8%, transparent 8.4%),
+        radial-gradient(circle at 88% 14%, rgba(74, 203, 166, 0.38) 0 9%, transparent 9.4%),
+        linear-gradient(155deg, #f5efff 0%, #e9f6ff 50%, #fff8df 100%);
+    }
+
+    a:focus-visible {
+      outline: 4px solid #243da8;
+      outline-offset: 4px;
+    }
+
+    .app {
+      display: flex;
+      width: 100%;
+      max-width: 760px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding:
+        max(18px, env(safe-area-inset-top))
+        max(14px, env(safe-area-inset-right))
+        max(20px, env(safe-area-inset-bottom))
+        max(14px, env(safe-area-inset-left));
+    }
+
+    .card {
+      width: 100%;
+      margin: auto 0;
+      padding: clamp(24px, 6vw, 44px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 32px;
+      text-align: center;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #5a47ce;
+      font-size: 0.82rem;
+      font-weight: 950;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2.25rem, 10vw, 4rem);
+      line-height: 0.98;
+      letter-spacing: -0.06em;
+    }
+
+    .subtitle {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: clamp(1rem, 4vw, 1.18rem);
+      line-height: 1.45;
+    }
+
+    .subjects {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .subject {
+      display: flex;
+      min-width: 0;
+      min-height: 210px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 22px 14px;
+      border: 3px solid transparent;
+      border-radius: 26px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .subject:active {
+      transform: translateY(4px);
+    }
+
+    .subject.spelling {
+      border-color: #d9d3ff;
+      background: #f4f2ff;
+      box-shadow: 0 8px 0 #d9d3ff;
+    }
+
+    .subject.math {
+      border-color: #cde0fb;
+      background: #f0f6ff;
+      box-shadow: 0 8px 0 #cde0fb;
+    }
+
+    .subject-mark {
+      display: grid;
+      width: 82px;
+      height: 82px;
+      place-items: center;
+      border-radius: 24px;
+      color: white;
+      font-size: 2rem;
+      font-weight: 950;
+    }
+
+    .spelling .subject-mark {
+      background: linear-gradient(145deg, #7568ed, #4c3bc7);
+    }
+
+    .math .subject-mark {
+      background: linear-gradient(145deg, #2471f5, #0e4bc7);
+    }
+
+    .subject-name {
+      font-size: clamp(1.25rem, 5vw, 1.7rem);
+      font-weight: 950;
+    }
+
+    .subject-copy {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        padding: 23px 17px;
+        border-radius: 26px;
+      }
+
+      .subjects {
+        grid-template-columns: 1fr;
+        gap: 13px;
+      }
+
+      .subject {
+        min-height: 128px;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 16px 20px;
+        text-align: left;
+      }
+
+      .subject-mark {
+        width: 66px;
+        height: 66px;
+        flex: 0 0 auto;
+        border-radius: 19px;
+        font-size: 1.6rem;
+      }
+
+      .subject-copy {
+        display: block;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <p class="eyebrow">Choose a subject</p>
+      <h1>Study Games</h1>
+      <p class="subtitle">What would you like to practice?</p>
+      <nav class="subjects" aria-label="Subjects">
+        <a class="subject spelling" href="spelling/index.html">
+          <span class="subject-mark" aria-hidden="true">Aa</span>
+          <span>
+            <span class="subject-name">Spelling</span>
+            <span class="subject-copy">Listen, practice, and master this week’s words.</span>
+          </span>
+        </a>
+        <a class="subject math" href="math/index.html">
+          <span class="subject-mark" aria-hidden="true">123</span>
+          <span>
+            <span class="subject-name">Math</span>
+            <span class="subject-copy">Practice skip counting five spaces at a time.</span>
+          </span>
+        </a>
+      </nav>
+    </section>
+  </main>
+</body>
+</html>
