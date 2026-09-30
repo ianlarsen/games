@@ -965,6 +965,66 @@
         transition-duration: 0.01ms !important;
       }
     }
+/* Relaxed choice-board activities. */
+.mini-launch { margin: 24px auto 0; display: block; }
+.mini-nav-button { padding: 9px 12px; border-radius: 14px; color: var(--purple-dark); background: var(--purple-soft); font-weight: 850; }
+.mini-board { margin: 0; }
+.mini-board h1 { font-size: clamp(2rem, 7vw, 3rem); }
+.mini-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.mini-tile { padding: 18px 12px; border: 2px solid #e4dff8; border-radius: 20px; text-align: left; background: #faf9ff; color: var(--ink); min-height: 150px; }
+.mini-tile:hover { background: #f0edff; }
+.mini-tile strong, .mini-tile small { display: block; }
+.mini-tile strong { margin: 10px 0 6px; font-size: 1rem; }
+.mini-tile small { color: var(--muted); line-height: 1.4; }
+.mini-icon { font-size: 1.8rem; }
+.mini-toolbar, .mini-word-nav, .mini-palette, .mini-actions { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.mini-toolbar { justify-content: space-between; margin-bottom: 18px; }
+.mini-toolbar h2 { margin: 0; font-size: 1.3rem; }
+.mini-word-nav { margin-bottom: 20px; }
+.mini-word-nav select { font: inherit; padding: 10px; border: 2px solid #d9d5fb; border-radius: 12px; background: white; color: var(--ink); max-width: 100%; }
+.mini-word { text-align: center; font-size: clamp(2rem, 9vw, 3.8rem); font-weight: 950; letter-spacing: .04em; margin: 18px 0; overflow-wrap: anywhere; }
+.mini-letters { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin: 24px 0; }
+.mini-letter { min-width: 38px; padding: 8px 7px; border-radius: 12px; font-size: clamp(1.6rem, 6vw, 2.8rem); font-weight: 950; color: var(--ink); background: #f1effa; }
+.mini-letter.bubble { color: white; -webkit-text-stroke: 2px #514577; font-family: Arial, sans-serif; font-size: clamp(2.5rem, 8vw, 4rem); border: 2px solid #ece8f7; background: white; }
+.mini-palette { margin: 18px 0; }
+.mini-swatch { width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 1px #bbb; }
+.mini-swatch[aria-pressed="true"] { box-shadow: 0 0 0 4px var(--ink); }
+.mini-text { width: 100%; padding: 15px; border: 2px solid #c9c4f6; border-radius: 16px; font: inherit; line-height: 1.5; color: var(--ink); background: #fbfaff; resize: vertical; }
+.mini-hint { text-align: center; color: var(--muted); line-height: 1.5; }
+.mini-note { text-align: center; min-height: 28px; color: #167b56; margin: 16px 0 0; font-weight: 800; }
+.mini-rhymes { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.mini-rhyme { padding: 14px 20px; border: 2px solid #e4dff8; border-radius: 16px; color: var(--purple-dark); background: #f6f3ff; font-weight: 850; }
+.mini-rhyme[aria-pressed="true"] { background: #dff9ef; border-color: #218b63; }
+.mini-pyramid { text-align: center; font-size: 1.6rem; font-weight: 850; line-height: 1.7; letter-spacing: .1em; min-height: 90px; }
+.mini-paper { width: 100%; height: 260px; display: block; touch-action: none; border: 2px solid #d9d5fb; border-radius: 18px; background: white; }
+.mini-draw-label { display: block; margin: 16px 0 6px; font-weight: 800; }
+.mini-capitals { text-transform: uppercase; font-size: 1.8rem; text-align: center; }
+.mini-footer { margin-top: 24px; }
+.mini-current-letter { color: var(--purple-dark); text-decoration: underline; text-underline-offset: 8px; }
+.is-ipad.in-mini-games .app::after { display: none; }
+.mini-letter-paper { height: clamp(220px, 36dvh, 360px); }
+.mini-board button { min-height: 44px; }
+.mini-board .mini-swatch { min-width: 44px; }
+.mini-board input { font-size: max(16px, 1rem); }
+.mini-board .mini-capitals { font-size: 1.8rem; }
+.mini-board .sound-button { min-width: 130px; min-height: 44px; padding: 9px 16px; }
+.mini-toolbar .secondary-button { padding: 10px 14px; min-height: 44px; }
+.mini-toolbar h2 { flex-basis: 100%; text-align: center; margin-top: 8px; }
+.mini-word-nav { justify-content: space-between; font-size: .88rem; color: var(--muted); }
+.mini-letters .mini-letter { min-width: 44px; }
+@media (min-width: 700px) { .mini-letter-paper { height: min(40dvh, 420px); } .mini-board { padding: 28px; } }
+.mini-note:empty { display: none; }
+.mini-writing-mode .mini-toolbar { margin-bottom: 10px; }
+.mini-writing-mode .mini-toolbar h2 { flex-basis: auto; margin: 0; font-size: 1.05rem; }
+.mini-writing-mode .mini-word-nav { margin-bottom: 10px; }
+.mini-writing-mode .mini-word { margin: 10px 0; font-size: clamp(2rem, 8vw, 3rem); }
+.mini-writing-mode .mini-hint { margin: 8px 0; font-size: .88rem; }
+.mini-writing-mode .mini-palette { margin: 12px 0; }
+.mini-writing-mode .mini-letter-paper { height: clamp(210px, 28dvh, 300px); }
+.mini-writing-mode .mini-footer { margin-top: 16px; }
+@media (max-width: 540px) { .mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mini-tile { min-height: 140px; } .topbar { flex-wrap: wrap; } .mini-board { padding: 20px; } }
+@media (max-width: 340px) { .mini-grid { grid-template-columns: 1fr; } }
+
   </style>
 </head>
 <body>
@@ -976,6 +1036,7 @@
         <span class="brand-text">Spelling Quest</span>
       </div>
       <button class="level-pill" id="levelPill" type="button" aria-label="Change level" aria-haspopup="dialog"></button>
+      <button class="home-link" id="miniGamesButton" type="button">Mini Games</button>
     </header>
     <section class="screen" id="screen" aria-live="polite"></section>
   </main>
@@ -984,16 +1045,16 @@
     "use strict";
 
     const WORDS = [
-      { word: "sand", sentence: "We built a castle with ___." },
-      { word: "sang", sentence: "The bird ___ a pretty song." },
-      { word: "sank", sentence: "The heavy rock ___ to the bottom." },
-      { word: "hunt", sentence: "We will ___ for the hidden eggs." },
-      { word: "hung", sentence: "Dad ___ the picture on the wall." },
-      { word: "hunk", sentence: "He ate a ___ of cheese." },
-      { word: "thin", sentence: "The sheet of paper is very ___." },
-      { word: "thing", sentence: "What is that strange ___?" },
-      { word: "think", sentence: "Stop and ___ before you answer." },
-      { word: "should", sentence: "You ___ wear a coat today." }
+      { word: "yelled", sentence: "He ___ loudly for help." },
+      { word: "yanked", sentence: "She ___ hard on the rope." },
+      { word: "slumped", sentence: "The tired player ___ into the chair." },
+      { word: "limped", sentence: "The hurt dog ___ slowly home." },
+      { word: "plopped", sentence: "The frog ___ onto the lily pad." },
+      { word: "smiled", sentence: "She ___ for the picture." },
+      { word: "shrugged", sentence: "He ___ when he did not know." },
+      { word: "liked", sentence: "I really ___ that funny book." },
+      { word: "patted", sentence: "She gently ___ the friendly dog." },
+      { word: "you", sentence: "___ are my best friend." }
     ];
 
     const STORAGE_KEY = "mobile-spelling-quest-v2";
@@ -1378,7 +1439,7 @@
       backdrop.innerHTML = `
         <div class="level-switcher">
           <h2 id="levelSwitcherTitle">Choose a level</h2>
-          <div class="start-levels">${levelButtonsMarkup()}</div>
+          <div class="start-levels">${levelButtonsMarkup()}<button class="level-choice-button" data-open-minis><span class="level-choice-number" aria-hidden="true">✦</span><span class="level-choice-copy">Mini Games</span></button></div>
           <button class="close-level-switcher" type="button">Keep Playing</button>
         </div>
       `;
@@ -1403,10 +1464,11 @@
       screen.innerHTML = `
         <div class="card hero">
           <h1>Spelling Quest</h1>
-          <div class="start-levels">${levelButtonsMarkup()}</div>
+          <div class="start-levels">${levelButtonsMarkup()}<button class="level-choice-button" data-open-minis><span class="level-choice-number" aria-hidden="true">✦</span><span class="level-choice-copy">Mini Games</span></button></div>
         </div>
       `;
       wireLevelButtons(screen);
+      screen.querySelector("[data-open-minis]")?.addEventListener("click", renderMiniBoard);
     }
 
     function progressMarkup() {
@@ -2309,11 +2371,12 @@
           <h1>Super Speller!</h1>
           <p class="subtitle">You finished all three levels and spelled every word. That was incredible!</p>
           <div class="stars-earned">All levels mastered</div>
-          <div class="start-levels">${levelButtonsMarkup()}</div>
+          <div class="start-levels">${levelButtonsMarkup()}<button class="level-choice-button" data-open-minis><span class="level-choice-number" aria-hidden="true">✦</span><span class="level-choice-copy">Mini Games</span></button></div>
         </div>
       `;
       burstConfetti(70);
       wireLevelButtons(screen);
+      screen.querySelector("[data-open-minis]")?.addEventListener("click", renderMiniBoard);
     }
 
     function burstConfetti(count) {
@@ -2343,6 +2406,313 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") document.querySelector(".level-switcher-backdrop")?.remove();
     });
+// Mini games deliberately keep their own state and never update quest progress.
+const MINI_GAMES = [
+  ['vowels', '🔵', 'Vowels & Consonants', 'Color vowels blue and consonants red.'],
+  ['rhymes', '🎵', 'Rhyming Words', 'Explore words with matching ending sounds.'],
+  ['bubble', '🫧', 'Bubble Letters', 'Give big bubble letters a splash of color.'],
+  ['rainbow', '🌈', 'Rainbow Write', 'Write each letter with your finger in a new color.'],
+  ['capitals', '🔠', 'Capital Letters', 'Copy your word in BIG letters.'],
+  ['dots', '✏️', 'Connect the Dots', 'Trace the dotted letters with your finger.'],
+  ['pyramid', '🔺', 'Pyramid Words', 'Build your word one letter at a time.'],
+  ['picture', '🎨', 'Picture It', 'Draw a picture and give it a word label.']
+];
+const MINI_COLORS = [['#2563eb', 'Blue'], ['#dc2626', 'Red'], ['#16a34a', 'Green'], ['#9333ea', 'Purple'], ['#d97706', 'Orange'], ['#db2777', 'Pink']];
+const MINI_RHYMES = {
+  yelled: ['held', 'spelled', 'smelled'], yanked: ['banked', 'thanked', 'ranked'],
+  slumped: ['bumped', 'dumped', 'jumped'], limped: ['crimped'],
+  plopped: ['popped', 'hopped', 'stopped'], smiled: ['child', 'wild', 'mild'],
+  shrugged: ['hugged', 'tugged', 'plugged'], liked: ['hiked', 'biked', 'spiked'],
+  patted: ['batted', 'chatted', 'matted'], you: ['blue', 'shoe', 'two']
+};
+const miniWordRuns = {};
+let miniWordIndex = 0;
+let miniColor = MINI_COLORS[0][0];
+let miniDrafts = {};
+let miniDrawingCleanup = null;
+const miniLetterAudio = new Audio();
+let miniLetterQueue = [];
+let miniSoundVersion = 0;
+let miniLetterPlaying = false;
+
+function nextMiniWord(id) {
+  const run = miniWordRuns[id] || (miniWordRuns[id] = { remaining: [], current: null, count: 0 });
+  if (!run.remaining.length) {
+    run.remaining = shuffled(WORDS.map((_, index) => index));
+    if (run.remaining[0] === run.current) [run.remaining[0], run.remaining[1]] = [run.remaining[1], run.remaining[0]];
+    run.count = 0;
+  }
+  run.current = run.remaining.shift();
+  run.count += 1;
+  return run.current;
+}
+
+function miniLetterSound(value) {
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  miniLetterQueue.push(...String(value).toLowerCase().replace(/[^a-z]/g, ''));
+  if (miniLetterPlaying) return;
+  const version = miniSoundVersion;
+  const next = () => {
+    if (version !== miniSoundVersion) return;
+    const letter = miniLetterQueue.shift();
+    if (!letter) { miniLetterPlaying = false; return; }
+    miniLetterPlaying = true;
+    let settled = false;
+    const finish = () => { if (settled) return; settled = true; next(); };
+    miniLetterAudio.onended = finish;
+    miniLetterAudio.onerror = finish;
+    miniLetterAudio.src = `sounds/letters/${letter}.mp3`;
+    miniLetterAudio.play().catch(finish);
+  };
+  audio.pause();
+  next();
+}
+
+function playMiniRecording(word, rhyme = false) {
+  miniSoundVersion += 1; miniLetterQueue = []; miniLetterPlaying = false; miniLetterAudio.pause();
+  stopAllAudio();
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  const fallback = () => {
+    if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(word));
+    else miniMessage('You can still play with the word shown here.');
+  };
+  audio.src = `sounds/${rhyme ? 'rhymes' : 'words'}/${word}.mp3`;
+  let settled = false;
+  const fail = () => { if (settled) return; settled = true; fallback(); };
+  audio.onerror = fail;
+  audio.play().catch(fail);
+}
+
+function leaveMiniView() {
+  document.body.classList.remove('in-mini-games');
+  miniSoundVersion += 1; miniLetterQueue = []; miniLetterPlaying = false;
+  miniLetterAudio.pause(); miniLetterAudio.onended = null; miniLetterAudio.onerror = null;
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  if (miniDrawingCleanup) miniDrawingCleanup();
+  miniDrawingCleanup = null;
+  stopAllAudio();
+  viewVersion += 1;
+  document.querySelector('.correction-backdrop')?.remove();
+  document.querySelector('.level-switcher-backdrop')?.remove();
+}
+
+function renderMiniBoard() {
+  leaveMiniView();
+  document.body.classList.add('in-mini-games');
+  updateHeader(false);
+  screen.innerHTML = `<div class="card mini-board">
+    <p class="eyebrow">A little spelling break</p><h1>Pick & Play</h1>
+    <p class="subtitle">Choose something fun. No timer, no score. Play with one word or as many as you like.</p>
+    <div class="mini-grid">${MINI_GAMES.map(([id, icon, name, description]) => `<button class="mini-tile" data-mini="${id}"><span class="mini-icon" aria-hidden="true">${icon}</span><strong>${name}</strong><small>${description}</small></button>`).join('')}</div>
+    <div class="mini-actions mini-footer"><button class="secondary-button" id="miniMain">Back to the three levels</button></div>
+  </div>`;
+  screen.querySelectorAll('[data-mini]').forEach(button => button.addEventListener('click', () => renderMiniGame(button.dataset.mini)));
+  document.getElementById('miniMain').addEventListener('click', () => { leaveMiniView(); renderStart(); });
+}
+
+function miniPalette(colors = MINI_COLORS) {
+  return `<div class="mini-palette" role="group" aria-label="Choose a color">${colors.map(([color, name]) => `<button class="mini-swatch" style="background:${color}" data-color="${color}" aria-label="${name}" aria-pressed="${miniColor === color}"></button>`).join('')}</div>`;
+}
+
+function wireMiniPalette() {
+  screen.querySelectorAll('[data-color]').forEach(button => button.addEventListener('click', () => {
+    miniColor = button.dataset.color;
+    screen.querySelectorAll('[data-color]').forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch === button)));
+  }));
+}
+
+function renderMiniGame(id) {
+  leaveMiniView();
+  document.body.classList.add('in-mini-games');
+  updateHeader(false);
+  const game = MINI_GAMES.find(item => item[0] === id);
+  miniWordIndex = miniWordRuns[id]?.current ?? nextMiniWord(id);
+  const word = WORDS[miniWordIndex].word;
+  const key = `${id}:${word}`;
+  const draft = miniDrafts[key] || (miniDrafts[key] = {});
+  let body = '';
+  let instruction = game[3];
+  if (['vowels', 'bubble'].includes(id)) {
+    if (id === 'vowels') { miniColor = MINI_COLORS[0][0]; instruction = 'Pick blue for a, e, i, o, u. Pick red for the other letters. Then tap a letter to color it.'; }
+    else instruction = 'Pick your favorite colors and tap the bubble letters to fill them in.';
+    body = miniPalette(id === 'vowels' ? MINI_COLORS.slice(0, 2) : MINI_COLORS)
+      + `<div class="mini-letters">${[...word].map((letter, index) => `<button class="mini-letter ${id === 'bubble' ? 'bubble' : ''}" data-letter="${index}" aria-label="Letter ${index + 1}: ${letter}, ${MINI_COLORS.find(c => c[0] === draft.colors?.[index])?.[1] || 'uncolored'}" ${draft.colors?.[index] ? `style="color:${draft.colors[index]}"` : ''}>${letter}</button>`).join('')}</div>`;
+  } else if (id === 'rhymes') {
+    instruction = 'These words rhyme by sound, even when their endings look different. Tap a rhyme to make a pair.';
+    body = `<div class="mini-word">${word}</div><div class="mini-rhymes">${MINI_RHYMES[word].map(rhyme => `<button class="mini-rhyme" aria-pressed="false">${rhyme}</button>`).join('')}</div><label class="mini-draw-label" for="miniWriting">Have another rhyme? Try it here.</label><input class="mini-text" id="miniWriting" value="${escapeHtml(draft.text || '')}" placeholder="Your rhyme (optional)"><p class="mini-hint">Say both words aloud and listen to their endings.</p>`;
+  } else if (id === 'capitals') {
+    instruction = 'Look at the big letters and copy them. Your keyboard letters will turn into capitals.';
+    body = `<div class="mini-word">${word.toUpperCase()}</div><label class="mini-draw-label" for="miniWriting">Write in capital letters</label><input class="mini-text mini-capitals" id="miniWriting" autocomplete="off" autocorrect="off" spellcheck="false" value="${escapeHtml(draft.text || '')}" placeholder="COPY HERE"><div class="mini-actions"><button class="secondary-button" id="miniCheck">Take a look</button></div>`;
+  } else if (id === 'pyramid') {
+    instruction = 'Tap “Add a letter” to grow your word. Say each new piece as you build.';
+    const step = draft.step || 0;
+    body = `<div class="mini-word">${word}</div><div class="mini-pyramid" id="miniPyramid">${Array.from({length: step}, (_, i) => `<div>${word.slice(0, i + 1)}</div>`).join('')}</div><div class="mini-actions"><button class="secondary-button" id="miniAdd">${step === word.length ? 'Build again' : 'Add a letter'}</button></div>`;
+  } else {
+    const letterMode = id === 'dots' || id === 'rainbow';
+    draft.letterIndex ||= 0;
+    if (id === 'rainbow') miniColor = MINI_COLORS[draft.letterIndex % MINI_COLORS.length][0];
+    instruction = id === 'dots' ? 'Connect a few big dots to make each letter. One letter at a time.' : id === 'rainbow' ? 'Write over each letter with your finger. Each new letter gets a new rainbow color.' : 'What does this word make you think of? Draw it, then add your label.';
+    body = `<div class="mini-word">${letterMode ? [...word].map((letter,index) => `<span class="${index === draft.letterIndex ? 'mini-current-letter' : ''}">${letter}</span>`).join('') : word}</div>${letterMode ? `<p class="mini-hint">Letter ${draft.letterIndex + 1} of ${word.length}: <strong>${word[draft.letterIndex]}</strong></p>` : ''}${miniPalette()}<canvas class="mini-paper ${letterMode ? 'mini-letter-paper' : ''}" id="miniPaper" aria-label="${id === 'dots' ? 'Connect the letter dots' : id === 'rainbow' ? 'Finger writing area' : 'Drawing area'}"></canvas><p class="mini-hint">Use your finger or an Apple Pencil.</p><div class="mini-actions"><button class="secondary-button" id="miniClear">Clear</button>${letterMode ? `<button class="primary-button" id="miniNextLetter">${draft.letterIndex === word.length - 1 ? 'Finish word' : 'Next letter →'}</button>` : ''}</div>${id === 'picture' ? `<label class="mini-draw-label" for="miniWriting">Label your picture</label><input class="mini-text" id="miniWriting" autocomplete="off" value="${escapeHtml(draft.text || '')}" placeholder="${word}">` : ''}`;
+  }
+  screen.innerHTML = `<div class="card mini-board ${['dots','rainbow'].includes(id) ? 'mini-writing-mode' : ''}"><div class="mini-toolbar"><button class="secondary-button" id="miniBack">← Mini Games</button><h2>${game[1]} ${game[2]}</h2></div><div class="mini-word-nav"><span>Word ${miniWordRuns[id].count} of ${WORDS.length}</span><button class="sound-button" id="miniHear">Hear word</button></div><p class="mini-hint">${instruction}</p>${body}<p class="mini-note" id="miniNote" role="status"></p><div class="mini-actions mini-footer"><button class="primary-button" id="miniNext">Next word →</button><button class="secondary-button" id="miniDone">Done for now</button></div></div>`;
+  document.getElementById('miniBack').onclick = renderMiniBoard;
+  document.getElementById('miniDone').onclick = renderMiniBoard;
+  const advanceWord = () => { nextMiniWord(id); renderMiniGame(id); };
+  document.getElementById('miniNext').onclick = advanceWord;
+  document.getElementById('miniHear').onclick = () => playMiniRecording(word);
+  const nextLetter = document.getElementById('miniNextLetter');
+  if (nextLetter) nextLetter.onclick = () => {
+    if (draft.letterIndex === word.length - 1) { draft.letterIndex = 0; advanceWord(); }
+    else { draft.letterIndex += 1; renderMiniGame(id); }
+  };
+  wireMiniPalette();
+  screen.querySelectorAll('[data-letter]').forEach(button => button.onclick = () => {
+    const index = Number(button.dataset.letter);
+    draft.colors ||= [];
+    draft.colors[index] = miniColor;
+    miniLetterSound(word[index]);
+    button.style.color = miniColor;
+    button.setAttribute('aria-label', `Letter ${index + 1}: ${word[index]}, ${MINI_COLORS.find(c => c[0] === miniColor)[1]}`);
+    if (id === 'vowels') {
+      const vowel = /[aeiou]/.test(word[index]);
+      miniMessage((vowel ? miniColor === '#2563eb' : miniColor === '#dc2626') ? `${word[index]} is a ${vowel ? 'vowel — blue!' : 'consonant — red!'}` : `Try ${vowel ? 'blue for this vowel' : 'red for this consonant'}. You can tap it again.`);
+    } else miniMessage('Looking colorful! Keep going or choose another word.');
+  });
+  const writing = document.getElementById('miniWriting');
+  if (writing) writing.oninput = event => {
+    const previous = draft.text || '';
+    if (!event.inputType?.startsWith('delete')) {
+      let start = 0;
+      while (start < previous.length && previous[start] === writing.value[start]) start += 1;
+      const inserted = event.data || writing.value.slice(start, start + Math.max(0, writing.value.length - previous.length));
+      miniLetterSound(inserted);
+    }
+    if (id === 'capitals') {
+      const start = writing.selectionStart;
+      const end = writing.selectionEnd;
+      writing.value = writing.value.toUpperCase();
+      writing.setSelectionRange(start, end);
+    }
+    draft.text = writing.value;
+    miniMessage('');
+  };
+  if (id === 'capitals') document.getElementById('miniCheck').onclick = () => miniMessage(writing.value.trim() === word.toUpperCase() ? 'Big letters, beautiful spelling!' : `Here is your helper: ${word.toUpperCase()}. You can keep copying.`);
+  if (id === 'rhymes') screen.querySelectorAll('.mini-rhyme').forEach(button => button.onclick = () => {
+    playMiniRecording(button.textContent, true);
+    screen.querySelectorAll('.mini-rhyme').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    miniMessage(`${word} & ${button.textContent} — a rhyming pair!`);
+  });
+  if (id === 'pyramid') document.getElementById('miniAdd').onclick = () => {
+    draft.step = (draft.step || 0) === word.length ? 0 : (draft.step || 0) + 1;
+    if (draft.step) miniLetterSound(word[draft.step - 1]);
+    document.getElementById('miniPyramid').innerHTML = Array.from({length: draft.step}, (_, i) => `<div>${word.slice(0, i + 1)}</div>`).join('');
+    document.getElementById('miniAdd').textContent = draft.step === word.length ? 'Build again' : 'Add a letter';
+    miniMessage(draft.step === word.length ? 'Your word pyramid is ready!' : '');
+  };
+  if (['dots', 'rainbow', 'picture'].includes(id)) wireMiniDrawing(id, word, draft);
+}
+
+function miniMessage(message) { const note = document.getElementById('miniNote'); if (note) note.textContent = message; }
+
+// A few points along a single-line letter, rather than dots around an outline.
+const MINI_DOT_PATHS = {
+  a: [[[20,85],[50,15],[80,85]],[[32,58],[68,58]]],
+  d: [[[25,15],[25,85]],[[25,15],[60,15],[80,35],[80,65],[60,85],[25,85]]],
+  e: [[[78,15],[25,15],[25,50],[25,85],[78,85]],[[25,50],[65,50]]],
+  g: [[[80,25],[60,15],[30,25],[20,50],[30,75],[60,85],[80,70],[80,50],[55,50]]],
+  h: [[[25,15],[25,50],[25,85]],[[75,15],[75,50],[75,85]],[[25,50],[75,50]]],
+  i: [[[30,15],[70,15]],[[50,15],[50,50],[50,85]],[[30,85],[70,85]]],
+  k: [[[25,15],[25,50],[25,85]],[[75,15],[25,50],[75,85]]],
+  l: [[[25,15],[25,50],[25,85],[75,85]]],
+  m: [[[15,85],[15,15],[50,55],[85,15],[85,85]]],
+  n: [[[25,85],[25,15],[75,85],[75,15]]],
+  o: [[[50,15],[25,25],[15,50],[25,75],[50,85],[75,75],[85,50],[75,25],[50,15]]],
+  p: [[[25,85],[25,50],[25,15],[60,15],[80,30],[60,50],[25,50]]],
+  r: [[[25,85],[25,50],[25,15],[60,15],[80,30],[60,50],[25,50]],[[50,50],[80,85]]],
+  s: [[[80,25],[60,15],[30,15],[20,35],[45,50],[75,60],[80,75],[60,85],[25,80]]],
+  t: [[[15,15],[50,15],[85,15]],[[50,15],[50,50],[50,85]]],
+  u: [[[25,15],[25,65],[35,85],[65,85],[75,65],[75,15]]],
+  y: [[[20,15],[50,50],[80,15]],[[50,50],[50,85]]]
+};
+
+function wireMiniDrawing(id, word, draft) {
+  const paper = document.getElementById('miniPaper');
+  const ctx = paper.getContext('2d');
+  let width = 0;
+  let height = 0;
+  let activeStroke = null;
+  let pointerId = null;
+  const letterMode = id === 'dots' || id === 'rainbow';
+  draft.letterStrokes ||= {};
+  const drawing = letterMode ? (draft.letterStrokes[draft.letterIndex] ||= {strokes: []}) : draft;
+  drawing.strokes ||= [];
+  let dotPoints = [];
+  const repaint = () => {
+    const rect = paper.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+    const scale = window.devicePixelRatio || 1;
+    paper.width = Math.round(width * scale);
+    paper.height = Math.round(height * scale);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    if (id === 'dots') {
+      const side = Math.min(width - 24, height - 24);
+      const left = (width - side) / 2; const top = (height - side) / 2;
+      const paths = MINI_DOT_PATHS[word[draft.letterIndex]];
+      const seen = new Set(); dotPoints = [];
+      ctx.lineWidth = 2; ctx.strokeStyle = '#eeeaf6';
+      paths.forEach(points => {
+        ctx.beginPath();
+        points.forEach(([x,y],index) => {
+          const px = left + x * side / 100; const py = top + y * side / 100;
+          index ? ctx.lineTo(px,py) : ctx.moveTo(px,py);
+          const key = `${x},${y}`;
+          if (!seen.has(key)) { seen.add(key); dotPoints.push([px,py]); }
+        });
+        ctx.stroke();
+      });
+      ctx.fillStyle = '#82779e';
+      dotPoints.forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); });
+      paper.dataset.dotCount = String(dotPoints.length);
+    } else if (id === 'rainbow') {
+      ctx.font = `bold ${Math.min(width * .7, height * .8)}px Arial`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#eeebf5';
+      ctx.fillText(word[draft.letterIndex], width / 2, height * .46);
+    }
+    drawing.strokes.forEach(stroke => {
+      ctx.beginPath(); ctx.strokeStyle = stroke.color; ctx.fillStyle = stroke.color; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (stroke.points.length === 1) { const p = stroke.points[0]; ctx.arc(p[0] * width, p[1] * height, 2.5, 0, Math.PI * 2); ctx.fill(); }
+      else { stroke.points.forEach((p, index) => index ? ctx.lineTo(p[0] * width, p[1] * height) : ctx.moveTo(p[0] * width, p[1] * height)); ctx.stroke(); }
+    });
+  };
+  const point = event => {
+    const rect = paper.getBoundingClientRect(); let x = event.clientX - rect.left; let y = event.clientY - rect.top;
+    if (id === 'dots') {
+      const near = dotPoints.find(([px,py]) => Math.hypot(px-x,py-y) < 22);
+      if (near) [x,y] = near;
+    }
+    return [Math.max(0,Math.min(1,x / rect.width)), Math.max(0,Math.min(1,y / rect.height))];
+  };
+  paper.onpointerdown = event => {
+    if (pointerId !== null || event.button > 0) return;
+    event.preventDefault(); pointerId = event.pointerId; paper.setPointerCapture(pointerId);
+    activeStroke = { color: miniColor, points: [point(event)] }; drawing.strokes.push(activeStroke); repaint();
+  };
+  paper.onpointermove = event => { if (event.pointerId !== pointerId || !activeStroke) return; activeStroke.points.push(point(event)); repaint(); };
+  const finish = event => {
+    if (event.pointerId !== pointerId) return;
+    activeStroke = null; pointerId = null;
+    if (letterMode && event.type !== 'pointercancel') miniLetterSound(word[draft.letterIndex]);
+    miniMessage(letterMode ? 'Keep writing, or go to the next letter.' : 'Keep drawing, then add your word label.');
+  };
+  paper.onpointerup = finish; paper.onpointercancel = finish; paper.onlostpointercapture = finish;
+  document.getElementById('miniClear').onclick = () => { drawing.strokes = []; activeStroke = null; repaint(); miniMessage('A fresh page!'); };
+  const observer = new ResizeObserver(repaint); observer.observe(paper);
+  miniDrawingCleanup = () => observer.disconnect();
+  repaint();
+}
+
+    document.getElementById("miniGamesButton").addEventListener("click", renderMiniBoard);
     renderStart();
   </script>
 </body>
