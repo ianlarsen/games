@@ -1,0 +1,82 @@
+[
+  {
+    "name": "red",
+    "hex": "#ef4444",
+    "group": "primary"
+  },
+  {
+    "name": "yellow",
+    "hex": "#facc15",
+    "group": "primary"
+  },
+  {
+    "name": "blue",
+    "hex": "#2563eb",
+    "group": "primary"
+  },
+  {
+    "name": "orange",
+    "hex": "#f97316",
+    "group": "secondary"
+  },
+  {
+    "name": "green",
+    "hex": "#22c55e",
+    "group": "secondary"
+  },
+  {
+    "name": "violet",
+    "hex": "#8b5cf6",
+    "group": "secondary"
+  },
+  {
+    "name": "vermilion",
+    "hex": "#e34234",
+    "group": "tertiary"
+  },
+  {
+    "name": "amber",
+    "hex": "#ffbf00",
+    "group": "tertiary"
+  },
+  {
+    "name": "chartreuse",
+    "hex": "#b2e52e",
+    "group": "tertiary"
+  },
+  {
+    "name": "teal",
+    "hex": "#008080",
+    "group": "tertiary"
+  },
+  {
+    "name": "indigo",
+    "hex": "#4b0082",
+    "group": "tertiary"
+  },
+  {
+    "name": "magenta",
+    "hex": "#d600aa",
+    "group": "tertiary"
+  },
+  {
+    "name": "black",
+    "hex": "#20202a",
+    "group": "extra"
+  },
+  {
+    "name": "white",
+    "hex": "#ffffff",
+    "group": "extra"
+  },
+  {
+    "name": "brown",
+    "hex": "#925c37",
+    "group": "extra"
+  },
+  {
+    "name": "gray",
+    "hex": "#8a93a4",
+    "group": "extra"
+  }
+]

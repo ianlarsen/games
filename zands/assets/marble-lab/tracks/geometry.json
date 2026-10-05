@@ -1,0 +1,154 @@
+[
+  {
+    "id": "straight",
+    "path": "M0 64 L128 64",
+    "connectors": [
+      [
+        0,
+        64
+      ],
+      [
+        128,
+        64
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "ramp-down",
+    "path": "M0 24 L128 104",
+    "connectors": [
+      [
+        0,
+        24
+      ],
+      [
+        128,
+        104
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "ramp-up",
+    "path": "M0 104 L128 24",
+    "connectors": [
+      [
+        0,
+        104
+      ],
+      [
+        128,
+        24
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "curve-down",
+    "path": "M0 24 Q104 24 104 128",
+    "connectors": [
+      [
+        0,
+        24
+      ],
+      [
+        104,
+        128
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "curve-up",
+    "path": "M24 128 Q24 24 128 24",
+    "connectors": [
+      [
+        24,
+        128
+      ],
+      [
+        128,
+        24
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "u-turn",
+    "path": "M0 24 L70 24 Q124 64 70 104 L0 104",
+    "connectors": [
+      [
+        0,
+        24
+      ],
+      [
+        0,
+        104
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "funnel",
+    "path": "M12 16 L64 99 L116 16 M64 99 L64 128",
+    "connectors": [
+      [
+        64,
+        0
+      ],
+      [
+        64,
+        128
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  },
+  {
+    "id": "drop",
+    "path": "M64 0 L64 128",
+    "connectors": [
+      [
+        64,
+        0
+      ],
+      [
+        64,
+        128
+      ]
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "collision": "Use path centerline and a 12-unit outer radius; funnel branches are walls."
+  }
+]

@@ -1,0 +1,1499 @@
+{
+  "version": 2,
+  "targetRoot": ".",
+  "assets": [
+    {
+      "path": "assets/audio/music/balance-dash.ogg",
+      "bytes": 169339,
+      "sha256": "36b89e6c039480f4af01bcb802614c0e9e12eea71c2e148081413233022adc21"
+    },
+    {
+      "path": "assets/audio/music/balance-dash.wav",
+      "bytes": 1890044,
+      "sha256": "e6593a7938b57dad653c6b29c5b30ebaa8234904ed7c8bbe5d8b588a2bb19568",
+      "seconds": 42.857142857142854,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/loops.json",
+      "bytes": 1482,
+      "sha256": "0c97322564c5889cd724cdd1ce9efc0bf1fbd8b11fe86265ab13218b1b3c67d5"
+    },
+    {
+      "path": "assets/audio/music/main-menu.mp3",
+      "bytes": 1226754,
+      "sha256": "a01d9d841218d045e07ec949c9576a0d5540e50f2f18c1c2e9c7e7b570973716"
+    },
+    {
+      "path": "assets/audio/music/main-menu.ogg",
+      "bytes": 170898,
+      "sha256": "e059e0ef80f8ce9ea312f6dd6c761f96087375d60ff986d692c05b89dd8f382a"
+    },
+    {
+      "path": "assets/audio/music/main-menu.wav",
+      "bytes": 2205044,
+      "sha256": "e9aefac8debd4cdee08ccc57f409970dd9fe2aa842f124f8cfe1573ad2ad0a4a",
+      "seconds": 50.0,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/marble-lab.ogg",
+      "bytes": 168269,
+      "sha256": "bce320863d792799fdca7f5bde0dd0b2ae8f57861f54726cbb5bfb40910e71ba"
+    },
+    {
+      "path": "assets/audio/music/marble-lab.wav",
+      "bytes": 1960044,
+      "sha256": "415418ba025580277296e0530c730959a61b1565d62c2f471c0ad771a47c144b",
+      "seconds": 44.44444444444444,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/match-quest.mp3",
+      "bytes": 1201154,
+      "sha256": "186a6ee53414a6017baf2a6db5a2c25c72729bb38cf5eb0892d8b9b5330de1b6"
+    },
+    {
+      "path": "assets/audio/music/match-quest.ogg",
+      "bytes": 191505,
+      "sha256": "e336f4be831de143703c5997ce9eda38cff3cafb8165510e404d6336688ea698"
+    },
+    {
+      "path": "assets/audio/music/match-quest.wav",
+      "bytes": 2300914,
+      "sha256": "1d43d969d2a6a925bc6d8eb533818a48a2549a447e910821fb8519001db8477f",
+      "seconds": 52.17392290249433,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/number-quest.mp3",
+      "bytes": 1176599,
+      "sha256": "a108a0565ea963079bff7509a2048da72cc28ba2a08ead8a7b4cca35bb017a8e"
+    },
+    {
+      "path": "assets/audio/music/number-quest.ogg",
+      "bytes": 160063,
+      "sha256": "c2bcfb36fafa9f8a05b1ab13430523ce18f064664c065bc737447af93ffe7826"
+    },
+    {
+      "path": "assets/audio/music/number-quest.wav",
+      "bytes": 1924408,
+      "sha256": "4b918b028b77a12f93583f2de44726f99f2d4fa359b5ff38e08741c5df904530",
+      "seconds": 43.636371882086166,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/paint-studio.mp3",
+      "bytes": 1372517,
+      "sha256": "9c913d2f2b615799c74cf0acc4e16fb1f95c53ea16d4e3d9ef8b738bccb858c6"
+    },
+    {
+      "path": "assets/audio/music/paint-studio.ogg",
+      "bytes": 186923,
+      "sha256": "a4dcacb983dc0f25cbcdbb81522e9cdffa93fd5d91355e66b915e4c0cb5359aa"
+    },
+    {
+      "path": "assets/audio/music/paint-studio.wav",
+      "bytes": 2405498,
+      "sha256": "a879ff5651a810a95420439c1020d7cc1e215ae086bf20878c39fb96293ed4fb",
+      "seconds": 54.54544217687075,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/pattern-beats.mp3",
+      "bytes": 1340648,
+      "sha256": "305761ba8438a70c1f3c78bca3803495eb12ca7dbd396c20e1f4d31bdf6b7c4d"
+    },
+    {
+      "path": "assets/audio/music/pattern-beats.ogg",
+      "bytes": 169018,
+      "sha256": "7744d9da85823e3d98e242500cdcddbec1276082ca4106c80f037a1f2a9ff129"
+    },
+    {
+      "path": "assets/audio/music/pattern-beats.wav",
+      "bytes": 2116844,
+      "sha256": "0a1b0ac2673a78849e07bc789e9b142580df025f2073dbe1a24c61b1eedc1d59",
+      "seconds": 48.0,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/picture-remix.mp3",
+      "bytes": 1130623,
+      "sha256": "1f282341f3468c69801de25d86f381a736c95953a3c9d77774152257c3b10460"
+    },
+    {
+      "path": "assets/audio/music/picture-remix.ogg",
+      "bytes": 177639,
+      "sha256": "93f71f8b2690658dd9f5bed7b33f15eb768df79d6fffe453276af18b34e26b87"
+    },
+    {
+      "path": "assets/audio/music/picture-remix.wav",
+      "bytes": 2035428,
+      "sha256": "001eb11aeeb35419ca1c17534f58e9c724103887634879a1238561c910156bca",
+      "seconds": 46.153832199546486,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/music/shape-builder.mp3",
+      "bytes": 1281088,
+      "sha256": "e421e847b3309618b3871844a6cf05ac92fd8c0b30503175bfcc7cb38387c990"
+    },
+    {
+      "path": "assets/audio/music/shape-builder.ogg",
+      "bytes": 209218,
+      "sha256": "b182109b21ab00ede5d71527b7aafb42cff8f486ffe943220f57c522391c40a2"
+    },
+    {
+      "path": "assets/audio/music/shape-builder.wav",
+      "bytes": 2461440,
+      "sha256": "0ad4a9155914c4b271cbb9ad9c23d42619f8d79ec238649e35341d0baa1f61be",
+      "seconds": 55.813968253968255,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/pattern-tones/pad-1.wav",
+      "bytes": 127052,
+      "sha256": "68aaebbe086b2785ebb87b149793f756a1f57fd250aa54f368c6e7219f47cf9e",
+      "seconds": 0.72,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/pattern-tones/pad-2.wav",
+      "bytes": 127052,
+      "sha256": "81d19bc33c2f4f6c76b659678e0686780d57b3a607456785565b88345b7c8b6a",
+      "seconds": 0.72,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/pattern-tones/pad-3.wav",
+      "bytes": 127052,
+      "sha256": "3ae251648ffe3935db00df9207e8c0104740eac0927b66313eea66686f5d31cc",
+      "seconds": 0.72,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/pattern-tones/pad-4.wav",
+      "bytes": 127052,
+      "sha256": "a23a3afa24453a599f422c39d72419f0b68574df86be14ff6537fdc7f78da235",
+      "seconds": 0.72,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/brush.wav",
+      "bytes": 68840,
+      "sha256": "0ef06a472d4fdeda6aa45ec0d084a810999adcf87316ea92c39d387675ceba63",
+      "seconds": 0.39,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/card-flip.wav",
+      "bytes": 68840,
+      "sha256": "a06a4543a6fcb95ed9398a92bf44a37893d6f2f4e58f7716de6151f80e7970b6",
+      "seconds": 0.39,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/click.wav",
+      "bytes": 68840,
+      "sha256": "e8ae7b8a72a1ca4506b013f489586f76e01fe894c99233f2d61ccef7305be4a6",
+      "seconds": 0.39,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/correct.wav",
+      "bytes": 107648,
+      "sha256": "3662579b1e8a6c543a521999421adaf411fc2592ba4c84c7fed025f9ecba9114",
+      "seconds": 0.61,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/footstep.wav",
+      "bytes": 19448,
+      "sha256": "a93d87a804252004716e8593c2bc9334700b446b44c34a91ff4be6f74bc75779",
+      "seconds": 0.44,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/sfx/landing.wav",
+      "bytes": 24740,
+      "sha256": "09b7aec3d8160d866e7092fbdd1cd33e9aa1a98434f81ca61d74f9329a67c733",
+      "seconds": 0.56,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/sfx/marble-impact.wav",
+      "bytes": 19448,
+      "sha256": "e3ac3299506a652c062bea4a77effd96a95fedf4e7879ecbba7fdef6745f5652",
+      "seconds": 0.44,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/sfx/marble-release.wav",
+      "bytes": 24740,
+      "sha256": "e273c3fe8346d61f9b720468ddbb4fedde673715fd9439357d71e2023f8f9802",
+      "seconds": 0.56,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/sfx/marble-roll.wav",
+      "bytes": 88244,
+      "sha256": "4f02d7496b60c3f3ddb622319ca2e106a933b87af8e6e01fb824176c970a35d7",
+      "seconds": 2.0,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/audio/sfx/paint-pop.wav",
+      "bytes": 68840,
+      "sha256": "a285fb6673864d5b41c2b321f2b2155cc63ec82e3b59b577bc87996375a3d640",
+      "seconds": 0.39,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/pickup.wav",
+      "bytes": 88244,
+      "sha256": "bd429500f92b222fd5897ee9595c0db58da7ccfb351f2e09eb4e73541ff85180",
+      "seconds": 0.5,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/place.wav",
+      "bytes": 88244,
+      "sha256": "a69deb0348f0174e195bea72e355ea8c93165d47800cb5af6a588013fac5024e",
+      "seconds": 0.5,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/retry.wav",
+      "bytes": 88244,
+      "sha256": "d095e6da7dd0a7dd8c6463c79ac3a45311be06ebb314048ac8654b995154cebd",
+      "seconds": 0.5,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/reward.wav",
+      "bytes": 107648,
+      "sha256": "689c1d35c1a8d9152620684f7708100598ec49d6451ef656fc492dd8a6cd41b3",
+      "seconds": 0.61,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/rotate.wav",
+      "bytes": 88244,
+      "sha256": "a69deb0348f0174e195bea72e355ea8c93165d47800cb5af6a588013fac5024e",
+      "seconds": 0.5,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/snap.wav",
+      "bytes": 88244,
+      "sha256": "33724c9bb1a14963a3416dc4bbeccaea2ea323c9cf5e1f9fe4be6adab497b151",
+      "seconds": 0.5,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/win.wav",
+      "bytes": 146456,
+      "sha256": "d1a6cc5aaef1a1b84f081ba86591be1341a6eb60c8b8cdf0b2b46bd9f7e30818",
+      "seconds": 0.83,
+      "channels": 2,
+      "sampleRate": 44100
+    },
+    {
+      "path": "assets/audio/sfx/wobble.wav",
+      "bytes": 30030,
+      "sha256": "c58dc0cd000db7c365e42249a57789b7f1cb7aa506f60e8460c42fbec3d0f8e0",
+      "seconds": 0.6799546485260771,
+      "channels": 1,
+      "sampleRate": 22050
+    },
+    {
+      "path": "assets/balance-dash/background.svg",
+      "bytes": 836,
+      "sha256": "a86b6181edb8beaba0fa73c495045fa49eb0ac14bfdfc5735b9f39a9f478643e"
+    },
+    {
+      "path": "assets/balance-dash/beam.svg",
+      "bytes": 283,
+      "sha256": "82ecc0397636640ebf2e57be20b97340cce290193fb1ba26ba06f84ab482516c"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/celebrate.svg",
+      "bytes": 4863,
+      "sha256": "a2093b65e85c79d0b0a3671fa120b9818c5dba429ca188216eef51b33568fdcd"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/fall.svg",
+      "bytes": 4859,
+      "sha256": "3e93138cc98e945e90126e5bd35d83b02f4ab07e90f69b326a36cd3d63fb1d2d"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/idle.svg",
+      "bytes": 4859,
+      "sha256": "6acf4161e0fb8eb61931059f5bedf016e7b3b64828929de5b5cc483f508c4822"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/lean-left.svg",
+      "bytes": 4866,
+      "sha256": "a8239123b250de39ff61df6dab190f50910f13d0155aa6a869f577e53e537543"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/lean-right.svg",
+      "bytes": 4866,
+      "sha256": "f403ec9cac56f4a766feff89036142b62180049ed6ad13ef404cccb26963b721"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/recover.svg",
+      "bytes": 4862,
+      "sha256": "0b54c2837a27fbf26083f41a8ed58cae46d4da7d0005f3a19a9ccc02c3ed7f73"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/walk-1.svg",
+      "bytes": 4861,
+      "sha256": "08ff4daeb7b62dae82958c63d7eb176b46aefd7defd63ac95e15aa1b22caa69f"
+    },
+    {
+      "path": "assets/balance-dash/characters/samaria/walk-2.svg",
+      "bytes": 4861,
+      "sha256": "f6403027b5b013a4c597b6752b04b06e03db281ccd6595eb2f62e05d92277549"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/celebrate.svg",
+      "bytes": 1332,
+      "sha256": "ce0f97447bae2ac4ee0cb03cdeee23edf9408879f5c0134ad9bcc8291c18731d"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/fall.svg",
+      "bytes": 1335,
+      "sha256": "d66c0050018461d0204315098d45de8a81ba2f132fa25caae5758b62fa1b1f56"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/idle.svg",
+      "bytes": 1334,
+      "sha256": "f86216f38667738f146c96448d136dfb04aa6baf1a366e49c283fb905a8880bb"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/lean-left.svg",
+      "bytes": 1336,
+      "sha256": "a6ef6aa81e973baa6220d824b1af83854a49eb68c2502eeb4112599d0b69fded"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/lean-right.svg",
+      "bytes": 1335,
+      "sha256": "883cb47121d6907ae1d5b6f5fba6ba2f4bff696d8e7fbb45732e77929446ad57"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/recover.svg",
+      "bytes": 1335,
+      "sha256": "6ce6d25627eebd18ccff082f9f7965d6134d1b53ea8a46df42ac4f2bd2dbc01b"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/walk-1.svg",
+      "bytes": 1334,
+      "sha256": "ae45b8edff725f023a530f4a13fbddfcca84d44418892db0ec183038502f08ce"
+    },
+    {
+      "path": "assets/balance-dash/characters/zion/walk-2.svg",
+      "bytes": 1335,
+      "sha256": "ce5bd8adcc2c684b3a9fc2b7d00a34c7e5b3f5f4aeb11aebb6799ee00cf2b1fe"
+    },
+    {
+      "path": "assets/balance-dash/obstacle.svg",
+      "bytes": 248,
+      "sha256": "a4af61ec578b56d38fe18dc81b6a7cbe46793e786fed69f5359b66461a9cdf13"
+    },
+    {
+      "path": "assets/balance-dash/wind.svg",
+      "bytes": 278,
+      "sha256": "8d32bd301fbdababa05807eec4cd7e6984864bfb849e814fdf0cf38bd17e9c87"
+    },
+    {
+      "path": "assets/images/zands_logo",
+      "bytes": 1293432,
+      "sha256": "6a45e73927c4773807a036d8b151cf6b864b4006f5957cf4c8fbe18e7bb2105c"
+    },
+    {
+      "path": "assets/marble-lab/background.svg",
+      "bytes": 836,
+      "sha256": "dadd891db26d2f7024343f6baedbd7d93a0c058a1f39470351c576a895e6bce6"
+    },
+    {
+      "path": "assets/marble-lab/connector.svg",
+      "bytes": 224,
+      "sha256": "812211f3255db66e3fb4ecb18a6b7e304bce134561339ca7f22f026d1b1caf4a"
+    },
+    {
+      "path": "assets/marble-lab/finish-cup.svg",
+      "bytes": 238,
+      "sha256": "e8db9ef2f21e3057421d1855432b23431840fbc28750a4bf1796d3153e8bee40"
+    },
+    {
+      "path": "assets/marble-lab/marbles/marble-1.svg",
+      "bytes": 268,
+      "sha256": "b692dfa320c23b876f176ed32b8d9171657bd06077bd53a60648a1c847d175d3"
+    },
+    {
+      "path": "assets/marble-lab/marbles/marble-2.svg",
+      "bytes": 268,
+      "sha256": "04ae58963326ffa3c079e6c37cce90c2aa048323131e2ea9fb9423abe67bcc1d"
+    },
+    {
+      "path": "assets/marble-lab/marbles/marble-3.svg",
+      "bytes": 268,
+      "sha256": "9cba59389ee8cb913e07086916c77df7a86cbc0019756bf9e866b89e7b52e18d"
+    },
+    {
+      "path": "assets/marble-lab/marbles/marble-4.svg",
+      "bytes": 268,
+      "sha256": "cb81bb69d40a22ca7ed80a7304613ee81fda306080566987e54265d6fdb2a871"
+    },
+    {
+      "path": "assets/marble-lab/start-gate.svg",
+      "bytes": 334,
+      "sha256": "73a37a892a38f4ef7d84cd6dd5ee36b1c33875bb7cc378234e78d7e5820d64c9"
+    },
+    {
+      "path": "assets/marble-lab/tracks/curve-down.svg",
+      "bytes": 341,
+      "sha256": "edcc68d61772947272651a207223725dd54da6dd92a5f5106c15cf3b3436aa9e"
+    },
+    {
+      "path": "assets/marble-lab/tracks/curve-up.svg",
+      "bytes": 341,
+      "sha256": "5a701110dd9dd7bd9ff4e1f465d5f25e980d07019418b4e733b233b5e97d5a08"
+    },
+    {
+      "path": "assets/marble-lab/tracks/drop.svg",
+      "bytes": 325,
+      "sha256": "3c369703596809e915499cd18d57ea9caf084ec5cb70b147570374dd56cecaaa"
+    },
+    {
+      "path": "assets/marble-lab/tracks/funnel.svg",
+      "bytes": 371,
+      "sha256": "c76350a296218117d76a2fb52822acc3813a054cc99828315654dfdabfe098dc"
+    },
+    {
+      "path": "assets/marble-lab/tracks/geometry.json",
+      "bytes": 2478,
+      "sha256": "51b1fca1ad31e3ff78385fb123f742d6b01030fc46dc910f0a0ba2c3326320dc"
+    },
+    {
+      "path": "assets/marble-lab/tracks/ramp-down.svg",
+      "bytes": 327,
+      "sha256": "2047531c70918d3dfb6d1581babe2b9794c106703eef51c49d7d92507c8bec22"
+    },
+    {
+      "path": "assets/marble-lab/tracks/ramp-up.svg",
+      "bytes": 327,
+      "sha256": "9e001a75c8c8026dfd72ad2d7db666a37e1ee79e1b269823025427c7b5eb9222"
+    },
+    {
+      "path": "assets/marble-lab/tracks/straight.svg",
+      "bytes": 325,
+      "sha256": "27d421e9b46d424debb2d69143fda797aabea267662d3f8158447d11c6265ded"
+    },
+    {
+      "path": "assets/marble-lab/tracks/u-turn.svg",
+      "bytes": 367,
+      "sha256": "c4cb3886c27ae2ecc8c343446217ea00451009019fc97c78818049ececfa8450"
+    },
+    {
+      "path": "assets/match-quest/background.svg",
+      "bytes": 836,
+      "sha256": "8e30176419d8c333f84631ec69ce8aad9f7d3355e019ea347f7e3324d1c888fa"
+    },
+    {
+      "path": "assets/match-quest/card-back.svg",
+      "bytes": 421,
+      "sha256": "9fb3cdec6ffefeecf4de94df987231fb567621ab600f49a16ecb746058082c11"
+    },
+    {
+      "path": "assets/match-quest/card-frame.svg",
+      "bytes": 248,
+      "sha256": "beca3486b5f0c93f5874bcd10eea856247e886768439bce99fb1c823bb7fef7b"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/bear.svg",
+      "bytes": 520,
+      "sha256": "856b454f6fa7dc064e30f91fe957adc255cdb80a64e5a6123a37118149377e5a"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/cat.svg",
+      "bytes": 535,
+      "sha256": "a00627ef28a1c60b508d4a2bea3326fb6046de82a1f4172bba35b72040fd28d6"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/dog.svg",
+      "bytes": 535,
+      "sha256": "63fa6c4179c7113e88d0949e2faebdd2de7cf2f77cb68d94c2f3e5cefa841047"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/fox.svg",
+      "bytes": 535,
+      "sha256": "8098cc74c5aa49fe0df8c61f2c24b7166221cc0a780f18c53331b6879e67f98e"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/frog.svg",
+      "bytes": 520,
+      "sha256": "4609736af2d3857d6dd5e3c5702f9595bd7fd21629ef09add61dce6732dc7515"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/lion.svg",
+      "bytes": 570,
+      "sha256": "75046718b88be61c1f2c6f4eabee1cfe7f6100c8cb3cff859357472c0ee6038a"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/mouse.svg",
+      "bytes": 520,
+      "sha256": "ccd51f5b9de2f646784e643753acfad04eb3e53b7234ac7b8c3c9e421090dc4d"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/owl.svg",
+      "bytes": 520,
+      "sha256": "708f4a277b1ed0e2c25df980485d79a5ceef4d202dd2df3fd66baf567a2c3356"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/panda.svg",
+      "bytes": 708,
+      "sha256": "f9071add37d9302a1015dab89afed3788dcab5d7d818c88daf7321d030fb7484"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/penguin.svg",
+      "bytes": 520,
+      "sha256": "f02d6bd40bde88468c6aeddf11780c93481624ba933ec4ca07161619b0233301"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/rabbit.svg",
+      "bytes": 562,
+      "sha256": "ad25303df40ba0dc84c78455bb243a2e6e2decde371f51c5c60825ce960fb9e7"
+    },
+    {
+      "path": "assets/match-quest/cards/animals/turtle.svg",
+      "bytes": 520,
+      "sha256": "dccdc452370ea1266f5682bd44e7be014173c99e1a3699bd713a129b6c209866"
+    },
+    {
+      "path": "assets/match-quest/cards/food/apple.svg",
+      "bytes": 325,
+      "sha256": "31b2d6e4bdc8636cf8cfa888eb1d128d6c313ca6a3aac86afdfa980b72600247"
+    },
+    {
+      "path": "assets/match-quest/cards/food/banana.svg",
+      "bytes": 260,
+      "sha256": "df4caff08c96dac68bddb32fc056c84104fe54ae48cf7bee3f43c1084fb1909b"
+    },
+    {
+      "path": "assets/match-quest/cards/food/carrot.svg",
+      "bytes": 306,
+      "sha256": "40a161f6981cfd4511a0bfe7a3d9c3843612421effb090abeb046bdf171ef582"
+    },
+    {
+      "path": "assets/match-quest/cards/food/cookie.svg",
+      "bytes": 471,
+      "sha256": "1f6b5ca8b33f8ae2bd0239c359f27c65ba6ca5990ee814d71254f586730e84ea"
+    },
+    {
+      "path": "assets/match-quest/cards/food/cupcake.svg",
+      "bytes": 391,
+      "sha256": "bede0a2cf358600a4a23593b30472e7822a21e29f349edbeb0ea060e5e68f0e1"
+    },
+    {
+      "path": "assets/match-quest/cards/food/grapes.svg",
+      "bytes": 618,
+      "sha256": "be3c909e69cbda7dc9b4213f09373297d619ac78bda290ad0fcf42fd948eaaef"
+    },
+    {
+      "path": "assets/match-quest/cards/food/ice-cream.svg",
+      "bytes": 391,
+      "sha256": "bede0a2cf358600a4a23593b30472e7822a21e29f349edbeb0ea060e5e68f0e1"
+    },
+    {
+      "path": "assets/match-quest/cards/food/orange.svg",
+      "bytes": 325,
+      "sha256": "3ca2a2326a6695b696bbab580d281d36f9cd30fed8971be416c6eb4ac69ab74c"
+    },
+    {
+      "path": "assets/match-quest/cards/food/pear.svg",
+      "bytes": 325,
+      "sha256": "774f1d2e8bee8d1e918163384056c2670f44ea0d945b9b4b4d53c4e29e45066d"
+    },
+    {
+      "path": "assets/match-quest/cards/food/pizza.svg",
+      "bytes": 377,
+      "sha256": "d2b109272d64db5efeb2acc086ff1a69761186b029b4369efbc2fd05888afdb5"
+    },
+    {
+      "path": "assets/match-quest/cards/food/strawberry.svg",
+      "bytes": 325,
+      "sha256": "4f2594bb60e01b0b3628e6ff13b8e088b9098c470e49fefb4c3d2d2e79e8de3e"
+    },
+    {
+      "path": "assets/match-quest/cards/food/watermelon.svg",
+      "bytes": 436,
+      "sha256": "a22c16492df2ed9460e8830b8ed96a324565d7cd21191b09021dda0808a988d3"
+    },
+    {
+      "path": "assets/match-quest/cards/space/astronaut.svg",
+      "bytes": 366,
+      "sha256": "2c8e20cb9c0a2160d2ca08ac92ac943220266d8fc8cca7181f82503f01b8645f"
+    },
+    {
+      "path": "assets/match-quest/cards/space/comet.svg",
+      "bytes": 301,
+      "sha256": "db275715d222ffb7e731ec9001fbe75b14713bf26648882df2424631210a087e"
+    },
+    {
+      "path": "assets/match-quest/cards/space/earth.svg",
+      "bytes": 363,
+      "sha256": "11198ce2ce8bd4b492834de104413db535479ff9f0ae0a53aa96d6707f02cf7e"
+    },
+    {
+      "path": "assets/match-quest/cards/space/galaxy.svg",
+      "bytes": 840,
+      "sha256": "8b91f47cab3cb2839c116c4613d4c4a892596b3214f47443446d5db7341b4492"
+    },
+    {
+      "path": "assets/match-quest/cards/space/meteor.svg",
+      "bytes": 346,
+      "sha256": "abd24fa5fabdebde1c19715dcded4e5e3e87b6537c4b73a9290725092fcd035d"
+    },
+    {
+      "path": "assets/match-quest/cards/space/moon.svg",
+      "bytes": 258,
+      "sha256": "204a7b0fa5bfa92babefef001cdd167b2a51f6fe2ebd09ebb1735549016e9dd9"
+    },
+    {
+      "path": "assets/match-quest/cards/space/planet.svg",
+      "bytes": 354,
+      "sha256": "05bf98a329d2dbfc339796734fe24900155c19cbe2102d1a4305a5f675fce897"
+    },
+    {
+      "path": "assets/match-quest/cards/space/rocket.svg",
+      "bytes": 471,
+      "sha256": "546180f33329f6e8f3131d7c7714c8707c8d310624efa958f4478c71a2517213"
+    },
+    {
+      "path": "assets/match-quest/cards/space/satellite.svg",
+      "bytes": 447,
+      "sha256": "dfd562346b7a295b14cc31ca0256b851730c6143cde84fa775567db14edd7851"
+    },
+    {
+      "path": "assets/match-quest/cards/space/star.svg",
+      "bytes": 349,
+      "sha256": "0777c896479e8b9607ec20641081434c6601673c30210a26a01c8bd011e40141"
+    },
+    {
+      "path": "assets/match-quest/cards/space/sun.svg",
+      "bytes": 395,
+      "sha256": "4d7035f215e230d9ea0b4c73200948ccfd1c17f175ff5ec5dad95a2f3187ff58"
+    },
+    {
+      "path": "assets/match-quest/cards/space/ufo.svg",
+      "bytes": 496,
+      "sha256": "01a75eea84cda9b0f4a651406a8bd8d79238e84097f2dbe55f4e414e23f93e53"
+    },
+    {
+      "path": "assets/number-quest/background.svg",
+      "bytes": 836,
+      "sha256": "b457a78db823423f1a4eb1e176aa05ec958539c86f99fc7ab1548af18e9d5bbd"
+    },
+    {
+      "path": "assets/number-quest/objects/cupcake.svg",
+      "bytes": 391,
+      "sha256": "bede0a2cf358600a4a23593b30472e7822a21e29f349edbeb0ea060e5e68f0e1"
+    },
+    {
+      "path": "assets/number-quest/objects/rocket.svg",
+      "bytes": 471,
+      "sha256": "546180f33329f6e8f3131d7c7714c8707c8d310624efa958f4478c71a2517213"
+    },
+    {
+      "path": "assets/number-quest/objects/star.svg",
+      "bytes": 349,
+      "sha256": "0777c896479e8b9607ec20641081434c6601673c30210a26a01c8bd011e40141"
+    },
+    {
+      "path": "assets/number-quest/platform.svg",
+      "bytes": 250,
+      "sha256": "69b3fb4c026eb82eed4a5c7a03b966c33af817bb56329c01634cc16990cf3b4c"
+    },
+    {
+      "path": "assets/number-quest/stepping-stone.svg",
+      "bytes": 241,
+      "sha256": "6d58f2b08a38cc8654c25f77f45eb26eee47e3c33f396063fbd46a84483a8dab"
+    },
+    {
+      "path": "assets/paint-studio/background.svg",
+      "bytes": 836,
+      "sha256": "d08dd955c4eefcef0e7a86e13ce790fadcc809789dfc9d83bc73faec7cd20bd0"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/dinosaur-valley.svg",
+      "bytes": 6696,
+      "sha256": "776f5a414e72e67f0c04c54d4a1d3ac419db7ea1b16a0ea3e5da4718d70b5ccd"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/forest-friends.svg",
+      "bytes": 3548,
+      "sha256": "e3eba51cd15111322f7cf299f9e25e0cf02ddd8fc13d064be6fc105c48c31298"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/fox-garden.svg",
+      "bytes": 7533,
+      "sha256": "c941ae6fa3714de65052024953b80c32ac43e8aef3a4e1d4b4d4133c7e23ca8e"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/moon-camp.svg",
+      "bytes": 2761,
+      "sha256": "6c88344bba8c1b435e03bad8e35b8c77c224a282ec21621c061b0fa1d49c8dec"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/ocean-adventure.svg",
+      "bytes": 3124,
+      "sha256": "af92bf4b6cba23ed055f55ce17bdb5b902f074d10d35a9d046ae2cd82aef9c3f"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/pond-party.svg",
+      "bytes": 3491,
+      "sha256": "648af4d3f92d70d486f7579d24d57b3033dc4efb21108757d669bf7c108f1a7b"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/rainbow-hills.svg",
+      "bytes": 3124,
+      "sha256": "af92bf4b6cba23ed055f55ce17bdb5b902f074d10d35a9d046ae2cd82aef9c3f"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/rocket-launch.svg",
+      "bytes": 5318,
+      "sha256": "5507e265f6eab1b7c570cb6af474490e3841cdb30c6d8a0671a2ff691e3dce48"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/sailboat-bay.svg",
+      "bytes": 5676,
+      "sha256": "1d04758bfc95337f9368295595a62abb04c528f53b5a51c76957a5478d95fa24"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/space-garden.svg",
+      "bytes": 3041,
+      "sha256": "4a9c8124d51c10495c1fa6eddc75c1411fded12eb1da7f36c2346985edc7ebbc"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/sunflower-cottage.svg",
+      "bytes": 7749,
+      "sha256": "b30179dd534f1a0b60147bd0ce3141ffff7f42b573aa109de3705a12c04c81a4"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/sunny-safari.svg",
+      "bytes": 3298,
+      "sha256": "fd5b0f7cfd47d4faf29a57f60f0dff1fc9fe869eabcc40f0134c5203bc9f418a"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/sweet-picnic.svg",
+      "bytes": 2931,
+      "sha256": "229a12c30702cdeda83a9206c79c48314c9984c43e49f783c1337a7f346eefe7"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/treehouse-trail.svg",
+      "bytes": 8396,
+      "sha256": "d38c02e04d7c5a1f66eeb138711b3182fdeac49246cbc798d83af62e96c70b3c"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/turtle-reef.svg",
+      "bytes": 4370,
+      "sha256": "efc6dd7e0ceee985baa8bc49c5748cd0c6c92392ff5a02e90132f083917288c7"
+    },
+    {
+      "path": "assets/paint-studio/coloring-pages/unicorn-meadow.svg",
+      "bytes": 7118,
+      "sha256": "4eb1b70d0aeb579f77ce30b942c284568654b6f13000f7f18579bae1674d87c3"
+    },
+    {
+      "path": "assets/paint-studio/palette.json",
+      "bytes": 1216,
+      "sha256": "33228e767a6eb4a8f99e7fac38c25c50f5aa4cbc9350326dacd1bd1ce897b345"
+    },
+    {
+      "path": "assets/paint-studio/paper.svg",
+      "bytes": 250,
+      "sha256": "8514856b9785598011a84f5c1810097dcc08a19a0b3e14944923153bdede3c67"
+    },
+    {
+      "path": "assets/pattern-beats/background.svg",
+      "bytes": 836,
+      "sha256": "95bb0614367c434fe88b8f5d1b2815231530015a4e83d4b082cc766b59a93641"
+    },
+    {
+      "path": "assets/pattern-beats/instruments/bell.svg",
+      "bytes": 328,
+      "sha256": "1e5efaf2b25a20b4eb87ea3c5a4cfca622a085e355e620e6b4f2ef018f85409b"
+    },
+    {
+      "path": "assets/pattern-beats/instruments/drum.svg",
+      "bytes": 308,
+      "sha256": "2f355078533ee7d460befa907f97fbaa94b380d477448ff8729760c44226faad"
+    },
+    {
+      "path": "assets/pattern-beats/instruments/keys.svg",
+      "bytes": 448,
+      "sha256": "6beb4ae17c656216493c352830df70f7f2bef98b7a945b26c6ae92085ce29e0a"
+    },
+    {
+      "path": "assets/pattern-beats/instruments/shaker.svg",
+      "bytes": 297,
+      "sha256": "935f01c5784baeb238376a732c74b0c0513bf101432a2d9c464a4be9dd524f05"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-1-lit.svg",
+      "bytes": 280,
+      "sha256": "878a00c6e2f7a77dfcd63c38967f85bce047f6ce7a383cb2a2f7bd8d6dbc669e"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-1.svg",
+      "bytes": 230,
+      "sha256": "176998be41757c97a93530babfda6bc055ac0cc4e1c1b27884e40e7c3283f3b8"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-2-lit.svg",
+      "bytes": 300,
+      "sha256": "ea315f591d4e5217e4f98e6af4103f9b09dc1a99711678303e2e54e4c97252dd"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-2.svg",
+      "bytes": 250,
+      "sha256": "d99f0b737accad4d0bb5951a4ee42b47c471da402188c071723fbe4bb8e1f75c"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-3-lit.svg",
+      "bytes": 287,
+      "sha256": "83ec8e58da90f784520a2b720b92bd6db5605e449cc0d5070d9cfe925ee443e3"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-3.svg",
+      "bytes": 237,
+      "sha256": "d3cccd5233547bd0963b399d57ada4a14866e8bee846053cd16b0b5ebbc11394"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-4-lit.svg",
+      "bytes": 399,
+      "sha256": "a6b0311b2bd6bb7590fdd386b30182010a4bcae49d9dcadeb9cf3f88915b3780"
+    },
+    {
+      "path": "assets/pattern-beats/pads/pad-4.svg",
+      "bytes": 349,
+      "sha256": "b98ef3e6eef76ef6c5d3892ebb14b8b89f3e12aaaf3d605f82edaaeca2a59bae"
+    },
+    {
+      "path": "assets/picture-remix/background.svg",
+      "bytes": 836,
+      "sha256": "a227467e78ba887d1bd38e34d2178bdcec0735abb9b454472fb7d8489e368584"
+    },
+    {
+      "path": "assets/picture-remix/images/dinosaur-valley.svg",
+      "bytes": 6788,
+      "sha256": "55d101f62f0d7813ab8903a91dbb869b8123fe9aea986b0e040091df775cee93"
+    },
+    {
+      "path": "assets/picture-remix/images/forest-friends.svg",
+      "bytes": 2490,
+      "sha256": "c60cf2f99b6d731130ea19e9208d5cdd217f58c1b4cd8012d447efd40a855a7b"
+    },
+    {
+      "path": "assets/picture-remix/images/fox-garden.svg",
+      "bytes": 7637,
+      "sha256": "99cb922f0e12ca19ea75d014931ccdbd3f50a813ac8e5cefd1057dda6fa88cc7"
+    },
+    {
+      "path": "assets/picture-remix/images/moon-camp.svg",
+      "bytes": 2017,
+      "sha256": "f2d39a748c768e48299e01671f8e5ebd3994e2aa579014532a7f0874996ed226"
+    },
+    {
+      "path": "assets/picture-remix/images/ocean-adventure.svg",
+      "bytes": 2262,
+      "sha256": "926c50976df174c6eb91e371313f7e61218e429a5ab992174d0f9142533f40c3"
+    },
+    {
+      "path": "assets/picture-remix/images/pond-party.svg",
+      "bytes": 2433,
+      "sha256": "524ccee5886dbad1446fbd53f0cd57fe79c9bfb1dc8077cadc40b758c3cf19ad"
+    },
+    {
+      "path": "assets/picture-remix/images/rainbow-hills.svg",
+      "bytes": 2262,
+      "sha256": "33cf91fecadb3ba05682a1040223e71b0faf4410459795c0c281b77e5e8f9f80"
+    },
+    {
+      "path": "assets/picture-remix/images/rocket-launch.svg",
+      "bytes": 5404,
+      "sha256": "07641973a73f6fa14666d447b140698ac23960f05a1dad3bcd125e272bd6b34d"
+    },
+    {
+      "path": "assets/picture-remix/images/sailboat-bay.svg",
+      "bytes": 5752,
+      "sha256": "3fda60f4536cb09dc405a2799ff93769db8fe2c311181accccd244162e491225"
+    },
+    {
+      "path": "assets/picture-remix/images/space-garden.svg",
+      "bytes": 2218,
+      "sha256": "83a4ae3cbbab107657d70457f6859235515e22a23149f1bac475742dd7fe6f9b"
+    },
+    {
+      "path": "assets/picture-remix/images/sunflower-cottage.svg",
+      "bytes": 7861,
+      "sha256": "2775b4976ef3cdcf4da7346c7fcdd8562149d63f760ec81a54e2a9510e564de8"
+    },
+    {
+      "path": "assets/picture-remix/images/sunny-safari.svg",
+      "bytes": 2358,
+      "sha256": "a198f84e7924c57cc9f2d6a2afa845b5eff512de0d4f0bd62353cb7b1145a6eb"
+    },
+    {
+      "path": "assets/picture-remix/images/sweet-picnic.svg",
+      "bytes": 2109,
+      "sha256": "c3b8f5be7f59cc553af52c83f107aa42b190e4ff65924f25bf7ccf8b43465f44"
+    },
+    {
+      "path": "assets/picture-remix/images/treehouse-trail.svg",
+      "bytes": 8508,
+      "sha256": "bbf346ac36f18ba724a32cec0965bbe35f99a89efd12f55511d54905e6cb1834"
+    },
+    {
+      "path": "assets/picture-remix/images/turtle-reef.svg",
+      "bytes": 4446,
+      "sha256": "28e507e4e30731a3ad62a20b697a0c1428b5d2ebec7e6882a8c7bde24e7c65a8"
+    },
+    {
+      "path": "assets/picture-remix/images/unicorn-meadow.svg",
+      "bytes": 7224,
+      "sha256": "b1da57a4c09e31cb6df98528db53f750b21e6f21fcb408df90d35697aa2253f4"
+    },
+    {
+      "path": "assets/shape-builder/background.svg",
+      "bytes": 836,
+      "sha256": "85e5cf03f965e58c8419d3183f04918e446f882fa14427b5cd72fde8746c41e0"
+    },
+    {
+      "path": "assets/shape-builder/pieces/large-a.svg",
+      "bytes": 233,
+      "sha256": "3914e363a43c75c9fd55bfa7d7d10976c083085c040c68fe51309bc69aafa946"
+    },
+    {
+      "path": "assets/shape-builder/pieces/large-b.svg",
+      "bytes": 233,
+      "sha256": "9209d408457e404579da570a9d1108d80ea75e6189c1de0501de17d7c3dc9be5"
+    },
+    {
+      "path": "assets/shape-builder/pieces/medium.svg",
+      "bytes": 239,
+      "sha256": "a9687ab3820d6e832d4e59d5af767479e40a1682f171858b2a74b84c61dbed56"
+    },
+    {
+      "path": "assets/shape-builder/pieces/parallelogram.svg",
+      "bytes": 244,
+      "sha256": "b41b7194f1e61f1afb1bcf962ff80c272f71fd7b23708e7f90f21c4f56247a97"
+    },
+    {
+      "path": "assets/shape-builder/pieces/small-a.svg",
+      "bytes": 238,
+      "sha256": "cac7db5d649a5e53558d2a83400413ebb19be820d0f240e12dc67ddb0183b907"
+    },
+    {
+      "path": "assets/shape-builder/pieces/small-b.svg",
+      "bytes": 236,
+      "sha256": "3956330a9410b0c755dd0abfb66f80a209a3251230836a11b0069e96f43a76aa"
+    },
+    {
+      "path": "assets/shape-builder/pieces/square.svg",
+      "bytes": 246,
+      "sha256": "0c3034a7f0b8aafbcb97dce5b8e4386f844d4e2c9d769933a37c4321a55d4684"
+    },
+    {
+      "path": "assets/shape-builder/puzzles.json",
+      "bytes": 16176,
+      "sha256": "d0057cf6d693225bee5714f28f3afa78ff277f212706aff8249dfb52ef2bde48"
+    },
+    {
+      "path": "assets/shape-builder/solutions/01-classic-square.svg",
+      "bytes": 779,
+      "sha256": "6b43ffc8702396860587398ccf386f03ee6699d5e7dc7df5f451784c1a43cdd4"
+    },
+    {
+      "path": "assets/shape-builder/solutions/02-connected-design-01.svg",
+      "bytes": 782,
+      "sha256": "06a41f5f946502a232fdf264b3fb44c882e0224457ef79902c12d5680cd69255"
+    },
+    {
+      "path": "assets/shape-builder/solutions/03-connected-design-02.svg",
+      "bytes": 782,
+      "sha256": "ec1d880e342699c35d63f89c2ae635eb9730c70ab8e4a0fbe616da6d3be27ab4"
+    },
+    {
+      "path": "assets/shape-builder/solutions/04-connected-design-03.svg",
+      "bytes": 782,
+      "sha256": "4e4c09e2c040865fee0b36b30daaeff42d80a795de9cd4f6e8e2ae64a6b65494"
+    },
+    {
+      "path": "assets/shape-builder/solutions/05-connected-design-04.svg",
+      "bytes": 781,
+      "sha256": "4e0563b7b4f512a2a661f914a6041c409b01a8ec076016cc8b0e4d7c044846f1"
+    },
+    {
+      "path": "assets/shape-builder/solutions/06-connected-design-05.svg",
+      "bytes": 784,
+      "sha256": "5972844d60d4eb389409d6e96633818a8a64723182a3c0d564d73c7bbbb1486d"
+    },
+    {
+      "path": "assets/shape-builder/solutions/07-connected-design-06.svg",
+      "bytes": 784,
+      "sha256": "83f45d6b24236f17a9d26e2f2f112bcf85341616dc432d3446ad2f80b2bf688b"
+    },
+    {
+      "path": "assets/shape-builder/solutions/08-connected-design-07.svg",
+      "bytes": 779,
+      "sha256": "8560c5e3064c0482c5edf1cb2ef5c33758560703b5f70bd80b0c02b9d490ccb7"
+    },
+    {
+      "path": "assets/shape-builder/solutions/09-connected-design-08.svg",
+      "bytes": 783,
+      "sha256": "23ffb000b9751eda13586b7b04cf4f214e2d42a7d6ba79af904d6a9204e17d0e"
+    },
+    {
+      "path": "assets/shape-builder/solutions/10-connected-design-09.svg",
+      "bytes": 782,
+      "sha256": "75ebfb5c06ea5fd957b8a3c54ce45ffda6ea65dce0c2ccefcd6a9808de27c2da"
+    },
+    {
+      "path": "assets/shape-builder/solutions/11-connected-design-10.svg",
+      "bytes": 780,
+      "sha256": "483430284405860fc6937db90ca798558eeb2a926cf89ccb96b8f06ea731e625"
+    },
+    {
+      "path": "assets/shape-builder/solutions/12-connected-design-11.svg",
+      "bytes": 780,
+      "sha256": "dbabe517f9f02a654810a54ca97c9e57d7f7ed5614f16aa718f05ce7aecc1475"
+    },
+    {
+      "path": "assets/shape-builder/solutions/13-connected-design-12.svg",
+      "bytes": 782,
+      "sha256": "9ff4d0b6129c31f269ec35e51a1b1ba1bd954307bbba1c23d309b637abde228b"
+    },
+    {
+      "path": "assets/shape-builder/solutions/14-connected-design-13.svg",
+      "bytes": 782,
+      "sha256": "52825744be2e3cbb390ca45c78a492f3cce80f0d177333a89f3630053168e8ca"
+    },
+    {
+      "path": "assets/shape-builder/solutions/15-connected-design-14.svg",
+      "bytes": 780,
+      "sha256": "34bb789dbfbb1e7d1f9db2b8504c0d980fdda1037bfebb835a4293ead663dbd1"
+    },
+    {
+      "path": "assets/shape-builder/solutions/16-connected-design-15.svg",
+      "bytes": 780,
+      "sha256": "660e3d92cfb765f99f5c807909ff0361e369ff38d1c46596388bc1d321e8cacd"
+    },
+    {
+      "path": "assets/shape-builder/solutions/17-connected-design-16.svg",
+      "bytes": 783,
+      "sha256": "27099a76228f8e4186a40b0b6a0784b563b474594bf35754a58fec748a372f9f"
+    },
+    {
+      "path": "assets/shape-builder/solutions/18-connected-design-17.svg",
+      "bytes": 781,
+      "sha256": "750a56457fe55937c1310a78abc501d76b368ca706b94f1d2f8736dc78e53824"
+    },
+    {
+      "path": "assets/shape-builder/solutions/19-connected-design-18.svg",
+      "bytes": 780,
+      "sha256": "fdabd2f49e87730e823814b504fb16ce0f45afdc6309c5946358b4ef6b64b1ee"
+    },
+    {
+      "path": "assets/shape-builder/solutions/20-connected-design-19.svg",
+      "bytes": 779,
+      "sha256": "2646c7fda9312188d01d92a1ced55f7d0bb1e121700efccb87af85c6679a7835"
+    },
+    {
+      "path": "assets/shape-builder/targets/01-classic-square.svg",
+      "bytes": 779,
+      "sha256": "bb4061ecd5fc1fff167c8e78152f2e5e59805852978a63b6d901480be6a337f7"
+    },
+    {
+      "path": "assets/shape-builder/targets/02-connected-design-01.svg",
+      "bytes": 782,
+      "sha256": "9be17dad8b22f4bdd01b44a1ce8c3a7a4e4ec1c09598a8d4f5a9c1b980d1da2c"
+    },
+    {
+      "path": "assets/shape-builder/targets/03-connected-design-02.svg",
+      "bytes": 782,
+      "sha256": "355de13a13824937caf02f457d4d6ebaa5a021b04aa812bab92f7f14132b18bd"
+    },
+    {
+      "path": "assets/shape-builder/targets/04-connected-design-03.svg",
+      "bytes": 782,
+      "sha256": "4f239e0602211526f1272369c22fd8855f5376cf20f158e6267dab7fe3dc9403"
+    },
+    {
+      "path": "assets/shape-builder/targets/05-connected-design-04.svg",
+      "bytes": 781,
+      "sha256": "23f1fc85d7b5c03a02fcc54149d5daea33881181175cedd31676810aa8409bc4"
+    },
+    {
+      "path": "assets/shape-builder/targets/06-connected-design-05.svg",
+      "bytes": 784,
+      "sha256": "bd3efa3dfe98a3a3c6a27f7768fec5ecfc4c791228d50f8a5649b40204c30051"
+    },
+    {
+      "path": "assets/shape-builder/targets/07-connected-design-06.svg",
+      "bytes": 784,
+      "sha256": "6c3495f35d815a767611cdd679b55838bd62ee4e10e7f91007b1b0e03c0ef257"
+    },
+    {
+      "path": "assets/shape-builder/targets/08-connected-design-07.svg",
+      "bytes": 779,
+      "sha256": "1bc7c4bd9e8c1798b9ff67454b015d5aec70fd5ac6e47cfc2c2df6b660f2519e"
+    },
+    {
+      "path": "assets/shape-builder/targets/09-connected-design-08.svg",
+      "bytes": 783,
+      "sha256": "ab592cb14d02416cc39fc4faef71720a7a553c6f628ed120c9b62034d66feef5"
+    },
+    {
+      "path": "assets/shape-builder/targets/10-connected-design-09.svg",
+      "bytes": 782,
+      "sha256": "0e0e5331d76b731fe6ab93d3c5e73c846e45d457f809382244be1d64e18e6574"
+    },
+    {
+      "path": "assets/shape-builder/targets/11-connected-design-10.svg",
+      "bytes": 780,
+      "sha256": "c42a71739f01437e6f0078dd1b87d8ceed6e86725771205115032f2f2341f499"
+    },
+    {
+      "path": "assets/shape-builder/targets/12-connected-design-11.svg",
+      "bytes": 780,
+      "sha256": "6a6df3575031b413e3d38dc219773b056cb068f45ac45e92c00af3aa4f034f6a"
+    },
+    {
+      "path": "assets/shape-builder/targets/13-connected-design-12.svg",
+      "bytes": 782,
+      "sha256": "a086d41184bbd4b2a7bb2597edfcd51b1fcaddef331fd960875c2f654c9ef439"
+    },
+    {
+      "path": "assets/shape-builder/targets/14-connected-design-13.svg",
+      "bytes": 782,
+      "sha256": "ca2aea164db8a8aeb9ab45574f8be70ec72ba9ea1394779cf03cac894f0f36ef"
+    },
+    {
+      "path": "assets/shape-builder/targets/15-connected-design-14.svg",
+      "bytes": 780,
+      "sha256": "43aaa68a99889702d117ead76843785a77a3e13081b2276a93cedcf0078f14ca"
+    },
+    {
+      "path": "assets/shape-builder/targets/16-connected-design-15.svg",
+      "bytes": 780,
+      "sha256": "1de95dc67f38ef29b21c2ea9993380ae35a41adc5e23f2707543a9e374693319"
+    },
+    {
+      "path": "assets/shape-builder/targets/17-connected-design-16.svg",
+      "bytes": 783,
+      "sha256": "15a818e400c99708b70088958eb392ff0cd36fc1cff34b70328c91e2b017f87b"
+    },
+    {
+      "path": "assets/shape-builder/targets/18-connected-design-17.svg",
+      "bytes": 781,
+      "sha256": "55f8c5effd0bc177b72fe33ede73a5bd8186e5e4dce8cda61be396986e6b4a46"
+    },
+    {
+      "path": "assets/shape-builder/targets/19-connected-design-18.svg",
+      "bytes": 780,
+      "sha256": "c20fa0fff4723c72361fe77f6c9de2cc1db1c64b461b38640af25abd94abcda7"
+    },
+    {
+      "path": "assets/shape-builder/targets/20-connected-design-19.svg",
+      "bytes": 779,
+      "sha256": "e9187f6a2e30e00cee8f6a0b5028da28752004a7542f26f9f8cec667519131fd"
+    },
+    {
+      "path": "assets/shared/background.svg",
+      "bytes": 1632,
+      "sha256": "aca5d9a84b92ac05fb8665ca6b1e98f0724b72968b55f68ec477e4b4cbb55449"
+    },
+    {
+      "path": "assets/shared/branding/zands-logo.png",
+      "bytes": 1293432,
+      "sha256": "6a45e73927c4773807a036d8b151cf6b864b4006f5957cf4c8fbe18e7bb2105c"
+    },
+    {
+      "path": "assets/shared/icons/brush.svg",
+      "bytes": 316,
+      "sha256": "cf54c20514cc07cb99a652c83c5f083437102a6bb3173112266c52052ac35c95"
+    },
+    {
+      "path": "assets/shared/icons/check.svg",
+      "bytes": 228,
+      "sha256": "4eb003102c1d95660d7cd2e6b5c6c124e2e3d802f9e7b8aa6182e81cae71c1de"
+    },
+    {
+      "path": "assets/shared/icons/close.svg",
+      "bytes": 236,
+      "sha256": "223062064132a72387aecd3a48ac0f7169f1000f9a5c3aee8463441ee79a973c"
+    },
+    {
+      "path": "assets/shared/icons/cup.svg",
+      "bytes": 436,
+      "sha256": "71433a643b8045cc43a4cbdec94a8e6804d732d948a814e5b58e38aa00260148"
+    },
+    {
+      "path": "assets/shared/icons/eraser.svg",
+      "bytes": 323,
+      "sha256": "8ff86ea6c483672869e4984bde0c09e8d1e3184cc3fb7b949df11d93b8da9b25"
+    },
+    {
+      "path": "assets/shared/icons/fill.svg",
+      "bytes": 359,
+      "sha256": "03f7b5466f754a6de4fa4dce07cf99f1c81966f04f9459267892a82b6afc4d9f"
+    },
+    {
+      "path": "assets/shared/icons/help.svg",
+      "bytes": 348,
+      "sha256": "fd9cef5e8ce99e6d1f0dcb99686e86ee2e074c10b5c1b5b37e713a91f40228f3"
+    },
+    {
+      "path": "assets/shared/icons/home.svg",
+      "bytes": 376,
+      "sha256": "021e1aca81c6620b3c4fc64eb1baf93b841fedddd69c50f9bd153a7cff3a5c24"
+    },
+    {
+      "path": "assets/shared/icons/left.svg",
+      "bytes": 237,
+      "sha256": "eeacfcda2fd4799f9e0561798137b991be2d18f34c4e133917101c2aa8e4ef76"
+    },
+    {
+      "path": "assets/shared/icons/lock.svg",
+      "bytes": 367,
+      "sha256": "1b7e7c72cd33effa1e542b50d9a9d2b578d95fc334442ecc902b599cf2680211"
+    },
+    {
+      "path": "assets/shared/icons/minus.svg",
+      "bytes": 221,
+      "sha256": "01bee4a50c5ee8bce6f4e7262fba89a276629368d13b2de1e98d44bee7b7bc69"
+    },
+    {
+      "path": "assets/shared/icons/music.svg",
+      "bytes": 346,
+      "sha256": "869137bdc2c73299a15a149ff7963e986ef69ccce9e895e176279a86f3eb8b8a"
+    },
+    {
+      "path": "assets/shared/icons/pause.svg",
+      "bytes": 318,
+      "sha256": "fa18487e66759c33b9c5fa7907365d0259faa9420709b579796b58dc948742b8"
+    },
+    {
+      "path": "assets/shared/icons/peek.svg",
+      "bytes": 345,
+      "sha256": "5d4e892ff212eb1b9262a05b78762585bd14702abfcaebeba92a27e1c420ab1c"
+    },
+    {
+      "path": "assets/shared/icons/play.svg",
+      "bytes": 236,
+      "sha256": "8804ccaa009e312106640cfc9b59cbe70884d80e1ab142679fab088db9a2939c"
+    },
+    {
+      "path": "assets/shared/icons/plus.svg",
+      "bytes": 238,
+      "sha256": "375649cf3a64e6cc6089b5d10578dceec4cdda083d192394bc3a02a553ae5879"
+    },
+    {
+      "path": "assets/shared/icons/restart.svg",
+      "bytes": 289,
+      "sha256": "875ce764e2396d7924d3c266eb90933fc47ef328253642a4cf0b4726e99a12d9"
+    },
+    {
+      "path": "assets/shared/icons/right.svg",
+      "bytes": 236,
+      "sha256": "8288924cd656f894b026c3f131a72ef7bd04968d4337d103e4bcdf2412218eb6"
+    },
+    {
+      "path": "assets/shared/icons/rotate.svg",
+      "bytes": 285,
+      "sha256": "098e4cfa274a4e7d54a3930dc1d642a57ba252c72ced36f3887a271b54038967"
+    },
+    {
+      "path": "assets/shared/icons/save.svg",
+      "bytes": 387,
+      "sha256": "77e736220c5b85fb75d011753572485cbcd1560b29b508b907c130968c3bc04f"
+    },
+    {
+      "path": "assets/shared/icons/sound.svg",
+      "bytes": 329,
+      "sha256": "ad57f2bdc92b7962b40c26c13cd46a00a97d32f22eae05d5a40fff48bd7a7760"
+    },
+    {
+      "path": "assets/shared/icons/undo.svg",
+      "bytes": 299,
+      "sha256": "62fcc56bc3c605b99d61f49f05be8f3b8e76560495d3ec254cbfe3991c446616"
+    },
+    {
+      "path": "assets/shared/loading.svg",
+      "bytes": 399,
+      "sha256": "6522d82c06bc16b478ade5687e5783d839cf0a6beae34a4928d961825b00b4db"
+    },
+    {
+      "path": "assets/shared/menu/balance-dash.svg",
+      "bytes": 351,
+      "sha256": "501d705af958f6ca94f7f9321bc05b46edbf0c0a987aa9dce00ea60525141341"
+    },
+    {
+      "path": "assets/shared/menu/marble-lab.svg",
+      "bytes": 468,
+      "sha256": "a995ab112b39c8a9016ee8a08af5303c8b594edf9762896792c623ef5f336195"
+    },
+    {
+      "path": "assets/shared/menu/match-quest.svg",
+      "bytes": 649,
+      "sha256": "0cb5aa26fbf12012e9d259b18b7c92dc770b21d6300a5cedd4b2d3f1f719f0b5"
+    },
+    {
+      "path": "assets/shared/menu/number-quest.svg",
+      "bytes": 352,
+      "sha256": "ec63ec7ce24265e52957908acb625d5b00355f6ebba69b3d51559d314cb61079"
+    },
+    {
+      "path": "assets/shared/menu/paint-studio.svg",
+      "bytes": 430,
+      "sha256": "f890c70ea262c60e2ec52638a1371ee4e1f2db987d5cb323b9d8b904d65baa58"
+    },
+    {
+      "path": "assets/shared/menu/pattern-beats.svg",
+      "bytes": 460,
+      "sha256": "8b9bd6890ff333226a7cc1239f7ac59fd8e311d51a8f23a5dba13e22838dd328"
+    },
+    {
+      "path": "assets/shared/menu/picture-remix.svg",
+      "bytes": 459,
+      "sha256": "d939d03d854c5ab7a148b3c7c7fd51b4b19cc0eca8f78c3f77a1e87039f00730"
+    },
+    {
+      "path": "assets/shared/menu/shape-builder.svg",
+      "bytes": 463,
+      "sha256": "d6c8376d85d13ea647f0e44c6de63dd11d743a00a2a8839065670d62c3172180"
+    },
+    {
+      "path": "assets/shared/rewards/sparkle.svg",
+      "bytes": 277,
+      "sha256": "b9ea0e3ad8597322cf9c8d8c3b557173afad360cf9547631b06fb5ebdd136e4e"
+    },
+    {
+      "path": "assets/shared/rewards/star.svg",
+      "bytes": 349,
+      "sha256": "0777c896479e8b9607ec20641081434c6601673c30210a26a01c8bd011e40141"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-bear.svg",
+      "bytes": 614,
+      "sha256": "1c3b342a53ce1ad729aa7ff16c3abbfc0a99132ed8911cc2a61504bd3f9670a5"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-cat.svg",
+      "bytes": 629,
+      "sha256": "aa09bb65c685b9d6d2ca313662f30d30edcc1098a4937f880d7cc27ab3af7ccc"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-dog.svg",
+      "bytes": 629,
+      "sha256": "1f4a118b87bd393ebbaae698f080537e8c0c625847a60e6ee864ee8d0f7c36a1"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-fox.svg",
+      "bytes": 629,
+      "sha256": "bb93cdb7fdcbc70032d51e2f139fa7f31474e26beef2d0adde1c1dd00deabe1f"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-frog.svg",
+      "bytes": 614,
+      "sha256": "edd5d0fe607d75f95ab68efc06d077abe6ad157eb4a71e9733372d85ba70bcea"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-lion.svg",
+      "bytes": 664,
+      "sha256": "b047040a0c39aa043956b8c3f363e92f6a614aec177ffdfbb3c816f98a9f32c9"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-moon.svg",
+      "bytes": 352,
+      "sha256": "eca9e1ef2fff9b01645417e967387f55aa73b1e4c57da8ba52b7aeae058b688c"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-mouse.svg",
+      "bytes": 614,
+      "sha256": "16c0363fc17261e047cb40b60b9cec0b327924f76a4e1a82e4f0b9dd7233e09c"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-owl.svg",
+      "bytes": 614,
+      "sha256": "718c87aa7bd9062f99b00ca764d4d5292d33d7ed20b8116d5ae997defb5378fa"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-panda.svg",
+      "bytes": 802,
+      "sha256": "5b7d310cd96035e1f0e89c33d210125415c75a963ef77a8552c4b367856568b0"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-penguin.svg",
+      "bytes": 614,
+      "sha256": "9fda7b9ac5d84e8588fd0ecc2a90e6341e54f3ee7fb25898c630815af850eb36"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-planet.svg",
+      "bytes": 448,
+      "sha256": "5e1ca9417570be3da7fdd55b5398cd4c03cad76333d5e3370f61f3092e117313"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-rabbit.svg",
+      "bytes": 656,
+      "sha256": "8c5418d6029187a172db9a962d5b1a856be8e7995c349ca36fa723ad4333bda8"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-rocket.svg",
+      "bytes": 565,
+      "sha256": "aed02ee97ca5fcccfb14cff377c078bc99bdc7117201fd0fa12b81d38e115b49"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-star.svg",
+      "bytes": 443,
+      "sha256": "7fbc078d73db2a46f5a7e0695240e69084b0095d54befe493cd188d908e49c14"
+    },
+    {
+      "path": "assets/shared/rewards/sticker-turtle.svg",
+      "bytes": 614,
+      "sha256": "4416ff00cb4d287ed36bff33858a45cd83c3bbdb3cafbe99aa48876bee0cd095"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "main-menu",
+    "file": "assets/audio/music/main-menu.mp3",
+    "bpm": 94,
+    "bars": 24,
+    "duration": 61.277,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  },
+  {
+    "id": "paint-studio",
+    "file": "assets/audio/music/paint-studio.mp3",
+    "bpm": 84,
+    "bars": 24,
+    "duration": 68.571,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  },
+  {
+    "id": "picture-remix",
+    "file": "assets/audio/music/picture-remix.mp3",
+    "bpm": 102,
+    "bars": 24,
+    "duration": 56.471,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  },
+  {
+    "id": "match-quest",
+    "file": "assets/audio/music/match-quest.mp3",
+    "bpm": 96,
+    "bars": 24,
+    "duration": 60.0,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  },
+  {
+    "id": "number-quest",
+    "file": "assets/audio/music/number-quest.mp3",
+    "bpm": 98,
+    "bars": 24,
+    "duration": 58.776,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  },
+  {
+    "id": "pattern-beats",
+    "file": "assets/audio/music/pattern-beats.mp3",
+    "bpm": 86,
+    "bars": 24,
+    "duration": 66.977,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  },
+  {
+    "id": "shape-builder",
+    "file": "assets/audio/music/shape-builder.mp3",
+    "bpm": 90,
+    "bars": 24,
+    "duration": 64.0,
+    "sampleRate": 44100,
+    "channels": 2,
+    "loop": true
+  }
+]
