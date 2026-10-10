@@ -1,0 +1,50 @@
+:root{color-scheme:dark;--mint:#64ffe0;--ink:#080d1c}
+*{box-sizing:border-box}
+html{background:var(--ink);overscroll-behavior:none}
+body{margin:0;background:var(--ink);color:#e8f1ff;font-family:Segoe UI,Arial,sans-serif;padding:24px max(20px,calc((100vw - 1120px)/2));-webkit-text-size-adjust:100%}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.eyebrow{font-size:10px;letter-spacing:2px;color:#8da1bc;font-weight:700}
+h1{font-size:32px;letter-spacing:2px;margin:6px 0 0}h1 span{color:var(--mint)}
+nav{display:flex;gap:8px}
+button{background:#13263d;color:#dffef7;border:1px solid #31506a;border-radius:10px;min-height:44px;padding:10px 14px;cursor:pointer;font:600 13px Segoe UI,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:disabled{opacity:.4;cursor:default}button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+@media(hover:hover){button:hover:not(:disabled){background:#20415a}}
+main{min-height:0}.toolbar{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:#9fb1c9;padding:12px 0}
+#stats{color:var(--mint);font-weight:700;white-space:nowrap}
+#stage{position:relative;border:1px solid #28405c;border-radius:12px;overflow:hidden;background:#0b1528;aspect-ratio:16/9;min-height:0;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#game{position:absolute;inset:0}canvas{display:block}
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#050b18cc;padding:16px;overflow:auto}
+.card{max-width:480px;text-align:center;padding:24px;background:#0b172df5;border:1px solid #365670;border-radius:16px}
+.card h2{font-size:30px;margin:12px 0}.card p{line-height:1.5;color:#afc0d6;margin:10px 0}.card .hint{font-size:12px;color:#7e98b7}
+.card button{background:var(--mint);color:#062229;border:0;min-width:180px;margin-top:8px}
+body.playing #overlay{display:none}
+.touch{display:flex;justify-content:space-between;gap:12px;padding:14px 0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.movement,.actions{display:flex;gap:8px}
+.touch button{width:64px;min-height:64px;padding:8px 4px;touch-action:none;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px}
+.touch button span{font-size:10px;color:#95b1c8;font-weight:400}
+.touch svg{width:20px;height:20px;fill:none;stroke:var(--mint);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.touch .jump{width:80px;border-color:#64ffe080;background:#173b43}.touch button.held{background:#28576c;border-color:var(--mint);transform:translateY(1px)}
+.touch button.cooldown{border-color:#253c50;color:#7893a7}
+body:not(.playing) .touch{pointer-events:none;opacity:.4}
+.controls{display:flex;flex-wrap:wrap;gap:12px 22px;padding:2px 0 16px;color:#8397b2;font-size:12px}.controls b{color:#d3e0f3;margin-right:5px}
+footer{display:flex;justify-content:space-between;gap:12px;color:#7186a1;font-size:11px;border-top:1px solid #1a2a40;padding-top:14px}
+/* Keep both thumb groups inside Safari's visible viewport and device safe areas. */
+@media(max-width:900px) and (pointer:coarse), (max-width:650px), (max-height:500px){
+  html,body{height:100%;overflow:hidden}
+  body{height:100vh;height:100dvh;display:flex;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+  header{flex:none;margin:0 0 4px;gap:6px}.brand .eyebrow{display:none}h1{font-size:19px;letter-spacing:1px;margin:0}nav{gap:4px}nav button{min-height:44px;padding:8px;font-size:11px}
+  main{flex:1;display:flex;flex-direction:column;min-height:0}
+  .toolbar{flex:none;flex-direction:column;gap:3px;padding:4px 0 8px;font-size:12px;line-height:16px}
+  #stage{flex:1;aspect-ratio:auto;border-radius:9px;min-height:0}
+  .touch{flex:none;padding:10px 0 0;gap:4px}.movement,.actions{gap:5px}
+  .touch button{width:56px;min-height:70px}.touch .jump{width:68px}
+  .controls,footer{display:none}
+  .card{padding:16px;max-width:380px}.card h2{font-size:25px}.card p{font-size:14px}
+}
+@media(max-height:500px) and (orientation:landscape){
+  header{margin:0}.toolbar{flex-direction:row;padding:2px 0 5px;font-size:11px}
+  .touch{padding-top:5px}.touch button{width:68px;min-height:54px;gap:0}.touch .jump{width:86px}
+  .touch .movement button{flex-direction:row;gap:6px}.touch .movement button span{font-size:12px}
+  .card{max-width:540px;padding:10px 18px}.card h2{font-size:20px;margin:5px}.card .eyebrow,.card .hint{display:none}.card p{font-size:12px;margin:6px 0}.card button{margin:0;min-height:44px}
+}
+@media(max-width:360px){h1{font-size:16px}nav button{padding:6px;font-size:10px}.touch button{width:49px}.touch .jump{width:60px}}

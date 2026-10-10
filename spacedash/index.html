@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080d1c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Spacedash">
+  <meta name="description" content="Jump, dash and blast through a neon outpost. A touch-friendly Phaser game.">
+  <title>Spacedash</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header><div class="brand"><span class="eyebrow">PHASER PLAYGROUND / 01</span><h1>SPACE<span>DASH</span></h1></div><nav aria-label="Game settings"><button id="pause" disabled>Pause</button><button id="restart" disabled>Restart</button><button id="sound" aria-pressed="true">Sound: on</button></nav></header>
+  <main>
+    <div class="toolbar"><span id="status" aria-live="polite">Collect 8 shards, then reach the portal.</span><span id="stats">SHARDS 0 / 8 · SHIELDS 3</span></div>
+    <div id="stage"><div id="game" aria-label="Spacedash game"></div><div id="overlay"><div class="card"><span class="eyebrow">A LITTLE LAB FOR BIG MOVES</span><h2 id="overlay-title">Power up the relay.</h2><p id="overlay-copy">Collect 8 shards to unlock the portal. Tap Jump twice for a double jump. Hold Fire to blast drones, or dash through them.</p><p class="hint">Move with your left thumb. Jump, dash and fire with your right.<br>Both portrait and landscape work.</p><button id="play">Start playing</button></div></div></div>
+    <div class="touch" aria-label="Touch controls">
+      <div class="movement"><button data-key="left" aria-label="Move left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8"/></svg><span>Left</span></button><button data-key="right" aria-label="Move right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8"/></svg><span>Right</span></button></div>
+      <div class="actions"><button data-key="fire">Fire<span>hold</span></button><button data-key="dash" id="dash-button">Dash<span id="dash-state">ready</span></button><button data-key="jump" class="jump">Jump<span>tap twice</span></button></div>
+    </div>
+    <div class="controls"><span><b>A D / ← →</b> move</span><span><b>SPACE / W / ↑</b> double jump</span><span><b>SHIFT / K</b> dash</span><span><b>J</b> shoot</span><span><b>P</b> pause</span><span><b>R</b> restart</span></div>
+    <footer><span>Animation · Physics · Particles · Camera · Synth sound</span><span>Phaser 4.2.1 · Original procedural art</span></footer>
+  </main>
+  <script src="js/vendor/phaser-4.2.1.min.js"></script><script src="js/controls.js"></script><script src="js/game.js"></script>
+</body>
+</html>
