@@ -318,6 +318,10 @@
 <div class="hint" id="hint-text">Move: ←→ / A,D • Jump: Space • Shoot: X • Duck: ↓/S • Burst: B • Pause: ESC • Perf: Q</div>
 <div class="badge">Image Edition</div>
 
+<div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#071320ee;z-index:1300;text-align:center;padding-top:20vh;color:white" role="dialog" aria-modal="true" aria-label="Game paused">
+  <h2>Paused</h2><p>Your run is safe. Resume when you’re ready.</p>
+  <button id="rb-resume" style="padding:16px 30px;background:#7be2ff;color:#071320;border:0;border-radius:12px;font:bold 18px system-ui;touch-action:manipulation">Resume</button>
+</div>
 <!-- Start Screen -->
 <div class="start-screen" id="start-screen">
   <img class="start-logo" src="images/landing-logo.png" alt="Robot Bunny in Space">
@@ -488,10 +492,15 @@
   };
   const sfxArrayBuffers = {};
   const sfxDecodedBuffers = {};
+  const sfxDecoding = new Set();
+  const activeSfx = new Set();
+  const fileSfxPools = {};
+  const bundledFiles = location.protocol === 'file:';
 
   // Placeholder for test hopper insertion flag (not used in final version).
 
-  let assetsToLoad = Object.keys(imageSources).length + Object.keys(musicSources).length + Object.keys(sfxSources).length;
+  const initialImageSources = Object.entries(imageSources).filter(([key]) => !/^bg(?:[2-9]|10)$/.test(key));
+  let assetsToLoad = initialImageSources.length + Object.keys(sfxSources).length;
   let assetsLoaded = 0;
   let gameReady = false;
 
@@ -511,30 +520,47 @@
 
   function loadAssets() {
     // Images
-    for (const [key, src] of Object.entries(imageSources)) {
+    for (const [key, src] of initialImageSources) {
       const img = new Image();
       img.onload = assetLoaded;
       img.onerror = () => { console.error('Failed to load image:', src); assetLoaded(); };
       assets[key] = img;
       img.src = src;
     }
-    // Music tracks — HTMLAudio (long, streamed)
+    // Future music tracks do not compete with images or delay the start button.
     for (const [key, src] of Object.entries(musicSources)) {
       const audio = new Audio();
-      audio.preload = 'auto';
-      audio.addEventListener('canplaythrough', assetLoaded, { once: true });
-      audio.addEventListener('error', () => { console.error('Failed to load music:', src); assetLoaded(); }, { once: true });
+      audio.preload = 'none';
+      audio.addEventListener('error', () => console.warn('Music unavailable:', src));
       assets[key] = audio;
       audio.src = src;
-      try { audio.load(); } catch(e) {}
     }
     // SFX — fetch as ArrayBuffer for Web Audio API (decoded on first user gesture)
     for (const [key, src] of Object.entries(sfxSources)) {
+      if (bundledFiles) {
+        fileSfxPools[key] = Array.from({length:2}, () => { const audio = new Audio(src); audio.preload = 'none'; return audio; });
+        assetLoaded(); continue;
+      }
       fetch(src)
         .then(r => r.arrayBuffer())
         .then(ab => { sfxArrayBuffers[key] = ab; assetLoaded(); })
         .catch(() => { console.error('Failed to load SFX:', src); assetLoaded(); });
     }
+  }
+
+  function loadLevelBackground(level) {
+    const key = 'bg' + level;
+    if (!imageSources[key] || assets[key]) return;
+    for (const oldKey of Object.keys(assets)) {
+      if (/^bg(?:[2-9]|10)$/.test(oldKey) && oldKey !== key) {
+        const oldImage = assets[oldKey]; oldImage.onload = null; oldImage.onerror = null;
+        oldImage.src = ''; delete assets[oldKey];
+      }
+    }
+    const image = new Image();
+    image.onload = () => { _bgCacheKey = ''; };
+    image.onerror = () => console.warn('Background unavailable:', key);
+    assets[key] = image; image.src = imageSources[key];
   }
 
   function fit() {
@@ -1161,7 +1187,7 @@
     const track = assets[trackName];
     if (track && typeof track.play === 'function') {
       track.loop = (trackName !== 'victory');
-      track.currentTime = 0;
+      try { track.currentTime = 0; } catch(e) {}
       // Ensure not muted by page visibility
       track.muted = false;
       track.play().catch(err => console.warn('Audio play was blocked:', err));
@@ -1179,16 +1205,23 @@
   function decodeSfxBuffers() {
     if (!audioCtx) return;
     for (const [key, ab] of Object.entries(sfxArrayBuffers)) {
-      if (sfxDecodedBuffers[key]) continue;
+      if (sfxDecodedBuffers[key] || sfxDecoding.has(key)) continue;
+      sfxDecoding.add(key);
       audioCtx.decodeAudioData(ab.slice(0),
-        buf => { sfxDecodedBuffers[key] = buf; },
-        () => { console.warn('SFX decode failed:', key); }
+        buf => { sfxDecodedBuffers[key] = buf; delete sfxArrayBuffers[key]; sfxDecoding.delete(key); },
+        () => { sfxDecoding.delete(key); console.warn('SFX decode failed:', key); }
       );
     }
   }
 
   function playSfx(name, vol = 1.0) {
-    if (!audioCtx || !sfxDecodedBuffers[name]) return;
+    if (paused || document.hidden) return;
+    if (bundledFiles) {
+      const audio = fileSfxPools[name]?.find(item => item.paused || item.ended);
+      if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => {}); }
+      return;
+    }
+    if (!audioCtx || !sfxDecodedBuffers[name] || activeSfx.size >= 16) return;
     try {
       const src = audioCtx.createBufferSource();
       src.buffer = sfxDecodedBuffers[name];
@@ -1196,6 +1229,8 @@
       gain.gain.value = clamp(vol, 0, 1);
       src.connect(gain);
       gain.connect(audioCtx.destination);
+      activeSfx.add(src);
+      src.onended = () => { activeSfx.delete(src); src.disconnect(); gain.disconnect(); };
       src.start(0);
     } catch(e) {}
   }
@@ -1670,6 +1705,7 @@
   function startNextLevel() {
     currentLevel++;
     if (currentLevel > 10) { currentLevel = 1; loopNumber++; }
+    loadLevelBackground(currentLevel);
     segmentsInLevel = 0;
     boss = null;
     levelFlag = null;
@@ -1740,6 +1776,7 @@
     }
   }
 
+  let hudElapsed = 0;
   function update(dt) {
     if (paused || !gameStarted || gameState === 'start') return;
     time += dt;
@@ -1773,7 +1810,8 @@
     shake.intensity = Math.max(0, shake.intensity - dt * 15);
     shake.x = (Math.random() - 0.5) * shake.intensity;
     shake.y = (Math.random() - 0.5) * shake.intensity;
-    updateHUD();
+    hudElapsed += dt;
+    if (hudElapsed >= 0.1) { hudElapsed = 0; updateHUD(); }
   }
 
   function updatePlaying(dt) {
@@ -3009,7 +3047,7 @@
       createParticle(player.x + player.w/2, player.y + player.h/2, '#7be2ff', 14, 6);
       playSfx('laser', 0.8);
     }
-    if (e.code === 'Escape') paused = !paused;
+    if (e.code === 'Escape') setPaused(!paused);
   });
   window.addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -3018,11 +3056,28 @@
     wantShoot = false;
     wantJumpPress = false;
     accumulator = 0;
+    renderRequested = true;
   }
-  window.addEventListener('blur', clearInputState);
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) clearInputState();
-  });
+  function setPaused(next) {
+    paused = next; clearInputState();
+    const panel = document.getElementById('rb-pause-panel');
+    if (panel) panel.hidden = !next;
+    if (next) {
+      currentMusic?.pause();
+      for (const source of activeSfx) { try { source.stop(); } catch(e) {} }
+      for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
+      audioCtx?.suspend()?.catch(() => {});
+    } else {
+      audioCtx?.resume()?.catch(() => {});
+      currentMusic?.play()?.catch(() => {});
+    }
+  }
+  function interruptGame() { clearInputState(); if (gameStarted) setPaused(true); }
+  window.addEventListener('blur', interruptGame);
+  window.addEventListener('pagehide', interruptGame);
+  window.addEventListener('rb:background', interruptGame);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) interruptGame(); });
+  document.getElementById('rb-resume').addEventListener('click', () => setPaused(false));
 
   const btns = {
     jump: document.getElementById('mobile-jump'),
@@ -3171,6 +3226,7 @@
   // Full-screen tap-to-continue for mobile: listen on document so any tap anywhere works,
   // including taps that land on the mobile control buttons or outside the canvas.
   document.addEventListener('touchstart', e => {
+    if (paused || e.target.closest('a,button,#rb-pause-panel')) return;
     if (!gameStarted && gameReady) { e.preventDefault(); startGame(); return; }
     if (gameState === 'levelComplete') { e.preventDefault(); startNextLevel(); return; }
     if (gameState === 'gameOver') { e.preventDefault(); location.reload(); return; }
@@ -3183,25 +3239,27 @@
   let last = performance.now();
   let accumulator = 0;
   const fixedStep = 1 / 60;
+  let nextDraw = 0, lastDraw = performance.now(), renderRequested = true;
   function frame(now) {
     const rawDt = Math.max(0, (now - last)/1000);
     const dt = Math.min(0.1, rawDt);
     last = now;
 
-    // Smooth FPS to reduce UI flicker while keeping updates responsive.
-    const instantFps = rawDt > 0 ? (1 / rawDt) : 60;
-    smoothedFps += (instantFps - smoothedFps) * 0.08;
-    fpsUpdateTimer += dt;
-    if (fpsUpdateTimer >= 0.2) {
-      fpsDisplayValue = Math.max(1, Math.round(smoothedFps));
-      fpsUpdateTimer = 0;
-    }
-
     if (gameStarted && !paused && !document.hidden) {
       accumulator = Math.min(accumulator + dt, fixedStep * 6);
       while (accumulator >= fixedStep) { update(fixedStep); accumulator -= fixedStep; }
     } else { accumulator = 0; }
-    draw();
+    // Cap rendering at 60 Hz on ProMotion while simulation stays fixed at 60 Hz.
+    if (!document.hidden && (gameStarted ? (!paused || renderRequested) : renderRequested) && now + 0.5 >= nextDraw) {
+      renderRequested = false;
+      const renderDt = Math.max(0.001, (now - lastDraw) / 1000);
+      lastDraw = now;
+      nextDraw = now > nextDraw + 1000 / 60 ? now + 1000 / 60 : nextDraw + 1000 / 60;
+      smoothedFps += (1 / renderDt - smoothedFps) * 0.08;
+      fpsUpdateTimer += renderDt;
+      if (fpsUpdateTimer >= 0.2) { fpsDisplayValue = Math.max(1,Math.round(smoothedFps)); fpsUpdateTimer = 0; }
+      draw();
+    }
     requestAnimationFrame(frame);
   }
 
@@ -3215,4 +3273,5 @@
 </script>
 </body>
 </html>
+
 

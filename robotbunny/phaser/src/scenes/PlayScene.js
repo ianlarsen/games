@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { makeCourse,approach } from '../game/course.js';
+import { FileSounds } from '../game/fileSounds.js';
 export class PlayScene extends Phaser.Scene {
  constructor(){super('play');}
  init(data={}){this.level=data.level||1;this.score=data.score||0;this.lives=data.lives||4;this.practice=!!data.practice;}
@@ -9,9 +10,12 @@ export class PlayScene extends Phaser.Scene {
   this.physics.world.setBounds(0,-500,this.course.length,1700);
   const biomes=Object.values(this.cache.json.get('biomes')?.biomes||{}),biome=biomes[(this.level-1)%Math.max(1,biomes.length)];
   this.cameras.main.setBackgroundColor(biome?.colors?.bg||'#080f1d');
-  this.add.tileSprite(0,0,this.course.length,560,'background').setOrigin(0).setAlpha(.65).setScrollFactor(.28,1);
+  // Share one texture between two images; avoid a world-sized canvas and POT tile texture.
+  const source=this.textures.get('background').getSourceImage();this.backgroundWidth=560*source.width/source.height;
+  this.backgrounds=[0,1].map(i=>this.add.image(i*this.backgroundWidth,0,'background').setOrigin(0).setDisplaySize(this.backgroundWidth,560).setAlpha(.65).setScrollFactor(0));
+  this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!this.textures.exists('spark')){const g=this.make.graphics({x:0,y:0},false);g.fillStyle(0xffffff);g.fillRect(0,0,4,4);g.generateTexture('spark',4,4);g.destroy();}
-  this.particles=this.add.particles(0,0,'spark',{emitting:false,lifespan:300,speed:{min:60,max:190},scale:{start:1.4,end:0},gravityY:300,maxParticles:64});
+  this.particles=this.add.particles(0,0,'spark',{emitting:false,lifespan:300,speed:{min:60,max:190},scale:{start:1.4,end:0},gravityY:300,maxParticles:48});
   this.ground=this.physics.add.staticGroup();this.platforms=this.physics.add.staticGroup();
   for(let x=0;x<this.course.length;x+=400){const width=Math.min(400,this.course.length-x);this.ground.create(x+width/2,520,'ground').setDisplaySize(width,80).refreshBody();}
   for(const p of this.course.platforms){const s=this.platforms.create(p.x,p.y+10,'platform').setDisplaySize(p.width,20).refreshBody();s.body.checkCollision.down=false;s.body.checkCollision.left=false;s.body.checkCollision.right=false;}
@@ -36,16 +40,18 @@ export class PlayScene extends Phaser.Scene {
   this.physics.add.overlap(this.player,this.orbs,(p,o)=>{if(o.active){o.disableBody(true,true);this.hurt(o.x);}});
   this.physics.add.collider(this.lasers,this.ground,l=>l.disableBody(true,true));this.physics.add.collider(this.orbs,this.ground,o=>o.disableBody(true,true));
   this.physics.world.on('worldstep',this.fixedUpdate,this);
-  this.events.once('shutdown',()=>{this.physics.world?.off('worldstep',this.fixedUpdate,this);this.music?.stop();this.music?.destroy();this.music=null;});
-  if(this.cache.audio.exists('music')){this.music=this.sound.add('music',{loop:true,volume:.2});this.music.play();}
+  this.fileSfx=location.protocol==='file:'?new FileSounds(new URL('../sounds/',document.baseURI)):null;
+  this.sfxPools={};for(const key of ['jump','laser','coin','hit','squish','boss-hit','flag'])if(this.cache.audio.exists(key))this.sfxPools[key]=[this.sound.add(key),this.sound.add(key)];
+  const onPause=()=>this.fileSfx?.stop();this.events.on('pause',onPause);
+  this.events.once('shutdown',()=>{this.physics.world?.off('worldstep',this.fixedUpdate,this);this.events.off('pause',onPause);for(const pool of Object.values(this.sfxPools))for(const sound of pool)sound.destroy();this.fileSfx?.destroy();this.fileSfx=null;this.sfxPools={};});
   this.cameraX=this.player.x;this.game.events.emit('playing');this.publishHud();
  }
- sfx(key,volume=.35){if(this.cache.audio.exists(key))this.sound.play(key,{volume});}
- burst(x,y,tint){this.particles.setParticleTint(tint);this.particles.explode(8,x,y);}
+ sfx(key,volume=.35){if(this.sound.mute)return;if(this.fileSfx){this.fileSfx.play(key,volume);return;}if(this.sound.locked)return;const sound=this.sfxPools[key]?.find(s=>!s.isPlaying);if(sound)sound.play({volume});}
+ burst(x,y,tint){this.particles.setParticleTint(tint);this.particles.explode(this.reducedMotion?3:8,x,y);}
  kill(e){this.burst(e.x,e.y,0x7be2ff);e.disableBody(true,true);this.score+=25;this.sfx('squish',.3);}
  hurt(sourceX){
   if(this.invincible>0||this.finished)return;
-  this.lives--;this.invincible=1.1;this.knockback=.18;this.dashTimer=0;this.player.body.setVelocity(this.player.body.center.x<sourceX?-260:260,-360);this.sfx('hit');this.cameras.main.shake(100,.004);this.publishHud();
+  this.lives--;this.invincible=1.1;this.knockback=.18;this.dashTimer=0;this.player.body.setVelocity(this.player.body.center.x<sourceX?-260:260,-360);this.sfx('hit');if(!this.reducedMotion)this.cameras.main.shake(100,.004);this.publishHud();
   if(this.lives<=0)this.finish('Run over','Score '+this.score+'. Jump over shots or dash through small enemies.','Try again');
  }
  projectile(group,x,y,vx,vy,tint,width,height){const shot=group.get(x,y,'spark');if(!shot)return;shot.enableBody(true,x,y,true,true);shot.setDisplaySize(width,height).setTint(tint);shot.body.setSize(4,4);shot.body.setAllowGravity(false);shot.body.setVelocity(vx,vy);shot.expires=this.elapsed+2;}
@@ -74,7 +80,7 @@ export class PlayScene extends Phaser.Scene {
   if(p.center.y>700){p.reset(Math.max(100,p.center.x-100),400);this.hurt(p.center.x+1);}
   this.hudTime+=dt;if(this.hudTime>=.1){this.hudTime=0;this.publishHud();}
  }
- publishHud(){this.game.events.emit('hud',{level:this.level,score:this.score,lives:this.lives,progress:Math.min(100,Math.round(this.player.body.center.x/this.course.length*100)),boss:this.bossAwake?Math.max(0,this.boss.hp):null});}
+ publishHud(){this.bossLabel.setText(this.bossAwake&&!this.finished?'BOSS '+this.boss.hp+'/'+this.boss.maxHp+(this.boss.hp<=this.boss.maxHp/2?' • ENRAGED':''):'');this.game.events.emit('hud',{level:this.level,score:this.score,lives:this.lives,progress:Math.min(100,Math.round(this.player.body.center.x/this.course.length*100)),boss:this.bossAwake?Math.max(0,this.boss.hp):null});}
  update(time,delta){
   if(!this.player)return;
   const p=this.player.body,grounded=p.blocked.down||p.touching.down;
@@ -82,8 +88,9 @@ export class PlayScene extends Phaser.Scene {
   this.visual.setDisplaySize(grounded?38:35,grounded?69:73).setAlpha(this.invincible>0?(Math.floor(this.elapsed*12)%2?.3:1):1);
   const target=p.center.x+this.facing*75;this.cameraX+= (target-this.cameraX)*(1-Math.exp(-9*Math.min(delta,100)/1000));
   const cam=this.cameras.main;cam.scrollX=Phaser.Math.Clamp(this.cameraX-cam.width/2,0,Math.max(0,this.course.length-cam.width));
-  this.bossLabel.setPosition(this.boss.x,this.boss.y-75).setText(this.bossAwake&&!this.finished?'BOSS '+this.boss.hp+'/'+this.boss.maxHp+(this.boss.hp<=this.boss.maxHp/2?' • ENRAGED':''):'');
+  const offset=(cam.scrollX*.28)%this.backgroundWidth;for(let i=0;i<2;i++)this.backgrounds[i].x=i*this.backgroundWidth-offset;
+  this.bossLabel.setPosition(this.boss.x,this.boss.y-75);
  }
  win(){if(this.finished)return;this.boss.disableBody(true,true);this.score+=250;this.sfx('flag',.5);this.burst(this.boss.x,this.boss.y,0xffd479);this.finish('Moon cleared!','Score '+this.score+'. Next sector brings a tougher boss and flying enemies.','Next sector',true);}
- finish(title,message,label,won=false){this.finished=true;this.physics.pause();this.music?.pause();try{const best=Number(localStorage.getItem('rb_phaser_best'))||0;localStorage.setItem('rb_phaser_best',String(Math.max(best,this.score)));}catch{}this.game.events.emit('finished',{title,message,label,won});this.publishHud();}
+ finish(title,message,label,won=false){this.finished=true;this.physics.pause();try{const best=Number(localStorage.getItem('rb_phaser_best'))||0;localStorage.setItem('rb_phaser_best',String(Math.max(best,this.score)));}catch{}this.game.events.emit('finished',{title,message,label,won});this.publishHud();}
 }
