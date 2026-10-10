@@ -2,6 +2,8 @@
 
 A dependency-free static study app for AP World History, Trade Networks 1200–1450. The question bank contains **70 stable learning questions / objectives** across 10 topics: **64 automatically graded** and **6 written, self-assessed**. Original worksheets, PDFs, and decks are authoring inputs and must not be published with the app.
 
+Verified live app: [Open Study Atlas](https://ianlarsen.github.io/games/Clay/AP%20World%20History/).
+
 ## Launch locally
 
 Open a terminal in this folder and run:
@@ -72,3 +74,4 @@ The service worker caches an entire version of the essential shell and content a
 Offline works **after the first successful online load**. A fresh offline visit cannot load uncached files. PWA installation depends on browser support and secure hosting (localhost is accepted for development). Actual iOS/Android installation and screen-reader reading remain real-device checks.
 
 The app’s icon and coordinate diagrams are original. Coordinate points are approximate modern city positions. Links are schematic and never claim to trace precise caravan or sea routes. No source-file illustrations are republished.
+

@@ -27,3 +27,10 @@ A subdirectory HTTP serving check and hosted URL verification are recorded separ
 ## Subdirectory hosting check
 
 Passed with the app served under `/games/Clay/AP World History/`: relative assets, the service-worker scope, cached offline reload, and a comprehensive queue of all 70 distinct objectives. The existing GitHub Pages root returned HTTP 200 before publishing.
+
+## Hosted verification
+
+Verified `https://ianlarsen.github.io/games/Clay/AP%20World%20History/` after publication. HTTP 200, the 70-question content version 1.0.0, an actual session start, correct subdirectory service-worker scope, and saved-session resume after an offline reload all passed. No browser page errors occurred in this hosted check.
+
+The initial app commit is `1342113091d1e0a70f8cfa5f318ec98a88a3d798`. It adds only the 26 app/developer files under `Clay/AP World History/`, preserving all unrelated history and excluding the original study PDFs, deck and build prompt. The local source folder retains those authoring materials.
+
