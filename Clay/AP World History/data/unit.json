@@ -1,0 +1,2344 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "unit": {
+    "id": "trade-1200",
+    "title": "Trade Networks, 1200–1450",
+    "exam": "2026-10-18",
+    "timezone": "America/New_York"
+  },
+  "sources": [
+    "Trans-Saharan Trade Route.pptx",
+    "Trading Cities 1200-1450 (3).pdf",
+    "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf"
+  ],
+  "topics": [
+    "Geography",
+    "Goods",
+    "Caravans",
+    "Empires",
+    "Islam",
+    "Samarkand",
+    "Timbuktu",
+    "Calicut",
+    "Connections",
+    "HIPPO"
+  ],
+  "summaries": {
+    "Geography": "The Sand Roads link West Africa to North Africa and the Mediterranean, with onward connections to the Indian Ocean. The Sahel is the transition from Sahara to savanna. The WHP reading describes a 3.5-million-square-mile desert from Nile to Atlantic as a navigable dry sea.",
+    "Goods": "Environmental variation encouraged exchange: coastal cloth, glassware, weapons and books; Saharan copper and salt; savanna grains; forest yams and kola nuts. West African gold and scarce salt drove exchange. Traders also sought ivory and kola nuts and offered horses, cloth, tools and weapons. Enslaved people suffered forced movement and exploitation.",
+    "Caravans": "Berber pastoralists guided caravans, rented camels and improved saddles. Camels had wide toes and could go ten days without water, carrying about 400 pounds across the Sahara or 1,200 over short distances. The WHP reading dates dromedary reintroduction to about 300 BCE after Stone Age extinction, while noting debate. Caravans followed wells and oases, traveled in cool months and times, and paid tribute for safety. Slides: hundreds of people, up to 5,000 camels, nights, 70 days, 15–20 miles daily. WHP: 5,000–10,000 camels in the thirteenth century, October–March, about 20 miles daily.",
+    "Empires": "Trade wealth supported monarchies and city-states, including historical Ghana, Mali and Songhai, broadly 500–1600 in the slides. WHP gives Mali 1235–1670 and Songhai 1430–1591. Niger floodplains grew sorghum, millet and rice. Rulers controlled routes and merchant movement to protect southern gold mines. Cities traded and made beads, iron tools and cotton textiles. Enslaved women faced domestic and sexual exploitation. Enslaved men served as officials, craftsmen, miners and farm laborers.",
+    "Islam": "The WHP reading calls Islam the most important factor in trade expansion after seventh-century Arab conquests. Berbers and urban merchants and rulers converted. Shared Arabic, values, records, legal codes and contracts supported communication and trust. Local religions remained important outside cities. The reading estimates as many as 9.3 million enslaved travelers in 800–1800 and distinguishes voluntary pilgrimage. Ibn Battuta admired Mali. Mansa Musa’s lavish 1320s hajj affected Egypt’s economy and gold myths encouraged Portuguese exploration. New sea lanes reduced desert routes’ global importance, but caravans continued into the early twentieth century.",
+    "Samarkand": "Uzbekistan; Silk Roads junction linking East and West, Europe, Asia and Africa. Silk and luxury fabrics went to Europe and the Middle East. Spices included cinnamon, cloves, nutmeg and pepper from the Far East and India, used for flavor, medicine and preservation. Merchant settlement brought wealth, urban growth and caravanserais. Scholars advanced astronomy, mathematics and literature. The passage associates Persian, Central Asian and Islamic fusion with Registan Square’s madrasas and mosques.",
+    "Timbuktu": "Mali; edge of the Sahara, crossroads toward the Mediterranean and Middle East. Gold collection, refining and distribution; Saharan salt used for preservation and currency. Gold bought salt, textiles, horses, weapons, silk and spices. WHP says the city began as a caravanserai. Libraries and madrasas preserved theology, law, philosophy, literature and science. Islamic and local West African influences shaped Djinguereber and Sankore Mosques, palaces, tombs and houses. Scholars spread Islam, influencing governance, education and the arts.",
+    "Calicut": "Also Kozhikode, on the Malabar Coast of Kerala, India. An Indian Ocean hub with Arab, Chinese, Persian and European merchants in the class passage. Pepper, cardamom, cloves and cinnamon served cooking, medicine and perfume. Cotton muslin and calico and luxury silk were traded. Connections through the Red Sea or Persian Gulf and Middle East joined the Silk Roads to Samarkand. The passage says Arab traders brought Islamic learning, mosques, madrasas and libraries and cites Mishkal Mosque and Hindu Tali Temple as architectural diversity.",
+    "Connections": "All three cities linked commerce with urban growth and cultural and intellectual exchange. Samarkand’s inland junction, Timbuktu’s desert-edge crossroads and Calicut’s maritime coast shaped their connections and goods. Possible modern legacies are reasoned inferences from the reading’s architecture, libraries, manuscripts and cultural identities.",
+    "HIPPO": "Class definition: Historical Context, Intended Audience, Purpose, Point of View, Organization. Ask where and when a source was made and what happened; who it addresses; why it was produced and possible motives; how the creator’s position shapes its message; and how it supports, corroborates or challenges an argument and connects to outside information. Support sourcing claims with evidence. The missing two documents and Mongols homework are excluded."
+  },
+  "terms": {
+    "Sahel": "Transition between Sahara and savanna; from Arabic for shores.",
+    "Caravan": "People traveling together for protection, trade or pilgrimage.",
+    "Caravanserai": "Roadside inn or caravan stopping place, also a trading center.",
+    "Pastoralist": "Person whose livelihood involves herding animals.",
+    "Hajj": "Pilgrimage to Mecca.",
+    "Madrasa": "A school associated with Islamic learning in the passages.",
+    "Cosmopolitan": "Containing communities and influences from many regions.",
+    "Historical Ghana": "The West African kingdom shown in the class material, distinct from modern Ghana.",
+    "Sourcing": "Evaluating context, audience, purpose and viewpoint before using evidence."
+  },
+  "questions": [
+    {
+      "id": "geo-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "Which regions did the Sand Roads directly link?",
+      "format": "choice",
+      "prompt": "Which regions did the Sand Roads directly link?",
+      "correct": "West Africa with North Africa and the Mediterranean",
+      "explanation": "The slides identify this north–south link. The WHP reading also connects it onward to the Indian Ocean world.",
+      "difficulty": 2,
+      "variants": [
+        "What connection defines the trans-Saharan network in the slides?"
+      ],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 6",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "West Africa with North Africa and the Mediterranean",
+        "West Africa with the Americas",
+        "Central Asia with the Pacific islands",
+        "Southern Africa with northern Europe"
+      ],
+      "distractorFeedback": {
+        "West Africa with the Americas": "Keep the source connection in mind: The slides identify this north–south link. The WHP reading also connects it onward to the Indian Ocean world.",
+        "Central Asia with the Pacific islands": "Keep the source connection in mind: The slides identify this north–south link. The WHP reading also connects it onward to the Indian Ocean world.",
+        "Southern Africa with northern Europe": "Keep the source connection in mind: The slides identify this north–south link. The WHP reading also connects it onward to the Indian Ocean world."
+      }
+    },
+    {
+      "id": "geo-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "How does the WHP reading describe the Sahara?",
+      "format": "choice",
+      "prompt": "How does the WHP reading describe the Sahara?",
+      "correct": "3.5 million square miles, from the Nile to the Atlantic",
+      "explanation": "The reading calls it the largest desert, large enough to fit the United States, and describes sand, rock, mountains, and plateaus. Learn this class-source description.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 2, A dry sea",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "3.5 million square miles, from the Nile to the Atlantic",
+        "3.5 million square miles, from India to China",
+        "350,000 square miles, from the Niger to the Red Sea",
+        "35 million square miles, from the Atlantic to the Pacific"
+      ],
+      "distractorFeedback": {
+        "3.5 million square miles, from India to China": "Keep the source connection in mind: The reading calls it the largest desert, large enough to fit the United States, and describes sand, rock, mountains, and plateaus. Learn this class-source description.",
+        "350,000 square miles, from the Niger to the Red Sea": "Keep the source connection in mind: The reading calls it the largest desert, large enough to fit the United States, and describes sand, rock, mountains, and plateaus. Learn this class-source description.",
+        "35 million square miles, from the Atlantic to the Pacific": "Keep the source connection in mind: The reading calls it the largest desert, large enough to fit the United States, and describes sand, rock, mountains, and plateaus. Learn this class-source description."
+      }
+    },
+    {
+      "id": "geo-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "What is the transitional zone between the Sahara and savanna called?",
+      "format": "recall",
+      "prompt": "What is the transitional zone between the Sahara and savanna called?",
+      "correct": "Sahel",
+      "explanation": "Sahel comes from the Arabic sāhil, meaning shores. Thinking of the desert as a navigable sea emphasizes connections rather than only a barrier.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 2, A dry sea",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "sahel",
+        "the sahel"
+      ],
+      "typoTolerance": true
+    },
+    {
+      "id": "geo-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "Which two requirements made extensive desert trade viable?",
+      "format": "choice",
+      "prompt": "Which two requirements made extensive desert trade viable?",
+      "correct": "Valuable goods and cost-effective transportation",
+      "explanation": "Merchants needed goods worth buying across the desert and an affordable way to carry them.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 2, A dry sea",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Valuable goods and cost-effective transportation",
+        "Uniform environments and identical goods",
+        "A single empire and universal urban conversion",
+        "Railroads and steamships during 1200–1450"
+      ],
+      "distractorFeedback": {
+        "Uniform environments and identical goods": "Keep the source connection in mind: Merchants needed goods worth buying across the desert and an affordable way to carry them.",
+        "A single empire and universal urban conversion": "Keep the source connection in mind: Merchants needed goods worth buying across the desert and an affordable way to carry them.",
+        "Railroads and steamships during 1200–1450": "Keep the source connection in mind: Merchants needed goods worth buying across the desert and an affordable way to carry them."
+      }
+    },
+    {
+      "id": "goods-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Goods",
+      "tags": [
+        "Goods"
+      ],
+      "objective": "Match each region to the goods listed in the slides.",
+      "format": "match",
+      "prompt": "Match each region to the goods listed in the slides.",
+      "correct": {
+        "North African coast": "Cloth, glassware, weapons, books",
+        "Sahara": "Copper and salt",
+        "Savanna": "Grain crops",
+        "Sub-Saharan forests": "Yams and kola nuts"
+      },
+      "explanation": "Environmental variation generated complementary resources and encouraged exchange, as on the Silk and Sea Roads.",
+      "difficulty": 2,
+      "variants": [
+        "Classify the resources by their source region."
+      ],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 11",
+          "section": "Goods"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "goods-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Goods",
+      "tags": [
+        "Goods"
+      ],
+      "objective": "Match the direction of exchange to the goods sought or offered by North African Muslim Arab traders.",
+      "format": "match",
+      "prompt": "Match the direction of exchange to the goods sought or offered by North African Muslim Arab traders.",
+      "correct": {
+        "Sought in West Africa": "Gold, ivory, kola nuts",
+        "Offered in return": "Salt, horses, cloth, weapons, tools"
+      },
+      "explanation": "The slides also state that enslaved people were forcibly traded. People were subjected to exploitation, not ordinary commodities.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 13",
+          "section": "Goods"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "goods-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Goods",
+      "tags": [
+        "Goods"
+      ],
+      "objective": "Why did gold and salt drive this trade?",
+      "format": "choice",
+      "prompt": "Why did gold and salt drive this trade?",
+      "correct": "West Africa had gold, while salt was scarce and necessary for life",
+      "explanation": "Gold from West Africa was exchanged for Saharan salt and Mediterranean luxuries. Berber groups controlled several salt mines.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 4, A land of gold",
+          "section": "Goods"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "West Africa had gold, while salt was scarce and necessary for life",
+        "Both resources were unavailable in every region",
+        "Salt was valuable only as decoration",
+        "Gold could replace the human need for salt"
+      ],
+      "distractorFeedback": {
+        "Both resources were unavailable in every region": "Keep the source connection in mind: Gold from West Africa was exchanged for Saharan salt and Mediterranean luxuries. Berber groups controlled several salt mines.",
+        "Salt was valuable only as decoration": "Keep the source connection in mind: Gold from West Africa was exchanged for Saharan salt and Mediterranean luxuries. Berber groups controlled several salt mines.",
+        "Gold could replace the human need for salt": "Keep the source connection in mind: Gold from West Africa was exchanged for Saharan salt and Mediterranean luxuries. Berber groups controlled several salt mines."
+      }
+    },
+    {
+      "id": "camel-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "Who were the earliest traders and the later major traders described in the slides?",
+      "format": "choice",
+      "prompt": "Who were the earliest traders and the later major traders described in the slides?",
+      "correct": "Camel owners from desert oases, then North African Muslim Arabs",
+      "explanation": "The slides distinguish early oasis camel owners from the later major North African Muslim Arab traders.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 13",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Camel owners from desert oases, then North African Muslim Arabs",
+        "Portuguese sailors, then Central Asian scholars",
+        "West African farmers, then American merchants",
+        "Roman rail builders, then Chinese sailors"
+      ],
+      "distractorFeedback": {
+        "Portuguese sailors, then Central Asian scholars": "Keep the source connection in mind: The slides distinguish early oasis camel owners from the later major North African Muslim Arab traders.",
+        "West African farmers, then American merchants": "Keep the source connection in mind: The slides distinguish early oasis camel owners from the later major North African Muslim Arab traders.",
+        "Roman rail builders, then Chinese sailors": "Keep the source connection in mind: The slides distinguish early oasis camel owners from the later major North African Muslim Arab traders."
+      }
+    },
+    {
+      "id": "camel-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "Which camel features made desert travel practical?",
+      "format": "choice",
+      "prompt": "Which camel features made desert travel practical?",
+      "correct": "Wide toes and the ability to go ten days without water",
+      "explanation": "The WHP reading contrasts camels with horses and says Berber saddle improvements allowed larger loads over greater distances.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 3, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Wide toes and the ability to go ten days without water",
+        "Narrow toes and the ability to go ten days without food",
+        "Wide toes and the need for freshwater every few hours",
+        "Narrow toes and the need for river travel between oases"
+      ],
+      "distractorFeedback": {
+        "Narrow toes and the ability to go ten days without food": "The source distinction is: The WHP reading contrasts camels with horses and says Berber saddle improvements allowed larger loads over greater distances.",
+        "Wide toes and the need for freshwater every few hours": "The source distinction is: The WHP reading contrasts camels with horses and says Berber saddle improvements allowed larger loads over greater distances.",
+        "Narrow toes and the need for river travel between oases": "The source distinction is: The WHP reading contrasts camels with horses and says Berber saddle improvements allowed larger loads over greater distances."
+      }
+    },
+    {
+      "id": "camel-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "Match the journey length to the camel load stated in the WHP reading.",
+      "format": "match",
+      "prompt": "Match the journey length to the camel load stated in the WHP reading.",
+      "correct": {
+        "Crossing the Sahara": "Around 400 pounds",
+        "Shorter distances": "Up to 1,200 pounds"
+      },
+      "explanation": "The load figures apply to different distances. The improved saddle increased carrying capacity.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 3, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "camel-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "What camel history does the WHP reading teach?",
+      "format": "choice",
+      "prompt": "What camel history does the WHP reading teach?",
+      "correct": "Native camels died out in the Stone Age; one-humped dromedaries returned around 300 BCE",
+      "explanation": "The reading acknowledges scholarly debate about the timing and origin of reintroduction. It says Berbers quickly used the returning camels.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 3, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Native camels died out in the Stone Age; one-humped dromedaries returned around 300 BCE",
+        "Two-humped camels first arrived in 1450 CE",
+        "Camels never existed in North Africa before 1200",
+        "Camels returned only after railroads arrived"
+      ],
+      "distractorFeedback": {
+        "Two-humped camels first arrived in 1450 CE": "Keep the source connection in mind: The reading acknowledges scholarly debate about the timing and origin of reintroduction. It says Berbers quickly used the returning camels.",
+        "Camels never existed in North Africa before 1200": "Keep the source connection in mind: The reading acknowledges scholarly debate about the timing and origin of reintroduction. It says Berbers quickly used the returning camels.",
+        "Camels returned only after railroads arrived": "Keep the source connection in mind: The reading acknowledges scholarly debate about the timing and origin of reintroduction. It says Berbers quickly used the returning camels."
+      }
+    },
+    {
+      "id": "camel-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "How did Berber pastoralists support caravans?",
+      "format": "choice",
+      "prompt": "How did Berber pastoralists support caravans?",
+      "correct": "They provided experienced guides, rented camels, and improved saddles",
+      "explanation": "Desert knowledge and travel technology supported long-distance trade. Merchants generally rented camels rather than owning them.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 3, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "They provided experienced guides, rented camels, and improved saddles",
+        "They maintained coastal ports, rented ships, and read ocean currents",
+        "They mined forest gold, supplied rice, and guarded southern mines",
+        "They kept city libraries, translated manuscripts, and built madrasas"
+      ],
+      "distractorFeedback": {
+        "They maintained coastal ports, rented ships, and read ocean currents": "The source distinction is: Desert knowledge and travel technology supported long-distance trade. Merchants generally rented camels rather than owning them.",
+        "They mined forest gold, supplied rice, and guarded southern mines": "The source distinction is: Desert knowledge and travel technology supported long-distance trade. Merchants generally rented camels rather than owning them.",
+        "They kept city libraries, translated manuscripts, and built madrasas": "The source distinction is: Desert knowledge and travel technology supported long-distance trade. Merchants generally rented camels rather than owning them."
+      }
+    },
+    {
+      "id": "camel-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "Match the slide-based caravan details.",
+      "format": "match",
+      "prompt": "Match the slide-based caravan details.",
+      "correct": {
+        "Camels": "As many as 5,000",
+        "People": "Hundreds",
+        "Travel time": "At night",
+        "Crossing duration": "About 70 days",
+        "Daily distance": "15–20 miles"
+      },
+      "explanation": "These are the figures in slide 14. The WHP reading gives a wider 5,000–10,000 camel range for the thirteenth century.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 14",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "camel-07",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "Which travel plan fits the WHP reading?",
+      "format": "choice",
+      "prompt": "Which travel plan fits the WHP reading?",
+      "correct": "October–March, cool times of day, wells and oases, about 20 miles daily for 70 days",
+      "explanation": "Caravans followed water and used cooler conditions. Wells and oases made routes possible even though camels could go days without water.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 3, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "October–March, cool times of day, wells and oases, about 20 miles daily for 70 days",
+        "June–August, midday heat, no water stops, 70 miles daily",
+        "Winter only, frozen lakes, one-day desert crossing",
+        "Year-round, random routes, no guides or water sources"
+      ],
+      "distractorFeedback": {
+        "June–August, midday heat, no water stops, 70 miles daily": "Keep the source connection in mind: Caravans followed water and used cooler conditions. Wells and oases made routes possible even though camels could go days without water.",
+        "Winter only, frozen lakes, one-day desert crossing": "Keep the source connection in mind: Caravans followed water and used cooler conditions. Wells and oases made routes possible even though camels could go days without water.",
+        "Year-round, random routes, no guides or water sources": "Keep the source connection in mind: Caravans followed water and used cooler conditions. Wells and oases made routes possible even though camels could go days without water."
+      }
+    },
+    {
+      "id": "camel-08",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "Why did merchants and states pay tribute to pastoralists?",
+      "format": "choice",
+      "prompt": "Why did merchants and states pay tribute to pastoralists?",
+      "correct": "To secure safe passage because some groups could attack undefended caravans",
+      "explanation": "Pastoralists could be partners or threats. States and merchants often paid tribute rather than invading the desert. Storms could also force caravans to abandon goods.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "pages 3–4, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "To secure safe passage because some groups could attack undefended caravans",
+        "To purchase salt mines from emperors guarding southern gold sources",
+        "To guarantee that merchants would never have to rent their camels",
+        "To finance city libraries instead of negotiating protection in the desert"
+      ],
+      "distractorFeedback": {
+        "To purchase salt mines from emperors guarding southern gold sources": "The source distinction is: Pastoralists could be partners or threats. States and merchants often paid tribute rather than invading the desert. Storms could also force caravans to abandon goods.",
+        "To guarantee that merchants would never have to rent their camels": "The source distinction is: Pastoralists could be partners or threats. States and merchants often paid tribute rather than invading the desert. Storms could also force caravans to abandon goods.",
+        "To finance city libraries instead of negotiating protection in the desert": "The source distinction is: Pastoralists could be partners or threats. States and merchants often paid tribute rather than invading the desert. Storms could also force caravans to abandon goods."
+      }
+    },
+    {
+      "id": "camel-09",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Caravans",
+      "tags": [
+        "Caravans"
+      ],
+      "objective": "What camel-number range does the WHP reading give for thirteenth-century caravans?",
+      "format": "recall",
+      "prompt": "What camel-number range does the WHP reading give for thirteenth-century caravans?",
+      "correct": "5,000–10,000",
+      "explanation": "The reading says 5,000–10,000 camels. Slide 14 says as many as 5,000, so the source is specified in this question.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 4, The ship of the desert",
+          "section": "Caravans"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "5000-10000",
+        "5,000-10,000",
+        "5000 to 10000",
+        "5,000 to 10,000",
+        "5000–10000",
+        "5,000–10,000"
+      ]
+    },
+    {
+      "id": "emp-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "Name the three major West African empires listed in the slides. Use commas.",
+      "format": "recall",
+      "prompt": "Name the three major West African empires listed in the slides. Use commas.",
+      "correct": "Mali, Ghana, Songhai",
+      "explanation": "The slides place empire construction between 500 and 1600 CE and describe monarchies drawing wealth from trade. Historical Ghana is a kingdom in West Africa, not the modern country.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slides 15–16",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "Mali, Ghana, Songhai"
+      ],
+      "unordered": [
+        "mali",
+        "ghana",
+        "songhai"
+      ]
+    },
+    {
+      "id": "emp-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "How did trans-Saharan trade contribute to state growth?",
+      "format": "choice",
+      "prompt": "How did trans-Saharan trade contribute to state growth?",
+      "correct": "New wealth and resources supported large empires and city-states",
+      "explanation": "The slides connect trade wealth to political construction. The reading says route control enriched and expanded Mali and Songhai.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 15",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "New wealth and resources supported large empires and city-states",
+        "Trade removed the need for political organization",
+        "All wealth stayed in the desert oases",
+        "Trade prevented cities from developing"
+      ],
+      "distractorFeedback": {
+        "Trade removed the need for political organization": "Keep the source connection in mind: The slides connect trade wealth to political construction. The reading says route control enriched and expanded Mali and Songhai.",
+        "All wealth stayed in the desert oases": "Keep the source connection in mind: The slides connect trade wealth to political construction. The reading says route control enriched and expanded Mali and Songhai.",
+        "Trade prevented cities from developing": "Keep the source connection in mind: The slides connect trade wealth to political construction. The reading says route control enriched and expanded Mali and Songhai."
+      }
+    },
+    {
+      "id": "emp-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "Match each empire to the dates in the WHP reading.",
+      "format": "match",
+      "prompt": "Match each empire to the dates in the WHP reading.",
+      "correct": {
+        "Mali": "1235–1670",
+        "Songhai": "1430–1591"
+      },
+      "explanation": "These specific dates come from the WHP reading. The slides use a broader 500–1600 period for empire construction.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 4, A land of gold",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "emp-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "What supported farming in Mali and Songhai?",
+      "format": "choice",
+      "prompt": "What supported farming in Mali and Songhai?",
+      "correct": "Niger floodplains with sorghum, millet, and rice",
+      "explanation": "Agriculture and desert trade together supported large West African societies.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 4, A land of gold",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Niger floodplains with sorghum, millet, and rice",
+        "Polar ice fields with wheat alone",
+        "Sahara sand dunes with no water",
+        "Pacific islands with only tree crops"
+      ],
+      "distractorFeedback": {
+        "Polar ice fields with wheat alone": "Keep the source connection in mind: Agriculture and desert trade together supported large West African societies.",
+        "Sahara sand dunes with no water": "Keep the source connection in mind: Agriculture and desert trade together supported large West African societies.",
+        "Pacific islands with only tree crops": "Keep the source connection in mind: Agriculture and desert trade together supported large West African societies."
+      }
+    },
+    {
+      "id": "emp-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "Why did emperors restrict merchant movement?",
+      "format": "choice",
+      "prompt": "Why did emperors restrict merchant movement?",
+      "correct": "To protect the secret locations of southern gold mines",
+      "explanation": "Control of movement and routes helped retain wealth. Strong states cooperated with Berber groups when trade peaked from the twelfth to fifteenth centuries.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 4, A land of gold",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "To protect the secret locations of southern gold mines",
+        "To teach merchants ocean navigation",
+        "To prevent salt from sustaining life",
+        "To move every mine into the Mediterranean"
+      ],
+      "distractorFeedback": {
+        "To teach merchants ocean navigation": "Keep the source connection in mind: Control of movement and routes helped retain wealth. Strong states cooperated with Berber groups when trade peaked from the twelfth to fifteenth centuries.",
+        "To prevent salt from sustaining life": "Keep the source connection in mind: Control of movement and routes helped retain wealth. Strong states cooperated with Berber groups when trade peaked from the twelfth to fifteenth centuries.",
+        "To move every mine into the Mediterranean": "Keep the source connection in mind: Control of movement and routes helped retain wealth. Strong states cooperated with Berber groups when trade peaked from the twelfth to fifteenth centuries."
+      }
+    },
+    {
+      "id": "emp-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "Which northward connection is described in the WHP reading?",
+      "format": "choice",
+      "prompt": "Which northward connection is described in the WHP reading?",
+      "correct": "Jenne and Timbuktu to Sijilmasa in Morocco, then the Mediterranean and Egypt",
+      "explanation": "Goods and enslaved people were carried north along these connections. The reading treats forced movement as part of the trade system.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 4, A land of gold",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Jenne and Timbuktu to Sijilmasa in Morocco, then the Mediterranean and Egypt",
+        "Calicut to Japan, then the Atlantic",
+        "Samarkand to the Americas, then Mali",
+        "Timbuktu to Antarctica, then China"
+      ],
+      "distractorFeedback": {
+        "Calicut to Japan, then the Atlantic": "Keep the source connection in mind: Goods and enslaved people were carried north along these connections. The reading treats forced movement as part of the trade system.",
+        "Samarkand to the Americas, then Mali": "Keep the source connection in mind: Goods and enslaved people were carried north along these connections. The reading treats forced movement as part of the trade system.",
+        "Timbuktu to Antarctica, then China": "Keep the source connection in mind: Goods and enslaved people were carried north along these connections. The reading treats forced movement as part of the trade system."
+      }
+    },
+    {
+      "id": "emp-07",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "What roles did West African cities serve in the slides?",
+      "format": "choice",
+      "prompt": "What roles did West African cities serve in the slides?",
+      "correct": "Urban markets, manufacturing centers, and largely Islamic communities",
+      "explanation": "Traders exchanged goods in cities that manufactured beads, iron tools, and cotton textiles.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 17",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Urban markets, manufacturing centers, and largely Islamic communities",
+        "Caravan stopping points with no local manufacturing or religious role",
+        "Rural grain centers whose markets were separate from urban commerce",
+        "Urban capitals whose main manufacture was ships for maritime trade"
+      ],
+      "distractorFeedback": {
+        "Caravan stopping points with no local manufacturing or religious role": "The source distinction is: Traders exchanged goods in cities that manufactured beads, iron tools, and cotton textiles.",
+        "Rural grain centers whose markets were separate from urban commerce": "The source distinction is: Traders exchanged goods in cities that manufactured beads, iron tools, and cotton textiles.",
+        "Urban capitals whose main manufacture was ships for maritime trade": "The source distinction is: Traders exchanged goods in cities that manufactured beads, iron tools, and cotton textiles."
+      }
+    },
+    {
+      "id": "emp-08",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "Explain how the slides describe reliance on enslaved labor in West African monarchies.",
+      "format": "written",
+      "prompt": "Explain how the slides describe reliance on enslaved labor in West African monarchies.",
+      "correct": "The slides state that monarchies depended on trade wealth and enslaved labor. Enslaved women faced domestic servitude and sexual exploitation. Enslaved men served as officials, craftsmen, miners, and agricultural laborers. These roles involved coercion and loss of freedom.",
+      "explanation": "The slides state that monarchies depended on trade wealth and enslaved labor. Enslaved women faced domestic servitude and sexual exploitation. Enslaved men served as officials, craftsmen, miners, and agricultural laborers. These roles involved coercion and loss of freedom.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 16",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "rubric": [
+        "Identify monarchy and reliance on enslaved labor.",
+        "Describe domestic servitude and sexual exploitation respectfully.",
+        "Identify the stated roles of enslaved men."
+      ]
+    },
+    {
+      "id": "islam-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "What does the WHP reading call the most important factor in trade expansion?",
+      "format": "choice",
+      "prompt": "What does the WHP reading call the most important factor in trade expansion?",
+      "correct": "Islam",
+      "explanation": "Following seventh-century Arab conquests, Berbers and many West African merchants converted. Muslim merchants and Islamic empires linked Afro-Eurasia from the Atlantic to the Pacific.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 5, Waves of change",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Islam",
+        "Railroads in 1200",
+        "Identical climates everywhere",
+        "The disappearance of written contracts"
+      ],
+      "distractorFeedback": {
+        "Railroads in 1200": "Keep the source connection in mind: Following seventh-century Arab conquests, Berbers and many West African merchants converted. Muslim merchants and Islamic empires linked Afro-Eurasia from the Atlantic to the Pacific.",
+        "Identical climates everywhere": "Keep the source connection in mind: Following seventh-century Arab conquests, Berbers and many West African merchants converted. Muslim merchants and Islamic empires linked Afro-Eurasia from the Atlantic to the Pacific.",
+        "The disappearance of written contracts": "Keep the source connection in mind: Following seventh-century Arab conquests, Berbers and many West African merchants converted. Muslim merchants and Islamic empires linked Afro-Eurasia from the Atlantic to the Pacific."
+      }
+    },
+    {
+      "id": "islam-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "Which evidence best explains how Islam increased merchant trust?",
+      "format": "choice",
+      "prompt": "Which evidence best explains how Islam increased merchant trust?",
+      "correct": "Arabic legal codes and written contracts",
+      "explanation": "A shared language and value system eased communication. Written Arabic improved records and legal codes and contracts supported trust.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 5, Waves of change",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Arabic legal codes and written contracts",
+        "Merchants stopped keeping records",
+        "All merchants stopped traveling",
+        "No one shared any language"
+      ],
+      "distractorFeedback": {
+        "Merchants stopped keeping records": "Keep the source connection in mind: A shared language and value system eased communication. Written Arabic improved records and legal codes and contracts supported trust.",
+        "All merchants stopped traveling": "Keep the source connection in mind: A shared language and value system eased communication. Written Arabic improved records and legal codes and contracts supported trust.",
+        "No one shared any language": "Keep the source connection in mind: A shared language and value system eased communication. Written Arabic improved records and legal codes and contracts supported trust."
+      }
+    },
+    {
+      "id": "islam-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "Which conversion pattern does the WHP reading describe?",
+      "format": "choice",
+      "prompt": "Which conversion pattern does the WHP reading describe?",
+      "correct": "Urban merchants and rulers converted first; local religions remained important among the wider population",
+      "explanation": "Trade carried Islam first into wealthy market cities. Most people were not urban, so conversion was uneven.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 5, Waves of change",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Urban merchants and rulers converted first; local religions remained important among the wider population",
+        "Rural farmers converted first, while urban merchants retained only local religions",
+        "Urban merchants converted first, and every rural resident immediately followed",
+        "Rulers converted first, while merchants remained excluded from the new religion"
+      ],
+      "distractorFeedback": {
+        "Rural farmers converted first, while urban merchants retained only local religions": "The source distinction is: Trade carried Islam first into wealthy market cities. Most people were not urban, so conversion was uneven.",
+        "Urban merchants converted first, and every rural resident immediately followed": "The source distinction is: Trade carried Islam first into wealthy market cities. Most people were not urban, so conversion was uneven.",
+        "Rulers converted first, while merchants remained excluded from the new religion": "The source distinction is: Trade carried Islam first into wealthy market cities. Most people were not urban, so conversion was uneven."
+      }
+    },
+    {
+      "id": "islam-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "Which statement matches the reading’s account of movement and enslavement?",
+      "format": "choice",
+      "prompt": "Which statement matches the reading’s account of movement and enslavement?",
+      "correct": "As many as 9.3 million were enslaved in 800–1800; other travelers went voluntarily on pilgrimage",
+      "explanation": "The reading says West African captives were usually prisoners of war and that this era’s slavery had little to do with race or skin color. People from the Caucasus and East and West Africa were enslaved in Mediterranean and Indian Ocean markets.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 5, Waves of change and footnote 2",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "As many as 9.3 million were enslaved in 800–1800; other travelers went voluntarily on pilgrimage",
+        "All journeys were voluntary and only for trade",
+        "The 9.3 million figure applies only to 1200–1450",
+        "The reading says only one skin color was enslaved"
+      ],
+      "distractorFeedback": {
+        "All journeys were voluntary and only for trade": "Keep the source connection in mind: The reading says West African captives were usually prisoners of war and that this era’s slavery had little to do with race or skin color. People from the Caucasus and East and West Africa were enslaved in Mediterranean and Indian Ocean markets.",
+        "The 9.3 million figure applies only to 1200–1450": "Keep the source connection in mind: The reading says West African captives were usually prisoners of war and that this era’s slavery had little to do with race or skin color. People from the Caucasus and East and West Africa were enslaved in Mediterranean and Indian Ocean markets.",
+        "The reading says only one skin color was enslaved": "Keep the source connection in mind: The reading says West African captives were usually prisoners of war and that this era’s slavery had little to do with race or skin color. People from the Caucasus and East and West Africa were enslaved in Mediterranean and Indian Ocean markets."
+      }
+    },
+    {
+      "id": "islam-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "Which Moroccan scholar visited Mali and admired its wealth and social structures?",
+      "format": "recall",
+      "prompt": "Which Moroccan scholar visited Mali and admired its wealth and social structures?",
+      "correct": "Ibn Battuta",
+      "explanation": "Ibn Battuta traveled from Morocco to China and also visited Mali. Scholars and travelers carried knowledge through trade networks.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 6, New routes",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "ibn battuta",
+        "ibn batuta",
+        "battuta",
+        "batuta"
+      ]
+    },
+    {
+      "id": "islam-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "What does the reading say about Mansa Musa’s hajj?",
+      "format": "choice",
+      "prompt": "What does the reading say about Mansa Musa’s hajj?",
+      "correct": "In the 1320s, Mali’s ruler carried great wealth to Mecca and destabilized Egypt’s economy through lavish spending",
+      "explanation": "He traveled with tens of thousands of camels and servants. Displays of gold encouraged myths that West African gold grew like plants.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 6, New routes",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "In the 1320s, Mali’s ruler carried great wealth to Mecca and destabilized Egypt’s economy through lavish spending",
+        "In the 1520s, Songhai’s ruler crossed the Pacific",
+        "He traveled alone and spent no gold",
+        "He made the hajj to Samarkand in 300 BCE"
+      ],
+      "distractorFeedback": {
+        "In the 1520s, Songhai’s ruler crossed the Pacific": "Keep the source connection in mind: He traveled with tens of thousands of camels and servants. Displays of gold encouraged myths that West African gold grew like plants.",
+        "He traveled alone and spent no gold": "Keep the source connection in mind: He traveled with tens of thousands of camels and servants. Displays of gold encouraged myths that West African gold grew like plants.",
+        "He made the hajj to Samarkand in 300 BCE": "Keep the source connection in mind: He traveled with tens of thousands of camels and servants. Displays of gold encouraged myths that West African gold grew like plants."
+      }
+    },
+    {
+      "id": "islam-07",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Islam",
+      "tags": [
+        "Islam"
+      ],
+      "objective": "How did Portuguese maritime exploration affect the Sand Roads?",
+      "format": "choice",
+      "prompt": "How did Portuguese maritime exploration affect the Sand Roads?",
+      "correct": "New sea lanes bypassed them and reduced their global importance",
+      "explanation": "Fifteenth-century sailors sought a route around Africa to the Indian Ocean, partly attracted by gold myths. Large desert caravans continued until the early twentieth century, when railroads and steamships reached the interior.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 6, New routes",
+          "section": "Islam"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "New sea lanes bypassed them and reduced their global importance",
+        "It instantly ended every caravan in 1450",
+        "It eliminated the Indian Ocean network",
+        "It created camel saddles for the first time"
+      ],
+      "distractorFeedback": {
+        "It instantly ended every caravan in 1450": "Keep the source connection in mind: Fifteenth-century sailors sought a route around Africa to the Indian Ocean, partly attracted by gold myths. Large desert caravans continued until the early twentieth century, when railroads and steamships reached the interior.",
+        "It eliminated the Indian Ocean network": "Keep the source connection in mind: Fifteenth-century sailors sought a route around Africa to the Indian Ocean, partly attracted by gold myths. Large desert caravans continued until the early twentieth century, when railroads and steamships reached the interior.",
+        "It created camel saddles for the first time": "Keep the source connection in mind: Fifteenth-century sailors sought a route around Africa to the Indian Ocean, partly attracted by gold myths. Large desert caravans continued until the early twentieth century, when railroads and steamships reached the interior."
+      }
+    },
+    {
+      "id": "sam-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "In which present-day country is Samarkand?",
+      "format": "recall",
+      "prompt": "In which present-day country is Samarkand?",
+      "correct": "Uzbekistan",
+      "explanation": "Samarkand was a strategic Silk Roads junction joining eastern and western routes and linking Europe, Asia, and Africa.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 1, Samarkand",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "uzbekistan"
+      ],
+      "typoTolerance": true
+    },
+    {
+      "id": "sam-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "Which good gave the Silk Roads their name and symbolized wealth and status?",
+      "format": "choice",
+      "prompt": "Which good gave the Silk Roads their name and symbolized wealth and status?",
+      "correct": "Silk",
+      "explanation": "Samarkand distributed silk and luxury fabrics to Europe and the Middle East, where they commanded high prices.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 1, Goods traded",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Silk",
+        "Salt",
+        "Millet",
+        "Copper"
+      ],
+      "distractorFeedback": {
+        "Salt": "Keep the source connection in mind: Samarkand distributed silk and luxury fabrics to Europe and the Middle East, where they commanded high prices.",
+        "Millet": "Keep the source connection in mind: Samarkand distributed silk and luxury fabrics to Europe and the Middle East, where they commanded high prices.",
+        "Copper": "Keep the source connection in mind: Samarkand distributed silk and luxury fabrics to Europe and the Middle East, where they commanded high prices."
+      }
+    },
+    {
+      "id": "sam-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "Which spice group and origin does the Samarkand passage name?",
+      "format": "choice",
+      "prompt": "Which spice group and origin does the Samarkand passage name?",
+      "correct": "Cinnamon, cloves, nutmeg, pepper from the Far East and India",
+      "explanation": "Spices were desired for flavor, medicine, and preservation. Samarkand’s junction position supported their exchange.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 1, Goods traded",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Cinnamon, cloves, nutmeg, pepper from the Far East and India",
+        "Sorghum, millet, rice from the Niger",
+        "Copper and salt from the Pacific",
+        "Yams and kola nuts from northern Europe"
+      ],
+      "distractorFeedback": {
+        "Sorghum, millet, rice from the Niger": "Keep the source connection in mind: Spices were desired for flavor, medicine, and preservation. Samarkand’s junction position supported their exchange.",
+        "Copper and salt from the Pacific": "Keep the source connection in mind: Spices were desired for flavor, medicine, and preservation. Samarkand’s junction position supported their exchange.",
+        "Yams and kola nuts from northern Europe": "Keep the source connection in mind: Spices were desired for flavor, medicine, and preservation. Samarkand’s junction position supported their exchange."
+      }
+    },
+    {
+      "id": "sam-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "What were roadside inns accommodating merchants and goods called?",
+      "format": "recall",
+      "prompt": "What were roadside inns accommodating merchants and goods called?",
+      "correct": "Caravanserais",
+      "explanation": "Caravanserais provided lodging, trading posts, and commercial centers. The WHP reading also says Timbuktu began as a caravanserai.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 1, Effects of trade",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "caravanserai",
+        "caravanserais",
+        "caravan serai",
+        "caravan serais"
+      ],
+      "typoTolerance": true
+    },
+    {
+      "id": "sam-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "Which evidence best shows how merchants changed Samarkand?",
+      "format": "choice",
+      "prompt": "Which evidence best shows how merchants changed Samarkand?",
+      "correct": "Settled merchant communities, urban growth, infrastructure, and centers of learning",
+      "explanation": "Trade wealth enlarged the urban center. Scholars, philosophers, and artists exchanged ideas, with advances in astronomy, mathematics, and literature.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 1–2, Effects of trade",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Settled merchant communities, urban growth, infrastructure, and centers of learning",
+        "Merchant communities grew, but scholars and new infrastructure were absent",
+        "Scholars arrived, but trade wealth prevented merchants from settling in the city",
+        "The city grew wealthier, but its networks kept religious and artistic influences apart"
+      ],
+      "distractorFeedback": {
+        "Merchant communities grew, but scholars and new infrastructure were absent": "The source distinction is: Trade wealth enlarged the urban center. Scholars, philosophers, and artists exchanged ideas, with advances in astronomy, mathematics, and literature.",
+        "Scholars arrived, but trade wealth prevented merchants from settling in the city": "The source distinction is: Trade wealth enlarged the urban center. Scholars, philosophers, and artists exchanged ideas, with advances in astronomy, mathematics, and literature.",
+        "The city grew wealthier, but its networks kept religious and artistic influences apart": "The source distinction is: Trade wealth enlarged the urban center. Scholars, philosophers, and artists exchanged ideas, with advances in astronomy, mathematics, and literature."
+      }
+    },
+    {
+      "id": "sam-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "What cultural fusion does the Samarkand passage associate with Registan Square?",
+      "format": "choice",
+      "prompt": "What cultural fusion does the Samarkand passage associate with Registan Square?",
+      "correct": "Persian, Central Asian, and Islamic influences",
+      "explanation": "The passage links these influences to architectural styles, artistic traditions, religious practices, and ornate madrasas and mosques at Registan Square.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 2, Samarkand continuation",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Persian, Central Asian, and Islamic influences",
+        "Only Portuguese and West African influences",
+        "Only Pacific island architecture",
+        "No external influence or cultural exchange"
+      ],
+      "distractorFeedback": {
+        "Only Portuguese and West African influences": "Keep the source connection in mind: The passage links these influences to architectural styles, artistic traditions, religious practices, and ornate madrasas and mosques at Registan Square.",
+        "Only Pacific island architecture": "Keep the source connection in mind: The passage links these influences to architectural styles, artistic traditions, religious practices, and ornate madrasas and mosques at Registan Square.",
+        "No external influence or cultural exchange": "Keep the source connection in mind: The passage links these influences to architectural styles, artistic traditions, religious practices, and ornate madrasas and mosques at Registan Square."
+      }
+    },
+    {
+      "id": "tim-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Timbuktu",
+      "tags": [
+        "Timbuktu"
+      ],
+      "objective": "In which present-day country is Timbuktu?",
+      "format": "recall",
+      "prompt": "In which present-day country is Timbuktu?",
+      "correct": "Mali",
+      "explanation": "At the edge of the Sahara, Timbuktu linked West Africa with the Mediterranean and Middle East through trans-Saharan routes.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 2, Timbuktu",
+          "section": "Timbuktu"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "mali"
+      ]
+    },
+    {
+      "id": "tim-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Timbuktu",
+      "tags": [
+        "Timbuktu"
+      ],
+      "objective": "What gold-related activities does the Timbuktu passage describe?",
+      "format": "choice",
+      "prompt": "What gold-related activities does the Timbuktu passage describe?",
+      "correct": "Collection, refining, and distribution",
+      "explanation": "Timbuktu’s gold was exchanged for salt, textiles, horses, weapons, and luxuries such as silk and spices.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 2, Goods traded",
+          "section": "Timbuktu"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Collection, refining, and distribution",
+        "Only mining beneath the Mediterranean",
+        "Only coin-making in Calicut",
+        "No activity involving gold"
+      ],
+      "distractorFeedback": {
+        "Only mining beneath the Mediterranean": "Keep the source connection in mind: Timbuktu’s gold was exchanged for salt, textiles, horses, weapons, and luxuries such as silk and spices.",
+        "Only coin-making in Calicut": "Keep the source connection in mind: Timbuktu’s gold was exchanged for salt, textiles, horses, weapons, and luxuries such as silk and spices.",
+        "No activity involving gold": "Keep the source connection in mind: Timbuktu’s gold was exchanged for salt, textiles, horses, weapons, and luxuries such as silk and spices."
+      }
+    },
+    {
+      "id": "tim-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Timbuktu",
+      "tags": [
+        "Timbuktu"
+      ],
+      "objective": "Which uses of salt does the city passage emphasize?",
+      "format": "choice",
+      "prompt": "Which uses of salt does the city passage emphasize?",
+      "correct": "Food preservation and currency",
+      "explanation": "Salt arrived from Saharan mines for distribution. The passage also describes North African and Mediterranean traders bringing goods to exchange for salt.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 2, Goods traded",
+          "section": "Timbuktu"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Food preservation and currency",
+        "Only building mosques",
+        "Only making silk textiles",
+        "Only measuring ocean currents"
+      ],
+      "distractorFeedback": {
+        "Only building mosques": "Keep the source connection in mind: Salt arrived from Saharan mines for distribution. The passage also describes North African and Mediterranean traders bringing goods to exchange for salt.",
+        "Only making silk textiles": "Keep the source connection in mind: Salt arrived from Saharan mines for distribution. The passage also describes North African and Mediterranean traders bringing goods to exchange for salt.",
+        "Only measuring ocean currents": "Keep the source connection in mind: Salt arrived from Saharan mines for distribution. The passage also describes North African and Mediterranean traders bringing goods to exchange for salt."
+      }
+    },
+    {
+      "id": "tim-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Timbuktu",
+      "tags": [
+        "Timbuktu"
+      ],
+      "objective": "Which evidence makes Timbuktu a center of learning?",
+      "format": "choice",
+      "prompt": "Which evidence makes Timbuktu a center of learning?",
+      "correct": "Madrasas and libraries preserving manuscripts and spreading knowledge",
+      "explanation": "Merchants, scholars, and artisans made it cosmopolitan. Libraries preserved Islamic theology, law, philosophy, literature, and science. Knowledge spread along connected routes even when it was not literally traded.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 2, Effects of trade",
+          "section": "Timbuktu"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Madrasas and libraries preserving manuscripts and spreading knowledge",
+        "Caravanserais preserving spices and limiting scholars to their home regions",
+        "Palaces and gold refineries operating without madrasas or manuscript collections",
+        "Trade markets exporting books while prohibiting schools and visiting scholars"
+      ],
+      "distractorFeedback": {
+        "Caravanserais preserving spices and limiting scholars to their home regions": "The source distinction is: Merchants, scholars, and artisans made it cosmopolitan. Libraries preserved Islamic theology, law, philosophy, literature, and science. Knowledge spread along connected routes even when it was not literally traded.",
+        "Palaces and gold refineries operating without madrasas or manuscript collections": "The source distinction is: Merchants, scholars, and artisans made it cosmopolitan. Libraries preserved Islamic theology, law, philosophy, literature, and science. Knowledge spread along connected routes even when it was not literally traded.",
+        "Trade markets exporting books while prohibiting schools and visiting scholars": "The source distinction is: Merchants, scholars, and artisans made it cosmopolitan. Libraries preserved Islamic theology, law, philosophy, literature, and science. Knowledge spread along connected routes even when it was not literally traded."
+      }
+    },
+    {
+      "id": "tim-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Timbuktu",
+      "tags": [
+        "Timbuktu"
+      ],
+      "objective": "Match Timbuktu’s cultural developments to their effects.",
+      "format": "match",
+      "prompt": "Match Timbuktu’s cultural developments to their effects.",
+      "correct": {
+        "Islamic and local West African traditions": "Mosques, palaces, tombs, and historic houses",
+        "Islamic education and scholars": "Religious teachings spread through the region",
+        "Islam beyond worship": "Influence on governance, education, and arts"
+      },
+      "explanation": "The passage names Djinguereber and Sankore Mosques as architectural legacies of cultural exchange.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 3, Timbuktu continuation",
+          "section": "Timbuktu"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "cal-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Calicut",
+      "tags": [
+        "Calicut"
+      ],
+      "objective": "What other name does the reading give Calicut?",
+      "format": "recall",
+      "prompt": "What other name does the reading give Calicut?",
+      "correct": "Kozhikode",
+      "explanation": "Calicut lies on the Malabar Coast in present-day Kerala, India, and served the Indian Ocean trade network.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 3, Calicut",
+          "section": "Calicut"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "kozhikode"
+      ],
+      "typoTolerance": true
+    },
+    {
+      "id": "cal-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Calicut",
+      "tags": [
+        "Calicut"
+      ],
+      "objective": "Which merchant communities are named in the Calicut passage?",
+      "format": "choice",
+      "prompt": "Which merchant communities are named in the Calicut passage?",
+      "correct": "Arab, Chinese, Persian, and European",
+      "explanation": "The class passage describes Calicut as a cosmopolitan maritime hub between East and West during 1200–1450.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 3, Calicut",
+          "section": "Calicut"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Arab, Chinese, Persian, and European",
+        "Only West African and Scandinavian",
+        "Only Roman and American",
+        "No merchants from distant places"
+      ],
+      "distractorFeedback": {
+        "Only West African and Scandinavian": "Keep the source connection in mind: The class passage describes Calicut as a cosmopolitan maritime hub between East and West during 1200–1450.",
+        "Only Roman and American": "Keep the source connection in mind: The class passage describes Calicut as a cosmopolitan maritime hub between East and West during 1200–1450.",
+        "No merchants from distant places": "Keep the source connection in mind: The class passage describes Calicut as a cosmopolitan maritime hub between East and West during 1200–1450."
+      }
+    },
+    {
+      "id": "cal-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Calicut",
+      "tags": [
+        "Calicut"
+      ],
+      "objective": "Match Calicut’s trade products to the details in the reading.",
+      "format": "match",
+      "prompt": "Match Calicut’s trade products to the details in the reading.",
+      "correct": {
+        "Spices": "Pepper, cardamom, cloves, cinnamon",
+        "Spice uses": "Cooking, medicine, perfumery",
+        "Cotton textiles": "Muslin and calico",
+        "Silk fabrics": "Valued for luxurious qualities"
+      },
+      "explanation": "The passage says Calicut produced, processed, and exported spices. It supplied highly desired cotton fabrics as well as exchanging silk.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 3, Goods traded",
+          "section": "Calicut"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "cal-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Calicut",
+      "tags": [
+        "Calicut"
+      ],
+      "objective": "Which connection linked Calicut and Samarkand?",
+      "format": "choice",
+      "prompt": "Which connection linked Calicut and Samarkand?",
+      "correct": "Indian Ocean routes via the Red Sea or Persian Gulf to the Middle East, then overland Silk Roads",
+      "explanation": "Merchants traveled between the cities and Calicut exported spices, textiles, and other goods. These connections also conveyed ideas and cultural influences.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 3–4, Connection to Samarkand",
+          "section": "Calicut"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Indian Ocean routes via the Red Sea or Persian Gulf to the Middle East, then overland Silk Roads",
+        "A direct route across the Atlantic to America",
+        "Only trans-Saharan caravans with no sea travel",
+        "A single river flowing from Kerala to Uzbekistan"
+      ],
+      "distractorFeedback": {
+        "A direct route across the Atlantic to America": "Keep the source connection in mind: Merchants traveled between the cities and Calicut exported spices, textiles, and other goods. These connections also conveyed ideas and cultural influences.",
+        "Only trans-Saharan caravans with no sea travel": "Keep the source connection in mind: Merchants traveled between the cities and Calicut exported spices, textiles, and other goods. These connections also conveyed ideas and cultural influences.",
+        "A single river flowing from Kerala to Uzbekistan": "Keep the source connection in mind: Merchants traveled between the cities and Calicut exported spices, textiles, and other goods. These connections also conveyed ideas and cultural influences."
+      }
+    },
+    {
+      "id": "cal-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Calicut",
+      "tags": [
+        "Calicut"
+      ],
+      "objective": "According to the class passage, what did arriving Arab traders contribute to Calicut?",
+      "format": "choice",
+      "prompt": "According to the class passage, what did arriving Arab traders contribute to Calicut?",
+      "correct": "Islamic learning, mosques, madrasas, and libraries",
+      "explanation": "The passage says scholars spread Islamic teachings and influenced architecture. Learn this supplied account as the test authority.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 4, Effects of connectivity",
+          "section": "Calicut"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Islamic learning, mosques, madrasas, and libraries",
+        "Persian astronomy, Registan architecture, and the Silk Roads’ caravanserais",
+        "Berber saddles, Niger farming, and the secret locations of West African mines",
+        "Salt currency, Sankore manuscripts, and Djinguereber’s West African traditions"
+      ],
+      "distractorFeedback": {
+        "Persian astronomy, Registan architecture, and the Silk Roads’ caravanserais": "The source distinction is: The passage says scholars spread Islamic teachings and influenced architecture. Learn this supplied account as the test authority.",
+        "Berber saddles, Niger farming, and the secret locations of West African mines": "The source distinction is: The passage says scholars spread Islamic teachings and influenced architecture. Learn this supplied account as the test authority.",
+        "Salt currency, Sankore manuscripts, and Djinguereber’s West African traditions": "The source distinction is: The passage says scholars spread Islamic teachings and influenced architecture. Learn this supplied account as the test authority."
+      }
+    },
+    {
+      "id": "cal-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Calicut",
+      "tags": [
+        "Calicut"
+      ],
+      "objective": "Which two landmarks illustrate Calicut’s architectural diversity in the passage?",
+      "format": "choice",
+      "prompt": "Which two landmarks illustrate Calicut’s architectural diversity in the passage?",
+      "correct": "Mishkal Mosque and Tali Temple",
+      "explanation": "Tali is identified as a Hindu temple. The passage links architecture to Islamic and local traditions, including mosques, palaces, and tombs.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 4, Effects of connectivity",
+          "section": "Calicut"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Mishkal Mosque and Tali Temple",
+        "Registan Square and Sankore Mosque",
+        "Djinguereber Mosque and Registan Square",
+        "Only the Catalan Atlas"
+      ],
+      "distractorFeedback": {
+        "Registan Square and Sankore Mosque": "Keep the source connection in mind: Tali is identified as a Hindu temple. The passage links architecture to Islamic and local traditions, including mosques, palaces, and tombs.",
+        "Djinguereber Mosque and Registan Square": "Keep the source connection in mind: Tali is identified as a Hindu temple. The passage links architecture to Islamic and local traditions, including mosques, palaces, and tombs.",
+        "Only the Catalan Atlas": "Keep the source connection in mind: Tali is identified as a Hindu temple. The passage links architecture to Islamic and local traditions, including mosques, palaces, and tombs."
+      }
+    },
+    {
+      "id": "connect-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections"
+      ],
+      "objective": "Match each city to its major trade network.",
+      "format": "match",
+      "prompt": "Match each city to its major trade network.",
+      "correct": {
+        "Samarkand": "Silk Roads",
+        "Timbuktu": "Trans-Saharan routes",
+        "Calicut": "Indian Ocean routes"
+      },
+      "explanation": "All three cities linked trade to cultural and intellectual exchange. Their principal networks and positions differed.",
+      "difficulty": 2,
+      "variants": [
+        "Classify these cities by their principal network in the reading."
+      ],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 1–4",
+          "section": "Connections"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "map-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "Locate Timbuktu on the coordinate map. Select A, B, or C.",
+      "format": "map",
+      "prompt": "Locate Timbuktu on the coordinate map. Select A, B, or C.",
+      "correct": "A",
+      "explanation": "Timbuktu is in present-day Mali near the Sahara’s southern edge. A is about 17°N, 3°W. B is Central Asia and C is India.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 2, Timbuktu",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "map-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "Locate Samarkand on the coordinate map. Select A, B, or C.",
+      "format": "map",
+      "prompt": "Locate Samarkand on the coordinate map. Select A, B, or C.",
+      "correct": "B",
+      "explanation": "Samarkand is in Uzbekistan in Central Asia. B is about 40°N, 67°E.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 1, Samarkand",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "map-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "Locate Calicut on the coordinate map. Select A, B, or C.",
+      "format": "map",
+      "prompt": "Locate Calicut on the coordinate map. Select A, B, or C.",
+      "correct": "C",
+      "explanation": "Calicut is on India’s southwest Malabar Coast. C is about 11°N, 76°E.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 3, Calicut",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "id": "connect-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections"
+      ],
+      "objective": "Compare all three cities: how did their locations shape their goods and connected regions?",
+      "format": "written",
+      "prompt": "Compare all three cities: how did their locations shape their goods and connected regions?",
+      "correct": "Samarkand’s Central Asian junction on the Silk Roads moved silk and spices between East and West, reaching Europe and the Middle East. Timbuktu’s position at the Sahara’s edge connected West African gold with Saharan salt and routes toward the Mediterranean and Middle East. Calicut’s Malabar Coast port moved spices and textiles through Indian Ocean routes, including connections to the Middle East. All three supported cultural exchange.",
+      "explanation": "Samarkand’s Central Asian junction on the Silk Roads moved silk and spices between East and West, reaching Europe and the Middle East. Timbuktu’s position at the Sahara’s edge connected West African gold with Saharan salt and routes toward the Mediterranean and Middle East. Calicut’s Malabar Coast port moved spices and textiles through Indian Ocean routes, including connections to the Middle East. All three supported cultural exchange.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 4, Reading question 1",
+          "section": "Connections"
+        }
+      ],
+      "basis": "synthesis",
+      "rubric": [
+        "Identify all three locations and networks.",
+        "Connect each location to named goods and regions.",
+        "Explain one similarity and one difference."
+      ]
+    },
+    {
+      "id": "connect-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections"
+      ],
+      "objective": "Why does understanding connectivity matter, and what possible legacy might these cities have today?",
+      "format": "written",
+      "prompt": "Why does understanding connectivity matter, and what possible legacy might these cities have today?",
+      "correct": "The networks show that goods, knowledge, religion, and artistic ideas moved across regions. The passages describe libraries, manuscripts, mosques, madrasas, and distinctive architecture as legacies. These could shape cultural identities and learning today. The modern impact is a reasoned possibility, not a specific present-day fact established by the reading.",
+      "explanation": "The networks show that goods, knowledge, religion, and artistic ideas moved across regions. The passages describe libraries, manuscripts, mosques, madrasas, and distinctive architecture as legacies. These could shape cultural identities and learning today. The modern impact is a reasoned possibility, not a specific present-day fact established by the reading.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "page 5, Reading question 2",
+          "section": "Connections"
+        }
+      ],
+      "basis": "synthesis",
+      "rubric": [
+        "Explain the importance of interregional connectivity.",
+        "Use at least two specific passage examples.",
+        "Distinguish a plausible modern inference from a source-stated claim."
+      ]
+    },
+    {
+      "id": "connect-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections"
+      ],
+      "objective": "Explain one cause-and-effect chain from trade to cultural change, using a named city.",
+      "format": "written",
+      "prompt": "Explain one cause-and-effect chain from trade to cultural change, using a named city.",
+      "correct": "In Timbuktu, trade attracted merchants and scholars and brought wealth. Schools and libraries developed and scholars spread Islamic learning. Islamic and local West African influences blended in architecture and influenced governance, education, and the arts. A supported equivalent chain using Samarkand or Calicut is also acceptable.",
+      "explanation": "In Timbuktu, trade attracted merchants and scholars and brought wealth. Schools and libraries developed and scholars spread Islamic learning. Islamic and local West African influences blended in architecture and influenced governance, education, and the arts. A supported equivalent chain using Samarkand or Calicut is also acceptable.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 1–4",
+          "section": "Connections"
+        }
+      ],
+      "basis": "synthesis",
+      "rubric": [
+        "Name a city and source-grounded trade mechanism.",
+        "Explain the intermediate social or economic change.",
+        "Link it to a specific cultural or intellectual outcome."
+      ]
+    },
+    {
+      "id": "hippo-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Match each HIPPO letter to the class-specific definition.",
+      "format": "match",
+      "prompt": "Match each HIPPO letter to the class-specific definition.",
+      "correct": {
+        "H": "Historical Context",
+        "I": "Intended Audience",
+        "First P": "Purpose",
+        "Second P": "Point of View",
+        "O": "Organization"
+      },
+      "explanation": "O means Organization, including outside information and connecting a document to an essay argument. Use this class definition.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 10, embedded HIPPO chart",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "hippo-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Which question examines Historical Context?",
+      "format": "choice",
+      "prompt": "Which question examines Historical Context?",
+      "correct": "Where and when was it created, and what was happening?",
+      "explanation": "Consider recent events, whether the source reacts to an event, and how it represents its period.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 10, HIPPO chart",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Where and when was it created, and what was happening?",
+        "How will it fit into my essay argument?",
+        "Who was the intended reader?",
+        "What goal did the creator hope to achieve?"
+      ],
+      "distractorFeedback": {
+        "How will it fit into my essay argument?": "Keep the source connection in mind: Consider recent events, whether the source reacts to an event, and how it represents its period.",
+        "Who was the intended reader?": "Keep the source connection in mind: Consider recent events, whether the source reacts to an event, and how it represents its period.",
+        "What goal did the creator hope to achieve?": "Keep the source connection in mind: Consider recent events, whether the source reacts to an event, and how it represents its period."
+      }
+    },
+    {
+      "id": "hippo-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Which question examines Intended Audience?",
+      "format": "choice",
+      "prompt": "Which question examines Intended Audience?",
+      "correct": "To whom was the piece directed, and how might that audience affect reliability?",
+      "explanation": "Look for evidence about whether the recipient is an individual, a small group, or a large group, and how this changes the reading of the piece.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 10, HIPPO chart",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "To whom was the piece directed, and how might that audience affect reliability?",
+        "What outside fact can connect to the argument?",
+        "Where was it created?",
+        "What is the creator’s occupation?"
+      ],
+      "distractorFeedback": {
+        "What outside fact can connect to the argument?": "Keep the source connection in mind: Look for evidence about whether the recipient is an individual, a small group, or a large group, and how this changes the reading of the piece.",
+        "Where was it created?": "Keep the source connection in mind: Look for evidence about whether the recipient is an individual, a small group, or a large group, and how this changes the reading of the piece.",
+        "What is the creator’s occupation?": "Keep the source connection in mind: Look for evidence about whether the recipient is an individual, a small group, or a large group, and how this changes the reading of the piece."
+      }
+    },
+    {
+      "id": "hippo-04",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Which question examines Purpose?",
+      "format": "choice",
+      "prompt": "Which question examines Purpose?",
+      "correct": "Why was it produced, and what was the author trying to accomplish?",
+      "explanation": "Consider the specific reason or situation, possible ulterior motives, and evidence supporting your claim about purpose.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 10, HIPPO chart",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Why was it produced, and what was the author trying to accomplish?",
+        "What date is printed on the document?",
+        "Which readers received it?",
+        "Does it corroborate another document in my argument?"
+      ],
+      "distractorFeedback": {
+        "What date is printed on the document?": "Keep the source connection in mind: Consider the specific reason or situation, possible ulterior motives, and evidence supporting your claim about purpose.",
+        "Which readers received it?": "Keep the source connection in mind: Consider the specific reason or situation, possible ulterior motives, and evidence supporting your claim about purpose.",
+        "Does it corroborate another document in my argument?": "Keep the source connection in mind: Consider the specific reason or situation, possible ulterior motives, and evidence supporting your claim about purpose."
+      }
+    },
+    {
+      "id": "hippo-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Which question examines Point of View?",
+      "format": "choice",
+      "prompt": "Which question examines Point of View?",
+      "correct": "How does the creator’s background or position shape the message?",
+      "explanation": "The chart asks about the main idea, the point being made, and the creator’s race, class, gender, age, occupation, or other position. Support claims with evidence.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 10, HIPPO chart",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "How does the creator’s background or position shape the message?",
+        "Which study day is the exam?",
+        "How many documents are in the essay?",
+        "Which paragraph should appear first?"
+      ],
+      "distractorFeedback": {
+        "Which study day is the exam?": "Keep the source connection in mind: The chart asks about the main idea, the point being made, and the creator’s race, class, gender, age, occupation, or other position. Support claims with evidence.",
+        "How many documents are in the essay?": "Keep the source connection in mind: The chart asks about the main idea, the point being made, and the creator’s race, class, gender, age, occupation, or other position. Support claims with evidence.",
+        "Which paragraph should appear first?": "Keep the source connection in mind: The chart asks about the main idea, the point being made, and the creator’s race, class, gender, age, occupation, or other position. Support claims with evidence."
+      }
+    },
+    {
+      "id": "hippo-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Which task belongs to Organization in this class?",
+      "format": "choice",
+      "prompt": "Which task belongs to Organization in this class?",
+      "correct": "Connect the source to an argument, other documents, and outside information",
+      "explanation": "Consider corroboration, similarities, differences, challenges or counterarguments, and outside information.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 10, HIPPO chart",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Connect the source to an argument, other documents, and outside information",
+        "Replace the source with an invented quotation",
+        "Use only the author’s name to decide truth",
+        "Assume every document has identical purpose"
+      ],
+      "distractorFeedback": {
+        "Replace the source with an invented quotation": "Keep the source connection in mind: Consider corroboration, similarities, differences, challenges or counterarguments, and outside information.",
+        "Use only the author’s name to decide truth": "Keep the source connection in mind: Consider corroboration, similarities, differences, challenges or counterarguments, and outside information.",
+        "Assume every document has identical purpose": "Keep the source connection in mind: Consider corroboration, similarities, differences, challenges or counterarguments, and outside information."
+      }
+    },
+    {
+      "id": "hippo-07",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Describe how you would source a document with HIPPO before using it in an argument. No document is supplied.",
+      "format": "written",
+      "prompt": "Describe how you would source a document with HIPPO before using it in an argument. No document is supplied.",
+      "correct": "Identify where and when it was produced and relevant events. Determine its intended audience and purpose using evidence. Consider how the creator’s background shapes its point of view. Organize its use by connecting it to the essay argument, corroborating or challenging other documents, and using appropriate outside information. Avoid claiming a particular author’s motives without evidence.",
+      "explanation": "Identify where and when it was produced and relevant events. Determine its intended audience and purpose using evidence. Consider how the creator’s background shapes its point of view. Organize its use by connecting it to the essay argument, corroborating or challenging other documents, and using appropriate outside information. Avoid claiming a particular author’s motives without evidence.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slides 7, 9–10",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "synthesis",
+      "rubric": [
+        "Use all five class-specific components.",
+        "Explain the need for evidence rather than unsupported assumptions.",
+        "Explain how Organization connects sourcing to an argument."
+      ]
+    },
+    {
+      "id": "hippo-08",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "HIPPO",
+      "tags": [
+        "HIPPO"
+      ],
+      "objective": "Why do the slides connect sourcing to news, gossip, and DBQ writing?",
+      "format": "choice",
+      "prompt": "Why do the slides connect sourcing to news, gossip, and DBQ writing?",
+      "correct": "It helps evaluate who is speaking, the context, and the audience before using a claim",
+      "explanation": "Sourcing is a critical reading process. A source’s identity alone does not prove its accuracy.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slides 7 and 9",
+          "section": "HIPPO"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "It helps evaluate who is speaking, the context, and the audience before using a claim",
+        "It establishes accuracy automatically from a creator’s social status alone",
+        "It lets a writer infer an author’s motives without evidence from the source",
+        "It makes audience and historical circumstances irrelevant to an argument"
+      ],
+      "distractorFeedback": {
+        "It establishes accuracy automatically from a creator’s social status alone": "The source distinction is: Sourcing is a critical reading process. A source’s identity alone does not prove its accuracy.",
+        "It lets a writer infer an author’s motives without evidence from the source": "The source distinction is: Sourcing is a critical reading process. A source’s identity alone does not prove its accuracy.",
+        "It makes audience and historical circumstances irrelevant to an argument": "The source distinction is: Sourcing is a critical reading process. A source’s identity alone does not prove its accuracy."
+      }
+    },
+    {
+      "id": "boss-01",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections",
+        "Caravans",
+        "boss"
+      ],
+      "objective": "Scenario: a caravan organizer needs safe, affordable passage. Which plan is best supported by the reading?",
+      "format": "choice",
+      "prompt": "Scenario: a caravan organizer needs safe, affordable passage. Which plan is best supported by the reading?",
+      "correct": "Hire experienced guides, rent camels, follow water stops, and negotiate safe passage",
+      "explanation": "This scenario combines Berber expertise, pastoralist camel rental, wells and oases, and tribute for safety. It is reasoning from the reading, not a historical document.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "pages 3–4",
+          "section": "Connections"
+        }
+      ],
+      "basis": "synthesis",
+      "choices": [
+        "Hire experienced guides, rent camels, follow water stops, and negotiate safe passage",
+        "Ignore water sources and travel alone",
+        "Use steamships to cross dunes in 1200",
+        "Assume no pastoralist group can threaten trade"
+      ],
+      "distractorFeedback": {
+        "Ignore water sources and travel alone": "Keep the source connection in mind: This scenario combines Berber expertise, pastoralist camel rental, wells and oases, and tribute for safety. It is reasoning from the reading, not a historical document.",
+        "Use steamships to cross dunes in 1200": "Keep the source connection in mind: This scenario combines Berber expertise, pastoralist camel rental, wells and oases, and tribute for safety. It is reasoning from the reading, not a historical document.",
+        "Assume no pastoralist group can threaten trade": "Keep the source connection in mind: This scenario combines Berber expertise, pastoralist camel rental, wells and oases, and tribute for safety. It is reasoning from the reading, not a historical document."
+      }
+    },
+    {
+      "id": "boss-02",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections",
+        "Islam",
+        "boss"
+      ],
+      "objective": "Scenario: merchants speak a shared language and use written contracts. Which trade effect best follows from the reading?",
+      "format": "choice",
+      "prompt": "Scenario: merchants speak a shared language and use written contracts. Which trade effect best follows from the reading?",
+      "correct": "Clearer communication, better records, and increased trust",
+      "explanation": "The reading connects Islam and Arabic to these mechanisms. This is a scenario built from source claims.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "page 5",
+          "section": "Connections"
+        }
+      ],
+      "basis": "synthesis",
+      "choices": [
+        "Clearer communication, better records, and increased trust",
+        "Every person immediately adopts the same religion",
+        "Trade no longer needs goods or transport",
+        "All local religions instantly disappear"
+      ],
+      "distractorFeedback": {
+        "Every person immediately adopts the same religion": "Keep the source connection in mind: The reading connects Islam and Arabic to these mechanisms. This is a scenario built from source claims.",
+        "Trade no longer needs goods or transport": "Keep the source connection in mind: The reading connects Islam and Arabic to these mechanisms. This is a scenario built from source claims.",
+        "All local religions instantly disappear": "Keep the source connection in mind: The reading connects Islam and Arabic to these mechanisms. This is a scenario built from source claims."
+      }
+    },
+    {
+      "id": "boss-03",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Connections",
+      "tags": [
+        "Connections",
+        "boss"
+      ],
+      "objective": "Scenario: explain how a shipment from Calicut could connect to Samarkand and also carry cultural influences.",
+      "format": "written",
+      "prompt": "Scenario: explain how a shipment from Calicut could connect to Samarkand and also carry cultural influences.",
+      "correct": "Spices and textiles could move through Indian Ocean routes via the Red Sea or Persian Gulf to the Middle East, then follow overland Silk Roads into Central Asia and Samarkand. Merchants also carried knowledge and cultural influences. This is a source-grounded route explanation, not proof of a particular recorded shipment.",
+      "explanation": "Spices and textiles could move through Indian Ocean routes via the Red Sea or Persian Gulf to the Middle East, then follow overland Silk Roads into Central Asia and Samarkand. Merchants also carried knowledge and cultural influences. This is a source-grounded route explanation, not proof of a particular recorded shipment.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 3–4",
+          "section": "Connections"
+        }
+      ],
+      "basis": "synthesis",
+      "rubric": [
+        "Trace maritime then overland stages accurately.",
+        "Name at least two source goods.",
+        "Explain a cultural connection without inventing a historical document."
+      ]
+    },
+    {
+      "id": "emp-09",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Empires",
+      "tags": [
+        "Empires"
+      ],
+      "objective": "What broad empire-construction date range is stated in the slides?",
+      "format": "recall",
+      "prompt": "What broad empire-construction date range is stated in the slides?",
+      "correct": "500–1600 CE",
+      "explanation": "The slides describe the construction of major West African empires between 500 and 1600 CE. This broad range differs from the specific Mali and Songhai dates in the WHP reading.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trans-Saharan Trade Route.pptx",
+          "location": "slide 15",
+          "section": "Empires"
+        }
+      ],
+      "basis": "source",
+      "acceptedAnswers": [
+        "500-1600",
+        "500-1600 ce",
+        "500 to 1600",
+        "500 to 1600 ce"
+      ]
+    },
+    {
+      "id": "geo-05",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Geography",
+      "tags": [
+        "Geography"
+      ],
+      "objective": "Which timeline matches the WHP reading’s account of trans-Saharan trade?",
+      "format": "choice",
+      "prompt": "Which timeline matches the WHP reading’s account of trans-Saharan trade?",
+      "correct": "Seventh-century Arab conquests strengthened connections; the peak was twelfth–fifteenth centuries",
+      "explanation": "The overview focuses on 1200–1450, while the detailed trade paragraph says twelfth–fifteenth centuries. Both describe a long development rather than a network appearing overnight.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "WHP-AP 2-2-6 Read-Trans-Saharan Trade Routes - 1160L (1).pdf",
+          "location": "pages 2 and 4",
+          "section": "Geography"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Seventh-century Arab conquests strengthened connections; the peak was twelfth–fifteenth centuries",
+        "Seventh-century Arab conquests ended connections; the peak was sixteenth–eighteenth centuries",
+        "Thirteenth-century Arab conquests began connections; the peak was fifth–seventh centuries",
+        "Fifteenth-century Portuguese voyages began caravan routes; the peak was nineteenth–twentieth centuries"
+      ],
+      "distractorFeedback": {
+        "Seventh-century Arab conquests ended connections; the peak was sixteenth–eighteenth centuries": "Keep the source connection in mind: The overview focuses on 1200–1450, while the detailed trade paragraph says twelfth–fifteenth centuries. Both describe a long development rather than a network appearing overnight.",
+        "Thirteenth-century Arab conquests began connections; the peak was fifth–seventh centuries": "Keep the source connection in mind: The overview focuses on 1200–1450, while the detailed trade paragraph says twelfth–fifteenth centuries. Both describe a long development rather than a network appearing overnight.",
+        "Fifteenth-century Portuguese voyages began caravan routes; the peak was nineteenth–twentieth centuries": "Keep the source connection in mind: The overview focuses on 1200–1450, while the detailed trade paragraph says twelfth–fifteenth centuries. Both describe a long development rather than a network appearing overnight."
+      }
+    },
+    {
+      "id": "tim-06",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Timbuktu",
+      "tags": [
+        "Timbuktu"
+      ],
+      "objective": "Match the Timbuktu landmarks to their city, and contrast them with the other reading examples.",
+      "format": "match",
+      "prompt": "Match the Timbuktu landmarks to their city, and contrast them with the other reading examples.",
+      "correct": {
+        "Djinguereber and Sankore Mosques": "Timbuktu",
+        "Registan Square": "Samarkand",
+        "Mishkal Mosque and Tali Temple": "Calicut"
+      },
+      "explanation": "The city passages name these landmarks as legacies of cultural exchange. Tali is a Hindu temple.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 2–4, Architectural examples",
+          "section": "Timbuktu"
+        }
+      ],
+      "basis": "source"
+    },
+    {
+      "id": "sam-07",
+      "version": 1,
+      "unit": "trade-1200",
+      "topic": "Samarkand",
+      "tags": [
+        "Samarkand"
+      ],
+      "objective": "Which fields advanced through scholarly exchange in Samarkand, according to the passage?",
+      "format": "choice",
+      "prompt": "Which fields advanced through scholarly exchange in Samarkand, according to the passage?",
+      "correct": "Astronomy, mathematics, and literature",
+      "explanation": "Centers of learning attracted scholars, philosophers and artists from many regions. This intellectual exchange accompanied expanding commercial networks.",
+      "difficulty": 2,
+      "variants": [],
+      "sources": [
+        {
+          "file": "Trading Cities 1200-1450 (3).pdf",
+          "location": "pages 1–2",
+          "section": "Samarkand"
+        }
+      ],
+      "basis": "source",
+      "choices": [
+        "Astronomy, mathematics, and literature",
+        "Navigation, agriculture, and mining alone",
+        "Theology, law, and manuscript preservation alone",
+        "Military administration, coin minting, and shipbuilding alone"
+      ],
+      "distractorFeedback": {
+        "Navigation, agriculture, and mining alone": "Keep the source connection in mind: Centers of learning attracted scholars, philosophers and artists from many regions. This intellectual exchange accompanied expanding commercial networks.",
+        "Theology, law, and manuscript preservation alone": "Keep the source connection in mind: Centers of learning attracted scholars, philosophers and artists from many regions. This intellectual exchange accompanied expanding commercial networks.",
+        "Military administration, coin minting, and shipbuilding alone": "Keep the source connection in mind: Centers of learning attracted scholars, philosophers and artists from many regions. This intellectual exchange accompanied expanding commercial networks."
+      }
+    }
+  ]
+}
