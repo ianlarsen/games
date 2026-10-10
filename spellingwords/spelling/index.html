@@ -721,6 +721,69 @@
     .feedback.good { color: #167b56; }
     .feedback.try { color: #b64f47; }
 
+    .tricky-badge {
+      display: inline-flex;
+      align-self: flex-start;
+      min-height: 34px;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      color: #8b4b00;
+      font-size: 0.78rem;
+      font-weight: 950;
+      background: #fff0b5;
+    }
+
+    .rule-word {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      align-items: baseline;
+      justify-content: center;
+      min-height: 110px;
+      font-size: clamp(1.55rem, 7.4vw, 4rem);
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      text-transform: lowercase;
+    }
+
+    .rule-e,
+    .rule-ing {
+      display: inline-block;
+    }
+
+    .rule-e {
+      transition: color 180ms linear, opacity 180ms linear, transform 180ms linear;
+    }
+
+    .rule-ing {
+      max-width: 0;
+      overflow: hidden;
+      color: var(--purple-dark);
+      font-weight: 950;
+      opacity: 0;
+      text-decoration: underline;
+      text-decoration-thickness: 0.12em;
+      text-underline-offset: 0.14em;
+      transform: scale(0.86);
+      transition: max-width 220ms linear, opacity 180ms linear, transform 180ms linear;
+    }
+
+    .rule-word.dropping .rule-e {
+      color: #9a3d36;
+      opacity: 0.35;
+      text-decoration: line-through;
+      text-decoration-thickness: 0.12em;
+      transform: translateY(16px) scale(0.72);
+    }
+
+    .rule-word.dropping .rule-ing {
+      max-width: 3.4em;
+      opacity: 1;
+      transform: scale(1.16);
+    }
+
     .letter-recap {
       display: grid;
       min-height: 210px;
@@ -1036,7 +1099,6 @@
         <span class="brand-text">Spelling Quest</span>
       </div>
       <button class="level-pill" id="levelPill" type="button" aria-label="Change level" aria-haspopup="dialog"></button>
-      <button class="home-link" id="miniGamesButton" type="button">Mini Games</button>
     </header>
     <section class="screen" id="screen" aria-live="polite"></section>
   </main>
@@ -1045,16 +1107,16 @@
     "use strict";
 
     const WORDS = [
-      { word: "yelled", sentence: "He ___ loudly for help." },
-      { word: "yanked", sentence: "She ___ hard on the rope." },
-      { word: "slumped", sentence: "The tired player ___ into the chair." },
-      { word: "limped", sentence: "The hurt dog ___ slowly home." },
-      { word: "plopped", sentence: "The frog ___ onto the lily pad." },
-      { word: "smiled", sentence: "She ___ for the picture." },
-      { word: "shrugged", sentence: "He ___ when he did not know." },
-      { word: "liked", sentence: "I really ___ that funny book." },
-      { word: "patted", sentence: "She gently ___ the friendly dog." },
-      { word: "you", sentence: "___ are my best friend." }
+      { word: "smiling", root: "smile", sentence: "The baby is ___ at her dad." },
+      { word: "racing", root: "race", sentence: "The cars are ___ around the track." },
+      { word: "hoping", root: "hope", sentence: "I am ___ for a sunny day." },
+      { word: "baking", root: "bake", sentence: "Mom is ___ a chocolate cake." },
+      { word: "inviting", root: "invite", sentence: "We are ___ friends to the party." },
+      { word: "confusing", root: "confuse", sentence: "That big word is ___ me." },
+      { word: "tasting", root: "taste", sentence: "He is ___ the warm soup." },
+      { word: "competing", root: "compete", sentence: "The teams are ___ in the game." },
+      { word: "hopping", sentence: "The bunny is ___ across the grass." },
+      { word: "were", tricky: true, sentence: "They ___ happy to see you." }
     ];
 
     const STORAGE_KEY = "mobile-spelling-quest-v2";
@@ -1439,7 +1501,7 @@
       backdrop.innerHTML = `
         <div class="level-switcher">
           <h2 id="levelSwitcherTitle">Choose a level</h2>
-          <div class="start-levels">${levelButtonsMarkup()}<button class="level-choice-button" data-open-minis><span class="level-choice-number" aria-hidden="true">✦</span><span class="level-choice-copy">Mini Games</span></button></div>
+          <div class="start-levels">${levelButtonsMarkup()}</div>
           <button class="close-level-switcher" type="button">Keep Playing</button>
         </div>
       `;
@@ -1464,11 +1526,10 @@
       screen.innerHTML = `
         <div class="card hero">
           <h1>Spelling Quest</h1>
-          <div class="start-levels">${levelButtonsMarkup()}<button class="level-choice-button" data-open-minis><span class="level-choice-number" aria-hidden="true">✦</span><span class="level-choice-copy">Mini Games</span></button></div>
+          <div class="start-levels">${levelButtonsMarkup()}</div>
         </div>
       `;
       wireLevelButtons(screen);
-      screen.querySelector("[data-open-minis]")?.addEventListener("click", renderMiniBoard);
     }
 
     function progressMarkup() {
@@ -1522,6 +1583,7 @@
         ${progressMarkup()}
         <div class="round-card" id="roundCard">
           <h2>Finish the sentence</h2>
+          ${trickyBadge(target)}
           <p class="sentence">
             ${escapeHtml(sentenceParts[0])}<button class="drop-zone" id="dropZone" aria-label="Sentence blank">blank</button>${escapeHtml(sentenceParts[1] || "")}
           </p>
@@ -1641,6 +1703,12 @@
       });
     }
 
+    function trickyBadge(target) {
+      return target.tricky
+        ? '<span class="tricky-badge">Tricky Word</span>'
+        : "";
+    }
+
     function renderSlotRound() {
       const target = currentWord();
       screen.innerHTML = `
@@ -1648,6 +1716,7 @@
         <div class="round-card" id="roundCard">
           <p class="eyebrow">Listen and spell</p>
           <h2>Build the word</h2>
+          ${trickyBadge(target)}
           <div class="audio-stage">
             <button class="sound-button" id="soundButton" aria-label="Play the spelling word again">
               <span class="play-icon" aria-hidden="true"></span>
@@ -1685,6 +1754,7 @@
         <div class="round-card" id="roundCard">
           <p class="eyebrow">Final challenge</p>
           <h2>Spell what you hear</h2>
+          ${trickyBadge(target)}
           <div class="audio-stage">
             <button class="sound-button" id="soundButton" aria-label="Play the spelling word again">
               <span class="play-icon" aria-hidden="true"></span>
@@ -2168,62 +2238,94 @@
       fallbackTimer = window.setTimeout(finish, duration + 250);
     }
 
-    function showLetterRecap(target, masteryResult, expectedViewVersion, finishedLevel) {
-      if (viewVersion !== expectedViewVersion) return;
+    function showDropERule(target, expectedViewVersion, onFinished) {
       const roundCard = document.getElementById("roundCard");
-      if (!roundCard) return;
+      if (!roundCard || viewVersion !== expectedViewVersion || !target.root) {
+        onFinished();
+        return;
+      }
 
-      const spokenLetters = [...target.word].join("-");
+      const stem = target.root.slice(0, -1);
+      const finalE = target.root.slice(-1);
       roundCard.innerHTML = `
         <div class="letter-recap">
-          <div class="letter-recap-word" aria-label="${escapeHtml(spokenLetters)}">
-            ${[...target.word].map((letter) => `
-              <span class="recap-letter">${escapeHtml(letter)}</span>
-            `).join("")}
+          <div class="rule-word" id="ruleWord" aria-label="${escapeHtml(target.root)} becomes ${escapeHtml(target.word)}">
+            <span>${escapeHtml(stem)}</span><span class="rule-e">${escapeHtml(finalE)}</span><span class="rule-ing">ing</span>
           </div>
         </div>
       `;
 
-      const letters = [...roundCard.querySelectorAll(".recap-letter")];
-      const recapWord = roundCard.querySelector(".letter-recap-word");
-      const stages = [
-        (next) => playEffect("sayandspell", next),
-        (next) => playWordForRecap(target.word, next),
-        (next) => playSpellingPass(target, letters, expectedViewVersion, next),
-        (next) => animateRecapWord(recapWord, "tornado", 1550, expectedViewVersion, next),
-        (next) => playEffect("again", next),
-        (next) => playWordForRecap(target.word, next),
-        (next) => playSpellingPass(target, letters, expectedViewVersion, next),
-        (next) => playWordForRecap(target.word, next),
-        (next) => animateRecapWord(recapWord, "rolling", 1650, expectedViewVersion, next),
-        (next) => playEffect("onemoretime", next),
-        (next) => playWordForRecap(target.word, next),
-        (next) => playSpellingPass(target, letters, expectedViewVersion, next),
-        (next) => playWordForRecap(target.word, next)
-      ];
-      let stageIndex = 0;
-
-      const runNextStage = () => {
+      playWordForRecap(target.root, () => {
         if (viewVersion !== expectedViewVersion) return;
-        if (stageIndex >= stages.length) {
-          const finishSequence = () => {
-            window.setTimeout(() => {
-              if (viewVersion === expectedViewVersion) renderWordSuccess(target, masteryResult);
-            }, 150);
-          };
-          if (finishedLevel) {
-            playEffect("win", finishSequence);
-          } else {
-            finishSequence();
-          }
-          return;
-        }
-
-        const stage = stages[stageIndex];
-        stageIndex += 1;
-        stage(() => {
-          if (viewVersion === expectedViewVersion) runNextStage();
+        document.getElementById("ruleWord")?.classList.add("dropping");
+        playEffect("drop-e-add-ing", () => {
+          if (viewVersion === expectedViewVersion) onFinished();
         });
+      });
+    }
+
+    function showLetterRecap(target, masteryResult, expectedViewVersion, finishedLevel) {
+      if (viewVersion !== expectedViewVersion) return;
+
+      const beginSayAndSpell = () => {
+        if (viewVersion !== expectedViewVersion) return;
+        const roundCard = document.getElementById("roundCard");
+        if (!roundCard) return;
+
+        const spokenLetters = [...target.word].join("-");
+        roundCard.innerHTML = `
+          <div class="letter-recap">
+            <div class="letter-recap-word" aria-label="${escapeHtml(spokenLetters)}">
+              ${[...target.word].map((letter) => `
+                <span class="recap-letter">${escapeHtml(letter)}</span>
+              `).join("")}
+            </div>
+          </div>
+        `;
+
+        const letters = [...roundCard.querySelectorAll(".recap-letter")];
+        const recapWord = roundCard.querySelector(".letter-recap-word");
+        const stages = [
+          (next) => playEffect("sayandspell", next),
+          (next) => playWordForRecap(target.word, next),
+          (next) => playSpellingPass(target, letters, expectedViewVersion, next),
+          (next) => animateRecapWord(recapWord, "tornado", 1550, expectedViewVersion, next),
+          (next) => playEffect("again", next),
+          (next) => playWordForRecap(target.word, next),
+          (next) => playSpellingPass(target, letters, expectedViewVersion, next),
+          (next) => playWordForRecap(target.word, next),
+          (next) => animateRecapWord(recapWord, "rolling", 1650, expectedViewVersion, next),
+          (next) => playEffect("onemoretime", next),
+          (next) => playWordForRecap(target.word, next),
+          (next) => playSpellingPass(target, letters, expectedViewVersion, next),
+          (next) => playWordForRecap(target.word, next)
+        ];
+        let stageIndex = 0;
+
+        const runNextStage = () => {
+          if (viewVersion !== expectedViewVersion) return;
+          if (stageIndex >= stages.length) {
+            const finishSequence = () => {
+              window.setTimeout(() => {
+                if (viewVersion === expectedViewVersion) renderWordSuccess(target, masteryResult);
+              }, 150);
+            };
+            if (finishedLevel) {
+              playEffect("win", finishSequence);
+            } else {
+              finishSequence();
+            }
+            return;
+          }
+
+          const stage = stages[stageIndex];
+          stageIndex += 1;
+          stage(() => {
+            if (viewVersion === expectedViewVersion) runNextStage();
+          });
+        };
+
+        runNextStage();
       };
 
       keyAudio.pause();
@@ -2232,7 +2334,9 @@
       audio.onended = null;
       audio.onerror = null;
       playEffect("correct", () => {
-        if (viewVersion === expectedViewVersion) runNextStage();
+        if (viewVersion !== expectedViewVersion) return;
+        if (target.root) showDropERule(target, expectedViewVersion, beginSayAndSpell);
+        else beginSayAndSpell();
       });
     }
 
@@ -2371,12 +2475,11 @@
           <h1>Super Speller!</h1>
           <p class="subtitle">You finished all three levels and spelled every word. That was incredible!</p>
           <div class="stars-earned">All levels mastered</div>
-          <div class="start-levels">${levelButtonsMarkup()}<button class="level-choice-button" data-open-minis><span class="level-choice-number" aria-hidden="true">✦</span><span class="level-choice-copy">Mini Games</span></button></div>
+          <div class="start-levels">${levelButtonsMarkup()}</div>
         </div>
       `;
       burstConfetti(70);
       wireLevelButtons(screen);
-      screen.querySelector("[data-open-minis]")?.addEventListener("click", renderMiniBoard);
     }
 
     function burstConfetti(count) {
@@ -2712,7 +2815,6 @@ function wireMiniDrawing(id, word, draft) {
   repaint();
 }
 
-    document.getElementById("miniGamesButton").addEventListener("click", renderMiniBoard);
     renderStart();
   </script>
 </body>
