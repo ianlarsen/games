@@ -1,219 +1,26 @@
-# Robot Bunny Platformer — Moon Edition (Endless)
+# Robot Bunny
 
-## Phaser Migration Baseline
+The original game remains at index.html, including its upgrades, badges and saved progress. The new Phaser edition lives at engine/index.html and is linked from the original start screen. It uses the original artwork and sounds, with separate best-score storage. It is a playable alternate edition; the original perk/shop systems have not been ported.
 
-The repository now includes a Vite + Phaser migration workspace in [phaser/index.html](phaser/index.html) while the legacy shipped runtime remains in [index.html](index.html).
+## Play locally on Windows
 
-### Commands
+In PowerShell:
 
-1. `npm install`
-2. `npm run dev`
-3. `npm run build`
-4. `npm run preview`
+```powershell
+cd "C:\Users\ianla\Documents\games\robotbunny"
+node serve.mjs
+```
 
-### GitHub Pages
+Open http://localhost:8000/engine/ for Phaser, or http://localhost:8000/ for the original. Node.js is available on this laptop. No npm installation is required to play the committed build. Keep the server running; Ctrl+C stops it.
 
-1. `npm run build` outputs the deployable site to `docs/`.
-2. Configure GitHub Pages to serve from the `main` branch and `/docs`.
-3. `.env.pages` sets `VITE_BASE_PATH=/robotbunny/` so asset URLs resolve correctly on Pages.
-4. If the repository name changes, update `.env.pages`.
+For an iPhone on the same Wi-Fi, find the laptop’s IPv4 address with ipconfig and open http://YOUR-IP:8000/engine/ in Safari. Windows Firewall may need to allow Node.js on your private network. GitHub Pages also works at https://ianlarsen.github.io/games/robotbunny/engine/ without the laptop running.
 
-### Why This Structure
+## Edit and rebuild
 
-1. The current canvas runtime stays available for reference during migration.
-2. Existing `images/` and `sounds/` folders are copied unchanged into the Pages build.
-3. The new Phaser scene can be expanded incrementally without breaking the asset layout used later by iOS packaging.
+Install Node.js 22.12+ (or 20.19+). Then npm ci, npm run dev. Open the address Vite prints. npm run build generates engine/, using relative URLs and the existing ../images/, ../sounds/ and ../biome-config.json. Upload the whole robotbunny folder to static hosting. Existing docs/, experimental src/ and native iOS projects are preserved. Canonical Phaser source is phaser/src/.
 
-## Version 2.0 - Endless Mode Update
+Phaser is pinned to 3.90.0. Arcade Physics runs at 60 fixed steps per second. Controller and enemy/boss simulation run on physics steps; drawing, camera smoothing and visual-only squash run independently. Projectiles have bounded pools and disabled bodies when recycled. Course bounds derive from the generated course, and platforms use one-way collisions. Jump buffering, coyote time, variable jump height, double jump, dash, held fire, boss telegraphs, two boss phases and progressing sectors are included.
 
-Transform from a fixed 3-level platformer into an infinite, self-scaling platformer with dynamic music and procedural generation.
+Keyboard: A/D or arrows move; Space/W/Up jump; X fires; Shift dashes; Escape pauses; Enter starts/resumes/continues. Touch controls support simultaneous fingers with pointer capture. Sound defaults off; toggle it after tapping. Hidden/backgrounded runs pause and release all inputs. Restart is always available, including after losing.
 
-## 🎮 Features
-
-### Endless Progression
-- **Procedural Generation**: Infinite segments with varied chunk types (safe, traversal, challenge, treasure, hazard)
-- **Threat Level Scaling**: Difficulty automatically scales with distance and performance
-- **Dynamic Biomes**: Rotate through 4 unique biomes (Lunar Crater, Low Gravity Zone, Ancient Ruins, Deep Caverns)
-- **Boss Encounters**: Epic boss battles every 6-8 segments with phase-based mechanics
-
-### Meta Progression
-- **Persistent Coins**: Coins now carry between runs, including game-over runs
-- **Looping Progression**: Complete levels, fight bosses, and cycle through 10-level loops
-- **Stat Tracking**: High score and highest level are saved in LocalStorage
-
-### Dynamic Music Engine
-- **Multi-Stem System**: 8 independent audio layers (melody, bass, chords, arp, percussion, FX)
-- **Intensity Mapping**: Music adapts to threat level and combat activity
-- **Biome-Specific Scales**:
-  - Crater: D Dorian
-  - Low G: A Lydian
-  - Ruins: E Phrygian Dominant
-  - Caverns: C Aeolian
-- **Dynamic BPM**: Tempo increases from 92-132 based on intensity
-- **Musical Transitions**: Stingers for key events (hits, boss phases, combo milestones)
-- **Web Audio API**: Precise scheduling with 25ms lookahead
-
-### Advanced Enemy System
-- **Scaled Stats**: Enemy health and speed increase with threat level
-- **Enemy Variety**:
-  - Hopper: Bouncing enemies
-  - Walker: Rolling ground enemies
-  - Flyer: Airborne enemies (TL 3+)
-  - Tank: High health enemies (TL 8+)
-  - Sniper: Ranged enemies (TL 12+)
-
-### Boss System
-- **Phase-Based Combat**: Bosses gain new abilities as they lose health
-- **Multiple Attacks**:
-  - Charge: Rush towards player
-  - Projectile Spread: Fire multiple projectiles
-  - Ground Pound: Area attack (TL 10+)
-- **Scaling Rewards**: Higher threat levels = better boss rewards
-
-## 📁 Architecture
-
-### Current Runtime Build
-- **`index.html`**: Primary shipped game runtime (canvas renderer, loop, input, audio, enemies, bosses)
-- **`boss-system.js`** and **`game.js`**: Experimental modular systems not currently wired into the shipped page
-
-### Configuration Files (JSON)
-
-#### `biome-config.json`
-Defines visual themes and musical characteristics for each biome:
-- Colors (background, platforms, stars)
-- Musical scale and root frequency
-- Scale intervals
-- BPM range
-
-#### `music-patterns.json`
-Defines the music engine configuration:
-- Stem definitions (instruments and their synthesis parameters)
-- Musical patterns (note sequences, rhythms)
-- Intensity layer mappings
-- Stinger definitions
-- FX bus configuration (reverb, compression, sidechain)
-
-#### `level-config.json`
-Defines procedural generation parameters:
-- Segment dimensions and scaling rules
-- Chunk type definitions and transitions
-- Enemy types and spawn rules
-- Powerup configurations
-- Boss mechanics
-- Ability definitions
-- Progression formulas
-
-## 🎹 Controls
-
-### Keyboard
-- **Arrow Keys / A,D**: Move left/right
-- **Space / ↑ / W**: Jump
-- **X**: Shoot laser
-- **Q**: Cycle performance mode (Low / Balanced / High)
-- **ESC**: Pause
-- **R**: Restart (when game over)
-
-### Mobile
-- **Touch Buttons**: On-screen controls for movement, jumping, and shooting
-- **Perf HUD Button**: Tap the performance chip to cycle Low / Balanced / High
-- **Tap Canvas**: Start game, continue after level complete, restart after game over
-
-### Diagnostics
-- **Live FPS Meter**: Displays smoothed frame rate in the HUD to help tune performance mode
-
-## 🔧 How It Works
-
-### Procedural Generation
-1. **Segment Generator** creates new level chunks based on threat level
-2. **Chunk Types** determine platform density, enemy count, and rewards
-3. **Transition Rules** ensure variety while maintaining flow
-4. **Scaling Parameters** increase difficulty organically
-
-### Music System
-1. **Scheduler** uses Web Audio API with 150ms lookahead
-2. **Stems** are independently scheduled based on intensity
-3. **Intensity** calculated from threat level (70%) and combat heat (30%)
-4. **Layers** activate progressively:
-   - Low (0-33%): Bass + Chords
-   - Mid (33-66%): + Melody + Hi-hats
-   - High (66-100%): + Snare + Arp + Kick + FX
-5. **Combo Milestone** (10+) adds counter-melody
-
-### Threat System
-1. **Threat Level** increases by 0.5 per segment completed
-2. **Heat** tracks short-term combat intensity
-3. **Combined Intensity** drives music and visual feedback
-4. **Scaling Formulas** applied to gaps, vertical delta, enemy stats
-
-### Meta Progression
-1. **XP Gains**: Coins (10), Enemies (50), Bosses (500), Segments (100)
-2. **Level Formula**: `baseXP * (level ^ 1.5)` - logarithmic scaling
-3. **Persistent Storage**: LocalStorage saves coins, fragments, abilities, XP
-4. **Ability Unlocks**: Level gates ensure progression curve
-
-## 🚀 Running the Game
-
-### Legacy Runtime
-
-Open `index.html` in a modern web browser.
-
-### Phaser Runtime
-
-1. Install Node.js 20 or newer.
-2. Run `npm install`.
-3. Run `npm run dev` for local development.
-4. Run `npm run build` to generate the GitHub Pages build in `docs/`.
-
-**Requirements**:
-- Modern browser with Canvas and Audio support
-- Web Audio API support
-- LocalStorage enabled
-
-## 📊 Statistics Tracked
-
-- Distance traveled (meters)
-- Enemies defeated
-- Bosses defeated
-- Coins collected
-- Highest combo
-- High score
-- Highest level reached
-
-## 🎨 Biome Themes
-
-### 🌑 Lunar Crater
-Dark, classic moon surface with D Dorian scale. Starting biome with moderate challenge.
-
-### 🎈 Low Gravity Zone
-Lighter atmosphere with extended jump physics. A Lydian scale gives an uplifting feel.
-
-### 🏛️ Ancient Ruins
-Mysterious abandoned structures with E Phrygian Dominant scale for exotic tension.
-
-### 🕳️ Deep Caverns
-Darkest theme with narrow passages. C Aeolian (natural minor) for haunting atmosphere.
-
-## 🔮 Future Enhancements
-
-Potential additions:
-- More ability upgrades
-- Leaderboards
-- Daily challenges
-- Achievement system expansion
-- Additional enemy types
-- Power-up variety
-- Boss attack patterns
-- Multiplayer co-op mode
-
-## 📝 Credits
-
-- **Original Game**: Robot Bunny Platformer — Moon Edition
-- **Endless Mode Design**: Based on modern roguelike progression systems
-- **Music Engine**: Web Audio API with procedural composition
-- **Procedural Generation**: Inspired by Spelunky and Celeste
-
----
-
-**Version**: 2.0.0
-**Last Updated**: 2025-11-06
-**License**: MIT
+Browser limitations: audio requires a user gesture; iOS may suspend it when backgrounded. This is not an offline app or an App Store build. GPU speed, Safari power-saving and thermal limits can still reduce displayed frame rate. Fixed steps keep normal 30/60/120 Hz play consistent, but cannot make a severely stalled browser run at full speed. The original edition now also uses a bounded 60 Hz simulation instead of frame-dependent updates; excess time during long stalls is discarded to avoid a catch-up freeze.

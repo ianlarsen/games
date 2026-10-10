@@ -322,6 +322,7 @@
 <div class="start-screen" id="start-screen">
   <img class="start-logo" src="images/landing-logo.png" alt="Robot Bunny in Space">
   <div class="start-bottom">
+    <a href="engine/" style="color:#7be2ff;font:600 14px system-ui;padding:10px">PLAY PHASER EDITION</a>
     <div class="start-button" id="start-btn" style="display:none;">TAP TO START</div>
     <div id="loading-text">LOADING ASSETS... 0%</div>
     <div class="leaderboard" id="leaderboard">
@@ -1920,7 +1921,7 @@
       playSfx('jump', 0.7);
     }
 
-    if (wantShoot && player.shootCooldown <= 0) {
+    if ((wantShoot || keys.KeyX) && player.shootCooldown <= 0) {
       lasers.push({
         x: player.x + (player.facing > 0 ? player.w : 0),
         y: player.y + player.h / 2 - 2,
@@ -2973,6 +2974,7 @@
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
     if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','KeyB','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
+    if (e.repeat) return;
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     if (gameState === 'gameOver' && e.code === 'KeyU') { openShop(); return; }
@@ -3015,6 +3017,7 @@
     for (const key in keys) keys[key] = false;
     wantShoot = false;
     wantJumpPress = false;
+    accumulator = 0;
   }
   window.addEventListener('blur', clearInputState);
   document.addEventListener('visibilitychange', () => {
@@ -3178,12 +3181,15 @@
 
   // Loop
   let last = performance.now();
+  let accumulator = 0;
+  const fixedStep = 1 / 60;
   function frame(now) {
-    const dt = Math.min(1/30, (now - last)/1000);
+    const rawDt = Math.max(0, (now - last)/1000);
+    const dt = Math.min(0.1, rawDt);
     last = now;
 
     // Smooth FPS to reduce UI flicker while keeping updates responsive.
-    const instantFps = dt > 0 ? (1 / dt) : 60;
+    const instantFps = rawDt > 0 ? (1 / rawDt) : 60;
     smoothedFps += (instantFps - smoothedFps) * 0.08;
     fpsUpdateTimer += dt;
     if (fpsUpdateTimer >= 0.2) {
@@ -3191,7 +3197,10 @@
       fpsUpdateTimer = 0;
     }
 
-    if (gameStarted) update(dt);
+    if (gameStarted && !paused && !document.hidden) {
+      accumulator = Math.min(accumulator + dt, fixedStep * 6);
+      while (accumulator >= fixedStep) { update(fixedStep); accumulator -= fixedStep; }
+    } else { accumulator = 0; }
     draw();
     requestAnimationFrame(frame);
   }
@@ -3206,3 +3215,4 @@
 </script>
 </body>
 </html>
+
