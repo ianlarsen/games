@@ -14,8 +14,8 @@ All 43 original images and 22 sounds are copied into public/images and public/so
 The root index.html is ready to play on GitHub Pages without installing anything.
 easy-mode.js isolates assisted jumps and aiming from the original rendering code.
 
-The future Phaser/Vite edition remains in phaser/src and has a committed playable
-build at engine/index.html. Run npm install, npm test and npm run build to rebuild
+The Phaser/Vite source remains in phaser/src for future development. The easy
+game offers one Start button, opening the original-style mobile game. Run npm install, npm test and npm run build to rebuild
 engine/. Vite development uses npm run dev on port 5174. To test the main original
 edition locally, run node serve.mjs and visit http://localhost:5176/.
 
