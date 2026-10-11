@@ -49,7 +49,7 @@ for (const button of buttons) {
 const game = createGame({ parent: 'game-root', controlState: controls });
 game.sound.mute = true;
 game.sound.pauseOnBlur = false; // Resume only from our visible Resume button.
-const music = new Music(new URL('./sounds/level1.mp3', document.baseURI).href);
+const music = new Music(new URL((import.meta.env.PROD ? '../public/' : './') + 'sounds/level1.mp3', document.baseURI).href);
 function show(title, message, label) {
   el('title').textContent = title; el('message').textContent = message;
   el('play').textContent = label; overlay.hidden = false;

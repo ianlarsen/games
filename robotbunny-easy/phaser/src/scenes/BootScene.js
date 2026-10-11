@@ -3,7 +3,7 @@ import biomeConfig from '../../../biome-config.json';
 export class BootScene extends Phaser.Scene {
  constructor(){super('boot');}
  preload(){
-  const base=new URL('./',document.baseURI).href;
+  const base=new URL(import.meta.env.PROD ? '../public/' : './',document.baseURI).href;
   this.load.setBaseURL(base);
   for(const [key,file] of Object.entries({background:'moon-background',player:'robotbunny',ground:'ground',platform:'platform',coin:'coin',hopper:'hopper',flyer:'flyer',boss:'squid'})) this.load.image(key,'images/'+file+'.png');
   // Compiled into the script, so the bundled app needs no file:// JSON request.
