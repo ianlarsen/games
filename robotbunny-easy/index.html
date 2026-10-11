@@ -384,6 +384,7 @@
 </div>
 
 <script src="easy-mode.js"></script>
+<script src="visuals.js"></script>
 <script>
 (() => {
   const canvas = document.getElementById('game');
@@ -513,6 +514,8 @@
 
   // Placeholder for test hopper insertion flag (not used in final version).
 
+  const imageLoader = RobotBunnyVisuals.createImageLoader({ assets, sources: imageSources });
+  const backgroundRenderer = RobotBunnyVisuals.createBackgroundRenderer();
   const initialImageSources = Object.entries(imageSources).filter(([key]) => !/^bg(?:[2-9]|10)$/.test(key));
   let assetsToLoad = initialImageSources.length + Object.keys(sfxSources).length;
   let assetsLoaded = 0;
@@ -535,11 +538,7 @@
   function loadAssets() {
     // Images
     for (const [key, src] of initialImageSources) {
-      const img = new Image();
-      img.onload = assetLoaded;
-      img.onerror = () => { console.error('Failed to load image:', src); assetLoaded(); };
-      assets[key] = img;
-      img.src = src;
+      imageLoader.load(key).then(assetLoaded).catch(error => { console.error(error.message); assetLoaded(); });
     }
     // Future music tracks do not compete with images or delay the start button.
     for (const [key, src] of Object.entries(musicSources)) {
@@ -564,17 +563,15 @@
 
   function loadLevelBackground(level) {
     const key = 'bg' + level;
-    if (!imageSources[key] || assets[key]) return;
-    for (const oldKey of Object.keys(assets)) {
-      if (/^bg(?:[2-9]|10)$/.test(oldKey) && oldKey !== key) {
-        const oldImage = assets[oldKey]; oldImage.onload = null; oldImage.onerror = null;
-        oldImage.src = ''; delete assets[oldKey];
+    if (!imageSources[key]) return;
+    // Request current artwork with bounded retries. Out-of-date responses cannot
+    // overwrite the current background; drawing always chooses by current level.
+    imageLoader.load(key).then(() => {
+      if (level === currentLevel) backgroundRenderer.clearCache();
+      for (const oldKey of Object.keys(assets)) {
+        if (/^bg(?:[2-9]|10)$/.test(oldKey) && oldKey !== 'bg' + currentLevel) delete assets[oldKey];
       }
-    }
-    const image = new Image();
-    image.onload = () => { _bgCacheKey = ''; };
-    image.onerror = () => console.warn('Background unavailable:', key);
-    assets[key] = image; image.src = imageSources[key];
+    }).catch(error => console.warn(error.message));
   }
 
   function fit() {
@@ -2368,38 +2365,12 @@
   // ============ DRAWING ============
   function draw() {
     ctx.imageSmoothingEnabled = false;
+    // Draw the entire viewport before applying shake to foreground objects.
+    // During a slow level transition use a neutral clear, never the moon texture.
+    const bgAsset = assets['bg' + currentLevel];
+    backgroundRenderer.draw(ctx, bgAsset, canvas.width, canvas.height, camera.x * .2);
     ctx.save();
     ctx.translate(shake.x, shake.y);
-
-    // Parallax BG - choose background based on current level. If a specific
-    // background asset for the level exists and is loaded, use it; otherwise
-    // fall back to the default bg.
-    let bgAsset = assets.bg;
-    const bgKey = 'bg' + currentLevel;
-    if (assets[bgKey] && assets[bgKey].complete && assets[bgKey].naturalWidth > 0) {
-      bgAsset = assets[bgKey];
-    }
-    if (bgAsset && bgAsset.naturalWidth > 0) {
-      // Recompute scale only when asset changes (not every frame)
-      const bgKey = 'bg' + currentLevel;
-      if (bgKey !== _bgCacheKey || _bgScaledW === 0) {
-        const bgW = bgAsset.naturalWidth;
-        const bgH = bgAsset.naturalHeight;
-        const scale = Math.max(canvas.width / bgW, canvas.height / bgH);
-        _bgScaledW = bgW * scale;
-        _bgScaledH = bgH * scale;
-        _bgDy      = (canvas.height - _bgScaledH) / 2;
-        _bgCacheKey = bgKey;
-      }
-      const totalScroll = camera.x * 0.2;
-      const offset = ((totalScroll % _bgScaledW) + _bgScaledW) % _bgScaledW;
-      for (let tx = -offset; tx < canvas.width; tx += _bgScaledW) {
-        ctx.drawImage(bgAsset, tx, _bgDy, _bgScaledW, _bgScaledH);
-      }
-    } else {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
 
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -2684,8 +2655,7 @@
       // Draw the boss sprite (or fallback rectangle). Apply hit-flash transparency if necessary.
       ctx.save();
       if (boss.hitFlash > 0) ctx.globalAlpha = 0.5 + Math.sin(time * 50) * 0.5;
-      let imgKey = boss.bossType;
-      if (boss.variation !== 'plain' && boss.bossType !== 'chimiera') imgKey += '_' + boss.variation;
+      const imgKey = RobotBunnyVisuals.bossImageKey(boss.bossType, boss.variation);
       if (assets[imgKey] && assets[imgKey].complete && assets[imgKey].naturalWidth > 0) {
         ctx.drawImage(assets[imgKey], boss.x, boss.y, boss.w, boss.h);
       } else {
@@ -3169,7 +3139,7 @@
   let _lastHudPerks = ''; // cache to avoid rebuilding perk string every frame
 
   // ---- Background scale cache (recalculated only when bg image changes) ----
-  let _bgCacheKey = ''; let _bgScaledW = 0; let _bgScaledH = 0; let _bgDy = 0;
+
 
   const perfToggle = document.getElementById('perf-toggle');
   if (perfToggle) {

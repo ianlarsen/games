@@ -18,3 +18,8 @@ The future Phaser/Vite edition remains in phaser/src and has a committed playabl
 build at engine/index.html. Run npm install, npm test and npm run build to rebuild
 engine/. Vite development uses npm run dev on port 5174. To test the main original
 edition locally, run node serve.mjs and visit http://localhost:5176/.
+
+Backgrounds use opaque cached tiles with blended repeat edges, cover the game
+viewport, and clear before foreground shake. Image requests retry twice. Spiked
+bosses use the original armor_spike artwork. Only current planet textures remain
+in memory after level transitions.
