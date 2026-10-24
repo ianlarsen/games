@@ -8,3 +8,10 @@
 - Original screenshot contents manually reviewed. Ambiguous GABA cell excluded; scientific clarifications documented in SOURCES.md. Screenshots and learner progress are not published.
 
 Still requires real-device verification: iOS/Android installation, touchscreen use on physical phones, and screen-reader reading. Cross-tab atomicity and actual backup file-picker round trips were not re-exercised for this release; the inherited storage logic has unit-level validation.
+
+## Nervous-system content and blank diagrams — version 1.1.0
+
+- 36 regression tests and all 84 content records pass, including diagram parentage, reflex ordering, all-blank scoring, partial-draft backup/resume, feedback labels, assistance eligibility, and preservation of earlier progress when adding objectives.
+- Computer Use in Chrome verified all six labels initially blank, partial tree selection saved across pause/reload/resume, completed-tree labels after reveal, all five reflex selections submitted correctly with one qualifying success, and readable nested branches at 400 px width.
+- Added 24 source-mapped objectives from the two new screenshots. Both diagrams are original schematics; original scans are not uploaded.
+- Main remains unchanged at the user’s request; this update stays in PR #1.

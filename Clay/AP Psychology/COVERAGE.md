@@ -1,6 +1,6 @@
 # Source coverage
 
-All 60 objectives map to the visible supplied screenshots. Supplementary scientific clarifications are documented in SOURCES.md. The unclear GABA problem cell and unverified cortex measurements are intentionally not assessed.
+All objectives map to visible content in the six supplied screenshots. Scientific clarifications are documented in SOURCES.md. The unclear GABA problem cell and unverified cortex measurements are intentionally not assessed. Diagram questions use original schematics and the existing matching/mastery rules.
 
 ### psy-genes — Foundations
 
@@ -485,3 +485,195 @@ Compare endorphins, substance P, and gate control theory.
 - Image 10-24-26 at 6.28 PM.jpeg · screenshot 3 · Synaptic gap, gate control, and pain
 
 Basis: source.
+
+### psy-pns — Nervous system
+
+Which division includes nerves outside the brain and spinal cord?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-somatic-lifting — Nervous system
+
+You voluntarily lift weights. Which PNS division carries the commands to your skeletal muscles?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-sympathetic-test — Nervous system
+
+You feel nervous before a test and your heart beats faster. Which division is most directly responsible?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-glia — Nervous system
+
+Which cells provide support, nourishment, protection, and maintenance for neurons?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-autonomic — Nervous system
+
+Which PNS division generally regulates internal organs without conscious decision-making?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-parasympathetic — Nervous system
+
+Which autonomic division supports rest and digestion?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-pns-divisions — Nervous system
+
+Which pair represents the two major divisions of the PNS shown in the chart?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-autonomic-divisions — Nervous system
+
+Which pair branches from the autonomic nervous system?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-sympathetic-digestion — Nervous system
+
+During fight-or-flight activation, which pattern matches the chart?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-afferent — Nervous system
+
+What term describes sensory neurons carrying signals toward the CNS?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-efferent — Nervous system
+
+What term describes motor neurons carrying commands away from the CNS?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-interneurons — Nervous system
+
+Which neurons connect other neurons within the CNS?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-schwann — Nervous system
+
+Which PNS support cells form myelin around axons?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-schwann-repair — Nervous system
+
+Besides making myelin, what role does the table assign to Schwann cells?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-glia-contrast — Nervous system
+
+Which statement best distinguishes glial cells from neurons in this study material?
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: source.
+
+### psy-effector — Nervous system
+
+In a withdrawal reflex, which structure produces the physical movement?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-reflex-receptor — Nervous system
+
+When your hand touches a hot surface, what detects the potentially damaging stimulus first?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-reflex-integration — Nervous system
+
+In the illustrated withdrawal reflex, where does an interneuron connect sensory input to motor output?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-reflex-response — Nervous system
+
+After the motor neuron activates the muscle in this reflex, what physical response follows?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-reflex-awareness — Nervous system
+
+Why can you withdraw your hand before consciously recognizing the pain?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: synthesis.
+
+### psy-toe-sensory — Nervous system
+
+You stub your toe. Which type of neuron carries the sensory message toward the spinal cord and brain?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: source.
+
+### psy-reflex-order — Nervous system
+
+Which sequence correctly traces the core withdrawal-reflex pathway?
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: synthesis.
+
+### psy-system-diagram — Nervous system
+
+Fill the six blank labels in the nervous-system tree.
+
+- Screenshot 2026-10-24 at 7.19.08 PM.png · screenshot 6 · Sending Messages chart and cell table
+
+Basis: synthesis.
+
+### psy-reflex-diagram — Nervous system
+
+Complete the reflex pathway, from touching a hot surface to withdrawing your hand.
+
+- Screenshot 2026-10-24 at 7.16.30 PM.png · screenshot 5 · Reflex worksheet
+
+Basis: synthesis.

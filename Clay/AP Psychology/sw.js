@@ -1,5 +1,5 @@
-const VERSION='clay-psychology-1.0.2';
-const ASSETS=['./','./index.html','./styles.css','./data/unit.json','./js/ui.js','./js/engine.js','./js/grading.js','./js/storage.js','./js/achievements.js','./js/audio.js','./js/map.js','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
+const VERSION='clay-psychology-1.1.0';
+const ASSETS=['./','./index.html','./styles.css','./data/unit.json','./js/ui.js','./js/engine.js','./js/grading.js','./js/storage.js','./js/achievements.js','./js/audio.js','./js/map.js','./js/diagrams.js','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(VERSION).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')self.skipWaiting();});
 self.addEventListener('activate',event=>event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('clay-psychology-')&&k!==VERSION).map(k=>caches.delete(k)))),self.clients.claim()])));

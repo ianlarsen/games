@@ -27,3 +27,5 @@ For `written`, provide `rubric` with explicit criteria and a model in `correct`.
 Run `node tests/validate.js` after imports and source review. The validator rejects duplicate IDs, unknown topics/sources, missing locators and keys, invalid choices, missing rubrics and non-working accepted answers, and requires a coverage mapping for every question. A new unit may change the expected count in the validator. Manually check historical claims, ambiguity, respectful language and distractor quality.
 
 Progress schema 1 is described by `blankState()` and `validateImport()` in `js/engine.js` and `js/storage.js`. The export includes settings, question progress, full attempt history, encounters, pending session, issues, achievements, reward caps, and clock/spacing safeguards. Imports are a deliberate replacement, not a silent merge.
+
+Optional `diagram` on a `match` question is `nervous-system` or `reflex-arc`. The layout keys in js/diagrams.js must match the answer-map keys. Drafts, options, scoring, and mastery use the existing matching contract. Correct labels appear in diagram feedback only after completion.

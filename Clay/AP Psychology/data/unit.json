@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "unit": {
     "id": "psy-unit1",
     "title": "AP Psychology · Brain, sleep & sensation",
@@ -11,19 +11,23 @@
     "Image 10-24-26 at 6.27 PM.jpeg",
     "Image 10-24-26 at 6.28 PM (1).jpeg",
     "Image 10-24-26 at 6.28 PM.jpeg",
-    "Image 10-24-26 at 6.29 PM.jpeg"
+    "Image 10-24-26 at 6.29 PM.jpeg",
+    "Screenshot 2026-10-24 at 7.16.30 PM.png",
+    "Screenshot 2026-10-24 at 7.19.08 PM.png"
   ],
   "topics": [
     "Foundations",
     "Brain & sleep",
     "Sensation",
-    "Neurotransmitters"
+    "Neurotransmitters",
+    "Nervous system"
   ],
   "summaries": {
     "Foundations": "Genes can influence the likelihood of traits without guaranteeing them. Neurons communicate using chemical messengers at synapses. The central nervous system contains the brain and spinal cord. Endocrine glands release hormones; the hypothalamus helps regulate endocrine activity.",
     "Brain & sleep": "The cerebral cortex is the folded outer layer of the cerebrum. The hemispheres generally receive information from, and control movement on, opposite sides of the body. Circadian rhythms follow an approximately 24-hour pattern. REM combines rapid eye movements with active brain activity and normally reduced skeletal muscle tone.",
     "Sensation": "Transduction converts sensory energy into neural signals. Trichromatic theory concerns three cone types; opponent processing concerns opposing color channels. Place theory links pitch to the location of activity along the cochlea. Conductive hearing loss concerns sound transmission; sensorineural loss concerns inner-ear or auditory-nerve damage. Gate control concerns modulation of pain signals. Taste receptor cells occur in taste buds, many of which are in tongue papillae.",
-    "Neurotransmitters": "Learn the eight messengers in the supplied table by function, then compare the pairs that are easy to confuse. Disease links in the screenshot are study associations, not one-chemical explanations of disorders. The GABA problem cell is unclear and is not assessed; its inhibitory function is assessed."
+    "Neurotransmitters": "Learn the eight messengers in the supplied table by function, then compare the pairs that are easy to confuse. Disease links in the screenshot are study associations, not one-chemical explanations of disorders. The GABA problem cell is unclear and is not assessed; its inhibitory function is assessed.",
+    "Nervous system": "The CNS contains the brain and spinal cord; the PNS includes nerves outside them. The PNS divides into somatic and autonomic systems. Somatic pathways control skeletal muscles; autonomic pathways regulate internal organs and glands. Sympathetic activity supports fight-or-flight responses, while parasympathetic activity supports rest and digestion. Sensory (afferent) neurons carry signals toward the CNS, motor (efferent) neurons carry them away, and interneurons connect neurons within the CNS. Glia support neurons; Schwann cells form myelin around PNS axons and aid repair. A withdrawal reflex can be integrated in the spinal cord before conscious awareness."
   },
   "terms": {
     "Dopamine": "Motor movement and alertness. Low activity is associated with Parkinson’s disease; excess dopamine activity in some pathways is associated with schizophrenia.",
@@ -52,7 +56,19 @@
     "Conductive hearing loss": "Impaired mechanical transmission of sound.",
     "Sensorineural hearing loss": "Damage involving the inner ear or auditory nerve.",
     "Gate control theory": "Pain transmission is modulated by neural gating.",
-    "Papillae": "Tongue bumps that can contain taste buds."
+    "Papillae": "Tongue bumps that can contain taste buds.",
+    "PNS": "Peripheral nervous system: nerves outside the brain and spinal cord.",
+    "Somatic nervous system": "PNS division involved in voluntary skeletal-muscle control.",
+    "Autonomic nervous system": "PNS division regulating internal organs and glands.",
+    "Sympathetic nervous system": "Autonomic branch supporting fight or flight.",
+    "Parasympathetic nervous system": "Autonomic branch supporting rest and digestion.",
+    "Glial cells": "Cells that support, nourish, protect, and maintain neurons.",
+    "Schwann cells": "PNS glia that form myelin and aid axon repair.",
+    "Sensory (afferent) neurons": "Carry sensory input toward the CNS.",
+    "Motor (efferent) neurons": "Carry output away from the CNS to effectors.",
+    "Interneurons": "Connect neurons within the CNS.",
+    "Effector": "A muscle or gland responding to motor output.",
+    "Withdrawal reflex": "A rapid protective response that can be integrated in the spinal cord."
   },
   "questions": [
     {
@@ -2090,6 +2106,770 @@
         "Connect substance P with pain perception.",
         "Describe a gate as modulating pain transmission."
       ]
+    },
+    {
+      "id": "psy-pns",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which division includes nerves outside the brain and spinal cord?",
+      "prompt": "Which division includes nerves outside the brain and spinal cord?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Peripheral nervous system",
+      "explanation": "The PNS includes nerves outside the CNS.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "peripheral nervous system",
+        "PNS",
+        "the peripheral nervous system"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-somatic-lifting",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "You voluntarily lift weights. Which PNS division carries the commands to your skeletal muscles?",
+      "prompt": "You voluntarily lift weights. Which PNS division carries the commands to your skeletal muscles?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Somatic nervous system",
+      "explanation": "Voluntary skeletal-muscle control is a function of the somatic division.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Somatic nervous system",
+        "Autonomic nervous system",
+        "Parasympathetic nervous system",
+        "Central nervous system only"
+      ],
+      "distractorFeedback": {
+        "Autonomic nervous system": "Voluntary skeletal-muscle control is a function of the somatic division.",
+        "Parasympathetic nervous system": "Voluntary skeletal-muscle control is a function of the somatic division.",
+        "Central nervous system only": "Voluntary skeletal-muscle control is a function of the somatic division."
+      }
+    },
+    {
+      "id": "psy-sympathetic-test",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "You feel nervous before a test and your heart beats faster. Which division is most directly responsible?",
+      "prompt": "You feel nervous before a test and your heart beats faster. Which division is most directly responsible?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sympathetic nervous system",
+      "explanation": "Sympathetic activity prepares the body for action and increases heart rate.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sympathetic nervous system",
+        "Parasympathetic nervous system",
+        "Somatic nervous system",
+        "Sensory neuron"
+      ],
+      "distractorFeedback": {
+        "Parasympathetic nervous system": "Sympathetic activity prepares the body for action and increases heart rate.",
+        "Somatic nervous system": "Sympathetic activity prepares the body for action and increases heart rate.",
+        "Sensory neuron": "Sympathetic activity prepares the body for action and increases heart rate."
+      }
+    },
+    {
+      "id": "psy-glia",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which cells provide support, nourishment, protection, and maintenance for neurons?",
+      "prompt": "Which cells provide support, nourishment, protection, and maintenance for neurons?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Glial cells",
+      "explanation": "Glial cells support neurons. The worksheet’s wording is simplified: glia are not merely passive feeding cells.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "glial cells",
+        "glia",
+        "glial cell",
+        "neuroglia"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-autonomic",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which PNS division generally regulates internal organs without conscious decision-making?",
+      "prompt": "Which PNS division generally regulates internal organs without conscious decision-making?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Autonomic nervous system",
+      "explanation": "Autonomic pathways regulate automatic functions of organs and glands.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Autonomic nervous system",
+        "Somatic nervous system",
+        "Sensory neurons only",
+        "Schwann cells"
+      ],
+      "distractorFeedback": {
+        "Somatic nervous system": "Autonomic pathways regulate automatic functions of organs and glands.",
+        "Sensory neurons only": "Autonomic pathways regulate automatic functions of organs and glands.",
+        "Schwann cells": "Autonomic pathways regulate automatic functions of organs and glands."
+      }
+    },
+    {
+      "id": "psy-parasympathetic",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which autonomic division supports rest and digestion?",
+      "prompt": "Which autonomic division supports rest and digestion?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Parasympathetic nervous system",
+      "explanation": "Parasympathetic activity supports digestion and can slow heart rate.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Parasympathetic nervous system",
+        "Sympathetic nervous system",
+        "Somatic nervous system",
+        "Peripheral nervous system as a whole"
+      ],
+      "distractorFeedback": {
+        "Sympathetic nervous system": "Parasympathetic activity supports digestion and can slow heart rate.",
+        "Somatic nervous system": "Parasympathetic activity supports digestion and can slow heart rate.",
+        "Peripheral nervous system as a whole": "Parasympathetic activity supports digestion and can slow heart rate."
+      }
+    },
+    {
+      "id": "psy-pns-divisions",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which pair represents the two major divisions of the PNS shown in the chart?",
+      "prompt": "Which pair represents the two major divisions of the PNS shown in the chart?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Somatic and autonomic",
+      "explanation": "The chart divides the PNS into somatic and autonomic systems.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Somatic and autonomic",
+        "Sympathetic and central",
+        "Brain and spinal cord",
+        "Sensory and Schwann cells"
+      ],
+      "distractorFeedback": {
+        "Sympathetic and central": "The chart divides the PNS into somatic and autonomic systems.",
+        "Brain and spinal cord": "The chart divides the PNS into somatic and autonomic systems.",
+        "Sensory and Schwann cells": "The chart divides the PNS into somatic and autonomic systems."
+      }
+    },
+    {
+      "id": "psy-autonomic-divisions",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which pair branches from the autonomic nervous system?",
+      "prompt": "Which pair branches from the autonomic nervous system?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sympathetic and parasympathetic",
+      "explanation": "Sympathetic and parasympathetic are the chart’s two autonomic branches.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sympathetic and parasympathetic",
+        "Central and peripheral",
+        "Brain and spinal cord",
+        "Somatic and sensory"
+      ],
+      "distractorFeedback": {
+        "Central and peripheral": "Sympathetic and parasympathetic are the chart’s two autonomic branches.",
+        "Brain and spinal cord": "Sympathetic and parasympathetic are the chart’s two autonomic branches.",
+        "Somatic and sensory": "Sympathetic and parasympathetic are the chart’s two autonomic branches."
+      }
+    },
+    {
+      "id": "psy-sympathetic-digestion",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "During fight-or-flight activation, which pattern matches the chart?",
+      "prompt": "During fight-or-flight activation, which pattern matches the chart?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Faster heart rate and reduced digestive activity",
+      "explanation": "Sympathetic activation redirects resources toward rapid action rather than digestion.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Faster heart rate and reduced digestive activity",
+        "Slower heart rate and increased digestion",
+        "No change to internal organs",
+        "Voluntary movement stops completely"
+      ],
+      "distractorFeedback": {
+        "Slower heart rate and increased digestion": "Sympathetic activation redirects resources toward rapid action rather than digestion.",
+        "No change to internal organs": "Sympathetic activation redirects resources toward rapid action rather than digestion.",
+        "Voluntary movement stops completely": "Sympathetic activation redirects resources toward rapid action rather than digestion."
+      }
+    },
+    {
+      "id": "psy-afferent",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "What term describes sensory neurons carrying signals toward the CNS?",
+      "prompt": "What term describes sensory neurons carrying signals toward the CNS?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Afferent neurons",
+      "explanation": "Afferent means toward the CNS; sensory input arrives there.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "afferent",
+        "afferent neuron",
+        "afferent neurons",
+        "sensory neuron",
+        "sensory neurons"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-efferent",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "What term describes motor neurons carrying commands away from the CNS?",
+      "prompt": "What term describes motor neurons carrying commands away from the CNS?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Efferent neurons",
+      "explanation": "Efferent means away from the CNS, toward effectors.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "efferent",
+        "efferent neuron",
+        "efferent neurons",
+        "motor neuron",
+        "motor neurons"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-interneurons",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which neurons connect other neurons within the CNS?",
+      "prompt": "Which neurons connect other neurons within the CNS?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Interneurons",
+      "explanation": "Interneurons connect neurons and participate in CNS processing, including reflex circuits.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "interneuron",
+        "interneurons",
+        "inter neuron"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-schwann",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which PNS support cells form myelin around axons?",
+      "prompt": "Which PNS support cells form myelin around axons?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Schwann cells",
+      "explanation": "Schwann cells are PNS glia that form myelin around axons.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "Schwann cells",
+        "Schwann cell",
+        "Schwann"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-schwann-repair",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Besides making myelin, what role does the table assign to Schwann cells?",
+      "prompt": "Besides making myelin, what role does the table assign to Schwann cells?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Clearing debris and guiding PNS axon regrowth",
+      "explanation": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Clearing debris and guiding PNS axon regrowth",
+        "Producing all sensory input",
+        "Controlling voluntary decisions",
+        "Replacing the entire spinal cord"
+      ],
+      "distractorFeedback": {
+        "Producing all sensory input": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible.",
+        "Controlling voluntary decisions": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible.",
+        "Replacing the entire spinal cord": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible."
+      }
+    },
+    {
+      "id": "psy-glia-contrast",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which statement best distinguishes glial cells from neurons in this study material?",
+      "prompt": "Which statement best distinguishes glial cells from neurons in this study material?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Glia support and maintain neurons; neurons carry the main nerve impulses.",
+      "explanation": "Learn the main support role of glia without treating them as biologically inactive.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Glia support and maintain neurons; neurons carry the main nerve impulses.",
+        "Glia are all motor neurons.",
+        "Glia have no role in nervous-system function.",
+        "Neurons only supply nutrition."
+      ],
+      "distractorFeedback": {
+        "Glia are all motor neurons.": "Learn the main support role of glia without treating them as biologically inactive.",
+        "Glia have no role in nervous-system function.": "Learn the main support role of glia without treating them as biologically inactive.",
+        "Neurons only supply nutrition.": "Learn the main support role of glia without treating them as biologically inactive."
+      }
+    },
+    {
+      "id": "psy-effector",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "In a withdrawal reflex, which structure produces the physical movement?",
+      "prompt": "In a withdrawal reflex, which structure produces the physical movement?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "A skeletal muscle acting as an effector",
+      "explanation": "Motor output activates an effector muscle, which contracts to move the limb.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "A skeletal muscle acting as an effector",
+        "The hot surface",
+        "A skin receptor alone",
+        "A sensory neuron alone"
+      ],
+      "distractorFeedback": {
+        "The hot surface": "Motor output activates an effector muscle, which contracts to move the limb.",
+        "A skin receptor alone": "Motor output activates an effector muscle, which contracts to move the limb.",
+        "A sensory neuron alone": "Motor output activates an effector muscle, which contracts to move the limb."
+      }
+    },
+    {
+      "id": "psy-reflex-receptor",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "When your hand touches a hot surface, what detects the potentially damaging stimulus first?",
+      "prompt": "When your hand touches a hot surface, what detects the potentially damaging stimulus first?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sensory receptors in the skin",
+      "explanation": "Skin receptors detect the stimulus and initiate sensory input.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sensory receptors in the skin",
+        "The contracting muscle",
+        "The parasympathetic division",
+        "A Schwann cell in place of a receptor"
+      ],
+      "distractorFeedback": {
+        "The contracting muscle": "Skin receptors detect the stimulus and initiate sensory input.",
+        "The parasympathetic division": "Skin receptors detect the stimulus and initiate sensory input.",
+        "A Schwann cell in place of a receptor": "Skin receptors detect the stimulus and initiate sensory input."
+      }
+    },
+    {
+      "id": "psy-reflex-integration",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "In the illustrated withdrawal reflex, where does an interneuron connect sensory input to motor output?",
+      "prompt": "In the illustrated withdrawal reflex, where does an interneuron connect sensory input to motor output?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Spinal cord",
+      "explanation": "This withdrawal reflex is integrated through a spinal-cord circuit.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Spinal cord",
+        "The hot surface",
+        "The tongue",
+        "An endocrine gland"
+      ],
+      "distractorFeedback": {
+        "The hot surface": "This withdrawal reflex is integrated through a spinal-cord circuit.",
+        "The tongue": "This withdrawal reflex is integrated through a spinal-cord circuit.",
+        "An endocrine gland": "This withdrawal reflex is integrated through a spinal-cord circuit."
+      }
+    },
+    {
+      "id": "psy-reflex-response",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "After the motor neuron activates the muscle in this reflex, what physical response follows?",
+      "prompt": "After the motor neuron activates the muscle in this reflex, what physical response follows?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "The hand withdraws from the hot surface.",
+      "explanation": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "The hand withdraws from the hot surface.",
+        "The receptor becomes a gland.",
+        "The spinal cord leaves the CNS.",
+        "The hand must remain on the surface."
+      ],
+      "distractorFeedback": {
+        "The receptor becomes a gland.": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement.",
+        "The spinal cord leaves the CNS.": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement.",
+        "The hand must remain on the surface.": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement."
+      }
+    },
+    {
+      "id": "psy-reflex-awareness",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Why can you withdraw your hand before consciously recognizing the pain?",
+      "prompt": "Why can you withdraw your hand before consciously recognizing the pain?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "A spinal reflex circuit can initiate withdrawal before conscious awareness.",
+      "explanation": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "choices": [
+        "A spinal reflex circuit can initiate withdrawal before conscious awareness.",
+        "The brain never receives sensory information.",
+        "Motor neurons send signals only toward the CNS.",
+        "Pain requires no receptors."
+      ],
+      "distractorFeedback": {
+        "The brain never receives sensory information.": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness.",
+        "Motor neurons send signals only toward the CNS.": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness.",
+        "Pain requires no receptors.": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness."
+      }
+    },
+    {
+      "id": "psy-toe-sensory",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "You stub your toe. Which type of neuron carries the sensory message toward the spinal cord and brain?",
+      "prompt": "You stub your toe. Which type of neuron carries the sensory message toward the spinal cord and brain?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sensory (afferent) neuron",
+      "explanation": "Sensory afferent neurons carry input toward the CNS.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sensory (afferent) neuron",
+        "Motor (efferent) neuron",
+        "Schwann cell",
+        "Glial cell only"
+      ],
+      "distractorFeedback": {
+        "Motor (efferent) neuron": "Sensory afferent neurons carry input toward the CNS.",
+        "Schwann cell": "Sensory afferent neurons carry input toward the CNS.",
+        "Glial cell only": "Sensory afferent neurons carry input toward the CNS."
+      }
+    },
+    {
+      "id": "psy-reflex-order",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Which sequence correctly traces the core withdrawal-reflex pathway?",
+      "prompt": "Which sequence correctly traces the core withdrawal-reflex pathway?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Receptor → sensory neuron → spinal interneuron → motor neuron → muscle",
+      "explanation": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "choices": [
+        "Receptor → sensory neuron → spinal interneuron → motor neuron → muscle",
+        "Muscle → motor neuron → receptor → sensory neuron",
+        "Receptor → motor neuron → sensory neuron → muscle",
+        "Brain decision → hot surface → Schwann cell → muscle"
+      ],
+      "distractorFeedback": {
+        "Muscle → motor neuron → receptor → sensory neuron": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector.",
+        "Receptor → motor neuron → sensory neuron → muscle": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector.",
+        "Brain decision → hot surface → Schwann cell → muscle": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector."
+      }
+    },
+    {
+      "id": "psy-system-diagram",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Fill the six blank labels in the nervous-system tree.",
+      "prompt": "Fill the six blank labels in the nervous-system tree.",
+      "difficulty": 2,
+      "format": "match",
+      "correct": {
+        "A": "Central nervous system (CNS)",
+        "B": "Peripheral nervous system (PNS)",
+        "C": "Autonomic nervous system",
+        "D": "Somatic nervous system",
+        "E": "Sympathetic nervous system",
+        "F": "Parasympathetic nervous system"
+      },
+      "explanation": "Nervous system → CNS and PNS. PNS → autonomic and somatic. Autonomic → sympathetic and parasympathetic. Use the branching structure and function clues together.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "diagram": "nervous-system"
+    },
+    {
+      "id": "psy-reflex-diagram",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Complete the reflex pathway, from touching a hot surface to withdrawing your hand.",
+      "prompt": "Complete the reflex pathway, from touching a hot surface to withdrawing your hand.",
+      "difficulty": 2,
+      "format": "match",
+      "correct": {
+        "A": "Skin receptors",
+        "B": "Sensory (afferent) neuron",
+        "C": "Interneuron in the spinal cord",
+        "D": "Motor (efferent) neuron",
+        "E": "Effector muscle"
+      },
+      "explanation": "Heat/pain receptors → sensory input toward the spinal cord → spinal interneuron → motor output away from the cord → effector muscle contracts → hand withdraws. Brain awareness can follow the initial spinal response.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "diagram": "reflex-arc"
     }
   ]
 }

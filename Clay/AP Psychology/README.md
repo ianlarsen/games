@@ -1,6 +1,6 @@
 # Clay’s Psychology Lab
 
-AP Psychology study practice for the **October 28, 2026** test, with America/New_York study days. Built from the visible content of four supplied screenshots. Includes 60 stable objectives: 57 automatically graded and three self-assessed explanations, across four topics. This does not claim full AP Unit 1 coverage.
+AP Psychology study practice for the **October 28, 2026** test, with America/New_York study days. Built from the visible content of six supplied screenshots. Includes 84 stable objectives: 81 automatically graded and three self-assessed explanations, across five topics. This does not claim full AP Unit 1 coverage.
 
 Live URL after deployment: https://ianlarsen.github.io/games/Clay/AP%20Psychology/
 
@@ -13,3 +13,7 @@ Mastery requires three consecutive unassisted first-try successes on separate st
 Progress is stored locally in a separate `clay-psychology-v1` IndexedDB database. It does not synchronize across devices or affect World History progress. Export/import from Settings to back up or move progress. Sound is off by default. Light/dark themes follow system settings unless changed. Offline use works after a successful online load. Install support depends on the browser. Service-worker cache names are isolated from World History; updates wait until a saved session is complete.
 
 Publish app files only. Do not upload original screenshots, private learner data, or QA artifacts. Increment the cache version when changing runtime files. Original Study Atlas engine and layout are adapted from the adjacent AP World History app. New content uses stable `psy-` IDs and compatible versioned content records; semantic answer changes require a question version increment.
+
+## Blank diagrams
+
+Practice → Practice blank diagrams opens a six-blank nervous-system tree and a five-blank withdrawal-reflex pathway. Labels begin empty, offer a shuffled answer bank, and save each selection. Function clues and branching/order show where labels belong. Submit to see the correct labels and which positions need review; every blank must be correct for mastery. Hints/reveals make the encounter assisted. Nested connector lines preserve parent-child relationships on narrow screens. Both diagrams are included in matching and comprehensive practice.

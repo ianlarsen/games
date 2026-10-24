@@ -77,6 +77,7 @@ export function plan(s,content,now){
 export function selectQuestions(s,content,now,mode,count,topic='all'){
  const all=content.questions.filter(q=>!excluded(s,q.id)&&(topic==='all'||q.topic===topic));
  if(mode==='trouble')return all.filter(q=>trouble(s.progress[q.id])||s.progress[q.id].hintCount>=2).sort((a,b)=>s.progress[b.id].misses-s.progress[a.id].misses).slice(0,count);
+ if(mode==='diagrams')return all.filter(q=>q.diagram).slice(0,count);
  if(mode==='matching')return shuffle(all.filter(q=>q.format==='match')).slice(0,count);
  if(mode==='recall')return shuffle(all.filter(q=>q.format==='recall')).slice(0,count);
  if(mode==='written')return shuffle(all.filter(q=>q.format==='written')).slice(0,count);

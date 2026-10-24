@@ -17,3 +17,9 @@ Questions and notes are original paraphrases. Screenshots and personal browser d
 - The table’s neurotransmitter/disorder links are labeled as associations in the supplied table. They are not universal causal statements or diagnostic rules. [NIMH: Depression](https://www.nimh.nih.gov/health/publications/depression).
 
 Scientific clarifications were checked October 24, 2026. They improve the wording of the supplied concepts without adding an unseen curriculum. Every table messenger’s function is covered; clear disease associations are covered with source-specific wording. GABA’s unclear problem cell is the deliberate omission.
+
+## Added nervous-system worksheet and chart
+
+Screenshot 2026-10-24 at 7.16.30 PM supplies five application prompts and a withdrawal-reflex sketch. Screenshot 2026-10-24 at 7.19.08 PM supplies the CNS/PNS hierarchy, somatic/autonomic and sympathetic/parasympathetic divisions, glia, Schwann cells, afferent/efferent neurons, and interneurons. These add 24 objectives including two blank-label diagrams. The diagrams are original HTML/CSS schematics; the scanned images are not published.
+
+The support role of glia is taught without repeating the worksheet’s overly absolute claim that they simply do not send messages. Somatic control includes skeletal-muscle reflexes as well as voluntary movement; autonomic does not mean every possible unconscious action. The withdrawal diagram is the simplified spinal circuit illustrated in the worksheet, not every possible reflex. Conscious brain awareness can follow the initial withdrawal. [OpenStax: Motor responses](https://openstax.org/books/anatomy-and-physiology-2e/pages/14-3-motor-responses), [Somatic and autonomic reflexes](https://openstax.org/books/anatomy-and-physiology-2e/pages/15-2-autonomic-reflexes-and-homeostasis), [Neurons and glial cells](https://openstax.org/books/biology-2e/pages/35-1-neurons-and-glial-cells).
