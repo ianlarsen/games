@@ -1,14 +1,17 @@
 import * as THREE from './vendor/three.module.js';
-import {prepare, distance, canAppend, presetPath, MAX_DOMINOES} from './path.js';
+import {groundTexture,buildDeck} from './surfaces.js';
+import {prepare, distance, canAppend, presetPath, buildTrack, LIMIT, MAX_DOMINOES} from './path.js';
 
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), stage=$('stage');
 const KEY='dominoknockdown-v1';
-let raw=[],placed=[],history=[],state='draw',view='ride',muted=false;
+let raw=[],placed=[],history=[],state='draw',view='ride',muted=false,surface='wood';
 let gentle=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let pointer=null,strokeStart=0,fallTime=0,fallen=0,accumulated=0,paused=false,lastFrame=0;
 let audio=null,noiseBuffer=null,savedHintTimer=0,needsSave=false,buildingAt=0;
-let renderer,scene,camera,dominoes,markers,pathLine,ghostLine;
+let renderer,scene,camera,dominoes,markers,pathLine,floor,bridgeDeck,deckMaterial,sun;
+let track={points:[],bridges:[]};
+const floors={};
 const dummy=new THREE.Object3D(), ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
 const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const hit=new THREE.Vector3(),cameraTarget=new THREE.Vector3(),lookTarget=new THREE.Vector3();
@@ -31,17 +34,20 @@ function init() {
   scene=new THREE.Scene();scene.fog=new THREE.Fog('#bb946b',75,150);
   camera=new THREE.PerspectiveCamera(42,1,.1,180);
   scene.add(new THREE.HemisphereLight('#fffbed','#bac5ae',2.5));
-  const sun=new THREE.DirectionalLight('#fff3d5',3.1);sun.position.set(-15,30,10);
+  sun=new THREE.DirectionalLight('#fff3d5',3.1);sun.position.set(-15,30,10);
   sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
   Object.assign(sun.shadow.camera,{left:-28,right:28,top:24,bottom:-24,near:1,far:75});
   sun.shadow.bias=-.0005;sun.shadow.normalBias=.035;scene.add(sun);
   const wood=makeWoodTexture();
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(230,230),new THREE.MeshStandardMaterial({map:wood,roughness:.82}));
+  floor=new THREE.Mesh(new THREE.PlaneGeometry(230,230),new THREE.MeshStandardMaterial({map:wood,roughness:.82}));
   floor.rotation.x=-Math.PI/2;floor.position.y=-.05;floor.receiveShadow=true;scene.add(floor);
-  // Fine corner marks define the freehand area without putting a grid over the wood.
-  const corners=[];
-  for(const x of [-23,23])for(const z of [-13.5,13.5]){const sx=Math.sign(x),sz=Math.sign(z);corners.push(new THREE.Vector3(x-sx*1.2,0,z),new THREE.Vector3(x,0,z),new THREE.Vector3(x,0,z),new THREE.Vector3(x,0,z-sz*1.2));}
-  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(corners),new THREE.LineBasicMaterial({color:'#f9e4bf',transparent:true,opacity:.5})));
+  floors.wood=floor.material;
+  for(const kind of ['stone','dirt','lava']) {
+    const map=groundTexture(kind,renderer);
+    floors[kind]=new THREE.MeshStandardMaterial({map,roughness:kind==='lava'?.75:.94,...(kind==='lava'?{emissiveMap:map,emissive:'#ff5a05',emissiveIntensity:.8}:{})});
+  }
+  const deckMap=groundTexture('stone',renderer);deckMap.repeat.set(1,1);
+  deckMaterial=new THREE.MeshStandardMaterial({map:deckMap,color:'#b8b9af',roughness:.9,side:THREE.DoubleSide});
   // A single instanced draw batch keeps hundreds of dominoes inexpensive on iPad.
   const geometry=new THREE.BoxGeometry(.69,1.5,.24);geometry.translate(0,.75,0);
   const face=makeFaceTexture();
@@ -55,7 +61,7 @@ function init() {
     const ring=new THREE.Mesh(new THREE.RingGeometry(.32,.40,32),markerMat.clone());
     ring.rotation.x=-Math.PI/2;ring.position.y=.025;markers.add(ring);
   }
-  makeGhost();restore();$('gentle').checked=gentle;
+  restore();$('gentle').checked=gentle;$('surface').value=surface;
   resize();camera.position.copy(overPosition);actualCameraLook.copy(overLook);camera.lookAt(actualCameraLook);
   bind();updatePath();updateUI();renderer.setAnimationLoop(frame);
 }
@@ -87,32 +93,19 @@ function makeWoodTexture() {
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(14,14);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t;
 }
 
-function makeGhost() {
-  // Quiet tabletop illustration; it disappears as soon as a real drawing begins.
-  const points=[];
-  for(let i=0;i<=150;i++) {
-    const t=i/150,a=t*Math.PI*3.1,r=8.7-t*5.4;
-    points.push(new THREE.Vector3(8+Math.cos(a)*r,.02,Math.sin(a)*r));
-  }
-  const g=new THREE.BufferGeometry().setFromPoints(points);
-  ghostLine=new THREE.Line(g,new THREE.LineDashedMaterial({color:'#f8e6c5',dashSize:.13,gapSize:.25,transparent:true,opacity:.6}));ghostLine.computeLineDistances();scene.add(ghostLine);
-  // A few oversized dominoes form a small still life next to the empty drawing area.
-  const shape=new THREE.BoxGeometry(1.1,2.6,.40);shape.translate(0,1.3,0);
-  const group=new THREE.Group();group.name='still-life';
-  for(let i=0;i<5;i++) {
-    const mesh=new THREE.Mesh(shape,new THREE.MeshStandardMaterial({map:makeFaceTexture(),roughness:.55}));
-    mesh.position.set(9+i*1.6,0,4-i*.8);mesh.rotation.set(i===4?-.5:0,.3+i*.12,0);mesh.castShadow=true;group.add(mesh);
-  }
-  scene.add(group);
-}
-
 function resize() {
   const w=stage.clientWidth,h=stage.clientHeight;
   renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();
-  // Fit the entire wide tabletop even when an iPad rotates into portrait.
-  const d=Math.max(45,54/camera.aspect);
-  overPosition.set(0,d,d*.56);overLook.set(0,0,0);
+  let cx=0,cz=0,spanX=32,spanZ=22;
+  if(placed.length) {
+    const xs=placed.map(p=>p.x),zs=placed.map(p=>p.z);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
+    cx=(minX+maxX)/2;cz=(minZ+maxZ)/2;spanX=Math.max(20,maxX-minX+9);spanZ=Math.max(16,maxZ-minZ+10);
+  }
+  const d=state==='draw'?Math.max(39,spanX/(camera.aspect*.767)*1.1,spanZ/.767*1.1):Math.max(30,spanX/(camera.aspect*.65),spanZ/.50);
+  overPosition.set(cx,d,cz+(state==='draw'?.001:d*.56));overLook.set(cx,0,cz);
   if(state!=='running'||view==='overhead'||gentle) {camera.position.copy(overPosition);actualCameraLook.copy(overLook);camera.lookAt(actualCameraLook);}
+
 }
 
 function bind() {
@@ -122,20 +115,20 @@ function bind() {
   canvas.addEventListener('pointerup',onUp);
   canvas.addEventListener('pointercancel',onUp);
   canvas.addEventListener('lostpointercapture',onUp);
-  $('sample').onclick=()=>loadPreset('spiral');
+  $('surface').onchange=()=>{surface=$('surface').value;save();};
   $('preset').onchange=()=>{if($('preset').value)loadPreset($('preset').value);};
   $('undo').onclick=()=>{
     if(state!=='draw')return;
     const end=history.pop();raw=raw.slice(0,end??Math.max(0,raw.length-18));$('preset').value='';updatePath();save();
   };
-  $('clear').onclick=()=>{raw=[];history=[];state='draw';placed=[];dominoes.count=0;$('preset').value='';updatePath();save();};
+  $('clear').onclick=()=>{raw=[];history=[];state='draw';placed=[];dominoes.count=0;$('preset').value='';updatePath();resize();save();};
   $('action').onclick=()=>{
     unlockAudio();
     if(state==='draw') ready();
     else if(state==='ready'||state==='done') go();
     else if(state==='running') {state='ready';fallTime=0;fallen=0;updateDominoes(0);updateUI();resize();hint('Stopped. Your dominoes are ready for another go.');}
   };
-  $('edit').onclick=()=>{state='draw';dominoes.count=0;updatePath();resize();};
+  $('edit').onclick=()=>{state='draw';dominoes.count=0;placed=prepare(raw);updatePath();resize();};
   $('ride').onclick=()=>setView('ride');$('overhead').onclick=()=>setView('overhead');
   $('sound').onclick=()=>{muted=!muted;unlockAudio();soundUI();save();};
   $('gentle').onchange=()=>{gentle=$('gentle').checked;if(gentle)setView('overhead');save();updateUI();};
@@ -173,7 +166,7 @@ function onDown(e) {
 function onMove(e) {
   if(e.pointerId!==pointer||state!=='draw')return;
   e.preventDefault();
-  const events=e.getCoalescedEvents?.()??[e];for(const ev of events) {const p=screenToWorld(ev);if(p)append(p);}
+  const coalesced=e.getCoalescedEvents?.();const events=coalesced?.length?coalesced:[e];for(const ev of events) {const p=screenToWorld(ev);if(p)append(p);}
 }
 function append(p) {
   if(prepare(raw).length>=MAX_DOMINOES){hint('360 dominoes! Ready for a big chain reaction.');return;}
@@ -196,20 +189,27 @@ function onUp(e) {
 }
 
 function updatePath() {
-  clearTimeout(savedHintTimer);savedHintTimer=0;
+  clearTimeout(savedHintTimer);savedHintTimer=0;$('hint').classList.remove('temporary');
   const points=prepare(raw);placed=points;
   if(pathLine){scene.remove(pathLine);pathLine.geometry.dispose();pathLine.material.dispose();pathLine=null;}
   if(points.length>1) {
-    pathLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points.map(p=>new THREE.Vector3(p.x,.035,p.z))),new THREE.LineBasicMaterial({color:'#fff6dc',transparent:true,opacity:.95}));scene.add(pathLine);
+    pathLine=buildDeck(points.map(p=>({...p,y:.035})),true,new THREE.MeshBasicMaterial({color:'#000000'}),.045);scene.add(pathLine);
   }
   markers.visible=raw.length>0;
   if(raw.length){markers.children[0].position.set(raw[0].x,.025,raw[0].z);markers.children[1].position.set(raw.at(-1).x,.025,raw.at(-1).z);}
   updateUI();
 }
 function ready() {
-  placed=prepare(raw);if(placed.length<5)return;
+  track=buildTrack(prepare(raw));placed=track.points;if(placed.length<5)return;
+  if(bridgeDeck){scene.remove(bridgeDeck);bridgeDeck.geometry.dispose();}
+  bridgeDeck=buildDeck(placed,surface==='lava',deckMaterial);scene.add(bridgeDeck);
+  floor.material=floors[surface];floor.position.y=surface==='lava'?-.65:-.05;
+  const xs=placed.map(p=>p.x),zs=placed.map(p=>p.z),cx=(Math.min(...xs)+Math.max(...xs))/2,cz=(Math.min(...zs)+Math.max(...zs))/2;
+  sun.position.set(cx-15,35,cz+10);sun.target.position.set(cx,0,cz);scene.add(sun.target);
+  const span=Math.max(30,Math.max(...xs)-Math.min(...xs)+12,Math.max(...zs)-Math.min(...zs)+12);
+  Object.assign(sun.shadow.camera,{left:-span,right:span,top:span,bottom:-span});sun.shadow.camera.updateProjectionMatrix();
   state='ready';buildingAt=performance.now();fallTime=0;fallen=0;
-  dominoes.count=placed.length;updateDominoes(0);updateUI();save();
+  dominoes.count=placed.length;updateDominoes(0);updateUI();resize();save();
 }
 function go() {
   state='running';fallTime=0;fallen=0;accumulated=0;lastFrame=performance.now();
@@ -221,7 +221,8 @@ function updateDominoes(time) {
     const p=placed[i],a=placed[Math.max(0,i-1)],b=placed[Math.min(placed.length-1,i+1)];
     const t=Math.max(0,Math.min(1,(time-i*delay)/.29));
     const angle=(1-Math.pow(1-t,2))*1.40;
-    dummy.position.set(p.x,.02,p.z);dummy.rotation.set(angle,Math.atan2(b.x-a.x,b.z-a.z),0,'YXZ');
+    const slope=Math.atan2((b.y||0)-(a.y||0),distance(a,b));
+    dummy.position.set(p.x,.02+(p.y||0),p.z);dummy.rotation.set(angle-slope,Math.atan2(b.x-a.x,b.z-a.z),0,'YXZ');
     let scale=1;
     if(state==='ready'&&buildingAt)scale=Math.min(1,Math.max(.02,(performance.now()-buildingAt-i*1.3)/250));
     dummy.scale.setScalar(scale);dummy.updateMatrix();dominoes.setMatrixAt(i,dummy.matrix);
@@ -232,9 +233,11 @@ function updateDominoes(time) {
 function updateUI() {
   const n=placed.length, drawing=state==='draw',running=state==='running';
   $('count').innerHTML=`${n} <small>DOMINO${n===1?'':'ES'}</small>`;
-  $('welcome').hidden=raw.length>0||!drawing;
-  ghostLine.visible=!raw.length&&drawing;scene.getObjectByName('still-life').visible=!raw.length&&drawing;
-  if(pathLine)pathLine.visible=drawing||state==='ready';markers.visible=drawing&&raw.length>0;
+  document.body.dataset.mode=drawing?'draw':'build';
+  floor.visible=!drawing;if(bridgeDeck)bridgeDeck.visible=!drawing;
+  renderer.setClearColor(drawing?'#ffffff':surface==='lava'?'#521c0b':surface==='stone'?'#969a93':surface==='dirt'?'#765037':'#bb946b');
+  scene.fog=drawing?null:new THREE.Fog(surface==='lava'?'#521c0b':surface==='stone'?'#969a93':surface==='dirt'?'#765037':'#bb946b',90,200);
+  if(pathLine)pathLine.visible=drawing;markers.visible=false;
   $('action').disabled=drawing&&n<5;$('undo').disabled=!drawing||!raw.length;$('clear').disabled=!drawing||!raw.length;
   $('undo').hidden=!drawing;$('clear').hidden=!drawing;$('edit').hidden=drawing||running;
   const text={draw:'Ready',ready:'Go',running:'Stop',done:'Replay'};
@@ -242,15 +245,15 @@ function updateUI() {
   $('action-text').textContent=text[state];$('action-icon').innerHTML=`<use href="#i-${icon[state]}"/>`;
   const selected=gentle?'overhead':view;
   for(const v of ['ride','overhead']){$(v).classList.toggle('selected',v===selected);$(v).setAttribute('aria-pressed',v===selected);}
-  $('preset').disabled=running;
+  $('preset').disabled=running;$('surface').disabled=!drawing;
   $('finish').hidden=state!=='done';$('progress').hidden=!running;
   $('progress-fill').style.width='0%';canvas.style.cursor=drawing?'crosshair':'default';
   if(!savedHintTimer)$('hint').textContent=drawing?(n<5?(n?'Keep drawing. At least 5 dominoes make a chain.':'A little line starts something big.'):'Looking good. Keep drawing, or press Ready.'):
     state==='ready'?'All lined up. Give the first one a little push.':running?(gentle?'A gentler chain reaction. Enjoy the view.':selected==='ride'?'You’re just ahead of the fall. Enjoy the ride.':'Sit back and watch it all unfold.'):'One little line. One lovely chain reaction.';
 }
 function hint(text) {
-  clearTimeout(savedHintTimer);$('hint').textContent=text;
-  savedHintTimer=setTimeout(()=>{savedHintTimer=0;updateUI();},2600);
+  clearTimeout(savedHintTimer);$('hint').textContent=text;$('hint').classList.add('temporary');
+  savedHintTimer=setTimeout(()=>{savedHintTimer=0;$('hint').classList.remove('temporary');updateUI();},2600);
 }
 function soundUI() {$('sound').setAttribute('aria-pressed',!muted);$('sound').setAttribute('aria-label',muted?'Turn sound on':'Turn sound off');}
 
@@ -273,9 +276,9 @@ function clickSound(index) {
 function pathAt(index) {
   const i=Math.floor(Math.max(0,index)),t=index-i;
   const a=placed[Math.min(i,placed.length-1)],b=placed[Math.min(i+1,placed.length-1)];
-  if(!a)return {x:0,z:0};
-  if(i>=placed.length-1){const previous=placed.at(-2)||a;return {x:a.x+(a.x-previous.x)*(index-(placed.length-1)),z:a.z+(a.z-previous.z)*(index-(placed.length-1))};}
-  return {x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};
+  if(!a)return {x:0,y:0,z:0};
+  if(i>=placed.length-1){const previous=placed.at(-2)||a;return {y:a.y||0,x:a.x+(a.x-previous.x)*(index-(placed.length-1)),z:a.z+(a.z-previous.z)*(index-(placed.length-1))};}
+  return {y:(a.y||0)+((b.y||0)-(a.y||0))*t,x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};
 }
 function frame(now) {
   const dt=Math.min((now-(lastFrame||now))/1000,.06);lastFrame=now;
@@ -295,23 +298,26 @@ function frame(now) {
   const riding=state==='running'&&view==='ride'&&!gentle;
   if(riding) {
     const index=fallTime/.052,front=pathAt(index+7),target=pathAt(index-1);
-    cameraTarget.set(front.x,3.2,front.z);lookTarget.set(target.x,.85,target.z);
+    cameraTarget.set(front.x,3.2+(front.y||0),front.z);lookTarget.set(target.x,.85+(target.y||0),target.z);
   } else {cameraTarget.copy(overPosition);lookTarget.copy(overLook);}
   const amount=1-Math.exp(-dt*(riding?5:3));
   camera.position.lerp(cameraTarget,amount);actualCameraLook.lerp(lookTarget,amount);camera.lookAt(actualCameraLook);
   // Shadow maps and geometry are reused; only matrices move during the cascade.
+  if(state==='draw'){camera.position.copy(overPosition);actualCameraLook.copy(overLook);camera.lookAt(actualCameraLook);}
+  if(surface==='lava'&&!gentle)floors.lava.emissiveIntensity=.8+Math.sin(now*.0013)*.12;
   renderer.render(scene,camera);
   if(needsSave&&pointer===null){needsSave=false;save();}
 }
 
 function save() {
-  try{localStorage.setItem(KEY,JSON.stringify({raw,view,muted,gentle}));}catch{/* Storage may be unavailable in private or embedded browsing. */}
+  try{localStorage.setItem(KEY,JSON.stringify({raw,view,muted,gentle,surface}));}catch{/* Storage may be unavailable in private or embedded browsing. */}
 }
 function restore() {
   try {
     const s=JSON.parse(localStorage.getItem(KEY));if(!s)return;
-    if(Array.isArray(s.raw)&&s.raw.length<=1500&&s.raw.every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z)&&Math.abs(p.x)<=23&&Math.abs(p.z)<=13.5))raw=s.raw;
+    if(Array.isArray(s.raw)&&s.raw.length<=1500&&s.raw.every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z)&&Math.abs(p.x)<=LIMIT.x&&Math.abs(p.z)<=LIMIT.z))raw=s.raw;
     if(['ride','overhead'].includes(s.view))view=s.view;
+    if(['wood','stone','lava','dirt'].includes(s.surface))surface=s.surface;
     muted=!!s.muted;gentle=gentle||!!s.gentle;history=raw.length?[0]:[];soundUI();
   }catch{/* A stale or unavailable save starts a fresh tabletop. */}
 }

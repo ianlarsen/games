@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test path.test.mjs",
-    "check": "node --check game.js && node --check path.js"
+    "check": "node --check game.js && node --check path.js && node --check surfaces.js"
   }
 }

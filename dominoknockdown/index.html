@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-mode="draw">
   <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
     <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 5 4 10l5 5M5 10h9a6 6 0 0 1 0 12" transform="translate(0 -3)"/></symbol>
     <symbol id="i-clear" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5m4-5v5"/></symbol>
@@ -25,19 +25,13 @@
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
   </defs></svg>
   <header class="topbar">
+    <h1 class="draw-title">draw your path</h1>
     <a class="brand" href="./" aria-label="Domino Knockdown home"><span class="brand-mark"><i></i><i></i><i></i></span><span>domino<span class="brand-light">knockdown</span></span></a>
     <div class="top-actions"><span class="sandbox"><span></span> FREE PLAY</span><button id="sound" class="icon-button" aria-label="Turn sound off" aria-pressed="true"><svg><use href="#i-sound"/></svg></button><button id="help" class="help-button" aria-label="How to play">?</button></div>
   </header>
   <main id="stage" aria-label="Domino drawing floor">
     <canvas id="scene" aria-label="Draw a continuous path here with your finger, Apple Pencil, or mouse"></canvas>
     <div class="stage-top"><span id="count" class="counter">0 <small>DOMINOES</small></span></div>
-    <aside id="welcome" class="welcome">
-      <span class="eyebrow">ONE LINE. ENDLESS POSSIBILITIES.</span>
-      <h1>Make something<br>fall into place.</h1>
-      <p>Draw freehand or choose a preset path.<br>Then come along for the chain reaction.</p>
-      <button id="sample" class="sample-button">Try a spiral <span aria-hidden="true">↗</span></button>
-      <span class="welcome-tip">or draw freehand on the floor</span>
-    </aside>
     <div id="hint" class="hint" role="status" aria-live="polite">A little line starts something big.</div>
     <div id="finish" class="finish" hidden><span class="eyebrow">BEAUTIFUL CHAIN REACTION</span><h2>Down to the last domino.</h2><p id="result"></p></div>
     <div class="view-switch" role="group" aria-label="Camera view"><button id="ride" class="selected" aria-pressed="true"><svg><use href="#i-eye"/></svg> Ride along</button><button id="overhead" aria-pressed="false"><svg><use href="#i-grid"/></svg> Overhead</button></div>
@@ -46,10 +40,11 @@
   </main>
   <footer class="controls">
     <label class="preset-picker"><span class="control-label">PRESET PATHS</span><select id="preset" aria-label="Choose a preset path"><option value="">Choose a path…</option><option value="spiral">The spiral</option><option value="switchback">The switchback</option><option value="circuit">Nested circuit</option><option value="maze">The garden maze</option><option value="ribbon">Ribbon run</option></select></label>
+    <label class="surface-picker"><span class="control-label">SURFACE</span><select id="surface" aria-label="Choose a surface"><option value="wood">Wood</option><option value="stone">Stone</option><option value="lava">Lava</option><option value="dirt">Dirt</option></select></label>
     <div class="main-controls"><button id="undo" class="secondary" disabled><svg><use href="#i-undo"/></svg><span>Undo</span></button><button id="clear" class="secondary" disabled><svg><use href="#i-clear"/></svg><span>Clear</span></button><button id="action" class="primary" disabled><span id="action-text">Ready</span><svg id="action-icon"><use href="#i-check"/></svg></button><button id="edit" class="secondary" hidden>Edit path</button></div>
     <label class="motion"><input id="gentle" type="checkbox"><span class="toggle"></span><span>Gentle motion</span></label>
   </footer>
-  <dialog id="instructions"><button id="close-help" class="dialog-close" aria-label="Close instructions">×</button><span class="eyebrow">A LITTLE PUSH IS ALL IT TAKES</span><h2>Let it all fall.</h2><ol><li><strong>Draw.</strong> Use a finger, Pencil, or mouse to draw one continuous line. Lift and continue from its end. Or choose one of five preset paths; selecting a preset replaces your drawing.</li><li><strong>Ready.</strong> Your line becomes a chain of classic black dominoes.</li><li><strong>Go.</strong> Travel just ahead of the cascade, or enjoy it from above.</li></ol><p>Leave room around turns and avoid crossing your path. Undo removes the last stroke. Your drawing is saved on this device.</p><p>Gentle motion keeps the camera overhead and slows the cascade. You can stop a ride at any time.</p><button id="help-done" class="primary">Let’s play <span>↗</span></button></dialog>
+  <dialog id="instructions"><button id="close-help" class="dialog-close" aria-label="Close instructions">×</button><span class="eyebrow">A LITTLE PUSH IS ALL IT TAKES</span><h2>Let it all fall.</h2><ol><li><strong>Draw.</strong> Use a finger, Pencil, or mouse to draw one continuous line. Lift and continue from its end. Or choose one of five preset paths; selecting a preset replaces your drawing.</li><li><strong>Ready.</strong> Your chosen surface appears with classic black dominoes and bridges at crossings.</li><li><strong>Go.</strong> Travel just ahead of the cascade, or enjoy it from above.</li></ol><p>Cross your line to create a bridge. Choose Wood, Stone, Lava, or Dirt before pressing Ready. Lava paths sit on a stone ledge. Undo removes the last stroke. Your drawing is saved on this device.</p><p>Gentle motion keeps the camera overhead and slows the cascade. You can stop a ride at any time.</p><button id="help-done" class="primary">Let’s play <span>↗</span></button></dialog>
   <script type="module" src="game.js"></script>
 </body>
 </html>

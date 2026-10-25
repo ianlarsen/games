@@ -1,7 +1,7 @@
 // Pure path geometry shared by drawing, placement, and ride cameras.
 export const SPACING = 0.72;
 export const MAX_DOMINOES = 360;
-export const LIMIT = { x: 23, z: 13.5 };
+export const LIMIT = { x: 60, z: 80 };
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 
 export function smooth(points) {
@@ -32,9 +32,13 @@ export function resample(points, spacing=SPACING) {
   return result;
 }
 
-function segmentsIntersect(a,b,c,d) {
-  const cross=(p,q,r)=>(q.x-p.x)*(r.z-p.z)-(q.z-p.z)*(r.x-p.x);
-  return cross(a,b,c)*cross(a,b,d)<0 && cross(c,d,a)*cross(c,d,b)<0;
+export function intersection(a,b,c,d) {
+  const ux=b.x-a.x,uz=b.z-a.z,vx=d.x-c.x,vz=d.z-c.z;
+  const det=ux*vz-uz*vx;
+  if(Math.abs(det)<1e-8)return null;
+  const t=((c.x-a.x)*vz-(c.z-a.z)*vx)/det;
+  const u=((c.x-a.x)*uz-(c.z-a.z)*ux)/det;
+  return t>=-1e-7&&t<=1+1e-7&&u>=-1e-7&&u<=1+1e-7?{t:Math.max(0,Math.min(1,t)),u:Math.max(0,Math.min(1,u))}:null;
 }
 
 export function canAppend(points,p) {
@@ -42,12 +46,6 @@ export function canAppend(points,p) {
   if(!points.length) return '';
   const last=points.at(-1), step=distance(last,p);
   if(step<.23) return 'skip';
-  let traveled=0;
-  for(let i=points.length-2;i>=0;i--) {
-    traveled+=distance(points[i],points[i+1]);
-    if(traveled<2.3) continue;
-    if(distance(points[i],p)<1.3 || segmentsIntersect(last,p,points[i],points[i+1])) return 'Give your path some space. No crossings.';
-  }
   // Compare a broader tangent so little finger tremors do not reject a turn.
   let prior=points.length-2;
   while(prior>0 && distance(points[prior],last)<.9) prior--;
@@ -68,6 +66,35 @@ export function sampleSpiral() {
 }
 
 export function prepare(points) { return resample(smooth(points)); }
+
+// Later visits pass above earlier visits. Stations measure distance along the path,
+// so ramps and the camera follow the same elevated route as the dominoes.
+export function buildTrack(input) {
+  const points=input.map(p=>({...p,y:0})),stations=[0],crossings=[];
+  for(let i=1;i<points.length;i++)stations.push(stations[i-1]+distance(points[i-1],points[i]));
+  for(let later=0;later<points.length-1;later++)for(let earlier=0;earlier<later-5;earlier++) {
+    const hit=intersection(points[earlier],points[earlier+1],points[later],points[later+1]);
+    if(!hit)continue;
+    const under=stations[earlier]+hit.t*distance(points[earlier],points[earlier+1]);
+    const over=stations[later]+hit.u*distance(points[later],points[later+1]);
+    if(crossings.some(c=>Math.abs(c.over-over)<1.1&&Math.abs(c.under-under)<1.1))continue;
+    crossings.push({earlier,later,t:hit.t,u:hit.u,under,over});
+  }
+  const bridges=[];
+  for(const c of crossings) {
+    const lower=points[c.earlier].y*(1-c.t)+points[c.earlier+1].y*c.t;
+    const height=lower+2.35,plateau=1.45,ramp=Math.max(5.5,height*2.8);
+    const bridge={...c,height,halfLength:plateau+ramp};bridges.push(bridge);
+    // Do not elevate the earlier branch of the same crossing.
+    for(let i=c.earlier+2;i<points.length;i++) {
+      const away=Math.abs(stations[i]-c.over);
+      if(away>plateau+ramp)continue;
+      const t=Math.max(0,Math.min(1,(away-plateau)/ramp));
+      const y=height*(1-t*t*(3-2*t));points[i].y=Math.max(points[i].y,y);
+    }
+  }
+  return {points,bridges,stations};
+}
 
 function roundedRoute(vertices, radius=1.5) {
   const out=[vertices[0]];
