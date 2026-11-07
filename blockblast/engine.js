@@ -2,6 +2,7 @@
 (function (root) {
   'use strict';
   const SIZE = 8;
+  // Connected Classic pieces only. Keep these IDs stable for saved games.
   const SHAPES = [
     [[0,0]], [[0,0],[1,0]], [[0,0],[0,1]],
     [[0,0],[1,0],[2,0]], [[0,0],[0,1],[0,2]],
@@ -19,8 +20,7 @@
     [[0,0],[1,0],[1,1],[2,1]], [[1,0],[2,0],[0,1],[1,1]],
     [[0,0],[0,1],[1,1],[1,2]], [[1,0],[0,1],[1,1],[0,2]],
     [[0,0],[0,1],[0,2],[1,2],[2,2]], [[2,0],[2,1],[0,2],[1,2],[2,2]],
-    [[0,0],[1,0],[2,0],[0,1],[0,2]], [[0,0],[1,0],[2,0],[2,1],[2,2]],
-    [[0,0],[1,1]], [[0,0],[1,1],[2,2]]
+    [[0,0],[1,0],[2,0],[0,1],[0,2]], [[0,0],[1,0],[2,0],[2,1],[2,2]]
   ];
   const empty = () => Array(64).fill(0);
   const cells = p => SHAPES[p.shape];
@@ -40,7 +40,7 @@
     s.handCleared=false;
   }
   function create({mode='classic',level=1,seed=Date.now()>>>0}={}) {
-    const s={version:1,mode,level,seed:seed>>>0,board:empty(),gems:empty(),tray:[],score:0,combo:0,handCleared:false,moves:0,cleared:0,collected:0,target:0,limit:0,status:'playing'};
+    const s={version:2,mode,level,seed:seed>>>0,board:empty(),gems:empty(),tray:[],score:0,combo:0,handCleared:false,moves:0,cleared:0,collected:0,target:0,limit:0,status:'playing'};
     if(mode==='adventure') {
       s.limit=24+Math.min(level,12); s.target=4+Math.min(level,12);
       // Original, repeatable puzzle layouts. Never import proprietary level data.
@@ -78,8 +78,32 @@
   function valid(s) {
     const ints=(a,max)=>Array.isArray(a)&&a.length===64&&a.every(v=>Number.isInteger(v)&&v>=0&&v<=max);
     const piece=p=>p===null||(p&&Number.isInteger(p.shape)&&p.shape>=0&&p.shape<SHAPES.length&&Number.isInteger(p.color)&&p.color>=1&&p.color<=6);
-    return !!s&&s.version===1&&['classic','adventure'].includes(s.mode)&&['playing','over','won'].includes(s.status)&&ints(s.board,6)&&ints(s.gems,1)&&s.gems.every((g,i)=>!g||s.board[i])&&Array.isArray(s.tray)&&s.tray.length===3&&s.tray.every(piece)&&s.tray.some(Boolean)&&['seed','score','combo','moves','cleared','collected','target','limit','level'].every(k=>Number.isSafeInteger(s[k])&&s[k]>=0)&&s.level>=1&&typeof s.handCleared==='boolean'&&(s.mode!=='adventure'||(s.target>0&&s.limit>0));
+    return !!s&&s.version===2&&['classic','adventure'].includes(s.mode)&&['playing','over','won'].includes(s.status)&&ints(s.board,6)&&ints(s.gems,1)&&s.gems.every((g,i)=>!g||s.board[i])&&Array.isArray(s.tray)&&s.tray.length===3&&s.tray.every(piece)&&s.tray.some(Boolean)&&['seed','score','combo','moves','cleared','collected','target','limit','level'].every(k=>Number.isSafeInteger(s[k])&&s[k]>=0)&&s.level>=1&&typeof s.handCleared==='boolean'&&(s.mode!=='adventure'||(s.target>0&&s.limit>0));
   }
-  const api={SIZE,SHAPES,empty,cells,dimensions,canPlace,fits,lines,create,place,valid};
+  function restore(saved) {
+    if(!saved || ![1,2].includes(saved.version)) return null;
+    if(saved.version===2) return valid(saved)?saved:null;
+    if(!Array.isArray(saved.tray) || saved.tray.length!==3) return null;
+    // Retired IDs 33/34 were disconnected diagonals. Preserve the round and
+    // replace only those slots with connected pieces, keeping a legal option.
+    const retired=[];
+    const s={...saved,version:2,tray:saved.tray.map((p,i)=>{
+      if(p && (p.shape===33 || p.shape===34)) {
+        retired.push(i);return {...p,shape:p.shape===33?1:3};
+      }
+      return p;
+    })};
+    if(!valid(s)) return null;
+    for(const i of retired) {
+      const p=s.tray[i];
+      if(!fits(s.board,p)) {
+        const size=cells(p).length;
+        const replacement=SHAPES.findIndex((shape,id)=>shape.length===size&&fits(s.board,{shape:id}));
+        p.shape=replacement>=0?replacement:0;
+      }
+    }
+    return s;
+  }
+  const api={SIZE,SHAPES,empty,cells,dimensions,canPlace,fits,lines,create,place,valid,restore};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.BlockGame=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -14,5 +14,32 @@ test('adventure move limit ends unfinished round',()=>{const s=clean();s.mode='a
 test('same seed gives same pieces and adventure layout',()=>{assert.deepEqual(E.create({mode:'adventure',level:7,seed:42}),E.create({mode:'adventure',level:7,seed:42}));});
 test('reject damaged saves and accept JSON round trips',()=>{const s=clean();assert.ok(E.valid(JSON.parse(JSON.stringify(s))));assert.ok(!E.valid({...s,board:[1]}));assert.ok(!E.valid({...s,tray:[{shape:999,color:1},null,null]}));assert.ok(!E.valid({...s,score:-1}));assert.ok(!E.valid({...s,seed:NaN}));assert.ok(!E.valid({...s,gems:Array(64).fill(1)}));});
 test('random legal play preserves invariants across 100 games',()=>{for(let seed=1;seed<=100;seed++){const s=E.create({seed,mode:seed%2?'classic':'adventure',level:1+seed%10});for(let turn=0;turn<100&&s.status==='playing';turn++){let placed=false;for(let slot=0;slot<3&&!placed;slot++)if(s.tray[slot])for(let y=0;y<8&&!placed;y++)for(let x=0;x<8&&!placed;x++)if(E.canPlace(s.board,s.tray[slot],x,y)){assert.ok(E.place(s,slot,x,y));placed=true;}assert.ok(placed);assert.ok(E.valid(s));assert.equal(E.lines(s.board).indices.length,0);assert.ok(s.board.every((c,i)=>c||!s.gems[i]));}}});
+test('deal catalog contains only the connected Classic families',()=>{
+  assert.equal(E.SHAPES.length,33);
+  for(const shape of E.SHAPES){
+    const pending=new Set(shape.map(([x,y])=>x+','+y)),queue=[shape[0]];
+    pending.delete(shape[0].join(','));
+    while(queue.length){const [x,y]=queue.shift();for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const key=(x+dx)+','+(y+dy);if(pending.delete(key))queue.push([x+dx,y+dy]);}}
+    assert.equal(pending.size,0,'Every cell must connect along an edge');
+    const n=shape.length;
+    assert.ok([1,2,3,4,5,6,9].includes(n));
+    if(n===5){const xs=new Set(shape.map(c=>c[0])),ys=new Set(shape.map(c=>c[1]));assert.ok(xs.size===1||ys.size===1||(xs.size===3&&ys.size===3));}
+    if(n===6||n===9){const xs=new Set(shape.map(c=>c[0])),ys=new Set(shape.map(c=>c[1]));assert.equal(xs.size*ys.size,n);}
+  }
+});
+test('old diagonal saves migrate without losing the round',()=>{
+  const old=clean();old.version=1;old.score=1234;old.combo=4;old.tray=[{shape:33,color:2},null,{shape:34,color:5}];
+  const before=JSON.stringify(old),s=E.restore(old);
+  assert.ok(E.valid(s));assert.equal(s.version,2);assert.equal(s.score,1234);assert.equal(s.combo,4);assert.deepEqual(s.board,old.board);assert.equal(s.tray[1],null);
+  assert.deepEqual(s.tray,[{shape:1,color:2},null,{shape:3,color:5}]);assert.equal(JSON.stringify(old),before);
+});
+test('migration retains a legal move on a fragmented board',()=>{
+  const old=clean();old.version=1;old.board=Array.from({length:64},(_,i)=>(Math.floor(i/8)+i%8)%2?1:0);old.tray=[{shape:33,color:2},null,{shape:34,color:5}];
+  const s=E.restore(old);assert.ok(E.valid(s));assert.ok(s.tray.filter(Boolean).every(p=>E.fits(s.board,p)));assert.ok(s.tray.filter(Boolean).every(p=>p.shape===0));
+});
+test('migration rejects invalid saves and preserves current saves',()=>{
+  const s=clean();assert.equal(E.restore(s),s);assert.equal(E.restore({...s,version:99}),null);assert.equal(E.restore({...s,version:1,board:[0]}),null);assert.equal(E.restore({...s,version:1,tray:[{shape:999,color:1},null,null]}),null);
+  assert.equal(E.restore({...s,tray:[{shape:33,color:1},null,null]}),null);
+});
 console.log(`${passed} tests passed`);
 module.exports = {passed, simulatedGames:100};
