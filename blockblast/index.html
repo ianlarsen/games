@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#354f89"><meta name="description" content="An ad-free block puzzle. Place blocks, clear lines, and beat your best score. Play offline after your first visit.">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Block Blast · Ad-free</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+<script defer src="engine.js"></script><script defer src="game.js"></script>
+</head>
+<body>
+<main id="app">
+<header><button id="home" class="icon-button" aria-label="Main menu">⌂</button><span class="wordmark">BLOCK <b>BLAST</b></span><button id="settings" class="icon-button" aria-label="Settings">⚙</button></header>
+<section id="menu" class="screen">
+<div class="hero-blocks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<h1><span>BLOCK</span><strong>BLAST</strong></h1><p class="tagline">Just one more block.</p>
+<div class="menu-actions"><button id="classic" class="primary">Classic <span>Beat your best</span></button><button id="adventure" class="secondary">Adventure <span>Collect every gem</span></button></div>
+<p id="menu-best" class="best-label">♛ Best 0</p><p class="quiet">No ads. No purchases. Just play.</p>
+<button id="how" class="text-button">How to play</button>
+</section>
+<section id="play" class="screen" hidden>
+<div class="scorebar"><span id="best">♛ 0</span><span id="mode-label">CLASSIC</span><button id="restart" class="icon-button" aria-label="Restart game">↻</button></div>
+<div class="score" id="score">0</div><div id="goal" hidden></div>
+<div id="feedback" role="status" aria-live="polite">Make room for your next move</div>
+<div class="board-wrap"><canvas id="board" tabindex="0" role="application" aria-label="8 by 8 block board. Select a piece using 1, 2, or 3. Move with arrow keys and place with Enter."></canvas><div id="celebration" aria-hidden="true"></div></div>
+<div id="tray" role="group" aria-label="Available blocks"><button class="piece" data-slot="0" aria-label="Piece 1"><canvas></canvas></button><button class="piece" data-slot="1" aria-label="Piece 2"><canvas></canvas></button><button class="piece" data-slot="2" aria-label="Piece 3"><canvas></canvas></button></div>
+<p class="hint" id="hint">Drag a block onto the board</p>
+</section>
+<footer>AD-FREE EDITION</footer>
+</main>
+<canvas id="drag-layer" aria-hidden="true" hidden></canvas>
+<dialog id="dialog"><div id="dialog-content"></div></dialog>
+</body></html>
