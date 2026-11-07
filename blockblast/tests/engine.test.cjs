@@ -41,5 +41,56 @@ test('migration rejects invalid saves and preserves current saves',()=>{
   const s=clean();assert.equal(E.restore(s),s);assert.equal(E.restore({...s,version:99}),null);assert.equal(E.restore({...s,version:1,board:[0]}),null);assert.equal(E.restore({...s,version:1,tray:[{shape:999,color:1},null,null]}),null);
   assert.equal(E.restore({...s,tray:[{shape:33,color:1},null,null]}),null);
 });
+// Independent array-based replay checks the dealer's bitmask simulation.
+function replay(board,step){
+  const out=board.slice();
+  for(const [dx,dy]of E.SHAPES[step.shape]){const x=step.x+dx,y=step.y+dy;assert.ok(x>=0&&x<8&&y>=0&&y<8);assert.equal(out[y*8+x],0);out[y*8+x]=1;}
+  const rows=[],cols=[];
+  for(let n=0;n<8;n++){
+    if(Array.from({length:8},(_,x)=>out[n*8+x]).every(Boolean))rows.push(n);
+    if(Array.from({length:8},(_,y)=>out[y*8+n]).every(Boolean))cols.push(n);
+  }
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++)if(rows.includes(y)||cols.includes(x))out[y*8+x]=0;
+  return {board:out,clears:rows.length+cols.length};
+}
+function certifyDeal(s){
+  const before=JSON.parse(JSON.stringify(s)),plan=E.deal(s);
+  assert.equal(plan.length,3);
+  assert.deepEqual(s.tray.map(p=>p.shape).sort((a,b)=>a-b),plan.map(p=>p.shape).sort((a,b)=>a-b));
+  let board=before.board;
+  for(const step of plan)board=replay(board,step).board;
+  for(const key of ['board','gems','score','combo','moves','collected','cleared','level','status'])assert.deepEqual(s[key],before[key],key+' must not change while dealing');
+  return plan;
+}
+test('a single opening unlocks usable larger pieces after simultaneous clears',()=>{
+  const s=clean();s.board=Array(64).fill(1);s.board[27]=0;
+  const plan=certifyDeal(s);assert.equal(plan[0].shape,0);assert.ok(plan.slice(1).some(p=>p.shape!==0));
+});
+test('fragmented boards get a fully playable hand, not just one usable piece',()=>{
+  const s=clean();s.board=Array.from({length:64},(_,i)=>(Math.floor(i/8)+i%8)%2?1:0);
+  const plan=certifyDeal(s);assert.equal(plan[0].shape,0);
+});
+test('dealer selects an available line-clear opportunity',()=>{
+  for(let seed=1;seed<=30;seed++){
+    const s=clean();s.seed=seed;for(let x=0;x<5;x++)s.board[x]=1;
+    const plan=certifyDeal(s);assert.ok(replay(s.board,plan[0]).clears>0);
+  }
+});
+test('deal generation is deterministic and varied across seeds',()=>{
+  const a=clean(),b=clean();assert.deepEqual(E.deal(a),E.deal(b));assert.deepEqual(a.tray,b.tray);assert.equal(a.seed,b.seed);
+  const hands=new Set(),shapes=new Set();
+  for(let seed=1;seed<=50;seed++){const s=clean();s.seed=seed;certifyDeal(s);hands.add(s.tray.map(p=>p.shape).join(','));s.tray.forEach(p=>shapes.add(p.shape));}
+  assert.ok(hands.size>15);assert.ok(shapes.size>8);
+});
+test('all three pieces have a witnessed solution on 300 mixed-density boards',()=>{
+  let seed=98765;const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+  for(let sample=0;sample<300;sample++){
+    const s=clean(),density=(sample%10)/10;
+    s.board=Array.from({length:64},()=>rnd()<density?1:0);s.board[sample%64]=0;
+    s.seed=seed;s.score=42;s.combo=2;s.moves=9;
+    s.gems=s.board.map(c=>c&&rnd()<.15?1:0);
+    certifyDeal(s);assert.ok(E.valid(s));
+  }
+});
 console.log(`${passed} tests passed`);
 module.exports = {passed, simulatedGames:100};
