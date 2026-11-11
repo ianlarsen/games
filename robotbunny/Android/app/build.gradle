@@ -1,0 +1,64 @@
+plugins { id 'com.android.application' }
+def releaseInfo = new Properties()
+rootProject.file('release.properties').withInputStream { releaseInfo.load(it) }
+def runtime = ['index.html','index-old.html','index-endless.html','engine','images','sounds',
+ 'biome-config.json','level-config.json','music-patterns.json','game.js','player.js','utils.js',
+ 'boss-system.js','threat-system.js','segment-generator.js','meta-progression.js','music-engine.js']
+def generatedAssets = layout.buildDirectory.dir('generated/sharedGameAssets')
+def syncGame = tasks.register('syncSharedGameAssets', Sync) {
+ runtime.each { name -> from(rootProject.file('../'+name)) { into(name.contains('.') ? 'www' : 'www/'+name) } }
+ into generatedAssets
+ exclude '**/._*', '**/.DS_Store'
+}
+android {
+ namespace 'com.primeresolvesolutions.robotbunny'
+ compileSdk 36
+ defaultConfig {
+  applicationId 'com.primeresolvesolutions.robotbunny'
+  minSdk 23
+  targetSdk 36
+  versionCode releaseInfo.getProperty('versionCode').toInteger()
+  versionName releaseInfo.getProperty('versionName')
+  testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+ }
+ testBuildType = project.findProperty("robotBunnyTestBuildType") ?: "debug"
+ buildFeatures { buildConfig true }
+ sourceSets.main.assets.srcDir generatedAssets
+ signingConfigs { release {
+  if (System.getenv('ROBOT_BUNNY_KEYSTORE')) {
+   storeFile file(System.getenv('ROBOT_BUNNY_KEYSTORE'))
+   storePassword System.getenv('ROBOT_BUNNY_STORE_PASSWORD')
+   keyAlias System.getenv('ROBOT_BUNNY_KEY_ALIAS')
+   keyPassword System.getenv('ROBOT_BUNNY_KEY_PASSWORD')
+  }
+ } }
+ buildTypes {
+  debug { applicationIdSuffix '.debug'; versionNameSuffix '-debug' }
+  release {
+   if (System.getenv('ROBOT_BUNNY_KEYSTORE')) signingConfig signingConfigs.release
+   minifyEnabled true
+   shrinkResources true
+   proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+  }
+  qa {
+   initWith getByName('release')
+   applicationIdSuffix '.qa'
+   versionNameSuffix '-qa'
+   signingConfig signingConfigs.debug
+   matchingFallbacks = ['release']
+   testProguardFiles 'proguard-test-rules.pro'
+   proguardFile 'proguard-qa-rules.pro'
+  }
+ }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+ androidResources { ignoreAssetsPattern '!.*:!.DS_Store:!._*:!CVS:!thumbs.db:!picasa.ini:!*~' }
+ lint { abortOnError true; checkReleaseBuilds true }
+}
+tasks.named('preBuild').configure { dependsOn syncGame }
+dependencies {
+ implementation 'androidx.activity:activity:1.11.0'
+ implementation 'androidx.webkit:webkit:1.15.0'
+ androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+ androidTestImplementation 'androidx.test:runner:1.7.0'
+ androidTestImplementation 'androidx.test:rules:1.7.0'
+}

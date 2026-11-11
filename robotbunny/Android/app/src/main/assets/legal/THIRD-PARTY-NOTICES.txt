@@ -1,0 +1,10 @@
+Robot Bunny Android — third-party notices
+
+AndroidX libraries are provided by The Android Open Source Project under Apache License 2.0.
+Kotlin and Kotlin Coroutines are provided by JetBrains and contributors under Apache License 2.0.
+See Apache-2.0.txt for the license text. Exact runtime dependency versions are recorded in the delivered dependency report.
+
+The optional arcade edition includes Phaser 3.90.0, distributed under the MIT license.
+See Phaser-MIT.txt for the supplied Phaser copyright and license notice.
+
+Game code, story, artwork and audio supplied by the app owner remain subject to their existing ownership and project terms.

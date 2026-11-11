@@ -35,9 +35,9 @@ for(const protocol of ['https:','file:']){
  const loadedImages=[],createdAudio=[],ui={};let fetches=0;
  class ImageStub{set src(value){loadedImages.push(value);if(value)queueMicrotask(()=>this.onload?.());}}
  class LegacyAudio extends AudioStub{constructor(){super();createdAudio.push(this);}addEventListener(){}}
- const context=vm.createContext({console,location:{protocol},Image:ImageStub,Audio:LegacyAudio,queueMicrotask,
-  document:{getElementById:id=>ui[id]||(ui[id]={style:{}})},
-  fetch:()=>{fetches++;return Promise.resolve({arrayBuffer:()=>Promise.resolve(new ArrayBuffer(8))});}});
+ const context=vm.createContext({console,location:{protocol},Image:ImageStub,Audio:LegacyAudio,queueMicrotask,setTimeout,clearTimeout,AbortSignal,
+  document:{getElementById:id=>ui[id]||(ui[id]={style:{},addEventListener(){}})},
+  fetch:()=>{fetches++;return Promise.resolve({ok:true,arrayBuffer:()=>Promise.resolve(new ArrayBuffer(8))});}});
  vm.runInContext(maps+declarations+`let assetsLoaded=0,gameReady=false,_bgCacheKey='';const assets={},sfxArrayBuffers={},fileSfxPools={};const bundledFiles=location.protocol==='file:';`+assetFunctions+`loadAssets();globalThis.getState=()=>({assets,gameReady,initialImageSources,assetsLoaded,assetsToLoad,sfxArrayBuffers});globalThis.loadBackground=loadLevelBackground;`,context);
  await new Promise(resolve=>setImmediate(resolve));
  const state=context.getState();assert(state.gameReady,'Slow music must not block readiness');

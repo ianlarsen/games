@@ -1,0 +1,1 @@
+<resources><style name="Theme.RobotBunny" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item><item name="android:windowLightStatusBar">false</item><item name="android:windowBackground">#000000</item><item name="android:colorAccent">#7BE2FF</item></style></resources>

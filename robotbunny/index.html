@@ -299,11 +299,59 @@
     background: transparent; color: #9db6d1; font-size: 14px;
     cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+  button { font-family: inherit; color: inherit; }
+  button:focus-visible, a:focus-visible { outline: 3px solid #ffd700; outline-offset: 3px; }
+  canvas:focus { outline: none; }
+  .hud { top: calc(5px + var(--safe-top)); width: calc(100vw - var(--safe-left) - var(--safe-right) - 20px); max-width: 960px; align-items: center; }
+  .hud button { min-height: 44px; min-width: 44px; font-size: inherit; touch-action: manipulation; }
+  #wrap { position: fixed; inset: 0; box-sizing: border-box; width: 100%; height: 100%; padding: 0; overflow: hidden; }
+  #game { display: block; max-width: none; max-height: none; border-radius: 0; box-shadow: none; }
+  .mobile-controls { bottom: var(--safe-bottom); padding-bottom: 0; height: 145px; }
+  #joystick-base { left: calc(15px + var(--safe-left)); }
+  #mobile-jump { right: calc(15px + var(--safe-right)); }
+  #mobile-laser { right: calc(120px + var(--safe-right)); }
+  #mobile-burst { right: calc(215px + var(--safe-right)); }
+  .start-screen { overflow-y: auto; overscroll-behavior: contain; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(12px + var(--safe-left)); gap: 10px; }
+  .start-logo { flex-shrink: 1; min-height: 0; object-fit: contain; }
+  .start-bottom { flex-shrink: 0; }
+  .start-button { min-height: 44px; }
+  .shop-panel, .perk-panel { box-sizing: border-box; max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px); overflow-y: auto; overscroll-behavior: contain; }
+  .shop-btn, .shop-close, #retry-assets { min-height: 44px; }
+  #storage-status { position: fixed; top: calc(58px + var(--safe-top)); left: calc(10px + var(--safe-left)); right: calc(10px + var(--safe-right)); z-index: 1400; padding: 8px; background: #332600; color: #fff; font-size: 13px; }
+  #run-actions { position: fixed; bottom: calc(12px + var(--safe-bottom)); left: calc(12px + var(--safe-left)); right: calc(12px + var(--safe-right)); z-index: 110; text-align: center; background: #071320ed; border-radius: 12px; }
+  #run-actions button { min-height: 44px; padding: 8px 18px; background: #7be2ff; color: #071320; border-radius: 8px; border: 0; margin: 5px; font-weight: 700; }
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+    .hud { flex-wrap: nowrap; font-size: 10px; gap: 3px; }
+    .hud-item { padding: 3px 4px; gap: 3px; }
+    .hud-item img { width: 12px; height: 12px; }
+    #perf-mode, .hud-item:has(#fps) { display: none; }
+    #perf-toggle img { width: 18px; height: 18px; }
+    #upgrades { max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .start-logo { max-height: 32dvh; }
+    .start-bottom { gap: 5px; }
+    .start-button { padding: 10px 30px; font-size: 18px; }
+    .leaderboard { padding: 5px 12px; max-height: 65px; overflow-y: auto; }
+    .start-screen a { padding: 4px 10px !important; }
+    #wrap { padding: 0; }
+    #joystick-base { width: 88px; height: 88px; }
+    #mobile-jump { width: 74px; height: 74px; }
+    #mobile-laser { right: calc(100px + var(--safe-right)); width: 64px; height: 64px; }
+    #mobile-burst { right: calc(175px + var(--safe-right)); width: 56px; height: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
 <div id="wrap">
-  <canvas id="game" width="960" height="560" aria-label="Robot Bunny Platformer"></canvas>
+  <canvas id="game" tabindex="0" width="960" height="560" aria-label="Robot Bunny Platformer"></canvas>
 </div>
 <div class="hud">
   <div class="hud-item"><img src="images/ui/hud-level.png" alt="Level"><span id="level">Level 1</span></div>
@@ -311,7 +359,9 @@
   <div class="hud-item"><img src="images/ui/hud-score.png" alt="Score"><span id="score">0</span></div>
   <div class="hud-item"><img src="images/ui/hud-coins.png" alt="Coins"><span id="coins">0</span></div>
   <div class="hud-item"><img src="images/ui/hud-upgrades.png" alt="Upgrades"><span id="upgrades">Upgrades: 0</span></div>
-  <div class="hud-item button" id="perf-toggle"><img src="images/ui/hud-settings.png" alt="Settings"><span id="perf-mode">Perf: Balanced</span></div>
+  <button type="button" class="hud-item button" id="perf-toggle" aria-label="Change performance mode"><img src="images/ui/hud-settings.png" alt=""><span id="perf-mode">Perf: Balanced</span></button>
+  <button type="button" class="hud-item button" id="rb-pause">Pause</button>
+  <button type="button" class="hud-item button" id="rb-sound" aria-pressed="true">Sound on</button>
   <div class="hud-item"><span>FPS</span><span id="fps">--</span></div>
 </div>
 <div class="combo-display" id="combo-display">COMBO ×0</div>
@@ -326,9 +376,10 @@
 <div class="start-screen" id="start-screen">
   <img class="start-logo" src="images/landing-logo.png" alt="Robot Bunny in Space">
   <div class="start-bottom">
-    <a href="engine/" style="color:#7be2ff;font:600 14px system-ui;padding:10px">PLAY PHASER EDITION</a>
-    <div class="start-button" id="start-btn" style="display:none;">TAP TO START</div>
-    <div id="loading-text">LOADING ASSETS... 0%</div>
+    <a href="engine/index.html" style="color:#7be2ff;font:600 14px system-ui;padding:10px">PLAY PHASER EDITION</a>
+    <button type="button" class="start-button" id="start-btn" style="display:none;">TAP TO START</button>
+    <div id="loading-text" role="status">LOADING ASSETS... 0%</div>
+    <button type="button" id="retry-assets" hidden>Retry loading</button>
     <div class="leaderboard" id="leaderboard">
       <div class="lb-title">Your Best Runs</div>
       <table class="lb-table">
@@ -341,9 +392,9 @@
 
 <div class="mobile-controls">
   <div id="joystick-base"><div id="joystick-knob"></div></div>
-  <div class="mobile-btn" id="mobile-jump">JUMP</div>
-  <div class="mobile-btn" id="mobile-laser"><img src="images/ui/btn-laser.png" alt="Laser"></div>
-  <div class="mobile-btn" id="mobile-burst"><img id="burst-img" src="images/ui/btn-burst.png" alt="Burst"><span id="burst-stars" class="burst-label"></span></div>
+  <button type="button" class="mobile-btn" id="mobile-jump" aria-label="Jump">JUMP</button>
+  <button type="button" class="mobile-btn" id="mobile-laser" aria-label="Fire laser"><img src="images/ui/btn-laser.png" alt=""></button>
+  <button type="button" class="mobile-btn" id="mobile-burst" aria-label="Use Moon Burst"><img id="burst-img" src="images/ui/btn-burst.png" alt=""><span id="burst-stars" class="burst-label"></span></button>
 </div>
 
 <!-- Landscape orientation prompt -->
@@ -370,8 +421,47 @@
   </div>
 </div>
 
+<div id="storage-status" role="status" hidden></div>
+<div id="run-actions" hidden aria-label="Run actions">
+  <p id="run-status" role="status"></p>
+  <button type="button" id="run-continue">Continue</button>
+  <button type="button" id="run-shop">Upgrade Shop</button>
+</div>
 <script>
 (() => {
+  // Preserve the existing save keys and persistent WKWebsiteDataStore. A denied
+  // or full store must not stop a run. Memory retains writes for this session.
+  const memorySaves = new Map();
+  function storageUnavailable() {
+    const status = document.getElementById('storage-status');
+    if (status) { status.hidden = false; status.textContent = 'Storage is unavailable. New progress may not survive closing the app.'; }
+  }
+  const storage = {
+    getItem(key) {
+      if (memorySaves.has(key)) return memorySaves.get(key);
+      try { return window.localStorage.getItem(key); }
+      catch { storageUnavailable(); return null; }
+    },
+    setItem(key, value) {
+      memorySaves.set(key, String(value));
+      try { window.localStorage.setItem(key, String(value)); }
+      catch { storageUnavailable(); }
+    },
+    removeItem(key) {
+      memorySaves.set(key, null);
+      try { window.localStorage.removeItem(key); }
+      catch { storageUnavailable(); }
+    }
+  };
+  function savedInteger(key, fallback = 0, maximum = Number.MAX_SAFE_INTEGER) {
+    const raw = storage.getItem(key);
+    const value = raw === null || raw.trim() === '' ? NaN : Number(raw);
+    return Number.isSafeInteger(value) && value >= fallback && value <= maximum ? value : fallback;
+  }
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = motionPreference.matches;
+  motionPreference.addEventListener('change', event => { reducedMotion = event.matches; });
+  let soundEnabled = storage.getItem('rb_sound_enabled') !== 'false';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
   ctx.imageSmoothingEnabled = false;
@@ -396,7 +486,7 @@
       : { particleDensity: 1.0, maxParticles: 240, uiShadowBlur: 3, introShadowBlur: 12 }
   };
   const performanceModeOrder = ['low', 'balanced', 'high'];
-  let performanceMode = localStorage.getItem('rb_perf_mode') || 'balanced';
+  let performanceMode = storage.getItem('rb_perf_mode') || 'balanced';
   if (!performanceProfiles[performanceMode]) performanceMode = 'balanced';
 
   function getPerformanceModeLabel(mode) {
@@ -412,7 +502,7 @@
     maxParticles = profile.maxParticles;
     uiShadowBlur = profile.uiShadowBlur;
     introShadowBlur = profile.introShadowBlur;
-    localStorage.setItem('rb_perf_mode', performanceMode);
+    storage.setItem('rb_perf_mode', performanceMode);
     if (particles.length > maxParticles) {
       particles.length = maxParticles;
     }
@@ -432,6 +522,8 @@
   const assets = {};
   const imageSources = {
     player: 'images/robotbunny.png',
+    bunnyAtlas: 'images/bunny-atlas-v2.png',
+    bossAtlas: 'images/boss-atlas-v2.png',
     bg: 'images/moon-background.png',
     ground: 'images/ground.png',
     platform: 'images/platform.png',
@@ -500,6 +592,7 @@
   // Placeholder for test hopper insertion flag (not used in final version).
 
   const initialImageSources = Object.entries(imageSources).filter(([key]) => !/^bg(?:[2-9]|10)$/.test(key));
+  const failedImages = new Map();
   let assetsToLoad = initialImageSources.length + Object.keys(sfxSources).length;
   let assetsLoaded = 0;
   let gameReady = false;
@@ -511,6 +604,12 @@
     if (loadingText) loadingText.textContent = `LOADING ASSETS... ${percent}%`;
 
       if (assetsLoaded >= assetsToLoad) {
+        if (failedImages.size) {
+          if (loadingText) loadingText.textContent = 'Some artwork could not load. Tap Retry loading to try again.';
+          const retry = document.getElementById('retry-assets');
+          if (retry) retry.hidden = false;
+          return;
+        }
         gameReady = true;
         if (loadingText) loadingText.style.display = 'none';
         const startBtn = document.getElementById('start-btn');
@@ -518,14 +617,35 @@
       }
   }
 
+  function loadImage(key, src, completed) {
+    let attempts = 0;
+    function attempt() {
+      attempts++;
+      const img = new Image();
+      let finished = false;
+      const timeout = setTimeout(() => settle(false), 15000);
+      function settle(ok) {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        img.onload = img.onerror = null;
+        if (!ok && attempts < 3) { attempt(); return; }
+        if (ok) failedImages.delete(key);
+        else failedImages.set(key, src);
+        completed();
+      }
+      img.onload = () => settle(true);
+      img.onerror = () => settle(false);
+      assets[key] = img;
+      img.src = src;
+    }
+    attempt();
+  }
+
   function loadAssets() {
     // Images
     for (const [key, src] of initialImageSources) {
-      const img = new Image();
-      img.onload = assetLoaded;
-      img.onerror = () => { console.error('Failed to load image:', src); assetLoaded(); };
-      assets[key] = img;
-      img.src = src;
+      loadImage(key, src, assetLoaded);
     }
     // Future music tracks do not compete with images or delay the start button.
     for (const [key, src] of Object.entries(musicSources)) {
@@ -541,12 +661,21 @@
         fileSfxPools[key] = Array.from({length:2}, () => { const audio = new Audio(src); audio.preload = 'none'; return audio; });
         assetLoaded(); continue;
       }
-      fetch(src)
-        .then(r => r.arrayBuffer())
+      fetch(src, { signal: AbortSignal.timeout(15000) })
+        .then(r => { if (!r.ok) throw new Error('Audio unavailable'); return r.arrayBuffer(); })
         .then(ab => { sfxArrayBuffers[key] = ab; assetLoaded(); })
         .catch(() => { console.error('Failed to load SFX:', src); assetLoaded(); });
     }
   }
+
+  document.getElementById('retry-assets').addEventListener('click', () => {
+    const pending = [...failedImages];
+    if (!pending.length) return;
+    document.getElementById('retry-assets').hidden = true;
+    assetsLoaded = 0;
+    assetsToLoad = pending.length;
+    for (const [key, src] of pending) loadImage(key, src, assetLoaded);
+  });
 
   function loadLevelBackground(level) {
     const key = 'bg' + level;
@@ -564,19 +693,21 @@
   }
 
   function fit() {
-    const maxW = Math.min(window.innerWidth, 960);
-    const reservedBottom = isMobileDevice ? 220 : 0;
-    const viewH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-    const availableH = Math.max(220, viewH - reservedBottom);
-    const maxH = isMobileDevice ? Math.min(availableH, 600) : Math.min(window.innerHeight * 0.68, 560);
-    const ar = canvas.width / canvas.height;
-    let w = maxW, h = w / ar;
-    if (h > maxH) { h = maxH; w = h * ar; }
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+    const viewW = Math.max(1, window.innerWidth);
+    const viewH = Math.max(1, window.visualViewport ? window.visualViewport.height : window.innerHeight);
+    // One scale for the whole world: keep physics height fixed and vary the visible
+    // world width to match the screen, instead of shrinking or cropping the game.
+    const worldHeight = 560;
+    const worldWidth = Math.max(1, Math.round(worldHeight * viewW / viewH));
+    if (canvas.width !== worldWidth) canvas.width = worldWidth;
+    if (canvas.height !== worldHeight) canvas.height = worldHeight;
+    canvas.style.width = viewW + 'px';
+    canvas.style.height = viewH + 'px';
   }
+
   let resizeRaf = 0;
   function schedulefit() {
+    window.dispatchEvent(new Event('rb:clear-input'));
     if (resizeRaf) cancelAnimationFrame(resizeRaf);
     resizeRaf = requestAnimationFrame(() => { fit(); resizeRaf = 0; });
   }
@@ -696,9 +827,9 @@
   }
 
   // ============ PERSISTENT DATA ============
-  let totalCoins = parseInt(localStorage.getItem('rb_endless_coins') || '0', 10);
-  let highestLevel = parseInt(localStorage.getItem('rb_endless_highest') || '1', 10);
-  let highScore = parseInt(localStorage.getItem('rb_high_score') || '0', 10);
+  let totalCoins = savedInteger('rb_endless_coins', 0);
+  let highestLevel = savedInteger('rb_endless_highest', 1);
+  let highScore = savedInteger('rb_high_score', 0);
   let loopNumber = 0;
 
   // Shop upgrade definitions: id, label, desc, costs[level], maxLevel
@@ -710,16 +841,16 @@
   const BASE_LIVES = 5;
 
   const permanentUpgrades = {
-    quickShot:   parseInt(localStorage.getItem('rb_upg_quick')    || '0', 10),
-    magnetField: parseInt(localStorage.getItem('rb_upg_magnet')   || '0', 10),
+    quickShot:   savedInteger('rb_upg_quick', 0, 2),
+    magnetField: savedInteger('rb_upg_magnet', 0, 2),
   };
 
   function saveProgress() {
-    localStorage.setItem('rb_endless_coins',  totalCoins);
-    localStorage.setItem('rb_endless_highest', highestLevel);
-    localStorage.setItem('rb_high_score',     highScore);
-    localStorage.setItem('rb_upg_quick',      permanentUpgrades.quickShot);
-    localStorage.setItem('rb_upg_magnet',     permanentUpgrades.magnetField);
+    storage.setItem('rb_endless_coins',  totalCoins);
+    storage.setItem('rb_endless_highest', highestLevel);
+    storage.setItem('rb_high_score',     highScore);
+    storage.setItem('rb_upg_quick',      permanentUpgrades.quickShot);
+    storage.setItem('rb_upg_magnet',     permanentUpgrades.magnetField);
   }
 
   // ---- Score history (top 10 runs, stored locally) ----
@@ -727,7 +858,13 @@
   const SCORE_HISTORY_MAX = 10;
 
   function loadScoreHistory() {
-    try { return JSON.parse(localStorage.getItem(SCORE_HISTORY_KEY) || '[]'); } catch(e) { return []; }
+    try {
+      const history = JSON.parse(storage.getItem(SCORE_HISTORY_KEY) || '[]');
+      return Array.isArray(history) ? history.filter(row => row &&
+        Number.isFinite(row.score) && row.score >= 0 &&
+        Number.isSafeInteger(row.level) && row.level >= 1 &&
+        (row.perks == null || Number.isSafeInteger(row.perks) && row.perks >= 0)).slice(0, SCORE_HISTORY_MAX) : [];
+    } catch { return []; }
   }
 
   function saveScoreToHistory(scoreVal, level, perkCount) {
@@ -735,7 +872,7 @@
     history.push({ score: Math.floor(scoreVal), level, perks: perkCount });
     history.sort((a, b) => b.score - a.score);
     if (history.length > SCORE_HISTORY_MAX) history.length = SCORE_HISTORY_MAX;
-    try { localStorage.setItem(SCORE_HISTORY_KEY, JSON.stringify(history)); } catch(e) {}
+    try { storage.setItem(SCORE_HISTORY_KEY, JSON.stringify(history)); } catch(e) {}
     return history;
   }
 
@@ -792,7 +929,7 @@
     }
 
     // Consumable extra life item
-    const boughtSoFar = parseInt(localStorage.getItem('rb_bought_lives') || '0', 10);
+    const boughtSoFar = savedInteger('rb_bought_lives', 0);
     const canAffordLife = totalCoins >= SHOP_EXTRA_LIFE_COST;
     const lifeDiv = document.createElement('div');
     lifeDiv.className = 'shop-item';
@@ -806,8 +943,8 @@
         if (e.type === 'touchend') e.preventDefault();
         if (totalCoins < SHOP_EXTRA_LIFE_COST) return;
         totalCoins -= SHOP_EXTRA_LIFE_COST;
-        const cur = parseInt(localStorage.getItem('rb_bought_lives') || '0', 10);
-        localStorage.setItem('rb_bought_lives', cur + 1);
+        const cur = savedInteger('rb_bought_lives', 0);
+        storage.setItem('rb_bought_lives', cur + 1);
         saveProgress();
         renderShop();
       };
@@ -848,12 +985,12 @@
   function getTodayContract() {
     const dateStr = new Date().toDateString();
     let stored = null;
-    try { stored = JSON.parse(localStorage.getItem('rb_contract_v1') || 'null'); } catch(e) {}
+    try { stored = JSON.parse(storage.getItem('rb_contract_v1') || 'null'); } catch(e) {}
     if (stored && stored.date === dateStr) return stored;
     let h = 0;
     for (let i = 0; i < dateStr.length; i++) h = (h * 31 + dateStr.charCodeAt(i)) >>> 0;
     const c = { ...CONTRACT_POOL[h % CONTRACT_POOL.length], date: dateStr, completed: false };
-    try { localStorage.setItem('rb_contract_v1', JSON.stringify(c)); } catch(e) {}
+    try { storage.setItem('rb_contract_v1', JSON.stringify(c)); } catch(e) {}
     return c;
   }
 
@@ -871,7 +1008,7 @@
     todayContract.completed = true;
     contractJustCompletedThisRun = true;
     totalCoins += CONTRACT_REWARD_COINS;
-    try { localStorage.setItem('rb_contract_v1', JSON.stringify(todayContract)); } catch(e) {}
+    try { storage.setItem('rb_contract_v1', JSON.stringify(todayContract)); } catch(e) {}
     saveProgress();
     recordEvent('contract_complete', { type: c.type, target: c.target, reward: CONTRACT_REWARD_COINS });
   }
@@ -881,7 +1018,7 @@
   function checkBossSlayerBadge() {
     if (bossesKilledThisRun === 0) return;
     let data = {};
-    try { data = JSON.parse(localStorage.getItem('rb_badges_v1') || '{}'); } catch(e) {}
+    try { data = JSON.parse(storage.getItem('rb_badges_v1') || '{}'); } catch(e) {}
     const prev = data.boss_slayer || { total: 0, tier: 0 };
     const newTotal = prev.total + bossesKilledThisRun;
     let newTier = 0;
@@ -890,7 +1027,7 @@
     }
     if (newTier > prev.tier) badgeNewTierThisRun = BOSS_SLAYER_TIERS[newTier - 1].label;
     data.boss_slayer = { total: newTotal, tier: newTier };
-    try { localStorage.setItem('rb_badges_v1', JSON.stringify(data)); } catch(e) {}
+    try { storage.setItem('rb_badges_v1', JSON.stringify(data)); } catch(e) {}
   }
 
   function contractProgressText() {
@@ -923,14 +1060,14 @@
   };
 
   // Apply any extra lives purchased in the shop before the last run ended
-  (() => {
-    const bought = parseInt(localStorage.getItem('rb_bought_lives') || '0', 10);
+  function applyPurchasedLives() {
+    const bought = savedInteger('rb_bought_lives', 0);
     if (bought > 0) {
       player.lives += bought;
       player.maxLives = Math.max(player.maxLives, player.lives);
-      localStorage.removeItem('rb_bought_lives');
+      storage.removeItem('rb_bought_lives');
     }
-  })();
+  }
 
   // ============ INPUT ============
   const keys = {};
@@ -971,7 +1108,7 @@
     // Keep a bounded buffer so localStorage writes stay small and predictable.
     if (window.rbTelemetry.length > 200) window.rbTelemetry.shift();
     try {
-      localStorage.setItem('rb_telemetry_buffer', JSON.stringify(window.rbTelemetry));
+      storage.setItem('rb_telemetry_buffer', JSON.stringify(window.rbTelemetry));
     } catch (e) {
       // Ignore telemetry storage failures.
     }
@@ -986,14 +1123,14 @@
   function saveRunSummary(summary) {
     let runs = [];
     try {
-      runs = JSON.parse(localStorage.getItem('rb_run_summaries_v1') || '[]');
+      runs = JSON.parse(storage.getItem('rb_run_summaries_v1') || '[]');
       if (!Array.isArray(runs)) runs = [];
     } catch (e) {
       runs = [];
     }
     runs.push(summary);
     if (runs.length > 40) runs = runs.slice(runs.length - 40);
-    localStorage.setItem('rb_run_summaries_v1', JSON.stringify(runs));
+    storage.setItem('rb_run_summaries_v1', JSON.stringify(runs));
 
     const completed = runs.length;
     const meanLevelReached = completed > 0
@@ -1014,14 +1151,14 @@
       meanRunSeconds: Number(meanRunSeconds.toFixed(1)),
       deathsBySource
     };
-    localStorage.setItem('rb_run_baseline_v1', JSON.stringify(baseline));
+    storage.setItem('rb_run_baseline_v1', JSON.stringify(baseline));
     window.rbTelemetryBaseline = baseline;
   }
 
   // Debug helper for quick balancing checks in the browser console.
   window.getRobotBunnyBaseline = function getRobotBunnyBaseline() {
     try {
-      return JSON.parse(localStorage.getItem('rb_run_baseline_v1') || '{}');
+      return JSON.parse(storage.getItem('rb_run_baseline_v1') || '{}');
     } catch (e) {
       return {};
     }
@@ -1175,6 +1312,7 @@
   }
 
   function playMusic(trackName) {
+    if (!soundEnabled || paused || document.hidden) { stopMusic(); return; }
     // Start only after a user gesture; do not require audioCtx for HTMLAudio playback,
     // but create one if available to satisfy policies on some browsers.
     if (!audioCtx) {
@@ -1215,7 +1353,7 @@
   }
 
   function playSfx(name, vol = 1.0) {
-    if (paused || document.hidden) return;
+    if (!soundEnabled || paused || document.hidden) return;
     if (bundledFiles) {
       const audio = fileSfxPools[name]?.find(item => item.paused || item.ended);
       if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => {}); }
@@ -1237,7 +1375,7 @@
 
   // ============ PARTICLES ============
   function createParticle(x, y, color, count = 8, size = 5) {
-    const scaledCount = Math.max(1, Math.floor(count * particleDensity));
+    const scaledCount = Math.max(1, Math.floor(count * particleDensity * (reducedMotion ? 0.25 : 1)));
     if (particles.length >= maxParticles) return;
     const availableSlots = Math.max(0, maxParticles - particles.length);
     const emitCount = Math.min(scaledCount, availableSlots);
@@ -1688,7 +1826,7 @@
       todayContract.completed = true;
       contractJustCompletedThisRun = true;
       totalCoins += CONTRACT_REWARD_COINS;
-      try { localStorage.setItem('rb_contract_v1', JSON.stringify(todayContract)); } catch(e) {}
+      try { storage.setItem('rb_contract_v1', JSON.stringify(todayContract)); } catch(e) {}
       recordEvent('contract_complete', { type: 'deathless', target: 1, reward: CONTRACT_REWARD_COINS });
     }
     checkContractProgress(); // handles reach_level, kill_enemies, boss_kill, score
@@ -1743,6 +1881,15 @@
   }
 
   function updateHUD() {
+    const runEnded = gameState === 'gameOver';
+    const levelEnded = gameState === 'levelComplete';
+    const actions = document.getElementById('run-actions');
+    actions.hidden = !(runEnded || levelEnded);
+    document.getElementById('run-shop').hidden = !runEnded;
+    document.getElementById('run-continue').textContent = runEnded ? 'Restart' : 'Next level';
+    const status = document.getElementById('run-status');
+    const message = runEnded ? `Game over. Score ${Math.floor(score)}, level ${currentLevel}.` : levelEnded ? `Level ${currentLevel} complete.` : '';
+    if (status.textContent !== message) status.textContent = message;
     if (hudEls.level)    hudEls.level.textContent    = `Level ${currentLevel}`;
     if (hudEls.lives)    hudEls.lives.textContent    = `\u00d7${player.lives}`;
     if (hudEls.score)    hudEls.score.textContent    = Math.floor(score);
@@ -2383,40 +2530,56 @@
   }
 
   // ============ DRAWING ============
+  // Presentation-only animation; collision geometry and attack timing stay unchanged.
+  function drawAtlas(image, frame, cols, rows, x, y, w, h) {
+    if (!image || !image.complete || !image.naturalWidth) return false;
+    const sw = image.naturalWidth / cols, sh = image.naturalHeight / rows;
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    const gutter = rows === 5 ? sw * 0.035 : 0;
+    ctx.drawImage(image, (frame % cols) * sw + gutter, Math.floor(frame / cols) * sh, sw - gutter * 2, sh, x, y, w, h);
+    ctx.restore(); return true;
+  }
+  function bunnyAnimationFrame() {
+    if (gameState === 'levelComplete') return 15;
+    if (player.invincible) return 14;
+    if (player.shootCooldown > 0.18 * shootCooldownMultiplier) return 12;
+    if (player.shootCooldown > 0.10 * shootCooldownMultiplier) return 13;
+    if (!player.onGround) return player.vy < -100 ? 9 : player.vy > 100 ? 10 : 8;
+    if (keys.ArrowDown || keys.KeyS) return 11;
+    return Math.abs(player.vx) > 15 ? 4 + Math.floor(time * 10) % 4 : (reducedMotion ? 0 : Math.floor(time * 4) % 4);
+  }
+  function bossAnimationFrame() {
+    const kind = {squid:0, mantis:1, sal:2, chimiera:9}[boss.bossType] ?? 0;
+    const variant = boss.variation === 'armor' ? 3 : boss.variation === 'spike' ? 6 : 0;
+    const index = kind === 9 ? 9 : kind + variant;
+    const attacking = boss.fireWindingUp || boss.slammingPhase || boss.state === 'rush';
+    return index * 2 + (attacking ? 1 : reducedMotion ? 0 : Math.floor(time * 3) % 2);
+  }
   function draw() {
     ctx.imageSmoothingEnabled = false;
-    ctx.save();
-    ctx.translate(shake.x, shake.y);
-
-    // Parallax BG - choose background based on current level. If a specific
-    // background asset for the level exists and is loaded, use it; otherwise
-    // fall back to the default bg.
-    let bgAsset = assets.bg;
+    // Paint an opaque frame before the current planet. Never leave the previous
+    // background (or a shaken edge) visible through transparent artwork.
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     const bgKey = 'bg' + currentLevel;
-    if (assets[bgKey] && assets[bgKey].complete && assets[bgKey].naturalWidth > 0) {
-      bgAsset = assets[bgKey];
-    }
-    if (bgAsset && bgAsset.naturalWidth > 0) {
-      // Recompute scale only when asset changes (not every frame)
-      const bgKey = 'bg' + currentLevel;
-      if (bgKey !== _bgCacheKey || _bgScaledW === 0) {
-        const bgW = bgAsset.naturalWidth;
-        const bgH = bgAsset.naturalHeight;
-        const scale = Math.max(canvas.width / bgW, canvas.height / bgH);
-        _bgScaledW = bgW * scale;
-        _bgScaledH = bgH * scale;
-        _bgDy      = (canvas.height - _bgScaledH) / 2;
-        _bgCacheKey = bgKey;
+    const bgAsset = imageSources[bgKey] ? assets[bgKey] : assets.bg;
+    if (bgAsset && bgAsset.complete && bgAsset.naturalWidth > 0) {
+      const cacheKey = `${bgKey}:${bgAsset.src}:${bgAsset.naturalWidth}x${bgAsset.naturalHeight}:${canvas.width}x${canvas.height}`;
+      if (cacheKey !== _bgCacheKey) {
+        const scale = Math.max(canvas.width / bgAsset.naturalWidth, canvas.height / bgAsset.naturalHeight);
+        _bgScaledW = bgAsset.naturalWidth * scale;
+        _bgScaledH = bgAsset.naturalHeight * scale;
+        _bgDy = (canvas.height - _bgScaledH) / 2;
+        _bgCacheKey = cacheKey;
       }
-      const totalScroll = camera.x * 0.2;
-      const offset = ((totalScroll % _bgScaledW) + _bgScaledW) % _bgScaledW;
+      const offset = ((camera.x * 0.2 % _bgScaledW) + _bgScaledW) % _bgScaledW;
       for (let tx = -offset; tx < canvas.width; tx += _bgScaledW) {
         ctx.drawImage(bgAsset, tx, _bgDy, _bgScaledW, _bgScaledH);
       }
-    } else {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+    ctx.save();
+    // Keep the full-screen background fixed while gameplay feedback shakes.
+    ctx.translate(reducedMotion ? 0 : shake.x, reducedMotion ? 0 : shake.y);
 
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -2703,7 +2866,9 @@
       if (boss.hitFlash > 0) ctx.globalAlpha = 0.5 + Math.sin(time * 50) * 0.5;
       let imgKey = boss.bossType;
       if (boss.variation !== 'plain' && boss.bossType !== 'chimiera') imgKey += '_' + boss.variation;
-      if (assets[imgKey] && assets[imgKey].complete && assets[imgKey].naturalWidth > 0) {
+      if (drawAtlas(assets.bossAtlas, bossAnimationFrame(), 4, 5, boss.x, boss.y, boss.w, boss.h)) {
+        // Atlas handles all ten existing boss variants.
+      } else if (assets[imgKey] && assets[imgKey].complete && assets[imgKey].naturalWidth > 0) {
         ctx.drawImage(assets[imgKey], boss.x, boss.y, boss.w, boss.h);
       } else {
         ctx.fillStyle = 'red';
@@ -2796,7 +2961,8 @@
     ctx.save();
     ctx.translate(player.w/2, 0); ctx.scale(player.facing, 1); ctx.translate(-player.w/2, 0);
     // When ducking, squash the sprite vertically by drawing it into the reduced rect
-    if (assets.player && assets.player.complete && assets.player.naturalWidth > 0) ctx.drawImage(assets.player, 0, 0, player.w, player.h);
+    if (drawAtlas(assets.bunnyAtlas, bunnyAnimationFrame(), 4, 4, -player.w * 0.15, -player.h * 0.12, player.w * 1.3, player.h * 1.12)) {}
+    else if (assets.player && assets.player.complete && assets.player.naturalWidth > 0) ctx.drawImage(assets.player, 0, 0, player.w, player.h);
     else { ctx.fillStyle = '#ccc'; ctx.fillRect(0, 0, player.w, player.h); }
     ctx.restore();
     ctx.restore();
@@ -2993,7 +3159,7 @@
       }
       // Score share line
       const perkCount = activePerks.length;
-      const badgeData = (() => { try { return JSON.parse(localStorage.getItem('rb_badges_v1') || '{}'); } catch(e) { return {}; } })();
+      const badgeData = (() => { try { return JSON.parse(storage.getItem('rb_badges_v1') || '{}'); } catch(e) { return {}; } })();
       const slayerTier = (badgeData.boss_slayer || {}).tier || 0;
       const tierLabel = slayerTier > 0 ? BOSS_SLAYER_TIERS[slayerTier-1].label : null;
       const shareText = '\ud83d\udc30 Robot Bunny: Lv' + currentLevel + ' \u2022 Score ' + Math.floor(score) + ' \u2022 ' + perkCount + ' perks' + (tierLabel ? ' \u2022 ' + tierLabel : '') + (todayContract && todayContract.completed ? ' \u2022 Daily \u2713' : '');
@@ -3011,13 +3177,17 @@
 
   // ============ INPUT ============
   window.addEventListener('keydown', e => {
+    if (e.target.closest?.('button, a, input, select, textarea')) return;
     if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown','KeyW','KeyA','KeyD','KeyS','KeyQ','KeyB','Enter','KeyR','KeyX','Escape'].includes(e.code)) e.preventDefault();
     if (e.repeat) return;
+    if (e.target.closest?.('button, a, input, select, textarea')) return;
+    if (!gameStarted) { if (e.code === 'Enter' && gameReady) startGame(); return; }
+    if (paused && e.code !== 'Escape') return;
     if (gameState === 'levelComplete' && e.code === 'Enter') startNextLevel();
     if (gameState === 'gameOver' && e.code === 'KeyR') location.reload();
     if (gameState === 'gameOver' && e.code === 'KeyU') { openShop(); return; }
     if (gameState === 'gameOver' && e.code === 'KeyS') {
-      const badgeData = (() => { try { return JSON.parse(localStorage.getItem('rb_badges_v1') || '{}'); } catch(e) { return {}; } })();
+      const badgeData = (() => { try { return JSON.parse(storage.getItem('rb_badges_v1') || '{}'); } catch(e) { return {}; } })();
       const slayerTier = (badgeData.boss_slayer || {}).tier || 0;
       const tierLabel = slayerTier > 0 ? BOSS_SLAYER_TIERS[slayerTier-1].label : null;
       const shareText = '\ud83d\udc30 Robot Bunny: Lv' + currentLevel + ' \u2022 Score ' + Math.floor(score) + ' \u2022 ' + activePerks.length + ' perks' + (tierLabel ? ' \u2022 ' + tierLabel : '') + (todayContract && todayContract.completed ? ' \u2022 Daily \u2713' : '');
@@ -3055,13 +3225,17 @@
     for (const key in keys) keys[key] = false;
     wantShoot = false;
     wantJumpPress = false;
+    window.dispatchEvent(new Event('rb:clear-input'));
     accumulator = 0;
     renderRequested = true;
   }
   function setPaused(next) {
+    if (!gameStarted) return;
     paused = next; clearInputState();
     const panel = document.getElementById('rb-pause-panel');
     if (panel) panel.hidden = !next;
+    if (next) document.getElementById('rb-resume').focus();
+    else canvas.focus({ preventScroll: true });
     if (next) {
       currentMusic?.pause();
       for (const source of activeSfx) { try { source.stop(); } catch(e) {} }
@@ -3069,7 +3243,7 @@
       audioCtx?.suspend()?.catch(() => {});
     } else {
       audioCtx?.resume()?.catch(() => {});
-      currentMusic?.play()?.catch(() => {});
+      if (soundEnabled) currentMusic?.play()?.catch(() => {});
     }
   }
   function interruptGame() { clearInputState(); if (gameStarted) setPaused(true); }
@@ -3077,7 +3251,30 @@
   window.addEventListener('pagehide', interruptGame);
   window.addEventListener('rb:background', interruptGame);
   document.addEventListener('visibilitychange', () => { if (document.hidden) interruptGame(); });
+  const portraitPrompt = window.matchMedia('(pointer: coarse) and (orientation: portrait)');
+  portraitPrompt.addEventListener('change', event => { if (event.matches) interruptGame(); });
   document.getElementById('rb-resume').addEventListener('click', () => setPaused(false));
+  document.getElementById('rb-pause').addEventListener('click', () => setPaused(true));
+  const soundButton = document.getElementById('rb-sound');
+  function updateSoundButton() {
+    soundButton.setAttribute('aria-pressed', String(soundEnabled));
+    soundButton.textContent = soundEnabled ? 'Sound on' : 'Sound off';
+  }
+  updateSoundButton();
+  soundButton.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    storage.setItem('rb_sound_enabled', soundEnabled);
+    updateSoundButton();
+    if (!soundEnabled) {
+      currentMusic?.pause();
+      for (const source of activeSfx) { try { source.stop(); } catch {} }
+      for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
+    } else if (gameStarted && !paused) {
+      audioCtx?.resume()?.catch(() => {});
+      if (currentMusic) currentMusic.play().catch(() => {});
+      else if (gameState !== 'gameOver') playMusic(gameState === 'levelComplete' ? 'victory' : gameState === 'bossIntro' || boss ? 'boss' : `level${currentLevel}`);
+    }
+  });
 
   const btns = {
     jump: document.getElementById('mobile-jump'),
@@ -3085,21 +3282,36 @@
   };
   const bindTouch = (btn, code) => {
     if (!btn) return;
-    btn.addEventListener('touchstart', e => {
-      e.preventDefault();
+    const heldPointers = new Set();
+    const press = () => {
+      if (paused || !gameStarted) return;
       keys[code] = true;
       if (code === 'KeyX') wantShoot = true;
       if (code === 'Space') wantJumpPress = true;
-    }, { passive: false });
-    btn.addEventListener('touchend', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
-    btn.addEventListener('touchcancel', e => { e.preventDefault(); keys[code]=false; }, { passive: false });
+    };
+    btn.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      heldPointers.add(e.pointerId);
+      btn.setPointerCapture(e.pointerId);
+      press();
+    });
+    const release = e => { heldPointers.delete(e.pointerId); if (!heldPointers.size) keys[code] = false; };
+    for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) btn.addEventListener(event, release);
+    // Native keyboard and assistive-technology activation has no pointer.
+    btn.addEventListener('click', e => {
+      if (e.detail !== 0) return;
+      press();
+      setTimeout(() => { if (!heldPointers.size) keys[code] = false; }, 100);
+    });
+    window.addEventListener('rb:clear-input', () => { heldPointers.clear(); keys[code] = false; });
   };
   bindTouch(btns.jump, 'Space'); bindTouch(btns.laser, 'KeyX');
 
   // Mobile burst button — fires a homing laser at every on-screen enemy
   const mobileBurstBtn = document.getElementById('mobile-burst');
   if (mobileBurstBtn) {
-    mobileBurstBtn.addEventListener('touchstart', e => {
+    mobileBurstBtn.addEventListener('click', e => {
       e.preventDefault();
       if (gameState === 'playing' && player_moonBursts > 0 && !moonBurstActive) {
         player_moonBursts--;
@@ -3122,51 +3334,58 @@
     }, { passive: false });
   }
 
-  // Virtual joystick
+  // Virtual joystick: pointer capture plus document and iOS touch fallbacks.
   (function() {
     const base = document.getElementById('joystick-base');
     const knob = document.getElementById('joystick-knob');
     if (!base || !knob) return;
-    const DEAD = 12;   // px dead zone
-    const MAX  = 44;   // px max knob travel from centre
-    let joyId = -1;
-    let centreX = 0, centreY = 0;
-
-    function joyStart(e) {
-      e.preventDefault();
-      const rect = base.getBoundingClientRect();
-      centreX = rect.left + rect.width  / 2;
-      centreY = rect.top  + rect.height / 2;
-      joyId = e.changedTouches[0].identifier;
-      joyMove(e);
+    const DEAD = 12;
+    let joyId = null, joyTouchId = null, centreX = 0;
+    function resetJoystick() {
+      const previous = joyId;
+      joyId = joyTouchId = null;
+      knob.style.transform = 'translate(-50%, -50%)';
+      keys.ArrowLeft = keys.ArrowRight = false;
+      try { if (previous !== null && base.hasPointerCapture(previous)) base.releasePointerCapture(previous); } catch {}
     }
     function joyMove(e) {
-      e.preventDefault();
-      for (const t of e.changedTouches) {
-        if (t.identifier !== joyId) continue;
-        const dx = t.clientX - centreX;
-        const dist = Math.min(Math.abs(dx), MAX);
-        const kx = Math.sign(dx) * dist;
-        // visually clamp knob inside base
-        knob.style.transform = `translate(calc(-50% + ${kx}px), -50%)`;
-        keys['ArrowLeft']  = dx < -DEAD;
-        keys['ArrowRight'] = dx >  DEAD;
-      }
+      if (e.pointerId !== joyId) return;
+      if (paused || !gameStarted || e.buttons === 0) { resetJoystick(); return; }
+      const dx = e.clientX - centreX;
+      const maxTravel = Math.max(1, (base.clientWidth - knob.offsetWidth) / 2);
+      const kx = Math.sign(dx) * Math.min(Math.abs(dx), maxTravel);
+      knob.style.transform = `translate(calc(-50% + ${kx}px), -50%)`;
+      keys.ArrowLeft = dx < -DEAD;
+      keys.ArrowRight = dx > DEAD;
     }
-    function joyEnd(e) {
+    base.setAttribute('role', 'group');
+    base.setAttribute('aria-label', 'Move left or right with the joystick. Keyboard: arrow keys or A and D.');
+    base.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || joyId !== null || paused || !gameStarted) return;
       e.preventDefault();
-      for (const t of e.changedTouches) {
-        if (t.identifier !== joyId) continue;
-        joyId = -1;
-        knob.style.transform = 'translate(-50%, -50%)';
-        keys['ArrowLeft']  = false;
-        keys['ArrowRight'] = false;
-      }
+      const rect = base.getBoundingClientRect();
+      centreX = rect.left + rect.width / 2;
+      joyId = e.pointerId;
+      try { base.setPointerCapture(joyId); } catch { /* Document handlers still own this pointer. */ }
+      joyMove(e);
+    });
+    document.addEventListener('pointermove', joyMove, true);
+    const release = e => { if (e.pointerId === joyId) resetJoystick(); };
+    for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+      document.addEventListener(event, release, true);
     }
-    base.addEventListener('touchstart',  joyStart, { passive: false });
-    base.addEventListener('touchmove',   joyMove,  { passive: false });
-    base.addEventListener('touchend',    joyEnd,   { passive: false });
-    base.addEventListener('touchcancel', joyEnd,   { passive: false });
+    // WebKit may finish the touch outside the captured element, especially with
+    // another finger on Fire. Track its touch identifier independently of pointerId.
+    base.addEventListener('touchstart', e => {
+      if (joyId !== null && joyTouchId === null && e.changedTouches.length) joyTouchId = e.changedTouches[0].identifier;
+    }, { passive: true });
+    const releaseTouch = e => {
+      if (joyId === null) return;
+      if (!e.touches.length || Array.from(e.changedTouches).some(t => t.identifier === joyTouchId)) resetJoystick();
+    };
+    document.addEventListener('touchend', releaseTouch, { capture: true, passive: true });
+    document.addEventListener('touchcancel', releaseTouch, { capture: true, passive: true });
+    window.addEventListener('rb:clear-input', resetJoystick);
   })();
 
   // ---- Cached HUD element references (prevents per-frame DOM queries) ----
@@ -3190,22 +3409,21 @@
   const perfToggle = document.getElementById('perf-toggle');
   if (perfToggle) {
     perfToggle.addEventListener('click', cyclePerformanceMode);
-    perfToggle.addEventListener('touchstart', e => {
-      e.preventDefault();
-      cyclePerformanceMode();
-    }, { passive: false });
+
   }
 
   // Start Game Logic
   function startGame() {
-    if (gameStarted) return;
+    if (gameStarted || !gameReady) return;
     // Unlock audio on first user gesture
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
     }
     decodeSfxBuffers();
     gameStarted = true;
+    applyPurchasedLives();
     document.getElementById('start-screen').classList.add('hidden');
+    canvas.focus({ preventScroll: true });
     gameState = 'playing';
     resetRunPerks();
     resetRunTelemetry();
@@ -3217,6 +3435,11 @@
 
   // Handle click on start button AND canvas
   document.getElementById('start-btn').addEventListener('click', startGame);
+  document.getElementById('run-continue').addEventListener('click', () => {
+    if (gameState === 'levelComplete') startNextLevel();
+    else if (gameState === 'gameOver') location.reload();
+  });
+  document.getElementById('run-shop').addEventListener('click', () => { if (gameState === 'gameOver') openShop(); });
   canvas.addEventListener('click', () => {
     if (!gameStarted && gameReady) { startGame(); return; }
     if (gameState === 'levelComplete') startNextLevel();
@@ -3233,7 +3456,7 @@
   }, { passive: false });
 
   // Prevent scrolling while playing on mobile
-  document.body.addEventListener('touchmove', e => { if (gameStarted) e.preventDefault(); }, { passive: false });
+  document.body.addEventListener('touchmove', e => { if (gameStarted && !e.target.closest('button, a, .hud, .shop-panel, .perk-panel, .start-screen')) e.preventDefault(); }, { passive: false });
 
   // Loop
   let last = performance.now();

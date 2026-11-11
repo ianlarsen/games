@@ -1,0 +1,61 @@
+{
+  "bunny": {
+    "file": "images/bunny-atlas-v2.png",
+    "columns": 4,
+    "rows": 4,
+    "states": {
+      "idle": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "run": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "takeoff": [
+        8
+      ],
+      "rise": [
+        9
+      ],
+      "fall": [
+        10
+      ],
+      "crouch": [
+        11
+      ],
+      "fire": [
+        12,
+        13
+      ],
+      "hurt": [
+        14
+      ],
+      "victory": [
+        15
+      ]
+    }
+  },
+  "bosses": {
+    "file": "images/boss-atlas-v2.png",
+    "columns": 4,
+    "rows": 5,
+    "order": [
+      "squid",
+      "mantis",
+      "sal",
+      "squid_armor",
+      "mantis_armor",
+      "sal_armor",
+      "squid_spike",
+      "mantis_spike",
+      "sal_spike",
+      "chimiera"
+    ],
+    "framesPerBoss": 2
+  }
+}
