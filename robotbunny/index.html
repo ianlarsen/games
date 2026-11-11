@@ -620,12 +620,14 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   const fileSfxPools = {};
   const iosMediaAudio = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const pendingIOSAudio = new Map();
+  let iosAudioPriming = 0;
   const silentAudioURL = 'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
   function primeIOSAudio() {
     if (!iosMediaAudio) return;
     for (const [name, pool] of Object.entries(fileSfxPools)) for (const audio of pool) {
       if (audio.rbUnlocked || audio.rbPriming) continue;
       audio.rbPriming = true;
+      iosAudioPriming++;
       // Unlock each reusable media element inside the actual touch gesture.
       // Start silence, not all of the effects, then restore its original MP3.
       audio.src = silentAudioURL;
@@ -636,7 +638,10 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
           const volume = pendingIOSAudio.get(name); pendingIOSAudio.delete(name);
           playSfx(name, volume);
         }
-      }).catch(() => { audio.rbPriming = false; audioFeedback('iPhone audio blocked. Tap the sound button to retry.'); });
+      }).catch(() => { audio.rbPriming = false; audioFeedback('iPhone audio blocked. Tap the sound button to retry.'); }).finally(() => {
+        iosAudioPriming--;
+        if (iosAudioPriming === 0) resumeMusic();
+      });
     }
   }
   const bundledFiles = location.protocol === 'file:';
@@ -699,14 +704,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     for (const [key, src] of initialImageSources) {
       loadImage(key, src, assetLoaded);
     }
-    // Future music tracks do not compete with images or delay the start button.
-    for (const [key, src] of Object.entries(musicSources)) {
-      const audio = new Audio();
-      audio.preload = 'none';
-      audio.addEventListener('error', () => console.warn('Music unavailable:', src));
-      assets[key] = audio;
-      audio.src = src;
-    }
+    // One persistent media element retains the first gesture's playback permission
+    // across level, boss and victory tracks. Track URLs load only when needed.
     // SFX — fetch as ArrayBuffer for Web Audio API (decoded on first user gesture)
     for (const [key, src] of Object.entries(sfxSources)) {
       fileSfxPools[key] = Array.from({length:3}, () => { const audio = new Audio(src); audio.preload = 'auto'; return audio; });
@@ -1361,38 +1360,39 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     shieldRechargeTimer = SHIELD_RECHARGE_TIME;
   }
 
-  // ============ MUSIC FUNCTIONS (FIXED) ============
-  function stopMusic() {
-    if (currentMusic) {
-      try { currentMusic.pause(); } catch(e) {}
-      try { currentMusic.currentTime = 0; } catch(e) {}
-      currentMusic = null;
-    }
+  // ============ MUSIC FUNCTIONS ============
+  const musicPlayer = new Audio();
+  musicPlayer.preload = 'none';
+  musicPlayer.setAttribute('playsinline', '');
+  let musicTrackName = null;
+  function resumeMusic() {
+    if (!currentMusic || !soundEnabled || paused || document.hidden) return;
+    currentMusic.play().catch(error => {
+      // Switching tracks can abort an older request; retry blocked playback on
+      // the next real gesture without disabling sound or discarding the track.
+      if (error.name !== 'AbortError') audioFeedback('Music playback blocked. Tap the sound button to retry.');
+    });
   }
-
+  function stopMusic() {
+    musicPlayer.pause();
+    try { musicPlayer.currentTime = 0; } catch {}
+    currentMusic = null;
+  }
   function playMusic(trackName) {
     if (!soundEnabled || paused || document.hidden) { stopMusic(); return; }
-    // Start only after a user gesture; do not require audioCtx for HTMLAudio playback,
-    // but create one if available to satisfy policies on some browsers.
-    if (!audioCtx) {
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      } catch(e) { /* ignore */ }
-    }
-    decodeSfxBuffers();
-    stopMusic();
-    const track = assets[trackName];
-    if (track && typeof track.play === 'function') {
-      track.loop = (trackName !== 'victory');
-      try { track.currentTime = 0; } catch(e) {}
-      // Ensure not muted by page visibility
-      track.muted = false;
-      track.volume = 0.3;
-      track.play().catch(err => console.warn('Audio play was blocked:', err));
-      currentMusic = track;
+    const src = musicSources[trackName];
+    if (!src) return;
+    if (musicTrackName !== trackName) {
+      musicPlayer.src = src;
+      musicTrackName = trackName;
     } else {
-      console.warn('Music track not found:', trackName);
+      try { musicPlayer.currentTime = 0; } catch {}
     }
+    musicPlayer.loop = trackName !== 'victory';
+    musicPlayer.muted = false;
+    musicPlayer.volume = 0.3;
+    currentMusic = musicPlayer;
+    resumeMusic();
   }
 
   // ============ SFX HELPER ==========
@@ -1418,6 +1418,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
     if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
     primeIOSAudio();
+    if (currentMusic?.paused) resumeMusic();
     if (!iosMediaAudio) connectSfxOutput();
     if (audioCtx?.state === 'suspended' || audioCtx?.state === 'interrupted') {
       audioCtx.resume().catch(() => audioFeedback('Audio is blocked. Tap the sound button to retry.'));
@@ -2714,6 +2715,11 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     return true;
   }
   function draw() {
+    // Clear in screen coordinates, independent of any previous world state.
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowBlur = 0;
     ctx.imageSmoothingEnabled = false;
     // Paint an opaque frame before the current planet. Never leave the previous
     // background (or a shaken edge) visible through transparent artwork.
@@ -3173,7 +3179,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     }
     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 
-    ctx.restore();
+    ctx.restore(); // World camera.
+    ctx.restore(); // Screen shake: never carry its transform into the next frame.
 
     // Overlays
     // Caverns fog overlay (drawn after world, before fixed HUD)
@@ -3416,7 +3423,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       audioCtx?.suspend()?.catch(() => {});
     } else {
       unlockSfx();
-      if (soundEnabled) currentMusic?.play()?.catch(() => {});
+      resumeMusic();
     }
   }
   function interruptGame() { clearInputState(); if (gameStarted) setPaused(true); }
@@ -3453,7 +3460,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
     } else if (gameStarted && !paused) {
       unlockSfx();
-      if (currentMusic) currentMusic.play().catch(() => {});
+      if (currentMusic) resumeMusic();
       else if (gameState !== 'gameOver') playMusic(gameState === 'levelComplete' ? 'victory' : gameState === 'bossIntro' || boss ? 'boss' : `level${currentLevel}`);
     }
   });
