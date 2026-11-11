@@ -706,9 +706,11 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     assets[key] = image; image.src = imageSources[key];
   }
 
+  let gameplayZoom = 1;
   function fit() {
     const viewW = Math.max(1, window.innerWidth);
     const viewH = Math.max(1, window.visualViewport ? window.visualViewport.height : window.innerHeight);
+    gameplayZoom = window.matchMedia('(pointer: coarse)').matches && Math.min(viewW, viewH) <= 600 ? 3 : 1;
     // One scale for the whole world: keep physics height fixed and vary the visible
     // world width to match the screen, instead of shrinking or cropping the game.
     const worldHeight = 560;
@@ -737,8 +739,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     return !(x1 + w1 < x2 || x1 > x2 + w2 || y1 + h1 < y2 || y1 > y2 + h2);
   }
   function inView(x, y, w, h, pad = 120) {
-    return x + w >= camera.x - pad && x <= camera.x + canvas.width + pad &&
-           y + h >= camera.y - pad && y <= camera.y + canvas.height + pad;
+    return x + w >= camera.x - pad && x <= camera.x + canvas.width / gameplayZoom + pad &&
+           y + h >= camera.y - pad && y <= camera.y + canvas.height / gameplayZoom + pad;
   }
 
   // ============ CONSTANTS ============
@@ -1740,7 +1742,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     const config = getBossConfig(currentLevel);
     for (const seg of segments) seg.enemies = [];
     // Determine the boss size. All bosses are scaled uniformly relative to their base size.
-    const bossSize = 180 * 2.2;
+    const bossSize = 180 * 2.2 / gameplayZoom;
     // Compute the base fireball interval. After prior tuning the boss fired at
     // 30% of the original rate (roughly every 6.67s). We now want the boss
     // to fire twice as often as that adjusted rate (60% of the original rate),
@@ -1891,7 +1893,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     livesLostThisLevel = 0;
     contractJustCompletedThisRun = false;
     badgeNewTierThisRun = null;
-    camera.x = 0;
+    camera.x = 0; camera.y = gameplayZoom === 1 ? 0 : Math.max(0, player.y + player.h - canvas.height*.72/gameplayZoom);
     resetCombo();
     resetRunTelemetry();
     for (let i = 0; i < 3; i++) loadNextSegment();
@@ -1956,7 +1958,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       updatePlaying(dt);
     } else if (gameState === 'bossIntro') {
       bossIntroTimer += dt;
-      const targetCameraX = boss.x - 300;
+      const targetCameraX = boss.x - canvas.width * .5 / gameplayZoom;
+      if (gameplayZoom > 1) camera.y = Math.max(0, boss.y + boss.h - canvas.height*.72/gameplayZoom);
       camera.x += (targetCameraX - camera.x) * (dt / 1.5);
       if (bossIntroTimer >= 1.5) gameState = 'playing';
     }
@@ -2172,7 +2175,12 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
 
     if (player.y > canvas.height + 100) loseLife('fall');
 
-    camera.x = Math.max(0, player.x - canvas.width / 3);
+    camera.x = Math.max(0, player.x - canvas.width / (3 * gameplayZoom));
+    camera.y = gameplayZoom === 1 ? 0 : Math.max(0, player.y + player.h - canvas.height * .72 / gameplayZoom);
+    if (boss) {
+      const desiredSize = 180 * 2.2 / gameplayZoom;
+      if (boss.w !== desiredSize) { boss.y += boss.h - desiredSize; boss.w = boss.h = desiredSize; }
+    }
 
     if (player.x > nextSegmentX - canvas.width * 2 && !boss && !levelFlag && gameState === 'playing') {
       if (segmentsInLevel >= segmentsPerLevel) spawnBoss();
@@ -2671,7 +2679,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     ctx.translate(reducedMotion ? 0 : shake.x, reducedMotion ? 0 : shake.y);
 
     ctx.save();
-    ctx.translate(-camera.x, -camera.y);
+    ctx.scale(gameplayZoom, gameplayZoom); ctx.translate(-camera.x, -camera.y);
 
     // Platforms
     for (const segment of segments) {
@@ -3089,8 +3097,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       ctx.fillStyle = `rgba(2,4,12,${0.72 * fogProgress})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       // Glow cue: draw a small halo around the player so they can still orient.
-      const px = player.x - camera.x + player.w / 2;
-      const py = player.y - camera.y + player.h / 2;
+      const px = (player.x - camera.x + player.w / 2) * gameplayZoom;
+      const py = (player.y - camera.y + player.h / 2) * gameplayZoom;
       const grd = ctx.createRadialGradient(px, py, 20, px, py, 160);
       grd.addColorStop(0, 'rgba(123,226,255,0.18)');
       grd.addColorStop(1, 'rgba(123,226,255,0)');
@@ -3102,7 +3110,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     // Ruins crumble shake visual — tint crumbling platforms
     if (getBiomeForLevel(currentLevel) === 'ruins') {
       ctx.save();
-      ctx.translate(-camera.x, -camera.y);
+      ctx.scale(gameplayZoom, gameplayZoom); ctx.translate(-camera.x, -camera.y);
       for (const segment of segments) {
         for (const plat of segment.platforms) {
           if (!plat.crumble || plat.crumbleFalling) continue;
@@ -3169,7 +3177,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       ctx.restore();
     }
     // Draw moon burst star pickups
-    ctx.save(); ctx.translate(-camera.x, -camera.y);
+    ctx.save(); ctx.scale(gameplayZoom, gameplayZoom); ctx.translate(-camera.x, -camera.y);
     for (const seg of segments) {
       for (const pu of seg.powerups) {
         if (pu.type !== 'moonBurst') continue;
