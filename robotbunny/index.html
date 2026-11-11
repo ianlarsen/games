@@ -374,6 +374,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
 
 <div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#071320ee;z-index:1300;text-align:center;padding-top:20vh;color:white" role="dialog" aria-modal="true" aria-label="Game paused">
   <h2>Paused</h2>
+  <p style="max-width:540px;margin:10px auto;padding:0 16px">🥕 Glowing carrots give +1 life. Walk or jump into one to collect automatically. Up to 2 bonus lives per level, shared with coin rewards.</p>
   <p><label for="motion-setting">Motion</label> <select id="motion-setting"><option value="system">Use device preference</option><option value="reduced">Reduced motion</option><option value="full">Full motion</option></select></p>
   <p><label for="effects-setting">Visual detail</label> <select id="effects-setting"><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></p><p>Your run is safe. Resume when you’re ready.</p>
   <button id="rb-resume" style="padding:16px 30px;background:#7be2ff;color:#071320;border:0;border-radius:12px;font:bold 18px system-ui;touch-action:manipulation">Resume</button>
@@ -384,6 +385,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   <div class="start-bottom">
     <a href="engine/index.html" style="color:#7be2ff;font:600 14px system-ui;padding:10px">PLAY PHASER EDITION</a>
     <button type="button" class="start-button" id="start-btn" style="display:none;">TAP TO START</button>
+    <p style="max-width:540px;color:#ffe6a8;margin:6px auto;font:14px system-ui">🥕 Glowing carrots give +1 life. Walk or jump into one to collect automatically. Up to 2 bonus lives per level, shared with coin rewards.</p>
     <div id="loading-text" role="status">LOADING ASSETS... 0%</div>
     <button type="button" id="retry-assets" hidden>Retry loading</button>
     <div class="leaderboard" id="leaderboard">
@@ -433,6 +435,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   <button type="button" id="run-continue">Continue</button>
   <button type="button" id="run-shop">Upgrade Shop</button>
 </div>
+<script src="sounds/sfx-bundle.js"></script>
 <script>
 (() => {
   // Preserve the existing save keys and persistent WKWebsiteDataStore. A denied
@@ -672,8 +675,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     // SFX — fetch as ArrayBuffer for Web Audio API (decoded on first user gesture)
     for (const [key, src] of Object.entries(sfxSources)) {
       fileSfxPools[key] = Array.from({length:3}, () => { const audio = new Audio(src); audio.preload = 'auto'; return audio; });
-      if (bundledFiles) {
-        fileSfxPools[key] = Array.from({length:2}, () => { const audio = new Audio(src); audio.preload = 'none'; return audio; });
+      if (window.ROBOT_BUNNY_SFX?.[key]) {
+        sfxArrayBuffers[key] = Uint8Array.from(atob(window.ROBOT_BUNNY_SFX[key]), c => c.charCodeAt(0)).buffer;
         assetLoaded(); continue;
       }
       fetch(src, { signal: AbortSignal.timeout(15000) })
@@ -1348,6 +1351,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       try { track.currentTime = 0; } catch(e) {}
       // Ensure not muted by page visibility
       track.muted = false;
+      track.volume = 0.3;
       track.play().catch(err => console.warn('Audio play was blocked:', err));
       currentMusic = track;
     } else {
@@ -1374,6 +1378,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
 
   function unlockSfx() {
     if (!soundEnabled || document.hidden) return;
+    // Use the media playback route on phones, including when the ringer is silent.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
     if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
     if (audioCtx?.state === 'suspended' || audioCtx?.state === 'interrupted') audioCtx.resume().catch(() => {});
     decodeSfxBuffers();
@@ -1382,7 +1388,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   window.addEventListener('keydown', unlockSfx, {capture:true});
   function playSfx(name, vol = 1.0) {
     if (!soundEnabled || paused || document.hidden) return;
-    if (bundledFiles || !audioCtx || !sfxDecodedBuffers[name]) {
+    if (!audioCtx || audioCtx.state !== 'running' || !sfxDecodedBuffers[name]) {
       const audio = fileSfxPools[name]?.find(item => item.paused || item.ended);
       if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => {}); }
       return;
@@ -1399,6 +1405,23 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       src.onended = () => { activeSfx.delete(src); src.disconnect(); gain.disconnect(); };
       src.start(0);
     } catch(e) {}
+  }
+
+  function settleGroundEnemy(enemy, dt) {
+    const bottom = enemy.y + enemy.h;
+    enemy.vy = (enemy.vy || 0) + gravity * dt;
+    enemy.y += enemy.vy * dt;
+    enemy.onGround = false;
+    if (enemy.vy < 0) return;
+    let floor = Infinity;
+    for (const segment of segments) for (const plat of segment.platforms) {
+      if (enemy.x + enemy.w > plat.x && enemy.x < plat.x + plat.w &&
+          bottom <= plat.y + 0.5 && enemy.y + enemy.h >= plat.y) floor = Math.min(floor, plat.y);
+    }
+    if (floor !== Infinity) {
+      enemy.y = floor - enemy.h; enemy.vy = 0; enemy.onGround = true;
+      if (bottom < floor - 1) enemy.visualLandUntil = time + 0.14;
+    }
   }
 
   // ============ PARTICLES ============
@@ -2282,19 +2305,12 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       for (let i = segment.enemies.length - 1; i >= 0; i--) {
         const enemy = segment.enemies[i];
         enemy.staggerTimer = Math.max(0, (enemy.staggerTimer || 0) - dt);
-        if (enemy.staggerTimer > 0) continue;
+        if (enemy.staggerTimer > 0) { if (enemy.type !== 'flyer') settleGroundEnemy(enemy, dt); continue; }
         enemy.animTimer += dt;
         if (enemy.type === 'hopper') {
           enemy.jumpTimer -= dt;
-          if (enemy.jumpTimer <= 0 && enemy.vy === 0) { enemy.vy = -600; enemy.jumpTimer = rand(1.5, 3.0); }
-          enemy.vy += gravity * dt; enemy.y += enemy.vy * dt;
-          let onGround = false;
-          for (const plat of segment.platforms) {
-            if (rectsOverlap(enemy.x, enemy.y, enemy.w, enemy.h, plat.x, plat.y, plat.w, plat.h)) {
-              if (enemy.vy > 0 && (enemy.y + enemy.h - enemy.vy*dt) <= plat.y) { enemy.y = plat.y - enemy.h; enemy.vy = 0; onGround = true; enemy.visualLandUntil = time + 0.14; }
-            }
-          }
-          if (!onGround) { enemy.x += enemy.dir * (enemy.vx * enemyGlobalSpeedMultiplier * 0.5) * dt; }
+          if (enemy.jumpTimer <= 0 && enemy.onGround) { enemy.vy = -600; enemy.jumpTimer = rand(1.5, 3.0); }
+          enemy.x += enemy.dir * (enemy.vx * enemyGlobalSpeedMultiplier * 0.5) * dt;
         } else if (enemy.type === 'walker') {
           enemy.x += enemy.dir * enemy.vx * enemyGlobalSpeedMultiplier * dt; enemy.rotateAngle += 0.15 * enemy.dir;
           if (enemy.x < segment.startX || enemy.x > segment.startX + segment.width - enemy.w) enemy.dir *= -1;
@@ -2363,6 +2379,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
             enemy.windupTimer = 0.45;
           }
         }
+        if (enemy.type !== 'flyer') settleGroundEnemy(enemy, dt);
+        if (enemy.y > canvas.height + 200) { segment.enemies.splice(i, 1); continue; }
         if (!player.invincible && rectsOverlap(player.x, player.y, player.w, player.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
           // Determine if the player is above the enemy
           const playerBottom = player.y + player.h;
@@ -2546,7 +2564,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
       for (let i = segment.powerups.length - 1; i >= 0; i--) {
         const p = segment.powerups[i];
-        if (rectsOverlap(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
+        if (p.type === 'extraLife' && rectsOverlap(player.x, player.y, player.w, player.h, p.x - p.w, p.y - p.h, p.w * 3, p.h * 3)) {
           segment.powerups.splice(i, 1);
           if (extraLivesGainedThisLevel < MAX_EXTRA_LIVES_PER_LEVEL) {
             extraLivesGainedThisLevel++;
@@ -2614,25 +2632,10 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     }
     return reducedMotion ? (enemy.type === 'flyer' ? [1,4][Math.floor((enemy.animTimer||0)*3)%2] : 0) : cycle % 6;
   }
-  const enemyFootCache = new WeakMap();
-  function enemyFootFraction(image, frame, columns) {
-    let feet = enemyFootCache.get(image);
-    if (!feet) {
-      // Analyze alpha once per atlas. Transparent cell gutters are not part of the feet.
-      const surface = document.createElement('canvas'); surface.width=image.naturalWidth; surface.height=image.naturalHeight;
-      const scan=surface.getContext('2d',{willReadFrequently:true});scan.drawImage(image,0,0);
-      const pixels=scan.getImageData(0,0,surface.width,surface.height).data;
-      const cw=surface.width/columns,ch=surface.height/2;feet=[];
-      for(let f=0;f<columns*2;f++) {
-        const left=Math.floor((f%columns)*cw),right=Math.floor((f%columns+1)*cw);
-        const top=Math.floor(Math.floor(f/columns)*ch),bottom=Math.floor((Math.floor(f/columns)+1)*ch);
-        let foot=bottom-1;
-        search:for(let y=bottom-1;y>=top;y--)for(let x=left;x<right;x++)if(pixels[(y*surface.width+x)*4+3]>=160){foot=y;break search;}
-        feet[f]=(foot+1-top)/ch;
-      }
-      enemyFootCache.set(image,feet);
-    }
-    return feet[frame];
+  // Precomputed alpha bounds avoid blocked canvas reads in offline file:// wrappers.
+  const enemyAtlasFeet = {"hopper-atlas-v2.png":[0.7485907553551296,0.7485907553551296,0.741826381059752,0.6426155580608793,0.7350620067643743,0.7485907553551296,0.7485907553551296,0.7485907553551296],"walker-atlas-v2.png":[0.7350620067643743,0.7350620067643743,0.7237880496054115,0.7350620067643743,0.7373167981961668,0.7373167981961668,0.7373167981961668,0.7373167981961668],"tank-atlas-v2.png":[0.7260428410372041,0.7282976324689966,0.7282976324689966,0.7282976324689966,0.7440811724915445,0.7282976324689966,0.7282976324689966,0.798196166854566],"sniper-atlas-v2.png":[0.9222096956031567,0.9222096956031567,0.9222096956031567,0.9222096956031567,0.9222096956031567,0.7260428410372041,0.7260428410372041,0.7260428410372041,0.7260428410372041,0.7260428410372041]};
+  function enemyFootFraction(image, frame) {
+    return enemyAtlasFeet[image.src.split("/").pop().split("?")[0]]?.[frame] ?? 1;
   }
   function drawEnemyV2(enemy) {
     const image = assets[enemy.type + 'Atlas'];
@@ -2762,13 +2765,18 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
       if (assets.carrot && assets.carrot.complete && assets.carrot.naturalWidth > 0) {
         for (const p of segment.powerups) {
-          if (!inView(p.x, p.y, p.w, p.h)) continue;
+          if (p.type !== 'extraLife' || !inView(p.x - p.w, p.y - p.h, p.w * 3, p.h * 3)) continue;
           const pulse = reducedMotion ? 1 : 1.0 + Math.sin(time * 5) * 0.1;
-          const w = p.w * pulse;
-          const h = p.h * pulse;
+          const w = p.w * 3 * pulse;
+          const h = p.h * 3 * pulse;
           const centerX = p.x + p.w/2;
           const centerY = p.y + p.h/2;
+          ctx.save();
+          const glow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, w * .65);
+          glow.addColorStop(0, '#ffce6480'); glow.addColorStop(1, '#ff9c0000');
+          ctx.fillStyle = glow; ctx.fillRect(centerX-w, centerY-h, w*2, h*2);
           ctx.drawImage(assets.carrot, centerX - w/2, centerY - h/2, w, h);
+          ctx.restore();
         }
       }
     }
@@ -2785,7 +2793,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
         if (!inView(enemy.x, enemy.y, enemy.w, enemy.h)) continue;
         ctx.save();
         ctx.translate(enemy.x + enemy.w/2, enemy.y + enemy.h/2);
-        const enemyArtScale = phoneCharacterSizing ? 5.28 : 1;
+        const enemyArtScale = phoneCharacterSizing ? 3.696 : 0.7;
         ctx.translate(0, enemy.h/2); ctx.scale(enemyArtScale, enemyArtScale); ctx.translate(0, -enemy.h/2);
         if (drawEnemyV2(enemy)) {
           // Presentation uses existing simulation state.
@@ -2969,7 +2977,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     for (const enemy of enemyDefeats) {
       if (!inView(enemy.x,enemy.y,enemy.w,enemy.h)) continue;
       ctx.save();ctx.translate(enemy.x+enemy.w/2,enemy.y+enemy.h/2);
-      const enemyArtScale = phoneCharacterSizing ? 5.28 : 1;
+      const enemyArtScale = phoneCharacterSizing ? 3.696 : 0.7;
       ctx.translate(0,enemy.h/2);ctx.scale(enemyArtScale,enemyArtScale);ctx.translate(0,-enemy.h/2);
       ctx.globalAlpha = reducedMotion ? .5 : Math.max(0,1-(time-enemy.defeatedAt)/.3);
       drawEnemyV2(enemy);ctx.restore();
