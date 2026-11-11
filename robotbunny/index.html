@@ -369,11 +369,14 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   <div class="hud-item"><span>FPS</span><span id="fps">--</span></div>
 </div>
 <div class="combo-display" id="combo-display">COMBO ×0</div>
-<div class="hint" id="hint-text">Move: ←→ / A,D • Jump: Space • Shoot: X • Duck: ↓/S • Burst: B • Pause: ESC • Perf: Q</div>
+<div class="hint" id="hint-text">Move: ←→ / A,D • Jump: Space (hold for higher) • Shoot: X • Duck: ↓/S • Burst: B • Pause: ESC • Perf: Q</div>
 <div class="badge">Image Edition</div>
 
-<div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#071320ee;z-index:1300;text-align:center;padding-top:20vh;color:white" role="dialog" aria-modal="true" aria-label="Game paused">
+<div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#071320ee;z-index:1300;text-align:center;padding:12px 0;overflow:auto;color:white" role="dialog" aria-modal="true" aria-label="Game paused">
   <h2>Paused</h2>
+  <p>Tap Jump for a short hop. Hold longer to jump higher.</p>
+  <button type="button" id="test-sounds" style="padding:10px 20px">Test sounds</button>
+  <p id="audio-status" role="status" aria-live="polite">Test plays jump, laser, then squish. Check your media volume.</p>
   <p style="max-width:540px;margin:10px auto;padding:0 16px">🥕 Glowing carrots give +1 life. Walk or jump into one to collect automatically. Up to 2 bonus lives per level, shared with coin rewards.</p>
   <p><label for="motion-setting">Motion</label> <select id="motion-setting"><option value="system">Use device preference</option><option value="reduced">Reduced motion</option><option value="full">Full motion</option></select></p>
   <p><label for="effects-setting">Visual detail</label> <select id="effects-setting"><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></p><p>Your run is safe. Resume when you’re ready.</p>
@@ -476,6 +479,23 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   const ctx = canvas.getContext('2d', { alpha: false });
   ctx.imageSmoothingEnabled = false;
   let audioCtx; // created on first user gesture
+  let sfxOutput, sfxMediaDestination;
+  let audioTestTimer;
+  function audioFeedback(message) {
+    document.getElementById('audio-status').textContent = message;
+  }
+  function connectSfxOutput() {
+    if (!audioCtx || sfxMediaDestination) return;
+    // Route effects through a media element, just like the audible music. A
+    // running AudioContext alone does not establish the phone's media route.
+    if (audioCtx.createMediaStreamDestination && 'srcObject' in HTMLMediaElement.prototype) {
+      sfxMediaDestination = audioCtx.createMediaStreamDestination();
+      sfxOutput = new Audio();
+      sfxOutput.setAttribute('playsinline', '');
+      sfxOutput.srcObject = sfxMediaDestination.stream;
+      sfxOutput.addEventListener('error', () => audioFeedback('Sound output failed. Tap Test sounds to retry.'));
+    }
+  }
   let currentMusic = null;
   const isMobileDevice = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   let particleDensity = isMobileDevice ? 0.65 : 1.0;
@@ -1067,6 +1087,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     onGround: false,
     coyoteTimer: 0,
     jumpBufferTimer: 0,
+    variableJump: false,
     landingForgivenessTimer: 0,
     facing: 1,
     shootCooldown: 0,
@@ -1361,8 +1382,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
 
   // ============ SFX HELPER ==========
   /**
-   * Play a short sound effect. A clone of the original audio object is used so that
-   * overlapping effects do not cut each other off. Provide a volume between 0 and 1.
+   * Mix overlapping original effects into the shared media output.
+   * Reuse HTML audio pools if decoding or Web Audio is unavailable.
    */
   function decodeSfxBuffers() {
     if (!audioCtx) return;
@@ -1381,16 +1402,20 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     // Use the media playback route on phones, including when the ringer is silent.
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
     if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
-    if (audioCtx?.state === 'suspended' || audioCtx?.state === 'interrupted') audioCtx.resume().catch(() => {});
+    connectSfxOutput();
+    if (audioCtx?.state === 'suspended' || audioCtx?.state === 'interrupted') {
+      audioCtx.resume().catch(() => audioFeedback('Audio is blocked. Tap Test sounds to retry.'));
+    }
+    if (sfxOutput?.paused) sfxOutput.play().catch(() => audioFeedback('Sound playback was blocked. Tap Test sounds to retry.'));
     decodeSfxBuffers();
   }
   window.addEventListener('pointerdown', unlockSfx, {capture:true, passive:true});
   window.addEventListener('keydown', unlockSfx, {capture:true});
-  function playSfx(name, vol = 1.0) {
-    if (!soundEnabled || paused || document.hidden) return;
+  function playSfx(name, vol = 1.0, preview = false) {
+    if (!soundEnabled || (paused && !preview) || document.hidden) return;
     if (!audioCtx || audioCtx.state !== 'running' || !sfxDecodedBuffers[name]) {
       const audio = fileSfxPools[name]?.find(item => item.paused || item.ended);
-      if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => {}); }
+      if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => audioFeedback('Effect playback was blocked. Tap Test sounds to retry.')); }
       return;
     }
     if (!audioCtx || !sfxDecodedBuffers[name] || activeSfx.size >= 16) return;
@@ -1400,7 +1425,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       const gain = audioCtx.createGain();
       gain.gain.value = clamp(vol, 0, 1);
       src.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(sfxMediaDestination || audioCtx.destination);
       activeSfx.add(src);
       src.onended = () => { activeSfx.delete(src); src.disconnect(); gain.disconnect(); };
       src.start(0);
@@ -2152,6 +2177,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
 
     if (player.jumpBufferTimer > 0 && !wantDuck && !moonBurstActive && (player.onGround || player.coyoteTimer > 0 || player.landingForgivenessTimer > 0)) {
       player.vy = jumpVel;
+      player.variableJump = true;
       player.onGround = false;
       player.coyoteTimer = 0;
       player.landingForgivenessTimer = 0;
@@ -2174,6 +2200,12 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     }
     wantShoot = false;
 
+    // Releasing early increases upward deceleration. Holding preserves the full
+    // jump; intermediate release times produce intermediate apex heights.
+    if (player.variableJump && player.vy < 0 && !(keys.Space || keys.ArrowUp || keys.KeyW)) {
+      player.vy += gravity * 2.5 * dt;
+    }
+    if (player.vy >= 0 || player.onGround) player.variableJump = false;
     player.vy += gravity * (moonBurstActive ? MOON_BURST_GRAVITY : (lowGActive ? LOW_G_GRAVITY_MULT : 1.0)) * dt;
     player.x += player.vx * dt;
     player.y += player.vy * dt;
@@ -2388,6 +2420,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
           if (playerBottom <= enemyThreshold) {
             // Player squishes enemy by landing on top
             enemy.health--; enemy.visualHitUntil = time + 0.16;
+            player.variableJump = false;
             player.vy = jumpVel * 0.6;
             if (precisionLensActive) {
               score += 2;
@@ -3386,11 +3419,13 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     else canvas.focus({ preventScroll: true });
     if (next) {
       currentMusic?.pause();
+      clearTimeout(audioTestTimer);
+      sfxOutput?.pause();
       for (const source of activeSfx) { try { source.stop(); } catch(e) {} }
       for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
       audioCtx?.suspend()?.catch(() => {});
     } else {
-      audioCtx?.resume()?.catch(() => {});
+      unlockSfx();
       if (soundEnabled) currentMusic?.play()?.catch(() => {});
     }
   }
@@ -3432,12 +3467,39 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     updateSoundButton();
     if (!soundEnabled) {
       currentMusic?.pause();
+      clearTimeout(audioTestTimer);
+      sfxOutput?.pause();
       for (const source of activeSfx) { try { source.stop(); } catch {} }
       for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
     } else if (gameStarted && !paused) {
-      audioCtx?.resume()?.catch(() => {});
+      unlockSfx();
       if (currentMusic) currentMusic.play().catch(() => {});
       else if (gameState !== 'gameOver') playMusic(gameState === 'levelComplete' ? 'victory' : gameState === 'bossIntro' || boss ? 'boss' : `level${currentLevel}`);
+    }
+  });
+
+  document.getElementById('test-sounds').addEventListener('click', async () => {
+    clearTimeout(audioTestTimer);
+    soundEnabled = true; storage.setItem('rb_sound_enabled', true); updateSoundButton();
+    unlockSfx();
+    try {
+      await audioCtx?.resume();
+      if (sfxOutput) await sfxOutput.play();
+      // Decode on the first gesture; wait before playing the requested preview.
+      for (let i=0; i<100 && !['jump','laser','squish'].every(key => sfxDecodedBuffers[key]); i++) {
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      const names = ['jump','laser','squish'];
+      const next = () => {
+        const name = names.shift();
+        if (!name || document.hidden || !soundEnabled) return;
+        audioFeedback('Playing ' + name + ' — check your media volume if you cannot hear it.');
+        playSfx(name, 1, true);
+        audioTestTimer = setTimeout(next, 1200);
+      };
+      next();
+    } catch (error) {
+      audioFeedback('Playback blocked: ' + error.name + '. Tap Test sounds again.');
     }
   });
 
@@ -3584,8 +3646,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
     }
-    audioCtx?.resume()?.catch(() => {});
-    decodeSfxBuffers();
+    unlockSfx();
     gameStarted = true;
     applyPurchasedLives();
     document.getElementById('start-screen').classList.add('hidden');
