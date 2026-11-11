@@ -671,6 +671,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     }
     // SFX — fetch as ArrayBuffer for Web Audio API (decoded on first user gesture)
     for (const [key, src] of Object.entries(sfxSources)) {
+      fileSfxPools[key] = Array.from({length:3}, () => { const audio = new Audio(src); audio.preload = 'auto'; return audio; });
       if (bundledFiles) {
         fileSfxPools[key] = Array.from({length:2}, () => { const audio = new Audio(src); audio.preload = 'none'; return audio; });
         assetLoaded(); continue;
@@ -746,7 +747,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   // ============ CONSTANTS ============
   const GROUND_Y = canvas.height - 80;
   const gravity = 2200;
-  const jumpVel = -950;
+  const jumpVel = -950 * Math.sqrt(1.2); // 20% higher apex at unchanged gravity.
   const moveSpeed = 250;
   const maxVelX = 350;
   const COYOTE_TIME = 0.15;
@@ -1371,9 +1372,17 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     }
   }
 
+  function unlockSfx() {
+    if (!soundEnabled || document.hidden) return;
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
+    if (audioCtx?.state === 'suspended' || audioCtx?.state === 'interrupted') audioCtx.resume().catch(() => {});
+    decodeSfxBuffers();
+  }
+  window.addEventListener('pointerdown', unlockSfx, {capture:true, passive:true});
+  window.addEventListener('keydown', unlockSfx, {capture:true});
   function playSfx(name, vol = 1.0) {
     if (!soundEnabled || paused || document.hidden) return;
-    if (bundledFiles) {
+    if (bundledFiles || !audioCtx || !sfxDecodedBuffers[name]) {
       const audio = fileSfxPools[name]?.find(item => item.paused || item.ended);
       if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => {}); }
       return;
@@ -2226,7 +2235,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
               enemy.staggerTimer = 0.25;
             }
             addCombo();
-            if (enemy.health <= 0) { rememberEnemyDefeat(enemy); createParticle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#ba91ff', 12, 6); segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
+            if (enemy.health <= 0) { playSfx('squish', 0.8); rememberEnemyDefeat(enemy); createParticle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#ba91ff', 12, 6); segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
             break;
           }
         }
@@ -2605,11 +2614,34 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     }
     return reducedMotion ? (enemy.type === 'flyer' ? [1,4][Math.floor((enemy.animTimer||0)*3)%2] : 0) : cycle % 6;
   }
+  const enemyFootCache = new WeakMap();
+  function enemyFootFraction(image, frame, columns) {
+    let feet = enemyFootCache.get(image);
+    if (!feet) {
+      // Analyze alpha once per atlas. Transparent cell gutters are not part of the feet.
+      const surface = document.createElement('canvas'); surface.width=image.naturalWidth; surface.height=image.naturalHeight;
+      const scan=surface.getContext('2d',{willReadFrequently:true});scan.drawImage(image,0,0);
+      const pixels=scan.getImageData(0,0,surface.width,surface.height).data;
+      const cw=surface.width/columns,ch=surface.height/2;feet=[];
+      for(let f=0;f<columns*2;f++) {
+        const left=Math.floor((f%columns)*cw),right=Math.floor((f%columns+1)*cw);
+        const top=Math.floor(Math.floor(f/columns)*ch),bottom=Math.floor((Math.floor(f/columns)+1)*ch);
+        let foot=bottom-1;
+        search:for(let y=bottom-1;y>=top;y--)for(let x=left;x<right;x++)if(pixels[(y*surface.width+x)*4+3]>=160){foot=y;break search;}
+        feet[f]=(foot+1-top)/ch;
+      }
+      enemyFootCache.set(image,feet);
+    }
+    return feet[frame];
+  }
   function drawEnemyV2(enemy) {
     const image = assets[enemy.type + 'Atlas'];
     if (!image?.complete || !image.naturalWidth) return false;
     ctx.save(); ctx.scale(-(enemy.dir || -1), 1);
-    drawAtlas(image, enemy.type === 'sniper' ? [0,1,2,3,4,6,7,9][enemyAnimationFrame(enemy)] : enemyAnimationFrame(enemy), enemy.type === 'sniper' ? 5 : 4, 2, -enemy.w*.6, -enemy.h*.6, enemy.w*1.2, enemy.h*1.2);
+    const frame = enemy.type === 'sniper' ? [0,1,2,3,4,6,7,9][enemyAnimationFrame(enemy)] : enemyAnimationFrame(enemy);
+    const columns = enemy.type === 'sniper' ? 5 : 4;
+    const top = enemy.type === 'flyer' ? -enemy.h*.6 : enemy.h/2 - enemyFootFraction(image,frame,columns)*enemy.h*1.2;
+    drawAtlas(image, frame, columns, 2, -enemy.w*.6, top, enemy.w*1.2, enemy.h*1.2);
     // Distinct silhouettes for variants; all overlays face the actual shield direction.
     if (enemy.type === 'walker') {
       if (enemy.heavy) {ctx.fillStyle='#d4b3ef'; for(let i=0;i<3;i++) ctx.fillRect(-enemy.w*.3+i*enemy.w*.25,-enemy.h*.55,4,7);}
@@ -2753,7 +2785,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
         if (!inView(enemy.x, enemy.y, enemy.w, enemy.h)) continue;
         ctx.save();
         ctx.translate(enemy.x + enemy.w/2, enemy.y + enemy.h/2);
-        const enemyArtScale = phoneCharacterSizing ? 6.6 : 1;
+        const enemyArtScale = phoneCharacterSizing ? 5.28 : 1;
         ctx.translate(0, enemy.h/2); ctx.scale(enemyArtScale, enemyArtScale); ctx.translate(0, -enemy.h/2);
         if (drawEnemyV2(enemy)) {
           // Presentation uses existing simulation state.
@@ -2937,7 +2969,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     for (const enemy of enemyDefeats) {
       if (!inView(enemy.x,enemy.y,enemy.w,enemy.h)) continue;
       ctx.save();ctx.translate(enemy.x+enemy.w/2,enemy.y+enemy.h/2);
-      const enemyArtScale = phoneCharacterSizing ? 6.6 : 1;
+      const enemyArtScale = phoneCharacterSizing ? 5.28 : 1;
       ctx.translate(0,enemy.h/2);ctx.scale(enemyArtScale,enemyArtScale);ctx.translate(0,-enemy.h/2);
       ctx.globalAlpha = reducedMotion ? .5 : Math.max(0,1-(time-enemy.defeatedAt)/.3);
       drawEnemyV2(enemy);ctx.restore();
@@ -3063,7 +3095,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     ctx.save();
     ctx.translate(player.x, player.y);
     // Enlarge the character around its foot anchor, never the world camera.
-    const playerArtScale = phoneCharacterSizing ? 3 : 1;
+    const playerArtScale = phoneCharacterSizing ? 2.1 : 1;
     ctx.translate(player.w/2, player.h); ctx.scale(playerArtScale, playerArtScale); ctx.translate(-player.w/2, -player.h);
     if (player.invincible) ctx.globalAlpha = reducedMotion ? 0.65 : 0.65 + Math.sin(time*8)*0.2;
     ctx.save();
@@ -3544,6 +3576,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
     }
+    audioCtx?.resume()?.catch(() => {});
     decodeSfxBuffers();
     gameStarted = true;
     applyPurchasedLives();
