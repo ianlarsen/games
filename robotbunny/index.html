@@ -347,6 +347,10 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
+button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #ffe477;outline-offset:4px}
+#rb-pause-panel select {min-height:44px;font:inherit;padding:8px;max-width:80vw}
+#rb-pause-panel {overflow:auto;padding-bottom:24px;box-sizing:border-box}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -369,7 +373,9 @@
 <div class="badge">Image Edition</div>
 
 <div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#071320ee;z-index:1300;text-align:center;padding-top:20vh;color:white" role="dialog" aria-modal="true" aria-label="Game paused">
-  <h2>Paused</h2><p>Your run is safe. Resume when you’re ready.</p>
+  <h2>Paused</h2>
+  <p><label for="motion-setting">Motion</label> <select id="motion-setting"><option value="system">Use device preference</option><option value="reduced">Reduced motion</option><option value="full">Full motion</option></select></p>
+  <p><label for="effects-setting">Visual detail</label> <select id="effects-setting"><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></p><p>Your run is safe. Resume when you’re ready.</p>
   <button id="rb-resume" style="padding:16px 30px;background:#7be2ff;color:#071320;border:0;border-radius:12px;font:bold 18px system-ui;touch-action:manipulation">Resume</button>
 </div>
 <!-- Start Screen -->
@@ -459,8 +465,9 @@
     return Number.isSafeInteger(value) && value >= fallback && value <= maximum ? value : fallback;
   }
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let reducedMotion = motionPreference.matches;
-  motionPreference.addEventListener('change', event => { reducedMotion = event.matches; });
+  let motionOverride = storage.getItem('rb_motion') || 'system';
+  let reducedMotion = motionOverride === 'reduced' || (motionOverride === 'system' && motionPreference.matches);
+  motionPreference.addEventListener('change', event => { reducedMotion = motionOverride === 'reduced' || (motionOverride === 'system' && event.matches); });
   let soundEnabled = storage.getItem('rb_sound_enabled') !== 'false';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
@@ -1078,6 +1085,7 @@
   const lasers = [];
   const fireballs = [];
   const particles = [];
+  const particlePool = [];
   const damageNumbers = [];
   const segments = [];
   let currentSegmentIndex = 0;
@@ -1383,10 +1391,12 @@
     for (let i = 0; i < emitCount; i++) {
       const angle = (Math.PI * 2 * i) / emitCount + rand(-0.3, 0.3);
       const speed = rand(100, 250);
-      particles.push({
+      const particle = particlePool.pop() || {};
+      Object.assign(particle, {
         x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - rand(50, 150),
         life: 1.0, decay: rand(1.5, 2.5), size: rand(3, size), color
       });
+      particles.push(particle);
     }
   }
   function createDamageNumber(x, y, value, color = '#FFD700') {
@@ -1946,7 +1956,7 @@
       const p = particles[i];
       p.x += p.vx * dt; p.y += p.vy * dt; p.vy += gravity * 0.5 * dt;
       p.life -= p.decay * dt;
-      if (p.life <= 0) particles.splice(i, 1);
+      if (p.life <= 0) { particles[i] = particles[particles.length - 1]; particles.pop(); if (particlePool.length < 260) particlePool.push(p); }
     }
     for (let i = damageNumbers.length - 1; i >= 0; i--) {
       const dn = damageNumbers[i];
@@ -2104,6 +2114,7 @@
       player.jumpBufferTimer = 0;
       // Play jump sound when the player jumps
       playSfx('jump', 0.7);
+      createParticle(player.x + player.w/2, player.y + player.h, '#a8c7dc', 4, 4);
     }
 
     if ((wantShoot || keys.KeyX) && player.shootCooldown <= 0) {
@@ -2113,6 +2124,7 @@
         w: 20, h: 4, vx: player.facing * 500 * laserSpeedMultiplier, dir: player.facing
       });
       player.shootCooldown = 0.3 * shootCooldownMultiplier;
+      createParticle(player.x + (player.facing > 0 ? player.w : 0), player.y + player.h/2, '#7be2ff', 3, 4);
       // Play shooting sound when firing a laser
       playSfx('laser', 0.6);
     }
@@ -2202,7 +2214,7 @@
               enemy.staggerTimer = 0.25;
             }
             addCombo();
-            if (enemy.health <= 0) { segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
+            if (enemy.health <= 0) { createParticle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#ba91ff', 12, 6); segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
             break;
           }
         }
@@ -2211,6 +2223,7 @@
         boss.health--; boss.hitFlash = 1.0; lasers.splice(i, 1);
         // Play sound when hitting the boss
         playSfx('bossHit', 0.8);
+        createParticle(laser.x, laser.y, '#ffb56b', 5, 5);
         createDamageNumber(boss.x + boss.w/2, boss.y, 1, '#ff5555');
         score += 20; addCombo();
         if (boss.health <= 0) {
@@ -2572,10 +2585,23 @@
         _bgDy = (canvas.height - _bgScaledH) / 2;
         _bgCacheKey = cacheKey;
       }
-      const offset = ((camera.x * 0.2 % _bgScaledW) + _bgScaledW) % _bgScaledW;
+      const offset = reducedMotion ? 0 : ((camera.x * 0.12 % _bgScaledW) + _bgScaledW) % _bgScaledW;
       for (let tx = -offset; tx < canvas.width; tx += _bgScaledW) {
         ctx.drawImage(bgAsset, tx, _bgDy, _bgScaledW, _bgScaledH);
       }
+    }
+    // Small deterministic pixel motes: no allocation, full-screen planet remains opaque.
+    if (!reducedMotion && performanceMode !== 'low') {
+      const count = performanceMode === 'high' ? 28 : 14;
+      const colors = ['#91dfff','#ffd294','#ffb59a','#afe2ff','#e9a78f','#e4d4af','#ead2a0','#aee5e5','#b8bdff','#dedaff'];
+      ctx.save(); ctx.globalAlpha = 0.32; ctx.fillStyle = colors[(currentLevel-1)%10];
+      for (let i=0;i<count;i++) {
+        const depth = i%2 ? 0.05 : 0.025;
+        const x = ((i*173.7 - camera.x*depth + time*(i%2?2:1))%canvas.width+canvas.width)%canvas.width;
+        const y = (i*97.3+currentLevel*31)%(canvas.height*.65);
+        ctx.fillRect(Math.round(x),Math.round(y),i%3?2:3,i%3?2:3);
+      }
+      ctx.restore();
     }
     ctx.save();
     // Keep the full-screen background fixed while gameplay feedback shakes.
@@ -2863,7 +2889,7 @@
 
       // Draw the boss sprite (or fallback rectangle). Apply hit-flash transparency if necessary.
       ctx.save();
-      if (boss.hitFlash > 0) ctx.globalAlpha = 0.5 + Math.sin(time * 50) * 0.5;
+      if (boss.hitFlash > 0) ctx.globalAlpha = reducedMotion ? 0.7 : 0.75 + Math.sin(time * 8) * 0.2;
       let imgKey = boss.bossType;
       if (boss.variation !== 'plain' && boss.bossType !== 'chimiera') imgKey += '_' + boss.variation;
       if (drawAtlas(assets.bossAtlas, bossAnimationFrame(), 4, 5, boss.x, boss.y, boss.w, boss.h)) {
@@ -2931,7 +2957,9 @@
     // Lasers
     for (const laser of lasers) {
       if (!inView(laser.x, laser.y, laser.w, laser.h)) continue;
+      if (!reducedMotion && performanceMode !== 'low') { ctx.globalAlpha=.3; ctx.fillStyle='#32a9db'; ctx.fillRect(laser.x-(laser.dir>0?14:-laser.w),laser.y+1,14,2); ctx.globalAlpha=1; }
       ctx.fillStyle = '#7be2ff'; ctx.fillRect(laser.x, laser.y, laser.w, laser.h);
+      ctx.fillStyle = '#eaffff'; ctx.fillRect(laser.x+2,laser.y+1,Math.max(1,laser.w-4),2);
     }
 
     // Fireballs
@@ -2957,7 +2985,7 @@
     // Player
     ctx.save();
     ctx.translate(player.x, player.y);
-    if (player.invincible) ctx.globalAlpha = 0.5 + Math.sin(time*20)*0.4;
+    if (player.invincible) ctx.globalAlpha = reducedMotion ? 0.65 : 0.65 + Math.sin(time*8)*0.2;
     ctx.save();
     ctx.translate(player.w/2, 0); ctx.scale(player.facing, 1); ctx.translate(-player.w/2, 0);
     // When ducking, squash the sprite vertically by drawing it into the reduced rect
@@ -3253,6 +3281,23 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) interruptGame(); });
   const portraitPrompt = window.matchMedia('(pointer: coarse) and (orientation: portrait)');
   portraitPrompt.addEventListener('change', event => { if (event.matches) interruptGame(); });
+  const motionSetting = document.getElementById('motion-setting');
+  motionSetting.value = motionOverride;
+  motionSetting.addEventListener('change', () => {
+    motionOverride = motionSetting.value; storage.setItem('rb_motion', motionOverride);
+    reducedMotion = motionOverride === 'reduced' || (motionOverride === 'system' && motionPreference.matches);
+    renderRequested = true;
+  });
+  const effectsSetting = document.getElementById('effects-setting');
+  effectsSetting.value = performanceMode;
+  effectsSetting.addEventListener('change', () => { applyPerformanceMode(effectsSetting.value); renderRequested = true; });
+  document.getElementById('rb-pause-panel').addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const controls = [...event.currentTarget.querySelectorAll('button,select,a[href]')];
+    const first=controls[0], last=controls[controls.length-1];
+    if (event.shiftKey && document.activeElement===first) {event.preventDefault();last.focus();}
+    else if (!event.shiftKey && document.activeElement===last) {event.preventDefault();first.focus();}
+  });
   document.getElementById('rb-resume').addEventListener('click', () => setPaused(false));
   document.getElementById('rb-pause').addEventListener('click', () => setPaused(true));
   const soundButton = document.getElementById('rb-sound');
