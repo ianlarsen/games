@@ -372,14 +372,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
 <div class="hint" id="hint-text">Move: ←→ / A,D • Jump: Space (hold for higher) • Shoot: X • Duck: ↓/S • Burst: B • Pause: ESC • Perf: Q</div>
 <div class="badge">Image Edition</div>
 
-<div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#071320ee;z-index:1300;text-align:center;padding:12px 0;overflow:auto;color:white" role="dialog" aria-modal="true" aria-label="Game paused">
-  <h2>Paused</h2>
-  <p>Tap Jump for a short hop. Hold longer to jump higher.</p>
-  <button type="button" id="test-sounds" style="padding:10px 20px">Test sounds</button>
-  <p id="audio-status" role="status" aria-live="polite">Test plays jump, laser, then squish. Check your media volume.</p>
-  <p style="max-width:540px;margin:10px auto;padding:0 16px">🥕 Glowing carrots give +1 life. Walk or jump into one to collect automatically. Up to 2 bonus lives per level, shared with coin rewards.</p>
-  <p><label for="motion-setting">Motion</label> <select id="motion-setting"><option value="system">Use device preference</option><option value="reduced">Reduced motion</option><option value="full">Full motion</option></select></p>
-  <p><label for="effects-setting">Visual detail</label> <select id="effects-setting"><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></p><p>Your run is safe. Resume when you’re ready.</p>
+<div id="rb-pause-panel" hidden style="position:fixed;inset:0;background:#07132055;z-index:1300;text-align:center;padding-top:35vh" role="dialog" aria-modal="true" aria-label="Game paused">
   <button id="rb-resume" style="padding:16px 30px;background:#7be2ff;color:#071320;border:0;border-radius:12px;font:bold 18px system-ui;touch-action:manipulation">Resume</button>
 </div>
 <!-- Start Screen -->
@@ -388,7 +381,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   <div class="start-bottom">
     <a href="engine/index.html" style="color:#7be2ff;font:600 14px system-ui;padding:10px">PLAY PHASER EDITION</a>
     <button type="button" class="start-button" id="start-btn" style="display:none;">TAP TO START</button>
-    <p style="max-width:540px;color:#ffe6a8;margin:6px auto;font:14px system-ui">🥕 Glowing carrots give +1 life. Walk or jump into one to collect automatically. Up to 2 bonus lives per level, shared with coin rewards.</p>
+    <p style="max-width:540px;color:#ffe6a8;margin:6px auto;font:14px system-ui">🥕 Collect glowing carrots to charge Burst (up to 3). Tap the carrot Burst button or press B to activate. Hold Jump for a higher jump.</p>
     <div id="loading-text" role="status">LOADING ASSETS... 0%</div>
     <button type="button" id="retry-assets" hidden>Retry loading</button>
     <div class="leaderboard" id="leaderboard">
@@ -405,7 +398,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   <div id="joystick-base"><div id="joystick-knob"></div></div>
   <button type="button" class="mobile-btn" id="mobile-jump" aria-label="Jump">JUMP</button>
   <button type="button" class="mobile-btn" id="mobile-laser" aria-label="Fire laser"><img src="images/ui/btn-laser.png" alt=""></button>
-  <button type="button" class="mobile-btn" id="mobile-burst" aria-label="Use Moon Burst"><img id="burst-img" src="images/ui/btn-burst.png" alt=""><span id="burst-stars" class="burst-label"></span></button>
+  <button type="button" class="mobile-btn" id="mobile-burst" aria-label="Use carrot Burst"><img id="burst-img" src="images/carrot-health-v2.png" alt=""><span id="burst-stars" class="burst-label"></span></button>
 </div>
 
 <!-- Landscape orientation prompt -->
@@ -480,9 +473,10 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   ctx.imageSmoothingEnabled = false;
   let audioCtx; // created on first user gesture
   let sfxOutput, sfxMediaDestination;
-  let audioTestTimer;
   function audioFeedback(message) {
-    document.getElementById('audio-status').textContent = message;
+    console.warn(message);
+    const button = document.getElementById('rb-sound');
+    if (button && soundEnabled) button.textContent = 'Retry sound';
   }
   function connectSfxOutput() {
     if (!audioCtx || sfxMediaDestination) return;
@@ -493,7 +487,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       sfxOutput = new Audio();
       sfxOutput.setAttribute('playsinline', '');
       sfxOutput.srcObject = sfxMediaDestination.stream;
-      sfxOutput.addEventListener('error', () => audioFeedback('Sound output failed. Tap Test sounds to retry.'));
+      sfxOutput.addEventListener('error', () => audioFeedback('Sound output failed. Tap the sound button to retry.'));
     }
   }
   let currentMusic = null;
@@ -624,6 +618,27 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   const sfxDecoding = new Set();
   const activeSfx = new Set();
   const fileSfxPools = {};
+  const iosMediaAudio = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const pendingIOSAudio = new Map();
+  const silentAudioURL = 'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
+  function primeIOSAudio() {
+    if (!iosMediaAudio) return;
+    for (const [name, pool] of Object.entries(fileSfxPools)) for (const audio of pool) {
+      if (audio.rbUnlocked || audio.rbPriming) continue;
+      audio.rbPriming = true;
+      // Unlock each reusable media element inside the actual touch gesture.
+      // Start silence, not all of the effects, then restore its original MP3.
+      audio.src = silentAudioURL;
+      audio.play().then(() => {
+        audio.pause(); audio.src = sfxSources[name]; audio.load();
+        audio.rbUnlocked = true; audio.rbPriming = false;
+        if (pendingIOSAudio.has(name)) {
+          const volume = pendingIOSAudio.get(name); pendingIOSAudio.delete(name);
+          playSfx(name, volume);
+        }
+      }).catch(() => { audio.rbPriming = false; audioFeedback('iPhone audio blocked. Tap the sound button to retry.'); });
+    }
+  }
   const bundledFiles = location.protocol === 'file:';
 
   // Placeholder for test hopper insertion flag (not used in final version).
@@ -1402,20 +1417,32 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     // Use the media playback route on phones, including when the ringer is silent.
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
     if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
-    connectSfxOutput();
+    primeIOSAudio();
+    if (!iosMediaAudio) connectSfxOutput();
     if (audioCtx?.state === 'suspended' || audioCtx?.state === 'interrupted') {
-      audioCtx.resume().catch(() => audioFeedback('Audio is blocked. Tap Test sounds to retry.'));
+      audioCtx.resume().catch(() => audioFeedback('Audio is blocked. Tap the sound button to retry.'));
     }
-    if (sfxOutput?.paused) sfxOutput.play().catch(() => audioFeedback('Sound playback was blocked. Tap Test sounds to retry.'));
+    if (sfxOutput?.paused) sfxOutput.play().catch(() => audioFeedback('Sound playback was blocked. Tap the sound button to retry.'));
     decodeSfxBuffers();
   }
   window.addEventListener('pointerdown', unlockSfx, {capture:true, passive:true});
   window.addEventListener('keydown', unlockSfx, {capture:true});
   function playSfx(name, vol = 1.0, preview = false) {
     if (!soundEnabled || (paused && !preview) || document.hidden) return;
+    if (iosMediaAudio) {
+      const audio = fileSfxPools[name]?.find(item => item.rbUnlocked && (item.paused || item.ended));
+      if (!audio) {
+        if (fileSfxPools[name]?.some(item => !item.rbUnlocked)) pendingIOSAudio.set(name, vol);
+        return;
+      }
+      audio.volume = clamp(vol, 0, 1);
+      try { audio.currentTime = 0; } catch {}
+      audio.play().catch(() => { audio.rbUnlocked = false; audioFeedback('iPhone effect blocked. Tap the sound button to retry.'); });
+      return;
+    }
     if (!audioCtx || audioCtx.state !== 'running' || !sfxDecodedBuffers[name]) {
       const audio = fileSfxPools[name]?.find(item => item.paused || item.ended);
-      if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => audioFeedback('Effect playback was blocked. Tap Test sounds to retry.')); }
+      if (audio) { audio.volume = clamp(vol,0,1); try { audio.currentTime = 0; } catch(e) {} audio.play().catch(() => audioFeedback('Effect playback was blocked. Tap the sound button to retry.')); }
       return;
     }
     if (!audioCtx || !sfxDecodedBuffers[name] || activeSfx.size >= 16) return;
@@ -1726,11 +1753,11 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
       // Powerups
       if (Math.random() < 0.025) {
-        segment.powerups.push({ type: 'extraLife', x: currentX + rand(20, platformW - 40), y: currentY - rand(60, 100), w: 32, h: 32 });
+        segment.powerups.push({ type: 'moonBurst', x: currentX + rand(20, platformW - 40), y: currentY - rand(60, 100), w: 32, h: 32 });
       }
-      // Moon Burst star pickup (rare)
+      // Carrot Burst pickup (rare)
       if (Math.random() < 0.04) {
-        segment.powerups.push({ type: 'moonBurst', x: currentX + rand(20, platformW - 40), y: currentY - rand(70, 110), w: 28, h: 28 });
+        segment.powerups.push({ type: 'moonBurst', x: currentX + rand(20, platformW - 40), y: currentY - rand(70, 110), w: 32, h: 32 });
       }
       currentX += platformW;
     }
@@ -2227,10 +2254,10 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     for (const segment of segments) {
       for (let i = segment.powerups.length - 1; i >= 0; i--) {
         const pu = segment.powerups[i];
-        if (pu.type === 'moonBurst' && rectsOverlap(player.x, player.y, player.w, player.h, pu.x, pu.y, pu.w, pu.h)) {
+        if (pu.type === 'moonBurst' && rectsOverlap(player.x, player.y, player.w, player.h, pu.x - pu.w * .7, pu.y - pu.h * .7, pu.w * 2.4, pu.h * 2.4)) {
           segment.powerups.splice(i, 1);
           player_moonBursts = Math.min(3, player_moonBursts + 1);
-          createDamageNumber(player.x + player.w/2, player.y - 10, '\u2605 BURST — PRESS B!', '#FFD700');
+          createDamageNumber(player.x + player.w/2, player.y - 10, 'CARROT +1 BURST — TAP BURST / B', '#FFD700');
           playSfx('coin', 0.9);
         }
       }
@@ -2595,22 +2622,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
           playSfx('coin', 0.7);
         }
       }
-      for (let i = segment.powerups.length - 1; i >= 0; i--) {
-        const p = segment.powerups[i];
-        if (p.type === 'extraLife' && rectsOverlap(player.x, player.y, player.w, player.h, p.x - p.w, p.y - p.h, p.w * 3, p.h * 3)) {
-          segment.powerups.splice(i, 1);
-          if (extraLivesGainedThisLevel < MAX_EXTRA_LIVES_PER_LEVEL) {
-            extraLivesGainedThisLevel++;
-            player.lives++;
-            player.maxLives = Math.max(player.maxLives, player.lives);
-            createDamageNumber(p.x, p.y, '+1 LIFE', '#f00');
-            // Play extra life sound
-            playSfx('life', 0.8);
-          } else {
-            createDamageNumber(p.x, p.y, 'MAXED', '#ff9f43');
-          }
-        }
-      }
+
     }
   }
 
@@ -2785,7 +2797,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
     }
 
-    // Coins & carrot health pickups
+    // Coins & carrot Burst pickups
     for (const segment of segments) {
       if (assets.coin && assets.coin.complete && assets.coin.naturalWidth > 0) {
         for (const c of segment.coins) {
@@ -2798,10 +2810,10 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
       if (assets.carrot && assets.carrot.complete && assets.carrot.naturalWidth > 0) {
         for (const p of segment.powerups) {
-          if (p.type !== 'extraLife' || !inView(p.x - p.w, p.y - p.h, p.w * 3, p.h * 3)) continue;
+          if (p.type !== 'moonBurst' || !inView(p.x - p.w * .7, p.y - p.h * .7, p.w * 2.4, p.h * 2.4)) continue;
           const pulse = reducedMotion ? 1 : 1.0 + Math.sin(time * 5) * 0.1;
-          const w = p.w * 3 * pulse;
-          const h = p.h * 3 * pulse;
+          const w = p.w * 2.4 * pulse;
+          const h = p.h * 2.4 * pulse;
           const centerX = p.x + p.w/2;
           const centerY = p.y + p.h/2;
           ctx.save();
@@ -2826,7 +2838,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
         if (!inView(enemy.x, enemy.y, enemy.w, enemy.h)) continue;
         ctx.save();
         ctx.translate(enemy.x + enemy.w/2, enemy.y + enemy.h/2);
-        const enemyArtScale = phoneCharacterSizing ? 3.696 : 0.7;
+        const enemyArtScale = phoneCharacterSizing ? 5.28 : 1.4;
         ctx.translate(0, enemy.h/2); ctx.scale(enemyArtScale, enemyArtScale); ctx.translate(0, -enemy.h/2);
         if (drawEnemyV2(enemy)) {
           // Presentation uses existing simulation state.
@@ -3010,7 +3022,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     for (const enemy of enemyDefeats) {
       if (!inView(enemy.x,enemy.y,enemy.w,enemy.h)) continue;
       ctx.save();ctx.translate(enemy.x+enemy.w/2,enemy.y+enemy.h/2);
-      const enemyArtScale = phoneCharacterSizing ? 3.696 : 0.7;
+      const enemyArtScale = phoneCharacterSizing ? 5.28 : 1.4;
       ctx.translate(0,enemy.h/2);ctx.scale(enemyArtScale,enemyArtScale);ctx.translate(0,-enemy.h/2);
       ctx.globalAlpha = reducedMotion ? .5 : Math.max(0,1-(time-enemy.defeatedAt)/.3);
       drawEnemyV2(enemy);ctx.restore();
@@ -3224,7 +3236,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       ctx.restore();
     }
 
-    // Moon Burst active indicator + burst star pickups
+    // Carrot Burst active indicator and held charges
     if (moonBurstActive) {
       ctx.save();
       const pulse = 0.55 + 0.45 * Math.abs(Math.sin(time * 5));
@@ -3232,14 +3244,14 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.textAlign = 'center'; ctx.font = 'bold 15px sans-serif';
       ctx.fillStyle = '#FFD700'; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = uiShadowBlur * 4;
-      ctx.fillText('\u2605 MOON BURST \u2605  ' + moonBurstTimer.toFixed(1) + 's', canvas.width / 2, 50);
+      ctx.fillText('CARROT BURST  ' + moonBurstTimer.toFixed(1) + 's', canvas.width / 2, 50);
       ctx.shadowBlur = 0; ctx.restore();
     }
     // Moon burst charge counter (top-right, only when holding at least 1)
     if (player_moonBursts > 0 && !moonBurstActive) {
       ctx.save(); ctx.textAlign = 'right'; ctx.font = 'bold 13px sans-serif';
       ctx.fillStyle = '#FFD700';
-      ctx.fillText('\u2605'.repeat(player_moonBursts) + ' [B]', canvas.width - 8, 20);
+      ctx.fillText('🥕 ×' + player_moonBursts + ' [B]', canvas.width - 8, 20);
       ctx.restore();
     }
     // Magnet field indicator (top-right, below burst counter)
@@ -3250,28 +3262,6 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       ctx.fillText('MAG\u00D7' + permanentUpgrades.magnetField, canvas.width - 8, magnetY);
       ctx.restore();
     }
-    // Draw moon burst star pickups
-    ctx.save(); ctx.translate(-camera.x, -camera.y);
-    for (const seg of segments) {
-      for (const pu of seg.powerups) {
-        if (pu.type !== 'moonBurst') continue;
-        if (!inView(pu.x, pu.y, pu.w, pu.h)) continue;
-        const cx = pu.x + pu.w / 2, cy = pu.y + pu.h / 2;
-        const r = pu.w / 2 * (0.85 + 0.15 * Math.sin(time * 3 + cx));
-        ctx.save(); ctx.translate(cx, cy); ctx.rotate(time * 1.2);
-        ctx.fillStyle = '#FFD700'; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 12;
-        ctx.beginPath();
-        for (let s = 0; s < 5; s++) {
-          const a = (s * Math.PI * 2 / 5) - Math.PI / 2;
-          const b = a + Math.PI / 5;
-          ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-          ctx.lineTo(Math.cos(b) * r * 0.45, Math.sin(b) * r * 0.45);
-        }
-        ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.restore();
-      }
-    }
-    ctx.restore();
-
     // Low-G biome window indicator
     if (lowGActive) {
       ctx.save();
@@ -3419,7 +3409,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     else canvas.focus({ preventScroll: true });
     if (next) {
       currentMusic?.pause();
-      clearTimeout(audioTestTimer);
+      pendingIOSAudio.clear();
       sfxOutput?.pause();
       for (const source of activeSfx) { try { source.stop(); } catch(e) {} }
       for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
@@ -3436,16 +3426,6 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   document.addEventListener('visibilitychange', () => { if (document.hidden) interruptGame(); });
   const portraitPrompt = window.matchMedia('(pointer: coarse) and (orientation: portrait)');
   portraitPrompt.addEventListener('change', event => { if (event.matches) interruptGame(); });
-  const motionSetting = document.getElementById('motion-setting');
-  motionSetting.value = motionOverride;
-  motionSetting.addEventListener('change', () => {
-    motionOverride = motionSetting.value; storage.setItem('rb_motion', motionOverride);
-    reducedMotion = motionOverride === 'reduced' || (motionOverride === 'system' && motionPreference.matches);
-    renderRequested = true;
-  });
-  const effectsSetting = document.getElementById('effects-setting');
-  effectsSetting.value = performanceMode;
-  effectsSetting.addEventListener('change', () => { applyPerformanceMode(effectsSetting.value); renderRequested = true; });
   document.getElementById('rb-pause-panel').addEventListener('keydown', event => {
     if (event.key !== 'Tab') return;
     const controls = [...event.currentTarget.querySelectorAll('button,select,a[href]')];
@@ -3462,12 +3442,12 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   }
   updateSoundButton();
   soundButton.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
+    soundEnabled = soundButton.textContent === 'Retry sound' ? true : !soundEnabled;
     storage.setItem('rb_sound_enabled', soundEnabled);
     updateSoundButton();
     if (!soundEnabled) {
       currentMusic?.pause();
-      clearTimeout(audioTestTimer);
+      pendingIOSAudio.clear();
       sfxOutput?.pause();
       for (const source of activeSfx) { try { source.stop(); } catch {} }
       for (const pool of Object.values(fileSfxPools)) for (const audio of pool) audio.pause();
@@ -3475,31 +3455,6 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       unlockSfx();
       if (currentMusic) currentMusic.play().catch(() => {});
       else if (gameState !== 'gameOver') playMusic(gameState === 'levelComplete' ? 'victory' : gameState === 'bossIntro' || boss ? 'boss' : `level${currentLevel}`);
-    }
-  });
-
-  document.getElementById('test-sounds').addEventListener('click', async () => {
-    clearTimeout(audioTestTimer);
-    soundEnabled = true; storage.setItem('rb_sound_enabled', true); updateSoundButton();
-    unlockSfx();
-    try {
-      await audioCtx?.resume();
-      if (sfxOutput) await sfxOutput.play();
-      // Decode on the first gesture; wait before playing the requested preview.
-      for (let i=0; i<100 && !['jump','laser','squish'].every(key => sfxDecodedBuffers[key]); i++) {
-        await new Promise(resolve => setTimeout(resolve, 20));
-      }
-      const names = ['jump','laser','squish'];
-      const next = () => {
-        const name = names.shift();
-        if (!name || document.hidden || !soundEnabled) return;
-        audioFeedback('Playing ' + name + ' — check your media volume if you cannot hear it.');
-        playSfx(name, 1, true);
-        audioTestTimer = setTimeout(next, 1200);
-      };
-      next();
-    } catch (error) {
-      audioFeedback('Playback blocked: ' + error.name + '. Tap Test sounds again.');
     }
   });
 

@@ -15,8 +15,9 @@ final class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-        // Ambient audio respects the silent switch and other apps' audio.
-        try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+        // Game audio uses media volume independently of the notification/silent switch.
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
@@ -55,6 +56,7 @@ final class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate
 
     @objc func activateMedia() {
         // The game keeps its Resume panel; returning to the app never starts a run.
+        try? AVAudioSession.sharedInstance().setActive(true)
         webView.setAllMediaPlaybackSuspended(false, completionHandler: nil)
     }
 
