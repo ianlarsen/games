@@ -531,12 +531,19 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     player: 'images/robotbunny.png',
     bunnyAtlas: 'images/bunny-atlas-v2.png',
     bossAtlas: 'images/boss-atlas-v2.png',
+    hopperAtlas: 'images/hopper-atlas-v2.png',
+    walkerAtlas: 'images/walker-atlas-v2.png',
+    flyerAtlas: 'images/flyer-atlas-v2.png',
+    sniperAtlas: 'images/sniper-atlas-v2.png',
+    tankAtlas: 'images/tank-atlas-v2.png',
+
     bg: 'images/moon-background.png',
     ground: 'images/ground.png',
     platform: 'images/platform.png',
     hopper: 'images/hopper.png',
     flyer: 'images/flyer.png',
     heart: 'images/heart.png',
+    carrot: 'images/carrot-health-v2.png',
     coin: 'images/coin.png',
     // Bosses
     squid: 'images/squid.png',
@@ -1086,6 +1093,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
   const fireballs = [];
   const particles = [];
   const particlePool = [];
+  const enemyDefeats = [];
+  function rememberEnemyDefeat(enemy) { if (enemyDefeats.length < 24) enemyDefeats.push({...enemy, defeatedAt: time}); }
   const damageNumbers = [];
   const segments = [];
   let currentSegmentIndex = 0;
@@ -1859,7 +1868,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     levelFlag = null;
     segments.length = 0;
     lasers.length = 0;
-    particles.length = 0;
+    particles.length = 0; enemyDefeats.length = 0;
     // Reset tank spawn flag at the start of each level
     tankSpawned = false;
     currentSegmentIndex = 0;
@@ -1952,6 +1961,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       if (bossIntroTimer >= 1.5) gameState = 'playing';
     }
 
+    for (let i = enemyDefeats.length - 1; i >= 0; i--) if (time - enemyDefeats[i].defeatedAt > 0.3) enemyDefeats.splice(i, 1);
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.x += p.vx * dt; p.y += p.vy * dt; p.vy += gravity * 0.5 * dt;
@@ -2202,7 +2212,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
               playSfx('hit', 0.4);
               break;
             }
-            enemy.health--;
+            enemy.health--; enemy.visualHitUntil = time + 0.16;
             lasers.splice(i, 1);
             // Play sound when a laser hits an enemy
             playSfx('hit', 0.7);
@@ -2214,7 +2224,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
               enemy.staggerTimer = 0.25;
             }
             addCombo();
-            if (enemy.health <= 0) { createParticle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#ba91ff', 12, 6); segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
+            if (enemy.health <= 0) { rememberEnemyDefeat(enemy); createParticle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#ba91ff', 12, 6); segment.enemies.splice(j, 1); score += 50; enemiesKilledThisRun++; }
             break;
           }
         }
@@ -2270,7 +2280,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
           let onGround = false;
           for (const plat of segment.platforms) {
             if (rectsOverlap(enemy.x, enemy.y, enemy.w, enemy.h, plat.x, plat.y, plat.w, plat.h)) {
-              if (enemy.vy > 0 && (enemy.y + enemy.h - enemy.vy*dt) <= plat.y) { enemy.y = plat.y - enemy.h; enemy.vy = 0; onGround = true; }
+              if (enemy.vy > 0 && (enemy.y + enemy.h - enemy.vy*dt) <= plat.y) { enemy.y = plat.y - enemy.h; enemy.vy = 0; onGround = true; enemy.visualLandUntil = time + 0.14; }
             }
           }
           if (!onGround) { enemy.x += enemy.dir * (enemy.vx * enemyGlobalSpeedMultiplier * 0.5) * dt; }
@@ -2307,7 +2317,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
               // Fireballs carry hit points so lasers can shoot them down.
               fireballs.push({ x: spawnX, y: spawnY, w: fbW, h: fbH, vx: vx, vy: vy, hp: 5 });
               playSfx('fireballSfx', 0.8);
-              enemy.fireCooldown = 3.0;
+              enemy.fireCooldown = 3.0; enemy.visualFireAt = time;
             }
           } else {
             enemy.fireCooldown -= dt;
@@ -2332,7 +2342,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
               const by = enemy.y + enemy.h * 0.5 + Math.sin(enemy.aimAngle) * enemy.h * 0.5 - 6;
               fireballs.push({ x: bx, y: by, w: 12, h: 12, vx: Math.cos(enemy.aimAngle) * spd, vy: Math.sin(enemy.aimAngle) * spd, hp: 1, color: '#cc44ff' });
               playSfx('hit', 0.22);
-              enemy.fireCooldown = 4.5;
+              enemy.fireCooldown = 4.5; enemy.visualFireAt = time;
             }
           } else {
             enemy.fireCooldown -= dt;
@@ -2348,7 +2358,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
           const enemyThreshold = enemy.y + enemy.h * 0.5;
           if (playerBottom <= enemyThreshold) {
             // Player squishes enemy by landing on top
-            enemy.health--;
+            enemy.health--; enemy.visualHitUntil = time + 0.16;
             player.vy = jumpVel * 0.6;
             if (precisionLensActive) {
               score += 2;
@@ -2356,7 +2366,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
             }
             // Play squish sound
             playSfx('squish', 0.8);
-            if (enemy.health <= 0) segment.enemies.splice(i, 1);
+            if (enemy.health <= 0) { rememberEnemyDefeat(enemy); segment.enemies.splice(i, 1); }
           } else {
             loseLife('enemyBody');
           }
@@ -2568,6 +2578,59 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
     const attacking = boss.fireWindingUp || boss.slammingPhase || boss.state === 'rush';
     return index * 2 + (attacking ? 1 : reducedMotion ? 0 : Math.floor(time * 3) % 2);
   }
+  function enemyAnimationFrame(enemy) {
+    const cycle = Math.floor((enemy.animTimer || 0) * 10);
+    if (enemy.defeatedAt !== undefined) return 7;
+    if (enemy.visualHitUntil > time) return enemy.type === 'walker' || enemy.type === 'flyer' ? 6 : 7;
+    if (enemy.type === 'hopper') {
+      if (enemy.vy < -250) return 2;
+      if (enemy.vy < 0) return 3;
+      if (enemy.vy > 250) return 5;
+      if (enemy.vy > 0) return 4;
+      if (enemy.visualLandUntil > time) return 6;
+      return enemy.jumpTimer < .3 ? 1 : 0;
+    }
+    if (enemy.type === 'sniper') {
+      if (enemy.windingUp) return 1 + Math.min(2, Math.max(0,Math.floor((.45-enemy.windupTimer)/.15)));
+      if (time - (enemy.visualFireAt ?? -10) < .08) return 4;
+      if (time - (enemy.visualFireAt ?? -10) < .20) return 5;
+      return enemy.fireCooldown > 3.8 ? 6 : 0;
+    }
+    if (enemy.type === 'tank') {
+      if (enemy.windingUp) return enemy.windupTimer < .15 ? 5 : 4;
+      if (time - (enemy.visualFireAt ?? -10) < .2) return 6;
+      return 0; // Existing tanks are stationary: do not imply moving tracks.
+    }
+    return reducedMotion ? (enemy.type === 'flyer' ? [1,4][Math.floor((enemy.animTimer||0)*3)%2] : 0) : cycle % 6;
+  }
+  function drawEnemyV2(enemy) {
+    const image = assets[enemy.type + 'Atlas'];
+    if (!image?.complete || !image.naturalWidth) return false;
+    ctx.save(); ctx.scale(-(enemy.dir || -1), 1);
+    drawAtlas(image, enemy.type === 'sniper' ? [0,1,2,3,4,6,7,9][enemyAnimationFrame(enemy)] : enemyAnimationFrame(enemy), enemy.type === 'sniper' ? 5 : 4, 2, -enemy.w*.6, -enemy.h*.6, enemy.w*1.2, enemy.h*1.2);
+    // Distinct silhouettes for variants; all overlays face the actual shield direction.
+    if (enemy.type === 'walker') {
+      if (enemy.heavy) {ctx.fillStyle='#d4b3ef'; for(let i=0;i<3;i++) ctx.fillRect(-enemy.w*.3+i*enemy.w*.25,-enemy.h*.55,4,7);}
+      if (!enemy.heavy && !enemy.shielded && enemy.vx > 100) {ctx.fillStyle='#f1c877';ctx.fillRect(enemy.w*.25,-enemy.h*.3,7,3);ctx.fillRect(enemy.w*.3,-enemy.h*.15,7,3);}
+      if (enemy.shielded) {ctx.fillStyle='#b9e9ff';ctx.fillRect(-enemy.w*.55,-enemy.h*.4,4,enemy.h*.8);ctx.fillStyle='#367cae';ctx.fillRect(-enemy.w*.48,-enemy.h*.3,3,enemy.h*.6);}
+    }
+    ctx.restore();
+    if (enemy.type === 'tank' || enemy.type === 'sniper') {
+      const tank=enemy.type==='tank', angle=tank?enemy.barrelAngle:enemy.aimAngle;
+      const py=tank?-enemy.h*.1:Math.sin(angle||0)*enemy.h*.25;
+      const px=tank?0:Math.cos(angle||0)*enemy.w*.5;
+      const length=tank?enemy.w*.6:22;
+      ctx.save();ctx.translate(px,py);ctx.rotate(angle||0);
+      ctx.fillStyle='#122137';ctx.fillRect(0,-4,length,8);ctx.fillStyle='#9ab4ce';ctx.fillRect(0,-2,length,3);
+      if (enemy.windingUp) {
+        ctx.strokeStyle=tank?'#ffcc55':'#db9aff';ctx.lineWidth=2;
+        ctx.strokeRect(length-3,-7,8,14);
+        if (!tank) {ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(length,0);ctx.lineTo(length+180,0);ctx.stroke();}
+      }
+      ctx.restore();
+    }
+    return true;
+  }
   function draw() {
     ctx.imageSmoothingEnabled = false;
     // Paint an opaque frame before the current planet. Never leave the previous
@@ -2652,7 +2715,7 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
     }
 
-    // Coins & Hearts
+    // Coins & carrot health pickups
     for (const segment of segments) {
       if (assets.coin && assets.coin.complete && assets.coin.naturalWidth > 0) {
         for (const c of segment.coins) {
@@ -2663,15 +2726,15 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
           ctx.drawImage(assets.coin, c.x - w/2, c.y - h/2, w, h);
         }
       }
-      if (assets.heart && assets.heart.complete && assets.heart.naturalWidth > 0) {
+      if (assets.carrot && assets.carrot.complete && assets.carrot.naturalWidth > 0) {
         for (const p of segment.powerups) {
           if (!inView(p.x, p.y, p.w, p.h)) continue;
-          const pulse = 1.0 + Math.sin(time * 5) * 0.1;
+          const pulse = reducedMotion ? 1 : 1.0 + Math.sin(time * 5) * 0.1;
           const w = p.w * pulse;
           const h = p.h * pulse;
           const centerX = p.x + p.w/2;
           const centerY = p.y + p.h/2;
-          ctx.drawImage(assets.heart, centerX - w/2, centerY - h/2, w, h);
+          ctx.drawImage(assets.carrot, centerX - w/2, centerY - h/2, w, h);
         }
       }
     }
@@ -2688,7 +2751,9 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
         if (!inView(enemy.x, enemy.y, enemy.w, enemy.h)) continue;
         ctx.save();
         ctx.translate(enemy.x + enemy.w/2, enemy.y + enemy.h/2);
-        if (enemy.type === 'hopper') {
+        if (drawEnemyV2(enemy)) {
+          // Presentation uses existing simulation state.
+        } else if (enemy.type === 'hopper') {
           // Flip the hopper's sprite so it always faces the direction of movement.
           // We use -enemy.dir here so that a positive dir (moving right) flips the sprite
           // horizontally and positions the eyes and toes correctly.
@@ -2865,6 +2930,12 @@ button:focus-visible, a:focus-visible, select:focus-visible {outline:3px solid #
       }
     }
 
+    for (const enemy of enemyDefeats) {
+      if (!inView(enemy.x,enemy.y,enemy.w,enemy.h)) continue;
+      ctx.save();ctx.translate(enemy.x+enemy.w/2,enemy.y+enemy.h/2);
+      ctx.globalAlpha = reducedMotion ? .5 : Math.max(0,1-(time-enemy.defeatedAt)/.3);
+      drawEnemyV2(enemy);ctx.restore();
+    }
     // Boss
     if (boss) {
       // Draw a soft glow behind the boss. The colour gradually shifts from green

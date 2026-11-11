@@ -57,5 +57,52 @@
       "chimiera"
     ],
     "framesPerBoss": 2
+  },
+  "enemies": {
+    "hopper": {
+      "file": "images/hopper-atlas-v2.png",
+      "columns": 4,
+      "rows": 2,
+      "frames": 8
+    },
+    "walker": {
+      "file": "images/walker-atlas-v2.png",
+      "columns": 4,
+      "rows": 2,
+      "frames": 8
+    },
+    "flyer": {
+      "file": "images/flyer-atlas-v2.png",
+      "columns": 4,
+      "rows": 2,
+      "frames": 8
+    },
+    "sniper": {
+      "file": "images/sniper-atlas-v2.png",
+      "columns": 5,
+      "rows": 2,
+      "frames": 10,
+      "animationFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        9
+      ]
+    },
+    "tank": {
+      "file": "images/tank-atlas-v2.png",
+      "columns": 4,
+      "rows": 2,
+      "frames": 8
+    }
+  },
+  "healthPickup": {
+    "file": "images/carrot-health-v2.png",
+    "effect": "Existing heart pickup health behavior unchanged",
+    "hud": "Original health icon retained"
   }
 }

@@ -2,7 +2,7 @@ Robot Bunny — regular enemy animation plan
 
 Art direction: crisp 16-bit sprites, dark outlines, restrained planet-compatible palettes, readable at the current gameplay size. Preserve collision boxes, speeds, jump timing, spawn rules and damage. Identify threats by silhouette and motion as well as color.
 
-1. Hopper — 8 frames: two crouch/anticipation, two ascent, two descent, two landing. Use existing jumpTimer/vy/on-platform state to choose frames. Squat body and spring-like legs; retain safe stomp readability.
+1. Hopper — 8 frames: two crouch/anticipation, two ascent, two descent, two landing. Use existing jumpTimer/vy/on-platform state to choose frames. Grasshopper insect body and enlarged rear jumping legs; retain safe stomp readability.
 2. Walker — 6 walk frames plus hit and defeat poses. Shielded version adds a clearly visible front plate and impact pose; fast version has a distinct swept-back silhouette. Shield direction must match existing frontal deflection logic.
 3. Flyer — 6 wingbeat/hover frames plus hit and defeat poses. Keep current flight path; wings animate around a stable body/collision center. Reduced motion uses a quieter two-frame cycle.
 4. Sniper — idle, three charge/aim poses, fire, recoil, cooldown, hit. Drive charge frames from windingUp/windupTimer; preserve aim line and add a shape-based muzzle charge cue. Never change projectile timing to match artwork.
@@ -12,4 +12,6 @@ Implementation order: hopper and walker pilot; flyer; sniper and tank. Produce a
 
 Validation: test each enemy in a deterministic encounter (approach from both sides, stomp, laser hit, shield deflection, charge cancellation, defeat). Check sprite bounds against unchanged hitboxes. Run at 30/60/120Hz, narrow phone and tablet layouts, Low detail and reduced motion. Measure crowded-scene performance on an actual lower-end Android/Fire device before release. Browser timing alone is not a device-performance claim.
 
-Acceptance: recognizable silhouettes; no cell bleed, clipped frames or visible foot sliding; charge poses reflect real attack states; all gameplay regression tests pass; no increase in saved-data schema or gameplay difficulty. This is a plan only: regular enemy replacement art is not created yet.
+Acceptance: recognizable silhouettes; no cell bleed, clipped frames or visible foot sliding; charge poses reflect real attack states; all gameplay regression tests pass; no increase in saved-data schema or gameplay difficulty. Implementation: five eight-frame enemy atlases, state-driven rendering, shield/heavy/fast overlays, and short bounded defeat remnants. Physical-device crowded-scene profiling remains pending.
+
+Art correction: only the player may be bunny-like. Hopper is an insect, walker a beetle, flyer a dragonfly, sniper a tripod turret, and tank a tracked vehicle. No rabbit-like enemy art is shipped.
