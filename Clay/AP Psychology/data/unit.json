@@ -1,0 +1,2875 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.1.0",
+  "unit": {
+    "id": "psy-unit1",
+    "title": "AP Psychology · Brain, sleep & sensation",
+    "exam": "2026-10-28",
+    "timezone": "America/New_York"
+  },
+  "sources": [
+    "Image 10-24-26 at 6.27 PM.jpeg",
+    "Image 10-24-26 at 6.28 PM (1).jpeg",
+    "Image 10-24-26 at 6.28 PM.jpeg",
+    "Image 10-24-26 at 6.29 PM.jpeg",
+    "Screenshot 2026-10-24 at 7.16.30 PM.png",
+    "Screenshot 2026-10-24 at 7.19.08 PM.png"
+  ],
+  "topics": [
+    "Foundations",
+    "Brain & sleep",
+    "Sensation",
+    "Neurotransmitters",
+    "Nervous system"
+  ],
+  "summaries": {
+    "Foundations": "Genes can influence the likelihood of traits without guaranteeing them. Neurons communicate using chemical messengers at synapses. The central nervous system contains the brain and spinal cord. Endocrine glands release hormones; the hypothalamus helps regulate endocrine activity.",
+    "Brain & sleep": "The cerebral cortex is the folded outer layer of the cerebrum. The hemispheres generally receive information from, and control movement on, opposite sides of the body. Circadian rhythms follow an approximately 24-hour pattern. REM combines rapid eye movements with active brain activity and normally reduced skeletal muscle tone.",
+    "Sensation": "Transduction converts sensory energy into neural signals. Trichromatic theory concerns three cone types; opponent processing concerns opposing color channels. Place theory links pitch to the location of activity along the cochlea. Conductive hearing loss concerns sound transmission; sensorineural loss concerns inner-ear or auditory-nerve damage. Gate control concerns modulation of pain signals. Taste receptor cells occur in taste buds, many of which are in tongue papillae.",
+    "Neurotransmitters": "Learn the eight messengers in the supplied table by function, then compare the pairs that are easy to confuse. Disease links in the screenshot are study associations, not one-chemical explanations of disorders. The GABA problem cell is unclear and is not assessed; its inhibitory function is assessed.",
+    "Nervous system": "The CNS contains the brain and spinal cord; the PNS includes nerves outside them. The PNS divides into somatic and autonomic systems. Somatic pathways control skeletal muscles; autonomic pathways regulate internal organs and glands. Sympathetic activity supports fight-or-flight responses, while parasympathetic activity supports rest and digestion. Sensory (afferent) neurons carry signals toward the CNS, motor (efferent) neurons carry them away, and interneurons connect neurons within the CNS. Glia support neurons; Schwann cells form myelin around PNS axons and aid repair. A withdrawal reflex can be integrated in the spinal cord before conscious awareness."
+  },
+  "terms": {
+    "Dopamine": "Motor movement and alertness. Low activity is associated with Parkinson’s disease; excess dopamine activity in some pathways is associated with schizophrenia.",
+    "Serotonin": "Mood regulation. The screenshot associates low serotonin with depression; this is a simplified association, not a complete causal explanation.",
+    "Norepinephrine": "Alertness and arousal. The screenshot associates low norepinephrine with depression; a disorder cannot be inferred from one messenger level.",
+    "Glutamate": "Excitation and memory. The screenshot links glutamate with migraines and seizures. Do not treat normal glutamate signaling as harmful.",
+    "GABA": "Inhibition. GABA is a major inhibitory neurotransmitter. The screenshot’s problem cell is unclear and is not used as an answer key.",
+    "Endorphins": "Pain control. The screenshot associates endorphins with addiction. Learn pain modulation as the core function.",
+    "Substance P": "Pain perception. The screenshot associates reduced substance P with reduced pain perception.",
+    "Acetylcholine": "Motor movement. The screenshot links reduced acetylcholine with Alzheimer’s disease and also notes myasthenia gravis and muscle weakness.",
+    "Genetic predisposition": "Inherited factors that increase likelihood without guaranteeing an outcome.",
+    "Neuron": "Individual nerve cell.",
+    "Neurotransmitter": "Chemical messenger released by neurons.",
+    "CNS": "Brain and spinal cord.",
+    "Endocrine system": "Hormone-secreting glands.",
+    "Hypothalamus": "Brain structure that helps regulate endocrine activity.",
+    "Cerebral cortex": "Folded outer layer of the cerebrum.",
+    "Hemispheres": "Left and right halves of the cerebrum.",
+    "Circadian rhythm": "Approximately 24-hour biological cycle.",
+    "REM": "Rapid eye movement sleep.",
+    "Transduction": "Conversion of sensory energy into neural signals.",
+    "Thalamus": "A major sensory relay; smell is an exception to the usual initial relay.",
+    "Trichromatic theory": "Color vision begins with three cone types, often described as red-, green-, and blue-sensitive.",
+    "Opponent-process theory": "Opposing color channels: red–green, blue–yellow, black–white.",
+    "Place theory": "Pitch relates to location of strongest cochlear response.",
+    "Conductive hearing loss": "Impaired mechanical transmission of sound.",
+    "Sensorineural hearing loss": "Damage involving the inner ear or auditory nerve.",
+    "Gate control theory": "Pain transmission is modulated by neural gating.",
+    "Papillae": "Tongue bumps that can contain taste buds.",
+    "PNS": "Peripheral nervous system: nerves outside the brain and spinal cord.",
+    "Somatic nervous system": "PNS division involved in voluntary skeletal-muscle control.",
+    "Autonomic nervous system": "PNS division regulating internal organs and glands.",
+    "Sympathetic nervous system": "Autonomic branch supporting fight or flight.",
+    "Parasympathetic nervous system": "Autonomic branch supporting rest and digestion.",
+    "Glial cells": "Cells that support, nourish, protect, and maintain neurons.",
+    "Schwann cells": "PNS glia that form myelin and aid axon repair.",
+    "Sensory (afferent) neurons": "Carry sensory input toward the CNS.",
+    "Motor (efferent) neurons": "Carry output away from the CNS to effectors.",
+    "Interneurons": "Connect neurons within the CNS.",
+    "Effector": "A muscle or gland responding to motor output.",
+    "Withdrawal reflex": "A rapid protective response that can be integrated in the spinal cord."
+  },
+  "questions": [
+    {
+      "id": "psy-genes",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "What does a genetic predisposition mean?",
+      "prompt": "What does a genetic predisposition mean?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Inherited factors increase the likelihood of a trait or condition.",
+      "explanation": "A predisposition changes probability; it is not a guarantee.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What does a genetic predisposition mean?"
+      ],
+      "choices": [
+        "Inherited factors increase the likelihood of a trait or condition.",
+        "A trait is guaranteed at birth.",
+        "Experience cannot influence a trait.",
+        "All relatives have identical traits."
+      ],
+      "distractorFeedback": {
+        "A trait is guaranteed at birth.": "Compare the defining feature: A predisposition changes probability; it is not a guarantee.",
+        "Experience cannot influence a trait.": "Compare the defining feature: A predisposition changes probability; it is not a guarantee.",
+        "All relatives have identical traits.": "Compare the defining feature: A predisposition changes probability; it is not a guarantee."
+      }
+    },
+    {
+      "id": "psy-genes-apply",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [
+        "boss"
+      ],
+      "objective": "A family history raises someone’s chance of a condition, but they never develop it. Which idea fits?",
+      "prompt": "A family history raises someone’s chance of a condition, but they never develop it. Which idea fits?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Genetic predisposition",
+      "explanation": "Inherited risk can exist without the condition appearing.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: A family history raises someone’s chance of a condition, but they never develop it. Which idea fits?"
+      ],
+      "choices": [
+        "Genetic predisposition",
+        "Genetic certainty",
+        "Transduction",
+        "Circadian rhythm"
+      ],
+      "distractorFeedback": {
+        "Genetic certainty": "Compare the defining feature: Inherited risk can exist without the condition appearing.",
+        "Transduction": "Compare the defining feature: Inherited risk can exist without the condition appearing.",
+        "Circadian rhythm": "Compare the defining feature: Inherited risk can exist without the condition appearing."
+      }
+    },
+    {
+      "id": "psy-neuron",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "What is an individual nerve cell called?",
+      "prompt": "What is an individual nerve cell called?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Neuron",
+      "explanation": "A neuron is a nerve cell.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What is an individual nerve cell called?"
+      ],
+      "acceptedAnswers": [
+        "neuron",
+        "neurons",
+        "nerve cell"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-messenger",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "What enables chemical communication between neurons?",
+      "prompt": "What enables chemical communication between neurons?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Neurotransmitters",
+      "explanation": "Neurotransmitters are chemical messengers released by neurons.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What enables chemical communication between neurons?"
+      ],
+      "choices": [
+        "Neurotransmitters",
+        "Papillae",
+        "Hemispheres",
+        "Sound waves"
+      ],
+      "distractorFeedback": {
+        "Papillae": "Compare the defining feature: Neurotransmitters are chemical messengers released by neurons.",
+        "Hemispheres": "Compare the defining feature: Neurotransmitters are chemical messengers released by neurons.",
+        "Sound waves": "Compare the defining feature: Neurotransmitters are chemical messengers released by neurons."
+      }
+    },
+    {
+      "id": "psy-terminal",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Where are neurotransmitters stored before release, according to the notes?",
+      "prompt": "Where are neurotransmitters stored before release, according to the notes?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Terminal buttons",
+      "explanation": "Terminal buttons contain vesicles holding neurotransmitters.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Where are neurotransmitters stored before release, according to the notes?"
+      ],
+      "choices": [
+        "Terminal buttons",
+        "Tongue papillae",
+        "The lens",
+        "The eardrum"
+      ],
+      "distractorFeedback": {
+        "Tongue papillae": "Compare the defining feature: Terminal buttons contain vesicles holding neurotransmitters.",
+        "The lens": "Compare the defining feature: Terminal buttons contain vesicles holding neurotransmitters.",
+        "The eardrum": "Compare the defining feature: Terminal buttons contain vesicles holding neurotransmitters."
+      }
+    },
+    {
+      "id": "psy-synapse",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "What gap do released neurotransmitters cross between neurons?",
+      "prompt": "What gap do released neurotransmitters cross between neurons?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Synaptic gap",
+      "explanation": "Chemical messengers cross the synaptic gap to bind to receptors.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What gap do released neurotransmitters cross between neurons?"
+      ],
+      "acceptedAnswers": [
+        "synaptic gap",
+        "synaptic cleft"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-receptors",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "What does the lock-and-key analogy describe?",
+      "prompt": "What does the lock-and-key analogy describe?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "A neurotransmitter fits a corresponding receptor.",
+      "explanation": "Receptor shape and messenger binding are selective.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What does the lock-and-key analogy describe?"
+      ],
+      "choices": [
+        "A neurotransmitter fits a corresponding receptor.",
+        "The skull encloses the spinal cord.",
+        "Every chemical activates every receptor.",
+        "Hormones are stored in the ear."
+      ],
+      "distractorFeedback": {
+        "The skull encloses the spinal cord.": "Compare the defining feature: Receptor shape and messenger binding are selective.",
+        "Every chemical activates every receptor.": "Compare the defining feature: Receptor shape and messenger binding are selective.",
+        "Hormones are stored in the ear.": "Compare the defining feature: Receptor shape and messenger binding are selective."
+      }
+    },
+    {
+      "id": "psy-cns",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Which structures form the central nervous system?",
+      "prompt": "Which structures form the central nervous system?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Brain and spinal cord",
+      "explanation": "CNS means brain and spinal cord.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which structures form the central nervous system?"
+      ],
+      "choices": [
+        "Brain and spinal cord",
+        "Brain and endocrine glands",
+        "All nerves outside the spinal cord",
+        "Cochlea and eardrum"
+      ],
+      "distractorFeedback": {
+        "Brain and endocrine glands": "Compare the defining feature: CNS means brain and spinal cord.",
+        "All nerves outside the spinal cord": "Compare the defining feature: CNS means brain and spinal cord.",
+        "Cochlea and eardrum": "Compare the defining feature: CNS means brain and spinal cord."
+      }
+    },
+    {
+      "id": "psy-cns-name",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Expand the abbreviation CNS.",
+      "prompt": "Expand the abbreviation CNS.",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Central nervous system",
+      "explanation": "The central nervous system consists of the brain and spinal cord.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Expand the abbreviation CNS."
+      ],
+      "acceptedAnswers": [
+        "central nervous system"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-endocrine",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Which system consists of hormone-secreting glands?",
+      "prompt": "Which system consists of hormone-secreting glands?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Endocrine system",
+      "explanation": "Endocrine glands secrete hormones affecting bodily processes.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which system consists of hormone-secreting glands?"
+      ],
+      "choices": [
+        "Endocrine system",
+        "Auditory system",
+        "Central nervous system only",
+        "Visual system"
+      ],
+      "distractorFeedback": {
+        "Auditory system": "Compare the defining feature: Endocrine glands secrete hormones affecting bodily processes.",
+        "Central nervous system only": "Compare the defining feature: Endocrine glands secrete hormones affecting bodily processes.",
+        "Visual system": "Compare the defining feature: Endocrine glands secrete hormones affecting bodily processes."
+      }
+    },
+    {
+      "id": "psy-hypothalamus",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Which brain structure helps regulate the endocrine system in the notes?",
+      "prompt": "Which brain structure helps regulate the endocrine system in the notes?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Hypothalamus",
+      "explanation": "The hypothalamus links brain activity with endocrine regulation.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which brain structure helps regulate the endocrine system in the notes?"
+      ],
+      "acceptedAnswers": [
+        "hypothalamus",
+        "the hypothalamus"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-hormones",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "What do endocrine glands secrete?",
+      "prompt": "What do endocrine glands secrete?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Hormones",
+      "explanation": "Hormones are endocrine chemical signals.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What do endocrine glands secrete?"
+      ],
+      "choices": [
+        "Hormones",
+        "Sound frequencies",
+        "Retinal cones",
+        "Papillae"
+      ],
+      "distractorFeedback": {
+        "Sound frequencies": "Compare the defining feature: Hormones are endocrine chemical signals.",
+        "Retinal cones": "Compare the defining feature: Hormones are endocrine chemical signals.",
+        "Papillae": "Compare the defining feature: Hormones are endocrine chemical signals."
+      }
+    },
+    {
+      "id": "psy-cortex",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "Which structure is the folded outer surface of the cerebrum?",
+      "prompt": "Which structure is the folded outer surface of the cerebrum?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Cerebral cortex",
+      "explanation": "The cerebral cortex is the outer layer of the cerebrum.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which structure is the folded outer surface of the cerebrum?"
+      ],
+      "choices": [
+        "Cerebral cortex",
+        "Spinal cord",
+        "Cochlea",
+        "Endocrine gland"
+      ],
+      "distractorFeedback": {
+        "Spinal cord": "Compare the defining feature: The cerebral cortex is the outer layer of the cerebrum.",
+        "Cochlea": "Compare the defining feature: The cerebral cortex is the outer layer of the cerebrum.",
+        "Endocrine gland": "Compare the defining feature: The cerebral cortex is the outer layer of the cerebrum."
+      }
+    },
+    {
+      "id": "psy-connections",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "What change accompanies learning and development in the cortex in the notes?",
+      "prompt": "What change accompanies learning and development in the cortex in the notes?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Connections between neurons develop.",
+      "explanation": "Learning and development involve changes in neuronal connections.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What change accompanies learning and development in the cortex in the notes?"
+      ],
+      "choices": [
+        "Connections between neurons develop.",
+        "The cortex becomes a sound receptor.",
+        "Neurons stop communicating.",
+        "The hemispheres become endocrine glands."
+      ],
+      "distractorFeedback": {
+        "The cortex becomes a sound receptor.": "Compare the defining feature: Learning and development involve changes in neuronal connections.",
+        "Neurons stop communicating.": "Compare the defining feature: Learning and development involve changes in neuronal connections.",
+        "The hemispheres become endocrine glands.": "Compare the defining feature: Learning and development involve changes in neuronal connections."
+      }
+    },
+    {
+      "id": "psy-hemispheres",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "The cerebral cortex is divided into which two hemispheres?",
+      "prompt": "The cerebral cortex is divided into which two hemispheres?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Left and right",
+      "explanation": "The two cerebral hemispheres are left and right.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: The cerebral cortex is divided into which two hemispheres?"
+      ],
+      "choices": [
+        "Left and right",
+        "Upper and lower",
+        "Inner and outer",
+        "Sensory and hormonal"
+      ],
+      "distractorFeedback": {
+        "Upper and lower": "Compare the defining feature: The two cerebral hemispheres are left and right.",
+        "Inner and outer": "Compare the defining feature: The two cerebral hemispheres are left and right.",
+        "Sensory and hormonal": "Compare the defining feature: The two cerebral hemispheres are left and right."
+      }
+    },
+    {
+      "id": "psy-left",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "Which side of the body does the left hemisphere generally control for movement?",
+      "prompt": "Which side of the body does the left hemisphere generally control for movement?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Right side",
+      "explanation": "Motor control is generally contralateral: left hemisphere, right body.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which side of the body does the left hemisphere generally control for movement?"
+      ],
+      "choices": [
+        "Right side",
+        "Left side",
+        "Neither side",
+        "Only the tongue"
+      ],
+      "distractorFeedback": {
+        "Left side": "Compare the defining feature: Motor control is generally contralateral: left hemisphere, right body.",
+        "Neither side": "Compare the defining feature: Motor control is generally contralateral: left hemisphere, right body.",
+        "Only the tongue": "Compare the defining feature: Motor control is generally contralateral: left hemisphere, right body."
+      }
+    },
+    {
+      "id": "psy-right",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "Sensory information from the left side of the body generally reaches which hemisphere?",
+      "prompt": "Sensory information from the left side of the body generally reaches which hemisphere?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Right hemisphere",
+      "explanation": "The notes emphasize opposite-side sensory processing.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Sensory information from the left side of the body generally reaches which hemisphere?"
+      ],
+      "choices": [
+        "Right hemisphere",
+        "Left hemisphere",
+        "Neither hemisphere",
+        "The endocrine glands"
+      ],
+      "distractorFeedback": {
+        "Left hemisphere": "Compare the defining feature: The notes emphasize opposite-side sensory processing.",
+        "Neither hemisphere": "Compare the defining feature: The notes emphasize opposite-side sensory processing.",
+        "The endocrine glands": "Compare the defining feature: The notes emphasize opposite-side sensory processing."
+      }
+    },
+    {
+      "id": "psy-circadian",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "What is the approximately 24-hour cycle influencing sleep and daily activity called?",
+      "prompt": "What is the approximately 24-hour cycle influencing sleep and daily activity called?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Circadian rhythm",
+      "explanation": "Circadian rhythms help organize daily cycles of sleep and activity.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What is the approximately 24-hour cycle influencing sleep and daily activity called?"
+      ],
+      "acceptedAnswers": [
+        "circadian rhythm",
+        "circadian rhythms"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-circadian-apply",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Feeling sleepy at a similar time each evening is most directly an example of what?",
+      "prompt": "Feeling sleepy at a similar time each evening is most directly an example of what?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Circadian rhythm",
+      "explanation": "A recurring daily timing pattern is circadian.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Feeling sleepy at a similar time each evening is most directly an example of what?"
+      ],
+      "choices": [
+        "Circadian rhythm",
+        "Place theory",
+        "Opponent processing",
+        "Conductive hearing loss"
+      ],
+      "distractorFeedback": {
+        "Place theory": "Compare the defining feature: A recurring daily timing pattern is circadian.",
+        "Opponent processing": "Compare the defining feature: A recurring daily timing pattern is circadian.",
+        "Conductive hearing loss": "Compare the defining feature: A recurring daily timing pattern is circadian."
+      }
+    },
+    {
+      "id": "psy-rem-name",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "What does REM stand for?",
+      "prompt": "What does REM stand for?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Rapid eye movement",
+      "explanation": "REM stands for rapid eye movement.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What does REM stand for?"
+      ],
+      "acceptedAnswers": [
+        "rapid eye movement",
+        "rapid eye movements"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-rem",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Brain & sleep",
+      "tags": [],
+      "objective": "Which pattern best identifies REM sleep?",
+      "prompt": "Which pattern best identifies REM sleep?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Rapid eye movements and an active brain",
+      "explanation": "REM is associated with rapid eye movements and active brain activity. Clarification: REM is distinct from NREM stage 1; skeletal muscle tone is normally strongly reduced.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which pattern best identifies REM sleep?"
+      ],
+      "choices": [
+        "Rapid eye movements and an active brain",
+        "No brain activity",
+        "Hormone secretion stops completely",
+        "Only slow delta waves throughout"
+      ],
+      "distractorFeedback": {
+        "No brain activity": "Compare the defining feature: REM is associated with rapid eye movements and active brain activity. Clarification: REM is distinct from NREM stage 1; skeletal muscle tone is normally strongly reduced.",
+        "Hormone secretion stops completely": "Compare the defining feature: REM is associated with rapid eye movements and active brain activity. Clarification: REM is distinct from NREM stage 1; skeletal muscle tone is normally strongly reduced.",
+        "Only slow delta waves throughout": "Compare the defining feature: REM is associated with rapid eye movements and active brain activity. Clarification: REM is distinct from NREM stage 1; skeletal muscle tone is normally strongly reduced."
+      }
+    },
+    {
+      "id": "psy-transduction",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "What process converts sensory energy into neural signals?",
+      "prompt": "What process converts sensory energy into neural signals?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Transduction",
+      "explanation": "Transduction changes a physical stimulus into a form the nervous system can use.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What process converts sensory energy into neural signals?"
+      ],
+      "acceptedAnswers": [
+        "transduction"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-transduction-apply",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Light entering the eye is converted into neural signals. What process is occurring?",
+      "prompt": "Light entering the eye is converted into neural signals. What process is occurring?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Transduction",
+      "explanation": "Conversion from sensory energy to neural signals is transduction.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Light entering the eye is converted into neural signals. What process is occurring?"
+      ],
+      "choices": [
+        "Transduction",
+        "Genetic predisposition",
+        "Motor control",
+        "Circadian timing"
+      ],
+      "distractorFeedback": {
+        "Genetic predisposition": "Compare the defining feature: Conversion from sensory energy to neural signals is transduction.",
+        "Motor control": "Compare the defining feature: Conversion from sensory energy to neural signals is transduction.",
+        "Circadian timing": "Compare the defining feature: Conversion from sensory energy to neural signals is transduction."
+      }
+    },
+    {
+      "id": "psy-thalamus",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Which relay structure is named for sensory messages in the notes?",
+      "prompt": "Which relay structure is named for sensory messages in the notes?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Thalamus",
+      "explanation": "The notes name the thalamus as a sensory relay. Clarification: this is a broad rule; smell is an exception to the usual initial thalamic relay.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which relay structure is named for sensory messages in the notes?"
+      ],
+      "acceptedAnswers": [
+        "thalamus",
+        "the thalamus"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-trichromatic",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Which theory explains color vision through three types of cones?",
+      "prompt": "Which theory explains color vision through three types of cones?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Trichromatic theory",
+      "explanation": "Trichromatic theory concerns three cone types with different wavelength sensitivities.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which theory explains color vision through three types of cones?"
+      ],
+      "choices": [
+        "Trichromatic theory",
+        "Place theory",
+        "Gate control theory",
+        "Circadian theory"
+      ],
+      "distractorFeedback": {
+        "Place theory": "Compare the defining feature: Trichromatic theory concerns three cone types with different wavelength sensitivities.",
+        "Gate control theory": "Compare the defining feature: Trichromatic theory concerns three cone types with different wavelength sensitivities.",
+        "Circadian theory": "Compare the defining feature: Trichromatic theory concerns three cone types with different wavelength sensitivities."
+      }
+    },
+    {
+      "id": "psy-cone-combinations",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "In trichromatic theory, how can three cone types support many perceived colors?",
+      "prompt": "In trichromatic theory, how can three cone types support many perceived colors?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Different combinations of red-, green-, and blue-sensitive cone activity",
+      "explanation": "The relative activity of the three cone types contributes to perceived color.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: In trichromatic theory, how can three cone types support many perceived colors?"
+      ],
+      "choices": [
+        "Different combinations of red-, green-, and blue-sensitive cone activity",
+        "A separate cone exists for every named color.",
+        "Cones detect sound frequencies.",
+        "Only one cone type ever fires."
+      ],
+      "distractorFeedback": {
+        "A separate cone exists for every named color.": "Compare the defining feature: The relative activity of the three cone types contributes to perceived color.",
+        "Cones detect sound frequencies.": "Compare the defining feature: The relative activity of the three cone types contributes to perceived color.",
+        "Only one cone type ever fires.": "Compare the defining feature: The relative activity of the three cone types contributes to perceived color."
+      }
+    },
+    {
+      "id": "psy-opponent",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Which pairing belongs to opponent-process theory of color vision?",
+      "prompt": "Which pairing belongs to opponent-process theory of color vision?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Red–green",
+      "explanation": "The notes list red–green, blue–yellow, and black–white opponent pairs.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which pairing belongs to opponent-process theory of color vision?"
+      ],
+      "choices": [
+        "Red–green",
+        "Red–yellow",
+        "Blue–green",
+        "Green–black"
+      ],
+      "distractorFeedback": {
+        "Red–yellow": "Compare the defining feature: The notes list red–green, blue–yellow, and black–white opponent pairs.",
+        "Blue–green": "Compare the defining feature: The notes list red–green, blue–yellow, and black–white opponent pairs.",
+        "Green–black": "Compare the defining feature: The notes list red–green, blue–yellow, and black–white opponent pairs."
+      }
+    },
+    {
+      "id": "psy-opponent-pairs",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Which set contains all three opponent pairs in the notes?",
+      "prompt": "Which set contains all three opponent pairs in the notes?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Red–green, blue–yellow, black–white",
+      "explanation": "Remember the three opposing channels: red/green, blue/yellow, black/white.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which set contains all three opponent pairs in the notes?"
+      ],
+      "choices": [
+        "Red–green, blue–yellow, black–white",
+        "Red–blue, green–yellow, black–white",
+        "Red–white, green–black, blue–yellow",
+        "Red–yellow, blue–black, green–white"
+      ],
+      "distractorFeedback": {
+        "Red–blue, green–yellow, black–white": "Compare the defining feature: Remember the three opposing channels: red/green, blue/yellow, black/white.",
+        "Red–white, green–black, blue–yellow": "Compare the defining feature: Remember the three opposing channels: red/green, blue/yellow, black/white.",
+        "Red–yellow, blue–black, green–white": "Compare the defining feature: Remember the three opposing channels: red/green, blue/yellow, black/white."
+      }
+    },
+    {
+      "id": "psy-opponent-mechanism",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "What happens to the opposing member of a color channel when one member is activated?",
+      "prompt": "What happens to the opposing member of a color channel when one member is activated?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Its activity is inhibited.",
+      "explanation": "Opponent processing involves opposing responses. Clarification: these channels operate after the cone receptors, not as literal pairs of cone types.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What happens to the opposing member of a color channel when one member is activated?"
+      ],
+      "choices": [
+        "Its activity is inhibited.",
+        "It becomes a hormone.",
+        "It detects sound.",
+        "It must increase by exactly the same amount."
+      ],
+      "distractorFeedback": {
+        "It becomes a hormone.": "Compare the defining feature: Opponent processing involves opposing responses. Clarification: these channels operate after the cone receptors, not as literal pairs of cone types.",
+        "It detects sound.": "Compare the defining feature: Opponent processing involves opposing responses. Clarification: these channels operate after the cone receptors, not as literal pairs of cone types.",
+        "It must increase by exactly the same amount.": "Compare the defining feature: Opponent processing involves opposing responses. Clarification: these channels operate after the cone receptors, not as literal pairs of cone types."
+      }
+    },
+    {
+      "id": "psy-color-compare",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Which comparison correctly distinguishes the color theories?",
+      "prompt": "Which comparison correctly distinguishes the color theories?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Trichromatic: cone types; opponent-process: opposing color channels.",
+      "explanation": "The theories explain different stages of color processing and can work together.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Which comparison correctly distinguishes the color theories?"
+      ],
+      "choices": [
+        "Trichromatic: cone types; opponent-process: opposing color channels.",
+        "Trichromatic: sound; opponent-process: taste.",
+        "Trichromatic: pain; opponent-process: hormones.",
+        "Both theories concern the eardrum."
+      ],
+      "distractorFeedback": {
+        "Trichromatic: sound; opponent-process: taste.": "Compare the defining feature: The theories explain different stages of color processing and can work together.",
+        "Trichromatic: pain; opponent-process: hormones.": "Compare the defining feature: The theories explain different stages of color processing and can work together.",
+        "Both theories concern the eardrum.": "Compare the defining feature: The theories explain different stages of color processing and can work together."
+      }
+    },
+    {
+      "id": "psy-place",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Which theory links perceived pitch to where the cochlea responds most strongly?",
+      "prompt": "Which theory links perceived pitch to where the cochlea responds most strongly?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Place theory",
+      "explanation": "Place theory links sound frequency to location of maximum response along the cochlea.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which theory links perceived pitch to where the cochlea responds most strongly?"
+      ],
+      "acceptedAnswers": [
+        "place theory"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-cochlea",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Place theory concerns hair-cell responses in which structure?",
+      "prompt": "Place theory concerns hair-cell responses in which structure?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Cochlea",
+      "explanation": "The cochlea is the inner-ear structure used in place theory.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Place theory concerns hair-cell responses in which structure?"
+      ],
+      "choices": [
+        "Cochlea",
+        "Cerebral cortex",
+        "Tongue papillae",
+        "Hypothalamus"
+      ],
+      "distractorFeedback": {
+        "Cerebral cortex": "Compare the defining feature: The cochlea is the inner-ear structure used in place theory.",
+        "Tongue papillae": "Compare the defining feature: The cochlea is the inner-ear structure used in place theory.",
+        "Hypothalamus": "Compare the defining feature: The cochlea is the inner-ear structure used in place theory."
+      }
+    },
+    {
+      "id": "psy-place-apply",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Two tones stimulate different locations along the cochlea. Which theory is illustrated?",
+      "prompt": "Two tones stimulate different locations along the cochlea. Which theory is illustrated?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Place theory",
+      "explanation": "Different frequencies produce strongest responses at different cochlear locations.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Two tones stimulate different locations along the cochlea. Which theory is illustrated?"
+      ],
+      "choices": [
+        "Place theory",
+        "Trichromatic theory",
+        "Gate control theory",
+        "Genetic predisposition"
+      ],
+      "distractorFeedback": {
+        "Trichromatic theory": "Compare the defining feature: Different frequencies produce strongest responses at different cochlear locations.",
+        "Gate control theory": "Compare the defining feature: Different frequencies produce strongest responses at different cochlear locations.",
+        "Genetic predisposition": "Compare the defining feature: Different frequencies produce strongest responses at different cochlear locations."
+      }
+    },
+    {
+      "id": "psy-conductive",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "A problem conducting sound through the eardrum or middle-ear bones causes which type of hearing loss?",
+      "prompt": "A problem conducting sound through the eardrum or middle-ear bones causes which type of hearing loss?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Conductive hearing loss",
+      "explanation": "Conductive loss affects the mechanical transmission of sound toward the inner ear.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: A problem conducting sound through the eardrum or middle-ear bones causes which type of hearing loss?"
+      ],
+      "choices": [
+        "Conductive hearing loss",
+        "Sensorineural hearing loss",
+        "Color blindness",
+        "Loss of taste"
+      ],
+      "distractorFeedback": {
+        "Sensorineural hearing loss": "Compare the defining feature: Conductive loss affects the mechanical transmission of sound toward the inner ear.",
+        "Color blindness": "Compare the defining feature: Conductive loss affects the mechanical transmission of sound toward the inner ear.",
+        "Loss of taste": "Compare the defining feature: Conductive loss affects the mechanical transmission of sound toward the inner ear."
+      }
+    },
+    {
+      "id": "psy-sensorineural",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Loud noise damages cochlear hair cells. Which type of hearing loss fits?",
+      "prompt": "Loud noise damages cochlear hair cells. Which type of hearing loss fits?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sensorineural hearing loss",
+      "explanation": "Cochlear hair-cell damage is sensorineural loss; the screenshot calls this nerve deafness.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Loud noise damages cochlear hair cells. Which type of hearing loss fits?"
+      ],
+      "choices": [
+        "Sensorineural hearing loss",
+        "Conductive hearing loss",
+        "Circadian disruption",
+        "Hormone deficiency"
+      ],
+      "distractorFeedback": {
+        "Conductive hearing loss": "Compare the defining feature: Cochlear hair-cell damage is sensorineural loss; the screenshot calls this nerve deafness.",
+        "Circadian disruption": "Compare the defining feature: Cochlear hair-cell damage is sensorineural loss; the screenshot calls this nerve deafness.",
+        "Hormone deficiency": "Compare the defining feature: Cochlear hair-cell damage is sensorineural loss; the screenshot calls this nerve deafness."
+      }
+    },
+    {
+      "id": "psy-hearing-compare",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Which comparison correctly distinguishes the hearing-loss types?",
+      "prompt": "Which comparison correctly distinguishes the hearing-loss types?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Conductive: sound transmission; sensorineural: inner-ear or auditory-nerve damage.",
+      "explanation": "Compare a mechanical transmission problem with sensory-cell or nerve damage.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Which comparison correctly distinguishes the hearing-loss types?"
+      ],
+      "choices": [
+        "Conductive: sound transmission; sensorineural: inner-ear or auditory-nerve damage.",
+        "Conductive: cone cells; sensorineural: tongue papillae.",
+        "Both refer only to the cerebral cortex.",
+        "Conductive: sleep timing; sensorineural: endocrine glands."
+      ],
+      "distractorFeedback": {
+        "Conductive: cone cells; sensorineural: tongue papillae.": "Compare the defining feature: Compare a mechanical transmission problem with sensory-cell or nerve damage.",
+        "Both refer only to the cerebral cortex.": "Compare the defining feature: Compare a mechanical transmission problem with sensory-cell or nerve damage.",
+        "Conductive: sleep timing; sensorineural: endocrine glands.": "Compare the defining feature: Compare a mechanical transmission problem with sensory-cell or nerve damage."
+      }
+    },
+    {
+      "id": "psy-gate",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Which theory proposes that pain signals can be modulated by a neural gate?",
+      "prompt": "Which theory proposes that pain signals can be modulated by a neural gate?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Gate control theory",
+      "explanation": "Gate control describes modulation of pain transmission, especially in spinal pathways. The screenshot’s priority analogy is simplified.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which theory proposes that pain signals can be modulated by a neural gate?"
+      ],
+      "acceptedAnswers": [
+        "gate control theory",
+        "gate-control theory"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-taste",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "The visible bumps on the tongue named in the notes are called what?",
+      "prompt": "The visible bumps on the tongue named in the notes are called what?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Papillae",
+      "explanation": "Taste receptor cells are in taste buds, many located within tongue papillae; the bumps are not themselves individual receptors.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: The visible bumps on the tongue named in the notes are called what?"
+      ],
+      "choices": [
+        "Papillae",
+        "Cones",
+        "Hemispheres",
+        "Terminal buttons"
+      ],
+      "distractorFeedback": {
+        "Cones": "Compare the defining feature: Taste receptor cells are in taste buds, many located within tongue papillae; the bumps are not themselves individual receptors.",
+        "Hemispheres": "Compare the defining feature: Taste receptor cells are in taste buds, many located within tongue papillae; the bumps are not themselves individual receptors.",
+        "Terminal buttons": "Compare the defining feature: Taste receptor cells are in taste buds, many located within tongue papillae; the bumps are not themselves individual receptors."
+      }
+    },
+    {
+      "id": "psy-dopamine-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Dopamine?",
+      "prompt": "Which function does the supplied table emphasize for Dopamine?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Motor movement and alertness",
+      "explanation": "Low activity is associated with Parkinson’s disease; excess dopamine activity in some pathways is associated with schizophrenia.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Dopamine?"
+      ],
+      "choices": [
+        "Motor movement and alertness",
+        "Excitation and memory",
+        "Inhibition",
+        "Pain control"
+      ],
+      "distractorFeedback": {
+        "Excitation and memory": "Compare the defining feature: Low activity is associated with Parkinson’s disease; excess dopamine activity in some pathways is associated with schizophrenia.",
+        "Inhibition": "Compare the defining feature: Low activity is associated with Parkinson’s disease; excess dopamine activity in some pathways is associated with schizophrenia.",
+        "Pain control": "Compare the defining feature: Low activity is associated with Parkinson’s disease; excess dopamine activity in some pathways is associated with schizophrenia."
+      }
+    },
+    {
+      "id": "psy-serotonin-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Serotonin?",
+      "prompt": "Which function does the supplied table emphasize for Serotonin?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Mood regulation",
+      "explanation": "The screenshot associates low serotonin with depression; this is a simplified association, not a complete causal explanation.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Serotonin?"
+      ],
+      "choices": [
+        "Mood regulation",
+        "Excitation and memory",
+        "Inhibition",
+        "Pain control"
+      ],
+      "distractorFeedback": {
+        "Excitation and memory": "Compare the defining feature: The screenshot associates low serotonin with depression; this is a simplified association, not a complete causal explanation.",
+        "Inhibition": "Compare the defining feature: The screenshot associates low serotonin with depression; this is a simplified association, not a complete causal explanation.",
+        "Pain control": "Compare the defining feature: The screenshot associates low serotonin with depression; this is a simplified association, not a complete causal explanation."
+      }
+    },
+    {
+      "id": "psy-norepinephrine-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Norepinephrine?",
+      "prompt": "Which function does the supplied table emphasize for Norepinephrine?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Alertness and arousal",
+      "explanation": "The screenshot associates low norepinephrine with depression; a disorder cannot be inferred from one messenger level.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Norepinephrine?"
+      ],
+      "choices": [
+        "Alertness and arousal",
+        "Excitation and memory",
+        "Inhibition",
+        "Pain control"
+      ],
+      "distractorFeedback": {
+        "Excitation and memory": "Compare the defining feature: The screenshot associates low norepinephrine with depression; a disorder cannot be inferred from one messenger level.",
+        "Inhibition": "Compare the defining feature: The screenshot associates low norepinephrine with depression; a disorder cannot be inferred from one messenger level.",
+        "Pain control": "Compare the defining feature: The screenshot associates low norepinephrine with depression; a disorder cannot be inferred from one messenger level."
+      }
+    },
+    {
+      "id": "psy-glutamate-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Glutamate?",
+      "prompt": "Which function does the supplied table emphasize for Glutamate?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Excitation and memory",
+      "explanation": "The screenshot links glutamate with migraines and seizures. Do not treat normal glutamate signaling as harmful.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Glutamate?"
+      ],
+      "choices": [
+        "Excitation and memory",
+        "Motor movement and alertness",
+        "Mood regulation",
+        "Alertness and arousal"
+      ],
+      "distractorFeedback": {
+        "Motor movement and alertness": "Compare the defining feature: The screenshot links glutamate with migraines and seizures. Do not treat normal glutamate signaling as harmful.",
+        "Mood regulation": "Compare the defining feature: The screenshot links glutamate with migraines and seizures. Do not treat normal glutamate signaling as harmful.",
+        "Alertness and arousal": "Compare the defining feature: The screenshot links glutamate with migraines and seizures. Do not treat normal glutamate signaling as harmful."
+      }
+    },
+    {
+      "id": "psy-gaba-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for GABA?",
+      "prompt": "Which function does the supplied table emphasize for GABA?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Inhibition",
+      "explanation": "GABA is a major inhibitory neurotransmitter. The screenshot’s problem cell is unclear and is not used as an answer key.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for GABA?"
+      ],
+      "choices": [
+        "Inhibition",
+        "Motor movement and alertness",
+        "Mood regulation",
+        "Alertness and arousal"
+      ],
+      "distractorFeedback": {
+        "Motor movement and alertness": "Compare the defining feature: GABA is a major inhibitory neurotransmitter. The screenshot’s problem cell is unclear and is not used as an answer key.",
+        "Mood regulation": "Compare the defining feature: GABA is a major inhibitory neurotransmitter. The screenshot’s problem cell is unclear and is not used as an answer key.",
+        "Alertness and arousal": "Compare the defining feature: GABA is a major inhibitory neurotransmitter. The screenshot’s problem cell is unclear and is not used as an answer key."
+      }
+    },
+    {
+      "id": "psy-endorphins-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Endorphins?",
+      "prompt": "Which function does the supplied table emphasize for Endorphins?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Pain control",
+      "explanation": "The screenshot associates endorphins with addiction. Learn pain modulation as the core function.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Endorphins?"
+      ],
+      "choices": [
+        "Pain control",
+        "Motor movement and alertness",
+        "Mood regulation",
+        "Alertness and arousal"
+      ],
+      "distractorFeedback": {
+        "Motor movement and alertness": "Compare the defining feature: The screenshot associates endorphins with addiction. Learn pain modulation as the core function.",
+        "Mood regulation": "Compare the defining feature: The screenshot associates endorphins with addiction. Learn pain modulation as the core function.",
+        "Alertness and arousal": "Compare the defining feature: The screenshot associates endorphins with addiction. Learn pain modulation as the core function."
+      }
+    },
+    {
+      "id": "psy-substance-p-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Substance P?",
+      "prompt": "Which function does the supplied table emphasize for Substance P?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Pain perception",
+      "explanation": "The screenshot associates reduced substance P with reduced pain perception.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Substance P?"
+      ],
+      "choices": [
+        "Pain perception",
+        "Motor movement and alertness",
+        "Mood regulation",
+        "Alertness and arousal"
+      ],
+      "distractorFeedback": {
+        "Motor movement and alertness": "Compare the defining feature: The screenshot associates reduced substance P with reduced pain perception.",
+        "Mood regulation": "Compare the defining feature: The screenshot associates reduced substance P with reduced pain perception.",
+        "Alertness and arousal": "Compare the defining feature: The screenshot associates reduced substance P with reduced pain perception."
+      }
+    },
+    {
+      "id": "psy-acetylcholine-function",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which function does the supplied table emphasize for Acetylcholine?",
+      "prompt": "Which function does the supplied table emphasize for Acetylcholine?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Motor movement",
+      "explanation": "The screenshot links reduced acetylcholine with Alzheimer’s disease and also notes myasthenia gravis and muscle weakness.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which function does the supplied table emphasize for Acetylcholine?"
+      ],
+      "choices": [
+        "Motor movement",
+        "Motor movement and alertness",
+        "Mood regulation",
+        "Alertness and arousal"
+      ],
+      "distractorFeedback": {
+        "Motor movement and alertness": "Compare the defining feature: The screenshot links reduced acetylcholine with Alzheimer’s disease and also notes myasthenia gravis and muscle weakness.",
+        "Mood regulation": "Compare the defining feature: The screenshot links reduced acetylcholine with Alzheimer’s disease and also notes myasthenia gravis and muscle weakness.",
+        "Alertness and arousal": "Compare the defining feature: The screenshot links reduced acetylcholine with Alzheimer’s disease and also notes myasthenia gravis and muscle weakness."
+      }
+    },
+    {
+      "id": "psy-dopamine-parkinson",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which messenger does the table associate with Parkinson’s disease when deficient?",
+      "prompt": "Which messenger does the table associate with Parkinson’s disease when deficient?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Dopamine",
+      "explanation": "This is the table’s dopamine association; disorders involve more than a single chemical level.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which messenger does the table associate with Parkinson’s disease when deficient?"
+      ],
+      "choices": [
+        "Dopamine",
+        "Substance P",
+        "Endorphins",
+        "GABA"
+      ],
+      "distractorFeedback": {
+        "Substance P": "Compare the defining feature: This is the table’s dopamine association; disorders involve more than a single chemical level.",
+        "Endorphins": "Compare the defining feature: This is the table’s dopamine association; disorders involve more than a single chemical level.",
+        "GABA": "Compare the defining feature: This is the table’s dopamine association; disorders involve more than a single chemical level."
+      }
+    },
+    {
+      "id": "psy-dopamine-schizophrenia",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which messenger does the table associate with schizophrenia when activity is excessive?",
+      "prompt": "Which messenger does the table associate with schizophrenia when activity is excessive?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Dopamine",
+      "explanation": "The table names dopamine. This association concerns some pathways and is not a full explanation of schizophrenia.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which messenger does the table associate with schizophrenia when activity is excessive?"
+      ],
+      "choices": [
+        "Dopamine",
+        "Acetylcholine",
+        "Substance P",
+        "Endorphins"
+      ],
+      "distractorFeedback": {
+        "Acetylcholine": "Compare the defining feature: The table names dopamine. This association concerns some pathways and is not a full explanation of schizophrenia.",
+        "Substance P": "Compare the defining feature: The table names dopamine. This association concerns some pathways and is not a full explanation of schizophrenia.",
+        "Endorphins": "Compare the defining feature: The table names dopamine. This association concerns some pathways and is not a full explanation of schizophrenia."
+      }
+    },
+    {
+      "id": "psy-depression-table",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which pair is associated with depression when deficient in the supplied table?",
+      "prompt": "Which pair is associated with depression when deficient in the supplied table?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Serotonin and norepinephrine",
+      "explanation": "This is a source-specific association. Depression has multiple interacting causes.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which pair is associated with depression when deficient in the supplied table?"
+      ],
+      "choices": [
+        "Serotonin and norepinephrine",
+        "Endorphins and substance P",
+        "GABA and acetylcholine",
+        "Glutamate and substance P"
+      ],
+      "distractorFeedback": {
+        "Endorphins and substance P": "Compare the defining feature: This is a source-specific association. Depression has multiple interacting causes.",
+        "GABA and acetylcholine": "Compare the defining feature: This is a source-specific association. Depression has multiple interacting causes.",
+        "Glutamate and substance P": "Compare the defining feature: This is a source-specific association. Depression has multiple interacting causes."
+      }
+    },
+    {
+      "id": "psy-glutamate-table",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which messenger does the table link with migraines and seizures?",
+      "prompt": "Which messenger does the table link with migraines and seizures?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Glutamate",
+      "explanation": "The table names glutamate, an excitatory messenger involved in memory.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which messenger does the table link with migraines and seizures?"
+      ],
+      "choices": [
+        "Glutamate",
+        "Endorphins",
+        "Substance P",
+        "Acetylcholine"
+      ],
+      "distractorFeedback": {
+        "Endorphins": "Compare the defining feature: The table names glutamate, an excitatory messenger involved in memory.",
+        "Substance P": "Compare the defining feature: The table names glutamate, an excitatory messenger involved in memory.",
+        "Acetylcholine": "Compare the defining feature: The table names glutamate, an excitatory messenger involved in memory."
+      }
+    },
+    {
+      "id": "psy-pain-compare",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Which distinction best matches the table?",
+      "prompt": "Which distinction best matches the table?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Endorphins: pain control; substance P: pain perception.",
+      "explanation": "Endorphins modulate pain; substance P helps transmit pain information.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Which distinction best matches the table?"
+      ],
+      "choices": [
+        "Endorphins: pain control; substance P: pain perception.",
+        "Endorphins: color vision; substance P: hearing.",
+        "Endorphins: inhibition; substance P: memory.",
+        "Both primarily regulate circadian timing."
+      ],
+      "distractorFeedback": {
+        "Endorphins: color vision; substance P: hearing.": "Compare the defining feature: Endorphins modulate pain; substance P helps transmit pain information.",
+        "Endorphins: inhibition; substance P: memory.": "Compare the defining feature: Endorphins modulate pain; substance P helps transmit pain information.",
+        "Both primarily regulate circadian timing.": "Compare the defining feature: Endorphins modulate pain; substance P helps transmit pain information."
+      }
+    },
+    {
+      "id": "psy-acetylcholine-table",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Which messenger does the table associate with Alzheimer’s disease when deficient?",
+      "prompt": "Which messenger does the table associate with Alzheimer’s disease when deficient?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Acetylcholine",
+      "explanation": "The source names acetylcholine. This association does not explain every aspect of Alzheimer’s disease.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Which messenger does the table associate with Alzheimer’s disease when deficient?"
+      ],
+      "choices": [
+        "Acetylcholine",
+        "GABA",
+        "Endorphins",
+        "Substance P"
+      ],
+      "distractorFeedback": {
+        "GABA": "Compare the defining feature: The source names acetylcholine. This association does not explain every aspect of Alzheimer’s disease.",
+        "Endorphins": "Compare the defining feature: The source names acetylcholine. This association does not explain every aspect of Alzheimer’s disease.",
+        "Substance P": "Compare the defining feature: The source names acetylcholine. This association does not explain every aspect of Alzheimer’s disease."
+      }
+    },
+    {
+      "id": "psy-myasthenia",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "What symptom does the screenshot associate with myasthenia gravis?",
+      "prompt": "What symptom does the screenshot associate with myasthenia gravis?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Muscle weakness",
+      "explanation": "The acetylcholine row names myasthenia gravis and muscle weakness.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: What symptom does the screenshot associate with myasthenia gravis?"
+      ],
+      "choices": [
+        "Muscle weakness",
+        "Enhanced color vision",
+        "Improved hearing",
+        "A 24-hour energy cycle"
+      ],
+      "distractorFeedback": {
+        "Enhanced color vision": "Compare the defining feature: The acetylcholine row names myasthenia gravis and muscle weakness.",
+        "Improved hearing": "Compare the defining feature: The acetylcholine row names myasthenia gravis and muscle weakness.",
+        "A 24-hour energy cycle": "Compare the defining feature: The acetylcholine row names myasthenia gravis and muscle weakness."
+      }
+    },
+    {
+      "id": "psy-excite-inhibit",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Which pair correctly contrasts excitation and inhibition?",
+      "prompt": "Which pair correctly contrasts excitation and inhibition?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Glutamate: excitatory; GABA: inhibitory.",
+      "explanation": "Remember the functional contrast: glutamate excites; GABA inhibits.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [
+        "Recall check: Which pair correctly contrasts excitation and inhibition?"
+      ],
+      "choices": [
+        "Glutamate: excitatory; GABA: inhibitory.",
+        "GABA: excitatory; glutamate: inhibitory.",
+        "Both are primarily visual pigments.",
+        "Both are tongue structures."
+      ],
+      "distractorFeedback": {
+        "GABA: excitatory; glutamate: inhibitory.": "Compare the defining feature: Remember the functional contrast: glutamate excites; GABA inhibits.",
+        "Both are primarily visual pigments.": "Compare the defining feature: Remember the functional contrast: glutamate excites; GABA inhibits.",
+        "Both are tongue structures.": "Compare the defining feature: Remember the functional contrast: glutamate excites; GABA inhibits."
+      }
+    },
+    {
+      "id": "psy-systems-match",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Match each term to its defining feature.",
+      "prompt": "Match each term to its defining feature.",
+      "difficulty": 1,
+      "format": "match",
+      "correct": {
+        "CNS": "Brain and spinal cord",
+        "Endocrine system": "Hormone-secreting glands",
+        "Neuron": "Individual nerve cell"
+      },
+      "explanation": "Use the distinguishing feature of each term.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Match each term to its defining feature."
+      ]
+    },
+    {
+      "id": "psy-senses-match",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Match the theory to the sense or process it explains.",
+      "prompt": "Match the theory to the sense or process it explains.",
+      "difficulty": 1,
+      "format": "match",
+      "correct": {
+        "Trichromatic theory": "Three cone types",
+        "Place theory": "Pitch and cochlear location",
+        "Gate control theory": "Pain modulation"
+      },
+      "explanation": "Use the distinguishing feature of each term.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        },
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Synaptic gap, gate control, and pain"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Match the theory to the sense or process it explains."
+      ]
+    },
+    {
+      "id": "psy-messengers-match",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Match each messenger to the function emphasized in the table.",
+      "prompt": "Match each messenger to the function emphasized in the table.",
+      "difficulty": 1,
+      "format": "match",
+      "correct": {
+        "GABA": "Inhibition",
+        "Glutamate": "Excitation and memory",
+        "Serotonin": "Mood regulation",
+        "Norepinephrine": "Alertness and arousal"
+      },
+      "explanation": "Use the distinguishing feature of each term.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Key terms"
+        },
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Neurotransmitter table"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Match each messenger to the function emphasized in the table."
+      ]
+    },
+    {
+      "id": "psy-written-neural",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Foundations",
+      "tags": [],
+      "objective": "Explain how two neurons communicate chemically.",
+      "prompt": "Explain how two neurons communicate chemically.",
+      "difficulty": 1,
+      "format": "written",
+      "correct": "A terminal button releases neurotransmitters into the synaptic gap. They cross the gap and bind to matching receptors on the receiving neuron.",
+      "explanation": "Chemical signaling links the sending and receiving cells.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.27 PM.jpeg",
+          "location": "screenshot 1",
+          "section": "Key terms"
+        },
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Synaptic gap, gate control, and pain"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Explain how two neurons communicate chemically."
+      ],
+      "rubric": [
+        "Identify terminal buttons as the release site.",
+        "Describe neurotransmitters crossing the synaptic gap.",
+        "Explain binding to corresponding receptors."
+      ]
+    },
+    {
+      "id": "psy-written-senses",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Sensation",
+      "tags": [],
+      "objective": "Explain the difference between trichromatic theory and opponent-process theory.",
+      "prompt": "Explain the difference between trichromatic theory and opponent-process theory.",
+      "difficulty": 1,
+      "format": "written",
+      "correct": "Trichromatic theory concerns three cone types and their combined activity. Opponent processing concerns opposing color channels such as red–green. The accounts can work together at different processing stages.",
+      "explanation": "Use both theories to explain color processing.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.28 PM (1).jpeg",
+          "location": "screenshot 2",
+          "section": "Key terms"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Explain the difference between trichromatic theory and opponent-process theory."
+      ],
+      "rubric": [
+        "Identify three cone types.",
+        "Name at least one valid opponent pair.",
+        "Distinguish cone responses from opponent processing."
+      ]
+    },
+    {
+      "id": "psy-written-pain",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Neurotransmitters",
+      "tags": [],
+      "objective": "Compare endorphins, substance P, and gate control theory.",
+      "prompt": "Compare endorphins, substance P, and gate control theory.",
+      "difficulty": 1,
+      "format": "written",
+      "correct": "Endorphins help control pain; substance P is involved in pain perception. Gate control theory explains modulation of pain transmission.",
+      "explanation": "A neurotransmitter and a theory are different kinds of explanation.",
+      "sources": [
+        {
+          "file": "Image 10-24-26 at 6.29 PM.jpeg",
+          "location": "screenshot 4",
+          "section": "Key terms"
+        },
+        {
+          "file": "Image 10-24-26 at 6.28 PM.jpeg",
+          "location": "screenshot 3",
+          "section": "Synaptic gap, gate control, and pain"
+        }
+      ],
+      "basis": "source",
+      "variants": [
+        "Recall check: Compare endorphins, substance P, and gate control theory."
+      ],
+      "rubric": [
+        "Connect endorphins with pain control.",
+        "Connect substance P with pain perception.",
+        "Describe a gate as modulating pain transmission."
+      ]
+    },
+    {
+      "id": "psy-pns",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which division includes nerves outside the brain and spinal cord?",
+      "prompt": "Which division includes nerves outside the brain and spinal cord?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Peripheral nervous system",
+      "explanation": "The PNS includes nerves outside the CNS.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "peripheral nervous system",
+        "PNS",
+        "the peripheral nervous system"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-somatic-lifting",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "You voluntarily lift weights. Which PNS division carries the commands to your skeletal muscles?",
+      "prompt": "You voluntarily lift weights. Which PNS division carries the commands to your skeletal muscles?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Somatic nervous system",
+      "explanation": "Voluntary skeletal-muscle control is a function of the somatic division.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Somatic nervous system",
+        "Autonomic nervous system",
+        "Parasympathetic nervous system",
+        "Central nervous system only"
+      ],
+      "distractorFeedback": {
+        "Autonomic nervous system": "Voluntary skeletal-muscle control is a function of the somatic division.",
+        "Parasympathetic nervous system": "Voluntary skeletal-muscle control is a function of the somatic division.",
+        "Central nervous system only": "Voluntary skeletal-muscle control is a function of the somatic division."
+      }
+    },
+    {
+      "id": "psy-sympathetic-test",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "You feel nervous before a test and your heart beats faster. Which division is most directly responsible?",
+      "prompt": "You feel nervous before a test and your heart beats faster. Which division is most directly responsible?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sympathetic nervous system",
+      "explanation": "Sympathetic activity prepares the body for action and increases heart rate.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sympathetic nervous system",
+        "Parasympathetic nervous system",
+        "Somatic nervous system",
+        "Sensory neuron"
+      ],
+      "distractorFeedback": {
+        "Parasympathetic nervous system": "Sympathetic activity prepares the body for action and increases heart rate.",
+        "Somatic nervous system": "Sympathetic activity prepares the body for action and increases heart rate.",
+        "Sensory neuron": "Sympathetic activity prepares the body for action and increases heart rate."
+      }
+    },
+    {
+      "id": "psy-glia",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which cells provide support, nourishment, protection, and maintenance for neurons?",
+      "prompt": "Which cells provide support, nourishment, protection, and maintenance for neurons?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Glial cells",
+      "explanation": "Glial cells support neurons. The worksheet’s wording is simplified: glia are not merely passive feeding cells.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "glial cells",
+        "glia",
+        "glial cell",
+        "neuroglia"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-autonomic",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which PNS division generally regulates internal organs without conscious decision-making?",
+      "prompt": "Which PNS division generally regulates internal organs without conscious decision-making?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Autonomic nervous system",
+      "explanation": "Autonomic pathways regulate automatic functions of organs and glands.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Autonomic nervous system",
+        "Somatic nervous system",
+        "Sensory neurons only",
+        "Schwann cells"
+      ],
+      "distractorFeedback": {
+        "Somatic nervous system": "Autonomic pathways regulate automatic functions of organs and glands.",
+        "Sensory neurons only": "Autonomic pathways regulate automatic functions of organs and glands.",
+        "Schwann cells": "Autonomic pathways regulate automatic functions of organs and glands."
+      }
+    },
+    {
+      "id": "psy-parasympathetic",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which autonomic division supports rest and digestion?",
+      "prompt": "Which autonomic division supports rest and digestion?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Parasympathetic nervous system",
+      "explanation": "Parasympathetic activity supports digestion and can slow heart rate.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Parasympathetic nervous system",
+        "Sympathetic nervous system",
+        "Somatic nervous system",
+        "Peripheral nervous system as a whole"
+      ],
+      "distractorFeedback": {
+        "Sympathetic nervous system": "Parasympathetic activity supports digestion and can slow heart rate.",
+        "Somatic nervous system": "Parasympathetic activity supports digestion and can slow heart rate.",
+        "Peripheral nervous system as a whole": "Parasympathetic activity supports digestion and can slow heart rate."
+      }
+    },
+    {
+      "id": "psy-pns-divisions",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which pair represents the two major divisions of the PNS shown in the chart?",
+      "prompt": "Which pair represents the two major divisions of the PNS shown in the chart?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Somatic and autonomic",
+      "explanation": "The chart divides the PNS into somatic and autonomic systems.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Somatic and autonomic",
+        "Sympathetic and central",
+        "Brain and spinal cord",
+        "Sensory and Schwann cells"
+      ],
+      "distractorFeedback": {
+        "Sympathetic and central": "The chart divides the PNS into somatic and autonomic systems.",
+        "Brain and spinal cord": "The chart divides the PNS into somatic and autonomic systems.",
+        "Sensory and Schwann cells": "The chart divides the PNS into somatic and autonomic systems."
+      }
+    },
+    {
+      "id": "psy-autonomic-divisions",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which pair branches from the autonomic nervous system?",
+      "prompt": "Which pair branches from the autonomic nervous system?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sympathetic and parasympathetic",
+      "explanation": "Sympathetic and parasympathetic are the chart’s two autonomic branches.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sympathetic and parasympathetic",
+        "Central and peripheral",
+        "Brain and spinal cord",
+        "Somatic and sensory"
+      ],
+      "distractorFeedback": {
+        "Central and peripheral": "Sympathetic and parasympathetic are the chart’s two autonomic branches.",
+        "Brain and spinal cord": "Sympathetic and parasympathetic are the chart’s two autonomic branches.",
+        "Somatic and sensory": "Sympathetic and parasympathetic are the chart’s two autonomic branches."
+      }
+    },
+    {
+      "id": "psy-sympathetic-digestion",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "During fight-or-flight activation, which pattern matches the chart?",
+      "prompt": "During fight-or-flight activation, which pattern matches the chart?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Faster heart rate and reduced digestive activity",
+      "explanation": "Sympathetic activation redirects resources toward rapid action rather than digestion.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Faster heart rate and reduced digestive activity",
+        "Slower heart rate and increased digestion",
+        "No change to internal organs",
+        "Voluntary movement stops completely"
+      ],
+      "distractorFeedback": {
+        "Slower heart rate and increased digestion": "Sympathetic activation redirects resources toward rapid action rather than digestion.",
+        "No change to internal organs": "Sympathetic activation redirects resources toward rapid action rather than digestion.",
+        "Voluntary movement stops completely": "Sympathetic activation redirects resources toward rapid action rather than digestion."
+      }
+    },
+    {
+      "id": "psy-afferent",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "What term describes sensory neurons carrying signals toward the CNS?",
+      "prompt": "What term describes sensory neurons carrying signals toward the CNS?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Afferent neurons",
+      "explanation": "Afferent means toward the CNS; sensory input arrives there.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "afferent",
+        "afferent neuron",
+        "afferent neurons",
+        "sensory neuron",
+        "sensory neurons"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-efferent",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "What term describes motor neurons carrying commands away from the CNS?",
+      "prompt": "What term describes motor neurons carrying commands away from the CNS?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Efferent neurons",
+      "explanation": "Efferent means away from the CNS, toward effectors.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "efferent",
+        "efferent neuron",
+        "efferent neurons",
+        "motor neuron",
+        "motor neurons"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-interneurons",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which neurons connect other neurons within the CNS?",
+      "prompt": "Which neurons connect other neurons within the CNS?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Interneurons",
+      "explanation": "Interneurons connect neurons and participate in CNS processing, including reflex circuits.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "interneuron",
+        "interneurons",
+        "inter neuron"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-schwann",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which PNS support cells form myelin around axons?",
+      "prompt": "Which PNS support cells form myelin around axons?",
+      "difficulty": 1,
+      "format": "recall",
+      "correct": "Schwann cells",
+      "explanation": "Schwann cells are PNS glia that form myelin around axons.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "acceptedAnswers": [
+        "Schwann cells",
+        "Schwann cell",
+        "Schwann"
+      ],
+      "typoTolerance": false
+    },
+    {
+      "id": "psy-schwann-repair",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Besides making myelin, what role does the table assign to Schwann cells?",
+      "prompt": "Besides making myelin, what role does the table assign to Schwann cells?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Clearing debris and guiding PNS axon regrowth",
+      "explanation": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Clearing debris and guiding PNS axon regrowth",
+        "Producing all sensory input",
+        "Controlling voluntary decisions",
+        "Replacing the entire spinal cord"
+      ],
+      "distractorFeedback": {
+        "Producing all sensory input": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible.",
+        "Controlling voluntary decisions": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible.",
+        "Replacing the entire spinal cord": "The table describes cleanup and guidance of regrowing PNS axons; it does not promise all nerve damage is reversible."
+      }
+    },
+    {
+      "id": "psy-glia-contrast",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Which statement best distinguishes glial cells from neurons in this study material?",
+      "prompt": "Which statement best distinguishes glial cells from neurons in this study material?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Glia support and maintain neurons; neurons carry the main nerve impulses.",
+      "explanation": "Learn the main support role of glia without treating them as biologically inactive.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Glia support and maintain neurons; neurons carry the main nerve impulses.",
+        "Glia are all motor neurons.",
+        "Glia have no role in nervous-system function.",
+        "Neurons only supply nutrition."
+      ],
+      "distractorFeedback": {
+        "Glia are all motor neurons.": "Learn the main support role of glia without treating them as biologically inactive.",
+        "Glia have no role in nervous-system function.": "Learn the main support role of glia without treating them as biologically inactive.",
+        "Neurons only supply nutrition.": "Learn the main support role of glia without treating them as biologically inactive."
+      }
+    },
+    {
+      "id": "psy-effector",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "In a withdrawal reflex, which structure produces the physical movement?",
+      "prompt": "In a withdrawal reflex, which structure produces the physical movement?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "A skeletal muscle acting as an effector",
+      "explanation": "Motor output activates an effector muscle, which contracts to move the limb.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "A skeletal muscle acting as an effector",
+        "The hot surface",
+        "A skin receptor alone",
+        "A sensory neuron alone"
+      ],
+      "distractorFeedback": {
+        "The hot surface": "Motor output activates an effector muscle, which contracts to move the limb.",
+        "A skin receptor alone": "Motor output activates an effector muscle, which contracts to move the limb.",
+        "A sensory neuron alone": "Motor output activates an effector muscle, which contracts to move the limb."
+      }
+    },
+    {
+      "id": "psy-reflex-receptor",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "When your hand touches a hot surface, what detects the potentially damaging stimulus first?",
+      "prompt": "When your hand touches a hot surface, what detects the potentially damaging stimulus first?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sensory receptors in the skin",
+      "explanation": "Skin receptors detect the stimulus and initiate sensory input.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sensory receptors in the skin",
+        "The contracting muscle",
+        "The parasympathetic division",
+        "A Schwann cell in place of a receptor"
+      ],
+      "distractorFeedback": {
+        "The contracting muscle": "Skin receptors detect the stimulus and initiate sensory input.",
+        "The parasympathetic division": "Skin receptors detect the stimulus and initiate sensory input.",
+        "A Schwann cell in place of a receptor": "Skin receptors detect the stimulus and initiate sensory input."
+      }
+    },
+    {
+      "id": "psy-reflex-integration",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "In the illustrated withdrawal reflex, where does an interneuron connect sensory input to motor output?",
+      "prompt": "In the illustrated withdrawal reflex, where does an interneuron connect sensory input to motor output?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Spinal cord",
+      "explanation": "This withdrawal reflex is integrated through a spinal-cord circuit.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Spinal cord",
+        "The hot surface",
+        "The tongue",
+        "An endocrine gland"
+      ],
+      "distractorFeedback": {
+        "The hot surface": "This withdrawal reflex is integrated through a spinal-cord circuit.",
+        "The tongue": "This withdrawal reflex is integrated through a spinal-cord circuit.",
+        "An endocrine gland": "This withdrawal reflex is integrated through a spinal-cord circuit."
+      }
+    },
+    {
+      "id": "psy-reflex-response",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "After the motor neuron activates the muscle in this reflex, what physical response follows?",
+      "prompt": "After the motor neuron activates the muscle in this reflex, what physical response follows?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "The hand withdraws from the hot surface.",
+      "explanation": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "The hand withdraws from the hot surface.",
+        "The receptor becomes a gland.",
+        "The spinal cord leaves the CNS.",
+        "The hand must remain on the surface."
+      ],
+      "distractorFeedback": {
+        "The receptor becomes a gland.": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement.",
+        "The spinal cord leaves the CNS.": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement.",
+        "The hand must remain on the surface.": "Muscle contraction withdraws the hand; the diagram starts with contact and ends with movement."
+      }
+    },
+    {
+      "id": "psy-reflex-awareness",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Why can you withdraw your hand before consciously recognizing the pain?",
+      "prompt": "Why can you withdraw your hand before consciously recognizing the pain?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "A spinal reflex circuit can initiate withdrawal before conscious awareness.",
+      "explanation": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "choices": [
+        "A spinal reflex circuit can initiate withdrawal before conscious awareness.",
+        "The brain never receives sensory information.",
+        "Motor neurons send signals only toward the CNS.",
+        "Pain requires no receptors."
+      ],
+      "distractorFeedback": {
+        "The brain never receives sensory information.": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness.",
+        "Motor neurons send signals only toward the CNS.": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness.",
+        "Pain requires no receptors.": "The spinal circuit can trigger movement quickly. Sensory information also travels to the brain for awareness."
+      }
+    },
+    {
+      "id": "psy-toe-sensory",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "You stub your toe. Which type of neuron carries the sensory message toward the spinal cord and brain?",
+      "prompt": "You stub your toe. Which type of neuron carries the sensory message toward the spinal cord and brain?",
+      "difficulty": 1,
+      "format": "choice",
+      "correct": "Sensory (afferent) neuron",
+      "explanation": "Sensory afferent neurons carry input toward the CNS.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "source",
+      "variants": [],
+      "choices": [
+        "Sensory (afferent) neuron",
+        "Motor (efferent) neuron",
+        "Schwann cell",
+        "Glial cell only"
+      ],
+      "distractorFeedback": {
+        "Motor (efferent) neuron": "Sensory afferent neurons carry input toward the CNS.",
+        "Schwann cell": "Sensory afferent neurons carry input toward the CNS.",
+        "Glial cell only": "Sensory afferent neurons carry input toward the CNS."
+      }
+    },
+    {
+      "id": "psy-reflex-order",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [
+        "boss"
+      ],
+      "objective": "Which sequence correctly traces the core withdrawal-reflex pathway?",
+      "prompt": "Which sequence correctly traces the core withdrawal-reflex pathway?",
+      "difficulty": 2,
+      "format": "choice",
+      "correct": "Receptor → sensory neuron → spinal interneuron → motor neuron → muscle",
+      "explanation": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "choices": [
+        "Receptor → sensory neuron → spinal interneuron → motor neuron → muscle",
+        "Muscle → motor neuron → receptor → sensory neuron",
+        "Receptor → motor neuron → sensory neuron → muscle",
+        "Brain decision → hot surface → Schwann cell → muscle"
+      ],
+      "distractorFeedback": {
+        "Muscle → motor neuron → receptor → sensory neuron": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector.",
+        "Receptor → motor neuron → sensory neuron → muscle": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector.",
+        "Brain decision → hot surface → Schwann cell → muscle": "Input travels inward through a sensory neuron, is integrated in the spinal cord, and travels outward through a motor neuron to an effector."
+      }
+    },
+    {
+      "id": "psy-system-diagram",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Fill the six blank labels in the nervous-system tree.",
+      "prompt": "Fill the six blank labels in the nervous-system tree.",
+      "difficulty": 2,
+      "format": "match",
+      "correct": {
+        "A": "Central nervous system (CNS)",
+        "B": "Peripheral nervous system (PNS)",
+        "C": "Autonomic nervous system",
+        "D": "Somatic nervous system",
+        "E": "Sympathetic nervous system",
+        "F": "Parasympathetic nervous system"
+      },
+      "explanation": "Nervous system → CNS and PNS. PNS → autonomic and somatic. Autonomic → sympathetic and parasympathetic. Use the branching structure and function clues together.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.19.08 PM.png",
+          "location": "screenshot 6",
+          "section": "Sending Messages chart and cell table"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "diagram": "nervous-system"
+    },
+    {
+      "id": "psy-reflex-diagram",
+      "version": 1,
+      "unit": "psy-unit1",
+      "topic": "Nervous system",
+      "tags": [],
+      "objective": "Complete the reflex pathway, from touching a hot surface to withdrawing your hand.",
+      "prompt": "Complete the reflex pathway, from touching a hot surface to withdrawing your hand.",
+      "difficulty": 2,
+      "format": "match",
+      "correct": {
+        "A": "Skin receptors",
+        "B": "Sensory (afferent) neuron",
+        "C": "Interneuron in the spinal cord",
+        "D": "Motor (efferent) neuron",
+        "E": "Effector muscle"
+      },
+      "explanation": "Heat/pain receptors → sensory input toward the spinal cord → spinal interneuron → motor output away from the cord → effector muscle contracts → hand withdraws. Brain awareness can follow the initial spinal response.",
+      "sources": [
+        {
+          "file": "Screenshot 2026-10-24 at 7.16.30 PM.png",
+          "location": "screenshot 5",
+          "section": "Reflex worksheet"
+        }
+      ],
+      "basis": "synthesis",
+      "variants": [],
+      "diagram": "reflex-arc"
+    }
+  ]
+}

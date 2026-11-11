@@ -1,0 +1,5 @@
+qa/
+node_modules/
+*.pdf
+*.pptx
+Clay_Study_App_Build_Prompt.txt
